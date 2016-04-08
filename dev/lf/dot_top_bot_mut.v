@@ -438,13 +438,21 @@ fix F (c : ctx) (s : sigma) (s0 : stack) (w : wf_stack c s s0) {struct w} :
 Qed.
 
 (* Best attempt at replacement of induction *)
-Ltac induction_wf_stack Wf :=
+Ltac induction_wf Wf :=
   match type of Wf with
   | (wf_stack ?G ?S ?stack0) =>
           pattern G,S,stack0; (* This causes better matching with apply. *)
           eapply wf_stack_ind;
           try eexact Wf;
           clear G S stack0 Wf
+          (* When you prove store induction too, enable this *)
+          (*
+  | (wf_store ?G ?S ?store0) =>
+          pattern G,S,store0; (* This causes better matching with apply. *)
+          eapply wf_store_ind;
+          try eexact Wf;
+          clear G S store0 Wf
+          *)
   end.
 
 (* ###################################################################### *)
