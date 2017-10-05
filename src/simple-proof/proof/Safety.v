@@ -64,15 +64,6 @@ Proof with auto.
       apply IHds...
 Qed.
 
-(* Inductive subenv : ctx -> ctx -> Prop := *)
-(* (* any env is a subenv of empty *) *)
-(* | subenv_empty    : forall G           , subenv G empty *)
-(* (* any already subenv can feel free to grow *) *)
-(* | subenv_grow_sub : forall x T G1 G2   , subenv G1 G2 -> ok (G1 & x ~ T) -> subenv (G1 & x ~ T) G2 *)
-(* (* a subenv is still a subenv if it contains the element the env is trying to add *) *)
-(* | subenv_grow_sup : forall x T T' G1 G2, subenv G1 G2 -> ok (G2 & x ~ T) -> binds x T' G1 -> G1 ⊢ T' <: T -> subenv G1 (G2 & x ~ T). *)
-
-
 Lemma open_rec_eval_to_open_rec : forall k e x t t' L,
   x \notin L ->
   e[ open_rec_trm k x t |-> t'] ->
@@ -84,34 +75,90 @@ Proof.
   induction t; intros; try (solve [inversion H0]).
 Admitted.
 
-Lemma empty_is_top : forall G, subenv G empty.
+Lemma subenv_empty_supremum : forall G, subenv G empty.
 Proof.
   unfold subenv. intros.
   unfold binds in H. rewrite get_empty in H.
   inversion H.
 Qed.
 
-(* Lemma empty_env_inv : forall G, subenv empty G -> G = empty. *)
-(* Proof. *)
-(*   intros. unfold subenv in *. induction G using env_ind. *)
-(*   trivial. *)
-(*   unfold subenv2 in *. *)
+Inductive indc_subenv: ctx -> ctx -> Prop :=
+| new_subenv_empty : indc_subenv empty empty
+| new_subenv_push: forall G G' x T T',
+    indc_subenv G G' ->
+    ok G ->
+    ok G' ->
+    x # G ->
+    x # G' ->
+    G ⊢ T <: T' ->
+    indc_subenv (G & x ~ T) (G' & x ~ T').
+Hint Constructors indc_subenv.
 
-(* Lemma empty_subenv_inv : forall G, subenv empty G -> G = empty. *)
-(* Proof. *)
-(*   intros. induction G using env_ind. *)
-  
-Lemma subenv_trans : forall G1 G2 G3,
-    subenv G1 G2 -> subenv G2 G3 -> subenv G1 G3.
+Lemma indc_subenv_implies_subenv : forall G1 G2,
+    indc_subenv G1 G2 -> subenv G1 G2.
 Proof.
-  induction G1 using env_ind; intros.
-  - unfold subenv in *. intros.
-    destruct (H x T2); auto.
-    destruct (H0 x T2); auto.
-    destruct H2 as [T1 [Hb1 Hsub]].
-Admitted.
-(* Qed. *)
+  introv H. induction H.
+  - apply subenv_empty_supremum.
+  - unfold subenv. intros y Tb Bi. apply binds_push_inv in Bi. destruct Bi as [Bi | Bi].
+    + destruct Bi. subst. right. exists T. split.
+      * apply binds_push_eq.
+      * apply weaken_subtyp; auto.
+    + destruct Bi. unfold subenv in IHindc_subenv.
+      destruct (IHindc_subenv _ _ H6).
+      * left. apply binds_push_neq; trivial.
+      * destruct H7 as [T1 [Hb Hs]]. right.
+        exists T1. split.
+        -- apply binds_push_neq; trivial.
+        -- apply weaken_subtyp; auto. 
+Qed.
+Hint Resolve indc_subenv_implies_subenv.
 
+Lemma indc_subenv_empty_inv : forall G, indc_subenv empty G -> G = empty.
+Proof.
+  intros. dependent induction H.
+  - trivial.
+  - renames x to H5. symmetry in H5. apply empty_push_inv in H5. contradiction.
+Qed.
+
+Lemma indc_subenv_refl : forall G, ok G -> indc_subenv G G.
+Proof.
+  intros G H. induction H; auto.
+Qed.
+Hint Resolve indc_subenv_refl.
+
+Lemma indc_subenv_trans : forall G1 G2 G3,
+    indc_subenv G1 G2 ->
+    indc_subenv G2 G3 ->
+    indc_subenv G1 G3.
+Proof.
+  introv H. gen G3. induction H; intros; auto.
+  dependent induction H5.
+  - apply empty_push_inv in x. contradiction.
+  - rename x into He. apply eq_push_inv in He. destruct_all.
+    subst.
+    apply IHindc_subenv in H5.
+    constructor; auto.
+    apply indc_subenv_implies_subenv in H.
+    apply narrow_subtyping with (G':=G) in H10; auto.
+    eapply subtyp_trans; eauto.
+Qed.
+Hint Resolve indc_subenv_trans.
+
+Lemma indc_subenv_push : forall G1 G2 x T,
+    indc_subenv G1 G2 ->
+    ok (G1 & x ~ T) -> ok (G2 & x ~ T) ->
+    indc_subenv (G1 & x ~ T) (G2 & x ~ T).
+Proof.
+  intros. induction H; intros; auto.
+  constructor; auto;
+    repeat
+      match goal with
+      | H : empty = _ & _ |- _ => destruct (empty_push_inv H)
+      | H : _ & _ ~ _ = _ & _ ~ _ & _ ~ _ |- _ => apply eq_push_inv in H; destruct_all; subst; trivial
+      | H : ok (?G & ?x ~ ?T & _ ~ _) |- x # ?G & ?x ~ ?T => inversion H
+      end.
+Qed.
+Hint Resolve indc_subenv_push.
 
 Lemma eval_renaming: forall x y e t t1 t2,
     x \notin (dom e) \u (fv_val t) \u (fv_trm t1) \u (fv_trm t2) ->
@@ -121,35 +168,17 @@ Lemma eval_renaming: forall x y e t t1 t2,
 Proof. Admitted.
 
 
-Lemma red_term_not_nf : forall e t t',
-    e[t |-> t'] -> ~normal_form t.
-Proof.
-  unfold not. intros. 
-  induction H; inversion H0; subst.
-  - inversion H.
-  - assert (forall k x L, x \notin L -> normal_form (open_rec_trm k x t)). {
-      clear e t' v L H H1 H0. induction H3; intros; simpl; try solve [constructor].
-      constructor. admit.
-    }    
-Admitted.
-
-Lemma subst_normal_form : forall k x y t,
-    x \notin (fv_trm t) ->
-    y \notin (fv_trm t) ->
-    normal_form (open_rec_trm k x t) -> normal_form (open_rec_trm k y t).
-Proof.
-Admitted.
-
-
-Corollary subst_not_nf : forall k x y t,
-    x \notin (fv_trm t) ->
-    y \notin (fv_trm t) ->
-    ~normal_form (open_rec_trm k x t) -> ~normal_form (open_rec_trm k y t).
-Proof.
-  intros. intro Contra.
-  apply subst_normal_form with (x:=y) (y:=x) in Contra; auto.
-Qed.
-
+(* Lemma red_term_not_nf : forall e t t', *)
+(*     e[t |-> t'] -> ~normal_form t. *)
+(* Proof. *)
+(*   unfold not. intros.  *)
+(*   induction H; inversion H0; subst. *)
+(*   - inversion H. *)
+(*   - assert (forall k x L, x \notin L -> normal_form (open_rec_trm k x t)). { *)
+(*       clear e t' v L H H1 H0. induction H3; intros; simpl; try solve [constructor]. *)
+(*       constructor. admit. *)
+(*     }     *)
+(* Admitted. *)
 
 Lemma typ_renaming : forall x y G T U t L,
     x \notin L ->
@@ -160,7 +189,7 @@ Proof.
 Admitted.
 
 Lemma progress_ec: forall G' G e t T,
-    subenv G' G ->
+    indc_subenv G' G ->
     inert G' ->
     G' ~~ e ->
     G ⊢ t: T ->
@@ -186,22 +215,11 @@ Proof.
     + apply val_typing in Ht.
       destruct Ht as [T' [H1 H2]].
       pose proof (precise_inert_typ H1) as Hpit.
-      (* assert (Hgse: forall x, x \notin (L \u dom G' \u fv_ctx_types G' \u dom G \u fv_ctx_types G) -> *)
-      (*                    subenv (G' & x ~ T') (G & x ~ T)). { *)
-      (*   intros. eapply subenv_trans. *)
-      (*   - eapply subenv_push; eauto. *)
-      (*   - eapply subenv_last; auto. *)
-      (* } *)
-      (* assert (Hewf: forall x, x \notin (L \u dom G' \u dom e) -> G' & x ~ T' ~~ e & x ~ v). { *)
-      (*   intros. apply precise_to_general in H1. *)
-      (*   constructor; auto. eapply narrow_typing in H1; eauto. *)
-      (* } *)
-      
       pick_fresh x.
       destruct H0 with (x:=x) (G' := G' & x ~ T') (e := e & x ~ v); auto.
-      * intros. eapply subenv_trans.
-        -- eapply subenv_push; eauto.
-        -- eapply subenv_last; auto. 
+      * intros. eapply indc_subenv_trans.
+        -- econstructor; eauto. 
+        -- econstructor; eauto. 
       * intros. apply precise_to_general in H1.
         constructor; auto. eapply narrow_typing in H1; eauto.
       * left.
@@ -211,23 +229,10 @@ Proof.
         apply (open_rec_eval_to_open_rec _ _ Fr) in H3.
         destruct H3. destruct H3. subst.
         eexists. eapply red_let_val.
-        (* assert (forall x, x \notin (((((((((L \u dom G) \u fv_ctx_types G) \u dom G') *)
-        (*                               \u fv_ctx_types G') \u dom e) \u fv_trm u) \u fv_val v) *)
-        (*                           \u fv_typ T) \u fv_typ U) \u fv_typ T' -> *)
-        (*              e & x ~ v[open_trm x u |-> open_trm x x1]). { *)
-        (*   pose proof H4 as myH. *)
-        (*   intros. apply red_term_not_nf in H4. *)
-        (*   apply subst_not_nf with (y:=x0) in H4; auto. *)
-        (*   destruct H0 with (x:=x0) (G' := G' & x0 ~ T') (e := e & x0 ~ v); auto. *)
-        (*   - contradiction. *)
-        (*   - destruct H6. pose proof H6. *)
-        (*     apply (open_rec_eval_to_open_rec _ _ H5) in H6. *)
-        (*     destruct H6. destruct H6. subst. *)
-        (*   eapply H0. *)
-        (* } *)
         intros.
         (* this in fact sounds like can be discharged by asserting it's not normal form *)
         eapply eval_renaming with (x:=x); eauto.
+        (* exists x. eauto. *)
     + SCase "t = trm_sel a t".
       right. destruct (IHHt Hokg G' Hsenv Hig e Hwf) as [Hnf | [t' Hr]]. inversion Hnf.
       eexists. constructor*.
@@ -252,7 +257,7 @@ Qed.
 (** * Preservation *)
 
 Lemma preservation_ec: forall G G' e t t' T,
-    subenv G' G ->
+    indc_subenv G' G ->
     G' ~~ e ->
     inert G' ->
     G ⊢ t: T ->
@@ -310,11 +315,32 @@ Proof.
          econstructor; eauto. intros.
          instantiate (1 := bigL) in H2.
          unfold open_trm, open_rec_trm. fold open_rec_trm.
-         admit. 
+
+         assert (open_rec_trm 1 x u = u). { admit. }
+         rewrite H3. clear H3.
+         
+         rewrite HeqbigL in H2.
+         assert (x \notin L0); auto.
+         specialize (H _ H3). 
+         assert (subenv (G' & x ~ T) (G & x ~ T)). {
+           apply subenv_push; auto.
+         }
+         apply narrow_typing with (G' := G' & x ~ T) in H; auto.
+         rewrite <- HeqbigL in H2.         
+         econstructor; eauto.
+
+         intros. instantiate (1 := bigL \u \{ x }) in H5.
+
+         subst bigL.
+         assert (x0 \notin L \u dom G); auto.
+         specialize (H1 _ H6).
+         assert (G' & x0 ~ U0 ⊢ open_trm x0 u : U). {
+           eapply narrow_typing; [eassumption | |]; auto.
+         }
+         eapply (proj1 weaken_rules); eauto.
       -- eapply IHHt; eauto; intros.
          specialize (H0 _ H1).
          eapply narrow_typing; eauto.
-         apply subenv_last; auto.
     * SCase "red_let_trm".
       specialize (IHHt Hok _ Hsenv Hi _ Hwf t'0 H5).
       eapply ty_let; eauto. intros.
@@ -324,9 +350,6 @@ Proof.
       assert (x \notin L); auto.
       specialize (H x H2).
       apply narrow_typing with (G':=G' & x ~ T) in H; auto.
-      eapply subenv_trans.
-      -- eapply subenv_push; eauto.
-      -- eapply subenv_last; auto. 
     * SCase "red_let_val".
       apply val_typing in Ht.
       destruct Ht as [T' [H1 H2]].
@@ -336,11 +359,8 @@ Proof.
       apply narrow_typing with (G':=G') in Htt; auto.
       pick_fresh x. assert (x \notin L); auto.
       assert (ok (G & x ~ T)); auto.
-      assert (subenv (G' & x ~ T') (G & x ~ T)). {
-        eapply subenv_trans.
-        -- eapply subenv_push; eauto.
-        -- eapply subenv_last; auto. 
-      }
+      assert (indc_subenv (G' & x ~ T') (G & x ~ T)). {
+        apply indc_subenv_trans with (G & x ~ T'); auto. }
       assert (inert (G' & x ~ T')); auto.
       assert (G' & x ~ T' ~~ e & x ~ v). {
         constructor; auto.
@@ -366,5 +386,5 @@ Theorem preservation: forall (t t' : trm) T,
   t |-> t' ->
   ⊢ t' : T.
 Proof.
-  intros. apply* preservation_ec. apply empty_is_top. constructor.
+  intros. apply* preservation_ec. constructor.
 Qed.
