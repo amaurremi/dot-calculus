@@ -160,43 +160,41 @@ Proof.
 Qed.
 Hint Resolve indc_subenv_push.
 
+Lemma open_lc_let_body : forall k t u x,
+    k >= 1 ->
+    lc_trm (trm_let t u) ->
+    open_rec_trm k x u = u.
+Proof.
+  introv Hk H. inversion H.
+  specialize (H3 x).
+  pose proof H3 as H4.
+  apply lc_opening with (n:=k) (x:=x) in H3.
+  eapply (proj1 (lc_open_rec_open_trm_val_def_defs x _)).
+  - intro Contra. instantiate (1 := 0) in Contra. Coq.omega.Omega.omega.
+  - eassumption.
+Qed.
+Hint Rewrite open_lc_let_body.
+Hint Resolve open_lc_let_body.      
+  
+  
 Lemma eval_renaming: forall x y e t t1 t2,
     x \notin (dom e) \u (fv_val t) \u (fv_trm t1) \u (fv_trm t2) ->
     (e & x ~ t)[ open_trm x t1 |-> open_trm x t2 ] ->
     y \notin (dom e) \u (fv_val t) \u (fv_trm t1) \u (fv_trm t2) ->
     (e & y ~ t)[ open_trm y t1 |-> open_trm y t2 ].
 Proof. Admitted.
-
-
-(* Lemma red_term_not_nf : forall e t t', *)
-(*     e[t |-> t'] -> ~normal_form t. *)
-(* Proof. *)
-(*   unfold not. intros.  *)
-(*   induction H; inversion H0; subst. *)
-(*   - inversion H. *)
-(*   - assert (forall k x L, x \notin L -> normal_form (open_rec_trm k x t)). { *)
-(*       clear e t' v L H H1 H0. induction H3; intros; simpl; try solve [constructor]. *)
-(*       constructor. admit. *)
-(*     }     *)
-(* Admitted. *)
-
-Lemma typ_renaming : forall x y G T U t L,
-    x \notin L ->
-    y \notin L ->
-    G & x ~ T ⊢ open_trm x t : U ->
-    G & y ~ T ⊢ open_trm y t : U.
-Proof.
-Admitted.
+ 
 
 Lemma progress_ec: forall G' G e t T,
+    lc_trm t ->
     indc_subenv G' G ->
     inert G' ->
     G' ~~ e ->
     G ⊢ t: T ->
     ok G ->
     (normal_form t \/ exists t', e[t |-> t']).
-Proof.
-  introv Hsenv Hig Hwf Ht Hokg. gen G' e.
+Proof with auto.
+  introv Hlc Hsenv Hig Hwf Ht Hokg. gen G' e.
   induction Ht; eauto; intros.
   - Case "ty_all_elim".
     apply narrow_typing with (G':=G') in Ht1; auto.
@@ -211,15 +209,14 @@ Proof.
     + SCase "t = trm_var a".
       apply narrow_typing with (G':=G') in Ht; auto.
       destruct (var_typing_implies_avar_f Ht); subst.
-      right. exists (open_trm x u). constructor.
+      right. exists (open_trm x u). constructor...      
     + apply val_typing in Ht.
       destruct Ht as [T' [H1 H2]].
       pose proof (precise_inert_typ H1) as Hpit.
       pick_fresh x.
       destruct H0 with (x:=x) (G' := G' & x ~ T') (e := e & x ~ v); auto.
-      * intros. eapply indc_subenv_trans.
-        -- econstructor; eauto. 
-        -- econstructor; eauto. 
+      * inversion Hlc. trivial.
+      * intros. eapply indc_subenv_trans; econstructor; eauto.
       * intros. apply precise_to_general in H1.
         constructor; auto. eapply narrow_typing in H1; eauto.
       * left.
@@ -228,26 +225,28 @@ Proof.
         pose proof H3.
         apply (open_rec_eval_to_open_rec _ _ Fr) in H3.
         destruct H3. destruct H3. subst.
-        eexists. eapply red_let_val.
+        eexists. eapply red_let_val; auto.
         intros.
-        (* this in fact sounds like can be discharged by asserting it's not normal form *)
         eapply eval_renaming with (x:=x); eauto.
-        (* exists x. eauto. *)
     + SCase "t = trm_sel a t".
-      right. destruct (IHHt Hokg G' Hsenv Hig e Hwf) as [Hnf | [t' Hr]]. inversion Hnf.
+      right.
+      inversion Hlc.
+      destruct (IHHt H3 Hokg G' Hsenv Hig e Hwf) as [Hnf | [t' Hr]]. inversion Hnf.
       eexists. constructor*.
     + SCase "t = trm_app a a0".
-      right. destruct (IHHt Hokg G' Hsenv Hig e Hwf) as [Hnf | [t' Hr]]. inversion Hnf.
+      right.
+      inversion Hlc.
+      destruct (IHHt H3 Hokg G' Hsenv Hig e Hwf) as [Hnf | [t' Hr]]. inversion Hnf.
       eexists. constructor*.
     + SCase "t = trm_let t1 t2".
-      right. eexists. constructor.
+      right. eexists. constructor. inversion Hlc. trivial.
 Qed.  
-
 
 (** ** Progress Theorem
     If [⊢ t : T], then either [t] is a normal form,
     or [t]] reduces to some [t']. *)
 Theorem progress: forall t T,
+    lc_trm t ->
     ⊢ t: T ->
     normal_form t \/ (exists t', t |-> t').
 Proof.
@@ -257,6 +256,7 @@ Qed.
 (** * Preservation *)
 
 Lemma preservation_ec: forall G G' e t t' T,
+    lc_trm t ->
     indc_subenv G' G ->
     G' ~~ e ->
     inert G' ->
@@ -265,21 +265,21 @@ Lemma preservation_ec: forall G G' e t t' T,
     ok G ->
     G' ⊢ t': T.
 Proof.
-  introv Hsenv Hwf Hi Ht Hr Hok. gen e t'. gen G'.
+  introv Hlc Hsenv Hwf Hi Ht Hr Hok. gen e t'. gen G'.
   induction Ht; introv Hsenv Hi Hwf Hr; try solve [inversions Hr]; eauto.
   - Case "ty_all_elim".
     apply narrow_typing with (G':=G') in Ht1; auto.
     apply narrow_typing with (G':=G') in Ht2; auto.
     destruct (canonical_forms_fun Hi Hwf Ht1) as [L [T' [t [Bis [Hsub Hty]]]]].
     inversions Hr.
-    apply (binds_func H3) in Bis. inversions Bis.
+    apply (binds_func H4) in Bis. inversions Bis.
     pick_fresh y. apply* renaming_typ.
   - Case "ty_new_elim".
     apply narrow_typing with (G':=G') in Ht; auto.
     destruct (canonical_forms_obj Hi Hwf Ht) as [S [ds [t [Bis [Has Ty]]]]].
     inversions Hr.
-    apply (binds_func H2) in Bis. inversions Bis.
-    rewrite <- (defs_has_inv Has H4). assumption.
+    apply (binds_func H3) in Bis. inversions Bis.
+    rewrite <- (defs_has_inv Has H5). assumption.
   - Case "ty_let".
     inversions Hr.
     * SCase "red_let_var".
@@ -316,7 +316,7 @@ Proof.
          instantiate (1 := bigL) in H2.
          unfold open_trm, open_rec_trm. fold open_rec_trm.
 
-         assert (open_rec_trm 1 x u = u). { admit. }
+         assert (open_rec_trm 1 x u = u); eauto.
          rewrite H3. clear H3.
          
          rewrite HeqbigL in H2.
@@ -328,12 +328,10 @@ Proof.
          apply narrow_typing with (G' := G' & x ~ T) in H; auto.
          rewrite <- HeqbigL in H2.         
          econstructor; eauto.
-
-         intros. instantiate (1 := bigL \u \{ x }) in H5.
-
+         intros. instantiate (1 := bigL \u \{ x }) in H6.
          subst bigL.
          assert (x0 \notin L \u dom G); auto.
-         specialize (H1 _ H6).
+         specialize (H1 _ H7).
          assert (G' & x0 ~ U0 ⊢ open_trm x0 u : U). {
            eapply narrow_typing; [eassumption | |]; auto.
          }
@@ -342,13 +340,14 @@ Proof.
          specialize (H0 _ H1).
          eapply narrow_typing; eauto.
     * SCase "red_let_trm".
-      specialize (IHHt Hok _ Hsenv Hi _ Hwf t'0 H5).
+      inversion Hlc.
+      specialize (IHHt H3 Hok _ Hsenv Hi _ Hwf t'0 H6).
       eapply ty_let; eauto. intros.
       instantiate (1 := (((((((((L \u dom G) \u fv_ctx_types G) \u dom G')
                                 \u fv_ctx_types G') \u dom e) \u fv_trm t) \u fv_trm u)
-                            \u fv_trm t'0) \u fv_typ T) \u fv_typ U) in H1.
+                            \u fv_trm t'0) \u fv_typ T) \u fv_typ U) in H7.
       assert (x \notin L); auto.
-      specialize (H x H2).
+      specialize (H _ H8).
       apply narrow_typing with (G':=G' & x ~ T) in H; auto.
     * SCase "red_let_val".
       apply val_typing in Ht.
@@ -366,13 +365,41 @@ Proof.
         constructor; auto.
       }
       assert (x \notin L0); auto.
-      specialize (H0 x H3 H4 (G' & x ~ T') H6 H7 (e & x ~ v) H8 _ (H5 _ H9)).
-      remember ((((((((((((L \u L0) \u dom G) \u fv_ctx_types G) \u dom G')
-                         \u fv_ctx_types G') \u dom e) \u fv_trm u) \u fv_trm t'0)
-                     \u fv_val v) \u fv_typ T) \u fv_typ U) \u fv_typ T') as bigL.
-      eapply ty_let; eauto.
-      intros. instantiate (1 := bigL) in H10.
-      apply typ_renaming with (x:= x) (L := bigL); trivial.
+      inversion Hlc.
+      specialize (H0 _ H3 (H14 _) H5 (G' & x ~ T') H7 H8 (e & x ~ v) H9 _ (H6 _ H10)).
+      (* remember ((((((((((((L \u L0) \u dom G) \u fv_ctx_types G) \u dom G') *)
+      (*                    \u fv_ctx_types G') \u dom e) \u fv_trm u) \u fv_trm t'0) *)
+      (*                \u fv_val v) \u fv_typ T) \u fv_typ U) \u fv_typ T') as bigL. *)
+      apply_fresh ty_let as y; eauto.
+
+      apply weaken_ty_trm with (G2:=(y ~ T')) in H0; auto.
+      
+      pose proof (proj1 (subst_rules y T')) as Hsubst.
+      specialize (Hsubst _ _ _ H0 G' (y ~ T') x).
+      assert (HsubstU : subst_typ x y U = U). {
+        apply subst_fresh_typ. auto.
+      }
+      rewrite HsubstU in Hsubst.
+
+      assert (Hxyt : subst_typ x y T' = T'). {
+        apply subst_fresh_typ. auto.
+      }
+      
+      assert (Hopeny : subst_ctx x y (y ~ T') = y ~ T'). {
+        unfold subst_ctx. rewrite map_single. rewrite Hxyt. trivial.
+      }
+      rewrite* Hopeny in Hsubst.
+
+      assert (Hopent : subst_trm x y (open_trm x t'0) = open_trm y t'0). {
+        rewrite subst_open_commut_trm.
+        rewrite (proj1 (subst_fresh_trm_val_def_defs _ _)); auto.
+        unfold subst_fvar. case_if; auto.
+      }
+      rewrite Hopent in Hsubst.
+
+      apply Hsubst; auto.
+      rewrite Hxyt. auto.
+      
   - apply narrow_typing with (G' := G') in Ht; auto.
     apply narrow_subtyping with (G' := G') in H; auto.
     eapply ty_sub; eauto.
@@ -382,9 +409,10 @@ Qed.
 (** ** Preservation Theorem
     If [⊢ t : T] and [t |-> t'], then [⊢ t': T]. *)
 Theorem preservation: forall (t t' : trm) T,
-  ⊢ t: T ->
-  t |-> t' ->
-  ⊢ t' : T.
+    lc_trm t ->
+    ⊢ t: T ->
+    t |-> t' ->
+    ⊢ t' : T.
 Proof.
-  intros. apply* preservation_ec. constructor.
+  intros. eapply preservation_ec; eauto. constructor.
 Qed.
