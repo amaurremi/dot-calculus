@@ -193,6 +193,7 @@ Definition open_trm  u e := open_rec_trm   0 u e.
 Definition open_val  u v := open_rec_val   0 u v.
 Definition open_def  u d := open_rec_def   0 u d.
 Definition open_defs u l := open_rec_defs  0 u l.
+Hint Unfold open_avar open_typ open_dec open_trm open_val open_def open_defs.
 
 (** * Local Closure
 
@@ -340,6 +341,7 @@ with fv_defs(ds: defs) : vars :=
 
 (** Free variables in the range (types) of a context *)
 Definition fv_ctx_types(G: ctx): vars := (fv_in_values (fun T => fv_typ T) G).
+Definition fv_sto_vals(e: sto): vars := (fv_in_values (fun v => fv_val v) e).
 
 (** * Typing Rules *)
 
@@ -1103,7 +1105,7 @@ Ltac gather_vars :=
   let A := gather_vars_with (fun x : vars      => x         ) in
   let B := gather_vars_with (fun x : var       => \{ x }    ) in
   let C := gather_vars_with (fun x : ctx       => (dom x) \u (fv_ctx_types x)) in
-  let D := gather_vars_with (fun x : sto       => dom x     ) in
+  let D := gather_vars_with (fun x : sto       => dom x \u fv_sto_vals x) in
   let E := gather_vars_with (fun x : avar      => fv_avar  x) in
   let F := gather_vars_with (fun x : trm       => fv_trm   x) in
   let G := gather_vars_with (fun x : val       => fv_val   x) in
