@@ -274,7 +274,7 @@ Qed.
 
 
 Lemma open_left_inverse_close_avar: 
-  forall v x k, lc_at_var k v -> x \notin fv_avar v -> open_rec_avar (S k) x (close_rec_avar (S k) x v) = v.
+  forall v x k, lc_at_var k v -> open_rec_avar k x (close_rec_avar k x v) = v.
 Proof with auto.
   intros. unfold open_rec_avar, close_rec_avar.
   inversion H; repeat case_if; subst...
@@ -284,8 +284,8 @@ Hint Resolve open_left_inverse_close_avar.
 
 
 Lemma open_left_inverse_close_typ_dec:
-  (forall T x k, lc_at_typ k T -> x \notin fv_typ T -> open_rec_typ (S k) x (close_rec_typ (S k) x T) = T) /\
-  (forall D x k, lc_at_dec k D -> x \notin fv_dec D -> open_rec_dec (S k) x (close_rec_dec (S k) x D) = D).
+  (forall T x k, lc_at_typ k T -> open_rec_typ k x (close_rec_typ k x T) = T) /\
+  (forall D x k, lc_at_dec k D -> open_rec_dec k x (close_rec_dec k x D) = D).
 Proof with auto.
   apply typ_mutind; intros; simpl in *; auto;
   match goal with
@@ -298,10 +298,10 @@ Qed.
 
 
 Lemma open_left_inverse_close_trm_val_def_defs :
-  (forall t k x, lc_at_trm k t -> x \notin fv_trm t -> open_rec_trm (S k) x (close_rec_trm (S k) x t) = t) /\
-  (forall v k x, lc_at_val k v -> x \notin fv_val v -> open_rec_val (S k) x (close_rec_val (S k) x v) = v) /\
-  (forall d k x, lc_at_def k d -> x \notin fv_def d -> open_rec_def (S k) x (close_rec_def (S k) x d) = d) /\
-  (forall ds k x, lc_at_defs k ds -> x \notin fv_defs ds -> open_rec_defs (S k) x (close_rec_defs (S k) x ds) = ds).
+  (forall t k x, lc_at_trm k t -> open_rec_trm k x (close_rec_trm k x t) = t) /\
+  (forall v k x, lc_at_val k v -> open_rec_val k x (close_rec_val k x v) = v) /\
+  (forall d k x, lc_at_def k d -> open_rec_def k x (close_rec_def k x d) = d) /\
+  (forall ds k x, lc_at_defs k ds -> open_rec_defs k x (close_rec_defs k x ds) = ds).
 Proof.
   apply trm_mutind; intros; simpl in *; auto;
     match goal with
@@ -316,12 +316,12 @@ Proof.
 Qed.
 
 
-(** The following [lc_opening_XYZ] lemmas state that opening a locally
+(** The following [lc_at_opening_XYZ] lemmas state that opening a locally
     closed symbol (variables, types, terms, etc.) at any index
     results in the same symbol. *)
 
 (** - variables *)
-Lemma lc_opening_avar: forall m n x y,
+Lemma lc_at_opening_avar: forall m n x y,
     n >= m ->
     lc_at_var m y ->
     open_rec_avar n x y = y.
@@ -336,7 +336,7 @@ Lemma lc_at_opening_typ_dec: forall x m,
     (forall T, lc_at_typ m T -> forall n, n >= m -> open_rec_typ n x T = T) /\
     (forall D, lc_at_dec m D -> forall n, n >= m -> open_rec_dec n x D = D).
 Proof.
-  Local Hint Resolve lc_opening_avar.
+  Local Hint Resolve lc_at_opening_avar.
   intro x. apply lc_at_typ_mutind; intros; simpls; f_equal*;
   match goal with
   | [ H : _ -> _ -> open_rec_typ _ _ _ = _ |- _ ] => apply H
@@ -351,7 +351,7 @@ Lemma lc_at_opening_trm_val_def_defs: forall x m,
   (forall d, lc_at_def m d -> forall n, n >= m -> open_rec_def n x d = d) /\
   (forall ds, lc_at_defs m ds -> forall n, n >= m -> open_rec_defs n x ds = ds).
 Proof.
-  Local Hint Resolve lc_opening_avar.
+  Local Hint Resolve lc_at_opening_avar.
   intro x.
   apply lc_at_mutind; intros; simpls; f_equal*;
     try solve

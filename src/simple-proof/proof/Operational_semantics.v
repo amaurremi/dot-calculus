@@ -65,7 +65,7 @@ where "e [ t |-> t' ]" := (red e t t').
 Hint Constructors red normal_form.
 
 
-Lemma lc_trm_eval_to_lc_trm : forall e t t',
+Lemma lc_env_eval_to_lc_trm : forall e t t',
     rlc_sto e ->
     e [t |-> t'] ->
     rlc_trm t'.
