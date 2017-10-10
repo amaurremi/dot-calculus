@@ -64,80 +64,30 @@ Proof with auto.
       apply IHds...
 Qed.
 
-Lemma open_lc_let_body : forall k t u x,
-    k >= 1 ->
-    lc_trm (trm_let t u) ->
-    open_rec_trm k x u = u.
+
+Lemma open_bound_lc_typ : forall k x T,
+    (forall y, lc_typ (open_typ y T)) ->
+    open_rec_typ (S k) x T = T.
 Proof.
-  introv Hk H. inversion H.
-  specialize (H3 x).
-  pose proof H3 as H4.
-  apply lc_opening with (n:=k) (x:=x) in H3.
-  eapply (proj1 (lc_open_rec_open_trm_val_def_defs x _)).
-  - intro Contra. instantiate (1 := 0) in Contra. Coq.omega.Omega.omega.
+  intros. specialize (H x).
+  apply (proj1 (lc_opening_typ_dec x)) with (n:=S k) in H.
+  eapply (proj1 (lc_open_rec_open_typ_dec x _)).
+  - instantiate (1 := 0). auto.
   - eassumption.
 Qed.
-Hint Resolve open_lc_let_body.      
+Hint Resolve open_bound_lc_typ.
 
-
-Definition close_rec_avar k u a : avar :=
-  match a with
-  | avar_b i => avar_b i
-  | avar_f x => If x = u then avar_b k else avar_f x
-  end.
-Hint Unfold close_rec_avar.
-
-Fixpoint close_rec_typ (k: nat) (u: var) (T: typ): typ :=
-  match T with
-  | typ_top        => typ_top
-  | typ_bot        => typ_bot
-  | typ_rcd D      => typ_rcd (close_rec_dec k u D)
-  | typ_and T1 T2  => typ_and (close_rec_typ k u T1) (close_rec_typ k u T2)
-  | typ_sel x L    => typ_sel (close_rec_avar k u x) L
-  | typ_bnd T      => typ_bnd (close_rec_typ (S k) u T)
-  | typ_all T1 T2  => typ_all (close_rec_typ k u T1) (close_rec_typ (S k) u T2)
-  end
-with close_rec_dec (k: nat) (u: var) (D: dec): dec :=
-  match D with
-  | dec_typ L T U => dec_typ L (close_rec_typ k u T) (close_rec_typ k u U)
-  | dec_trm m T   => dec_trm m (close_rec_typ k u T)
-  end.
-Hint Unfold close_rec_typ close_rec_dec.
-
-
-Fixpoint close_rec_trm (k: nat) (u: var) (t: trm): trm :=
-  match t with
-  | trm_var a      => trm_var (close_rec_avar k u a)
-  | trm_val v      => trm_val (close_rec_val k u v)
-  | trm_sel v m    => trm_sel (close_rec_avar k u v) m
-  | trm_app f a    => trm_app (close_rec_avar k u f) (close_rec_avar k u a)
-  | trm_let t1 t2  => trm_let (close_rec_trm k u t1) (close_rec_trm (S k) u t2)
-  end
-with close_rec_val (k: nat) (u: var) (v: val): val :=
-  match v with
-  | val_new T ds   => val_new (close_rec_typ (S k) u T) (close_rec_defs (S k) u ds)
-  | val_lambda T e => val_lambda (close_rec_typ k u T) (close_rec_trm (S k) u e)
-  end
-with close_rec_def (k: nat) (u: var) (d: def): def :=
-  match d with
-  | def_typ L T => def_typ L (close_rec_typ k u T)
-  | def_trm m e => def_trm m (close_rec_trm k u e)
-  end
-with close_rec_defs (k: nat) (u: var) (ds: defs): defs :=
-  match ds with
-  | defs_nil       => defs_nil
-  | defs_cons tl d => defs_cons (close_rec_defs k u tl) (close_rec_def k u d)
-  end.
-Hint Unfold close_rec_trm close_rec_val close_rec_def close_rec_defs.
-
-Definition close_avar u a := close_rec_avar  0 u a.
-Definition close_typ  u t := close_rec_typ   0 u t.
-Definition close_dec  u D := close_rec_dec   0 u D.
-Definition close_trm  u e := close_rec_trm   0 u e.
-Definition close_val  u v := close_rec_val   0 u v.
-Definition close_def  u d := close_rec_def   0 u d.
-Definition close_defs u l := close_rec_defs  0 u l.
-Hint Unfold close_avar close_typ close_dec close_trm close_val close_def close_defs.
+Lemma open_bound_lc_trm : forall k x t,
+    (forall y, lc_trm (open_trm y t)) ->
+    open_rec_trm (S k) x t = t.
+Proof.
+  intros. specialize (H x).
+  apply lc_opening with (n:=S k) (x:=x) in H.
+  eapply (proj1 (lc_open_rec_open_trm_val_def_defs x _)).
+  - instantiate (1 := 0). auto.
+  - eassumption.
+Qed.
+Hint Resolve open_bound_lc_trm.
 
 
 Lemma close_rec_typ_dec_no_capture : forall x,
@@ -172,16 +122,19 @@ Proof.
 Qed.
 
 
-Lemma open_left_inverse_close_typ_dec:
-  (forall T k x, lc_typ T -> x \notin fv_typ T -> open_rec_typ k x (close_rec_typ k x T) = T) /\
-  (forall D k x, lc_dec D -> x \notin fv_dec D -> open_rec_dec k x (close_rec_dec k x D) = D).
+Lemma open_left_inverse_close_typ_dec: forall k,
+  (forall T x, lc_typ T -> x \notin fv_typ T -> open_rec_typ k x (close_rec_typ k x T) = T) /\
+  (forall D x, lc_dec D -> x \notin fv_dec D -> open_rec_dec k x (close_rec_dec k x D) = D).
 Proof with auto.
-  apply typ_mutind; intros; simpl in *; auto.
+  intro k. apply typ_mutind; intros; simpl in *; auto.
   - inversion H0. rewrite H...
   - inversion H1. rewrite H... rewrite H0...
   - inversion H. inversion H2.
     simpl. case_if; simpl; subst; try case_if...
-  - inversion H0. admit.
+  - inversion H0. 
+    specialize (H3 x).
+    apply (proj1 (lc_opening_typ_dec x)) with (n:=S k) in H3.
+    admit.
   - inversion H1. rewrite H... admit.
   - inversion H1. rewrite H... rewrite H0...
   - inversion H0. rewrite H...
@@ -210,9 +163,9 @@ Proof with auto.
   - inversion H0. rewrite H...
   - inversion H1. rewrite H... admit.
   - inversion H0. admit.
-  - inversion H0. subst. rewrite (proj1 open_left_inverse_close_typ_dec)...
+  - inversion H0. subst. rewrite (proj1 (open_left_inverse_close_typ_dec _))...
     admit.
-  - inversion H. rewrite (proj1 open_left_inverse_close_typ_dec)...
+  - inversion H. rewrite (proj1 (open_left_inverse_close_typ_dec _))...
   - inversion H0. rewrite H...
   - inversion H1. rewrite H... rewrite H0...
 Qed.
@@ -636,7 +589,7 @@ Proof.
          instantiate (1 := bigL) in H2.
          unfold open_trm, open_rec_trm. fold open_rec_trm.
 
-         assert (open_rec_trm 1 x u = u); eauto.
+         assert (open_rec_trm 1 x u = u); inversion H5; auto.
          rewrite H3. clear H3.
          
          rewrite HeqbigL in H2.
