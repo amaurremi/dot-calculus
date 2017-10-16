@@ -113,16 +113,6 @@ Inductive precise_flow : var -> ctx -> typ -> typ -> Prop :=
 Hint Constructors precise_flow.
 
 
-Lemma pf_top_top: forall x G T,
-    precise_flow x G typ_top T ->
-    T = typ_top.
-Proof.
-  introv Pf.
-  dependent induction Pf; auto;
-    specialize (IHPf eq_refl);
-    inversion IHPf.
-Qed.
-
 (** If [precise_flow x G T U] then [G(x) = T]. *)
 Lemma pf_binds: forall G x T U,
     precise_flow x G T U ->
@@ -300,7 +290,6 @@ Proof.
   - apply precise_flow_all_inv in Pf. inversion* Pf.
   - destruct (pf_inert_or_rcd Hi Pf) as [H1 | H1]; inversions H1.
     inversion H0.
-  - apply pf_top_top in Pf. inversion Pf.
 Qed.
 
 (** See [pf_inert_lambda_U]. *)
@@ -326,7 +315,6 @@ Proof.
   lets HT: (pf_inert_T Hi Pf). inversions HT.
   - apply precise_flow_all_inv in Pf. inversion Pf.
   - destruct (pf_inert_or_rcd Hi Pf); inversion H0. inversion H1.
-  - apply pf_top_top in Pf. inversion Pf.
 Qed.
 
 (** See [pf_bot_false]. *)
@@ -350,7 +338,6 @@ Proof.
   lets HT: (pf_inert_T Hi Pf). inversions HT.
   - apply precise_flow_all_inv in Pf. inversion Pf.
   - destruct (pf_inert_or_rcd Hi Pf); inversion H0. inversion H1.
-  - apply pf_top_top in Pf. inversion Pf.
 Qed.
 
 (** See [pf_psel_false]. *)
