@@ -1,0 +1,603 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../README.html">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">Binding</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+This module defines various helper lemmas about opening, closing, and local closure. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">LibLN</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Definitions.html#"><span class="id" title="library">Definitions</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab17"></a><h1 class="section">Substitution Definitions</h1>
+
+<div class="paragraph"> </div>
+
+ Substitution on variables: <span class="inlinecode"><span class="id" title="var">a</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span> (substituting <span class="inlinecode"><span class="id" title="var">z</span></span> with <span class="inlinecode"><span class="id" title="var">u</span></span> in <span class="inlinecode"><span class="id" title="var">a</span></span>). 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="subst_avar"><span class="id" title="definition">subst_avar</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">a</span>: <a class="idref" href="Definitions.html#avar"><span class="id" title="inductive">avar</span></a>) : <a class="idref" href="Definitions.html#avar"><span class="id" title="inductive">avar</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#avar_b"><span class="id" title="constructor">avar_b</span></a> <span class="id" title="var">i</span> =&gt; <a class="idref" href="Definitions.html#avar_b"><span class="id" title="constructor">avar_b</span></a> <span class="id" title="var">i</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <span class="id" title="var">x</span> =&gt; (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> (<span class="id" title="notation">If</span> <span class="id" title="var">x</span> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="keyword">else</span> <span class="id" title="var">x</span>))<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Substitution on types and declarations: <span class="inlinecode"><span class="id" title="var">T</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span> and <span class="inlinecode"><span class="id" title="var">D</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <a name="subst_typ"><span class="id" title="definition">subst_typ</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">T</span>: <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a>) { <span class="id" title="keyword">struct</span> <span class="id" title="var">T</span> } : <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_top"><span class="id" title="constructor">typ_top</span></a>        =&gt; <a class="idref" href="Definitions.html#typ_top"><span class="id" title="constructor">typ_top</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_bot"><span class="id" title="constructor">typ_bot</span></a>        =&gt; <a class="idref" href="Definitions.html#typ_bot"><span class="id" title="constructor">typ_bot</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_rcd"><span class="id" title="constructor">typ_rcd</span></a> <span class="id" title="var">D</span>      =&gt; <a class="idref" href="Definitions.html#typ_rcd"><span class="id" title="constructor">typ_rcd</span></a> (<a class="idref" href="Binding.html#subst_dec"><span class="id" title="definition">subst_dec</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">D</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_and"><span class="id" title="constructor">typ_and</span></a> <span class="id" title="var">T1</span> <span class="id" title="var">T2</span>  =&gt; <a class="idref" href="Definitions.html#typ_and"><span class="id" title="constructor">typ_and</span></a> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T1</span>) (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T2</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_sel"><span class="id" title="constructor">typ_sel</span></a> <span class="id" title="var">x</span> <span class="id" title="var">L</span>    =&gt; <a class="idref" href="Definitions.html#typ_sel"><span class="id" title="constructor">typ_sel</span></a> (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">x</span>) <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_bnd"><span class="id" title="constructor">typ_bnd</span></a> <span class="id" title="var">T</span>      =&gt; <a class="idref" href="Definitions.html#typ_bnd"><span class="id" title="constructor">typ_bnd</span></a> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#typ_all"><span class="id" title="constructor">typ_all</span></a> <span class="id" title="var">T</span> <span class="id" title="var">U</span>    =&gt; <a class="idref" href="Definitions.html#typ_all"><span class="id" title="constructor">typ_all</span></a> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>) (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">U</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+<span class="id" title="keyword">with</span> <a name="subst_dec"><span class="id" title="definition">subst_dec</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">D</span>: <a class="idref" href="Definitions.html#dec"><span class="id" title="inductive">dec</span></a>) { <span class="id" title="keyword">struct</span> <span class="id" title="var">D</span> } : <a class="idref" href="Definitions.html#dec"><span class="id" title="inductive">dec</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#dec_typ"><span class="id" title="constructor">dec_typ</span></a> <span class="id" title="var">L</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span> =&gt; <a class="idref" href="Definitions.html#dec_typ"><span class="id" title="constructor">dec_typ</span></a> <span class="id" title="var">L</span> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T</span>) (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">U</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#dec_trm"><span class="id" title="constructor">dec_trm</span></a> <span class="id" title="var">L</span> <span class="id" title="var">U</span> =&gt; <a class="idref" href="Definitions.html#dec_trm"><span class="id" title="constructor">dec_trm</span></a> <span class="id" title="var">L</span> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">U</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Substitution on terms, values, and definitions:
+    <span class="inlinecode"><span class="id" title="var">t</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span>, <span class="inlinecode"><span class="id" title="var">v</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span>, <span class="inlinecode"><span class="id" title="var">d</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <a name="subst_trm"><span class="id" title="definition">subst_trm</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">t</span>: <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a>) : <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#trm_var"><span class="id" title="constructor">trm_var</span></a> <span class="id" title="var">x</span>        =&gt; <a class="idref" href="Definitions.html#trm_var"><span class="id" title="constructor">trm_var</span></a> (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#trm_val"><span class="id" title="constructor">trm_val</span></a> <span class="id" title="var">v</span>        =&gt; <a class="idref" href="Definitions.html#trm_val"><span class="id" title="constructor">trm_val</span></a> (<a class="idref" href="Binding.html#subst_val"><span class="id" title="definition">subst_val</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">v</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#trm_sel"><span class="id" title="constructor">trm_sel</span></a> <span class="id" title="var">x1</span> <span class="id" title="var">L</span>     =&gt; <a class="idref" href="Definitions.html#trm_sel"><span class="id" title="constructor">trm_sel</span></a> (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">x1</span>) <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#trm_app"><span class="id" title="constructor">trm_app</span></a> <span class="id" title="var">x1</span> <span class="id" title="var">x2</span>    =&gt; <a class="idref" href="Definitions.html#trm_app"><span class="id" title="constructor">trm_app</span></a> (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">x1</span>) (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">x2</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>    =&gt; <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">t1</span>) (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">t2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+<span class="id" title="keyword">with</span> <a name="subst_val"><span class="id" title="definition">subst_val</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">v</span>: <a class="idref" href="Definitions.html#val"><span class="id" title="inductive">val</span></a>) : <a class="idref" href="Definitions.html#val"><span class="id" title="inductive">val</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#val_new"><span class="id" title="constructor">val_new</span></a> <span class="id" title="var">T</span> <span class="id" title="var">ds</span>     =&gt; <a class="idref" href="Definitions.html#val_new"><span class="id" title="constructor">val_new</span></a> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T</span>) (<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">ds</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#val_lambda"><span class="id" title="constructor">val_lambda</span></a> <span class="id" title="var">T</span> <span class="id" title="var">t</span>   =&gt; <a class="idref" href="Definitions.html#val_lambda"><span class="id" title="constructor">val_lambda</span></a> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T</span>) (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+<span class="id" title="keyword">with</span> <a name="subst_def"><span class="id" title="definition">subst_def</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">d</span>: <a class="idref" href="Definitions.html#def"><span class="id" title="inductive">def</span></a>) : <a class="idref" href="Definitions.html#def"><span class="id" title="inductive">def</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#def_typ"><span class="id" title="constructor">def_typ</span></a> <span class="id" title="var">L</span> <span class="id" title="var">T</span> =&gt; <a class="idref" href="Definitions.html#def_typ"><span class="id" title="constructor">def_typ</span></a> <span class="id" title="var">L</span> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">T</span>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#def_trm"><span class="id" title="constructor">def_trm</span></a> <span class="id" title="var">L</span> <span class="id" title="var">t</span> =&gt; <a class="idref" href="Definitions.html#def_trm"><span class="id" title="constructor">def_trm</span></a> <span class="id" title="var">L</span> (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+<span class="id" title="keyword">with</span> <a name="subst_defs"><span class="id" title="definition">subst_defs</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">ds</span>: <a class="idref" href="Definitions.html#defs"><span class="id" title="inductive">defs</span></a>) : <a class="idref" href="Definitions.html#defs"><span class="id" title="inductive">defs</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#defs_nil"><span class="id" title="constructor">defs_nil</span></a> =&gt; <a class="idref" href="Definitions.html#defs_nil"><span class="id" title="constructor">defs_nil</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Definitions.html#defs_cons"><span class="id" title="constructor">defs_cons</span></a> <span class="id" title="var">rest</span> <span class="id" title="var">d</span> =&gt; <a class="idref" href="Definitions.html#defs_cons"><span class="id" title="constructor">defs_cons</span></a> (<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">rest</span>) (<a class="idref" href="Binding.html#subst_def"><span class="id" title="definition">subst_def</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Substitution on the types of a typing environment: <span class="inlinecode"><span class="id" title="var">G</span>[<span class="id" title="var">u</span>/<span class="id" title="var">z</span>]</span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="subst_ctx"><span class="id" title="definition">subst_ctx</span></a> (<span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">u</span>: <span class="id" title="axiom">var</span>) (<span class="id" title="var">G</span>: <a class="idref" href="Definitions.html#ctx"><span class="id" title="definition">ctx</span></a>) : <a class="idref" href="Definitions.html#ctx"><span class="id" title="definition">ctx</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="axiom">map</span> (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Substitution on the values of an evaluation context: <span class="inlinecode"><span class="id" title="var">e</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="subst_env"><span class="id" title="definition">subst_env</span></a> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">e</span> := <span class="id" title="axiom">map</span> (<a class="idref" href="Binding.html#subst_val"><span class="id" title="definition">subst_val</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a>) <a class="idref" href="Binding.html#e"><span class="id" title="variable">e</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab18"></a><h1 class="section">Opening Lemmas</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">avar_solve</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">a</span>: <a class="idref" href="Definitions.html#avar"><span class="id" title="inductive">avar</span></a> |- <span class="id" title="var">_</span> ] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">a</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">auto</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="var">simpls</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>*;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">subst</span>; <span class="id" title="var">simpls</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>*<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The following <span class="inlinecode"><span class="id" title="var">open_fresh_XYZ_injective</span></span> lemmas state that given two
+    symbols (variables, types, terms, etc.) <span class="inlinecode"><span class="id" title="var">X</span></span> and <span class="inlinecode"><span class="id" title="var">Y</span></span> and a variable <span class="inlinecode"><span class="id" title="var">z</span></span>,
+    if <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">X</span>)</span> and <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">Y</span>)</span>, then <span class="inlinecode"><span class="id" title="var">X</span>^<span class="id" title="var">z</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span>^<span class="id" title="var">z</span></span> implies <span class="inlinecode"><span class="id" title="var">X</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span></span>. 
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> variables 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_fresh_avar_injective"><span class="id" title="lemma">open_fresh_avar_injective</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">k</span> <span class="id" title="var">z</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_avar"><span class="id" title="definition">fv_avar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_avar"><span class="id" title="definition">fv_avar</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_rec_avar"><span class="id" title="definition">open_rec_avar</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_avar"><span class="id" title="definition">open_rec_avar</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="var">avar_solve</span>; <span class="id" title="tactic">inversion</span>* <span class="id" title="var">H1</span>; <span class="id" title="tactic">try</span> (<span class="id" title="var">inversions</span> <span class="id" title="var">H3</span>; <span class="id" title="var">false</span>* <span class="id" title="lemma">notin_same</span>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> types and declarations 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_fresh_typ_dec_injective"><span class="id" title="lemma">open_fresh_typ_dec_injective</span></a>:<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> <span class="id" title="var">T'</span> <span class="id" title="var">k</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="Binding.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#T'"><span class="id" title="variable">T'</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">D</span> <span class="id" title="var">D'</span> <span class="id" title="var">k</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_dec"><span class="id" title="definition">fv_dec</span></a> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_dec"><span class="id" title="definition">fv_dec</span></a> <a class="idref" href="Binding.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="Binding.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#D'"><span class="id" title="variable">D'</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">invert_open</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">T'</span> |- <span class="id" title="var">_</span> ] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">T'</span>; <span class="id" title="var">inversions</span>* <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">D'</span> |- <span class="id" title="var">_</span> ] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">D'</span>; <span class="id" title="var">inversions</span>* <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#typ_mutind"><span class="id" title="definition">typ_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">invert_open</span>; <span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> *;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">f_equal</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="Binding.html#open_fresh_avar_injective"><span class="id" title="lemma">open_fresh_avar_injective</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab19"></a><h1 class="section">Variable Substitution Lemmas</h1>
+
+<div class="paragraph"> </div>
+
+ The following <span class="inlinecode"><span class="id" title="var">subst_fresh_XYZ</span></span> lemmas state that if <span class="inlinecode"><span class="id" title="var">x</span></span> is not free
+    in a symbol <span class="inlinecode"><span class="id" title="var">Y</span></span>, then <span class="inlinecode"><span class="id" title="var">Y</span>[<span class="id" title="var">z</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span></span>. 
+<div class="paragraph"> </div>
+
+ Fresh substitution
+<ul class="doclist">
+<li> in variables 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_fresh_avar"><span class="id" title="lemma">subst_fresh_avar</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>: <a class="idref" href="Definitions.html#avar"><span class="id" title="inductive">avar</span></a>, <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_avar"><span class="id" title="definition">fv_avar</span></a> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">destruct</span>* <span class="id" title="var">a</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="var">case_var</span>*. <span class="id" title="var">simpls</span>. <span class="id" title="var">notin_false</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> in types and declarations 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_fresh_typ_dec"><span class="id" title="lemma">subst_fresh_typ_dec</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> : <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a> , <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a>  <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>  <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>  <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">D</span> : <a class="idref" href="Definitions.html#dec"><span class="id" title="inductive">dec</span></a> , <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_dec"><span class="id" title="definition">fv_dec</span></a>  <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a>  <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_dec"><span class="id" title="definition">subst_dec</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a>  <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#typ_mutind"><span class="id" title="definition">typ_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">simpls</span>; <span class="id" title="tactic">f_equal</span>*.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span>* <a class="idref" href="Binding.html#subst_fresh_avar"><span class="id" title="lemma">subst_fresh_avar</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="subst_fresh_typ"><span class="id" title="definition">subst_fresh_typ</span></a>(<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="axiom">var</span>) := <span class="id" title="lemma">proj1</span> (<a class="idref" href="Binding.html#subst_fresh_typ_dec"><span class="id" title="lemma">subst_fresh_typ_dec</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> in terms, values, and definitions 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_fresh_trm_val_def_defs"><span class="id" title="lemma">subst_fresh_trm_val_def_defs</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">t</span> : <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a> , <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_trm"><span class="id" title="definition">fv_trm</span></a>  <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>  <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>  <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">v</span> : <a class="idref" href="Definitions.html#val"><span class="id" title="inductive">val</span></a> , <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_val"><span class="id" title="definition">fv_val</span></a>  <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a>  <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_val"><span class="id" title="definition">subst_val</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a>  <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <a class="idref" href="Definitions.html#def"><span class="id" title="inductive">def</span></a> , <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_def"><span class="id" title="definition">fv_def</span></a>  <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a>  <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_def"><span class="id" title="definition">subst_def</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a>  <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a> <span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">ds</span>: <a class="idref" href="Definitions.html#defs"><span class="id" title="inductive">defs</span></a>, <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_defs"><span class="id" title="definition">fv_defs</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#trm_mutind"><span class="id" title="definition">trm_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">simpls</span>; <span class="id" title="tactic">f_equal</span>*;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">apply</span>* <a class="idref" href="Binding.html#subst_fresh_avar"><span class="id" title="lemma">subst_fresh_avar</span></a> || <span class="id" title="tactic">apply</span>* <a class="idref" href="Binding.html#subst_fresh_typ_dec"><span class="id" title="lemma">subst_fresh_typ_dec</span></a>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span>)</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>)</span> <span class="inlinecode">\<span class="id" title="var">u</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">T</span>)</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="fv_ctx_types_push_eq"><span class="id" title="lemma">fv_ctx_types_push_eq</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> (<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>) <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">u</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="axiom">concat_def</span>, <span class="id" title="axiom">single_def</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a>, <span class="id" title="definition">fv_in_values</span>; <span class="id" title="tactic">rewrite</span> <span class="id" title="axiom">values_def</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">union_comm</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>,</span> <span class="inlinecode"><span class="id" title="var">z</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span>)</span>                   <br>
+    <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">T</span>)</span>                         <br>
+    <span class="inlinecode">―――――――――――――――――――――――――――――――――――――</span> <br>
+    <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">T</span>)</span> and <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>)</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="invert_fv_ctx_types_push"><span class="id" title="lemma">invert_fv_ctx_types_push</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span> <span class="id" title="var">T</span> <span class="id" title="var">G</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> (<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>) <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">/\</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <a class="idref" href="Binding.html#fv_ctx_types_push_eq"><span class="id" title="lemma">fv_ctx_types_push_eq</span></a> <span class="id" title="keyword">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span>~ <span class="id" title="lemma">notin_union</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>)</span>         <br>
+    <span class="inlinecode">――――――――――――――――――</span>    <br>
+    <span class="inlinecode"><span class="id" title="var">G</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">G</span></span>    
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_fresh_ctx"><span class="id" title="lemma">subst_fresh_ctx</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">G</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_ctx"><span class="id" title="definition">subst_ctx</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="lemma">env_ind</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">G</span> =&gt; <span class="id" title="var">x</span> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_ctx_types"><span class="id" title="definition">fv_ctx_types</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Binding.html#subst_ctx"><span class="id" title="definition">subst_ctx</span></a> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>)).<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">intro</span> <span class="id" title="var">N</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_ctx"><span class="id" title="definition">subst_ctx</span></a>. <span class="id" title="tactic">apply</span> <span class="id" title="lemma">map_empty</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">intros</span> <span class="id" title="var">G</span> <span class="id" title="var">z</span> <span class="id" title="var">T</span> <span class="id" title="var">IH</span> <span class="id" title="var">N</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#invert_fv_ctx_types_push"><span class="id" title="lemma">invert_fv_ctx_types_push</span></a> <span class="id" title="keyword">in</span> <span class="id" title="var">N</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">N</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">N1</span> <span class="id" title="var">N2</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_ctx"><span class="id" title="definition">subst_ctx</span></a> <span class="id" title="keyword">in</span> *. <span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">map_push</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> (<span class="id" title="var">IH</span> <span class="id" title="var">N2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> ((<span class="id" title="lemma">proj1</span> (<a class="idref" href="Binding.html#subst_fresh_typ_dec"><span class="id" title="lemma">subst_fresh_typ_dec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span>)) <span class="id" title="var">_</span> <span class="id" title="var">N1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Definition of substitution on named variables: <br>
+    <span class="inlinecode"><span class="id" title="var">z</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">:=</span> <span class="inlinecode"><span class="id" title="keyword">if</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">==</span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="keyword">then</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="keyword">else</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span>, where <span class="inlinecode"><span class="id" title="var">z</span></span> is a named variable. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="subst_fvar"><span class="id" title="definition">subst_fvar</span></a>(<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="axiom">var</span>): <span class="id" title="axiom">var</span> := <span class="id" title="notation">If</span> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="keyword">else</span> <a class="idref" href="Binding.html#z"><span class="id" title="variable">z</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The following lemmas state that substitution commutes with opening:
+    for a symbol <span class="inlinecode"><span class="id" title="var">Z</span></span>, <br>
+    <span class="inlinecode">(<span class="id" title="var">Z</span>^<span class="id" title="var">a</span>)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">Z</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">a</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>])</span>. 
+<div class="paragraph"> </div>
+
+ Substitution commutes with opening
+<ul class="doclist">
+<li> variables 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_avar"><span class="id" title="lemma">subst_open_commut_avar</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>: <a class="idref" href="Definitions.html#avar"><span class="id" title="inductive">avar</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">Datatypes.nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_avar"><span class="id" title="definition">open_rec_avar</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_avar"><span class="id" title="definition">open_rec_avar</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a>  <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a>)).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a>, <a class="idref" href="Binding.html#subst_avar"><span class="id" title="definition">subst_avar</span></a>, <a class="idref" href="Definitions.html#open_avar"><span class="id" title="definition">open_avar</span></a>, <a class="idref" href="Definitions.html#open_rec_avar"><span class="id" title="definition">open_rec_avar</span></a>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">a</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="var">case_var</span>*.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> types and declarations 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_typ_dec"><span class="id" title="lemma">subst_open_commut_typ_dec</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">t</span> : <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>)<span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">D</span> : <a class="idref" href="Definitions.html#dec"><span class="id" title="inductive">dec</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_dec"><span class="id" title="definition">subst_dec</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_dec"><span class="id" title="definition">subst_dec</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#D"><span class="id" title="variable">D</span></a>)<span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#typ_mutind"><span class="id" title="definition">typ_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">f_equal</span>*.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_avar"><span class="id" title="lemma">subst_open_commut_avar</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> types only 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_typ"><span class="id" title="lemma">subst_open_commut_typ</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>) <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_typ_dec"><span class="id" title="lemma">subst_open_commut_typ_dec</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> terms, values, definitions, and list of definitions 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_trm_val_def_defs"><span class="id" title="lemma">subst_open_commut_trm_val_def_defs</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">t</span> : <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">Datatypes.nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_trm"><span class="id" title="definition">open_rec_trm</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_trm"><span class="id" title="definition">open_rec_trm</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>)<span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">v</span> : <a class="idref" href="Definitions.html#val"><span class="id" title="inductive">val</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">Datatypes.nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_val"><span class="id" title="definition">subst_val</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_val"><span class="id" title="definition">open_rec_val</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_val"><span class="id" title="definition">open_rec_val</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_val"><span class="id" title="definition">subst_val</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a>)<span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <a class="idref" href="Definitions.html#def"><span class="id" title="inductive">def</span></a> , <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">Datatypes.nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_def"><span class="id" title="definition">subst_def</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_def"><span class="id" title="definition">open_rec_def</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_def"><span class="id" title="definition">open_rec_def</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_def"><span class="id" title="definition">subst_def</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a>)<span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">ds</span>: <a class="idref" href="Definitions.html#defs"><span class="id" title="inductive">defs</span></a>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>: <span class="id" title="inductive">Datatypes.nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_rec_defs"><span class="id" title="definition">open_rec_defs</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_defs"><span class="id" title="definition">open_rec_defs</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>)<span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#trm_mutind"><span class="id" title="definition">trm_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">f_equal</span>~;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_avar"><span class="id" title="lemma">subst_open_commut_avar</span></a> || <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_typ_dec"><span class="id" title="lemma">subst_open_commut_typ_dec</span></a>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> terms only 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_trm"><span class="id" title="lemma">subst_open_commut_trm</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span> <span class="id" title="var">t</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_trm_val_def_defs"><span class="id" title="lemma">subst_open_commut_trm_val_def_defs</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> definitions only 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_open_commut_defs"><span class="id" title="lemma">subst_open_commut_defs</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">u</span> <span class="id" title="var">ds</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Definitions.html#open_defs"><span class="id" title="definition">open_defs</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_defs"><span class="id" title="definition">open_defs</span></a> (<a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a>) (<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#subst_open_commut_trm_val_def_defs"><span class="id" title="lemma">subst_open_commut_trm_val_def_defs</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The following lemmas state that opening a symbol with a variable <span class="inlinecode"><span class="id" title="var">y</span></span>
+    is the same as opening the symbol with another variable <span class="inlinecode"><span class="id" title="var">x</span></span> and
+    substituting <span class="inlinecode"><span class="id" title="var">x</span></span> with <span class="inlinecode"><span class="id" title="var">y</span></span>: <br>
+    <span class="inlinecode"><span class="id" title="var">Z</span>^<span class="id" title="var">y</span></span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">Z</span>^<span class="id" title="var">x</span>)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
+<div class="paragraph"> </div>
+
+ Substitution after opening
+<ul class="doclist">
+<li> terms 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_intro_trm"><span class="id" title="lemma">subst_intro_trm</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">u</span> <span class="id" title="var">t</span>, <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#fv_trm"><span class="id" title="definition">fv_trm</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#subst_trm"><span class="id" title="definition">subst_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> (<a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Fr</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a>. <span class="id" title="tactic">rewrite</span> <a class="idref" href="Binding.html#subst_open_commut_trm"><span class="id" title="lemma">subst_open_commut_trm</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (@<a class="idref" href="Binding.html#subst_fresh_trm_val_def_defs"><span class="id" title="lemma">subst_fresh_trm_val_def_defs</span></a> <span class="id" title="var">x</span> <span class="id" title="var">u</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">Q</span> <span class="id" title="var">_</span>]. <span class="id" title="tactic">rewrite</span>~ (<span class="id" title="var">Q</span> <span class="id" title="var">t</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a>. <span class="id" title="var">case_var</span>~.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> definitions 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_intro_defs"><span class="id" title="lemma">subst_intro_defs</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">u</span> <span class="id" title="var">ds</span>, <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#fv_defs"><span class="id" title="definition">fv_defs</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_defs"><span class="id" title="definition">open_defs</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> (<a class="idref" href="Definitions.html#open_defs"><span class="id" title="definition">open_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Fr</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a>. <span class="id" title="tactic">rewrite</span> <a class="idref" href="Binding.html#subst_open_commut_defs"><span class="id" title="lemma">subst_open_commut_defs</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (@<a class="idref" href="Binding.html#subst_fresh_trm_val_def_defs"><span class="id" title="lemma">subst_fresh_trm_val_def_defs</span></a> <span class="id" title="var">x</span> <span class="id" title="var">u</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">_</span> [<span class="id" title="var">_</span> [<span class="id" title="var">_</span> <span class="id" title="var">Q</span>]]]. <span class="id" title="tactic">rewrite</span>~ (<span class="id" title="var">Q</span> <span class="id" title="var">ds</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a>. <span class="id" title="var">case_var</span>~.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> types 
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_intro_typ"><span class="id" title="lemma">subst_intro_typ</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">u</span> <span class="id" title="var">T</span>, <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#subst_typ"><span class="id" title="definition">subst_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#u"><span class="id" title="variable">u</span></a> (<a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Fr</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a>. <span class="id" title="tactic">rewrite</span> <a class="idref" href="Binding.html#subst_open_commut_typ"><span class="id" title="lemma">subst_open_commut_typ</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (@<a class="idref" href="Binding.html#subst_fresh_typ_dec"><span class="id" title="lemma">subst_fresh_typ_dec</span></a> <span class="id" title="var">x</span> <span class="id" title="var">u</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">Q</span> <span class="id" title="var">_</span>]. <span class="id" title="tactic">rewrite</span>~ (<span class="id" title="var">Q</span> <span class="id" title="var">T</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Binding.html#subst_fvar"><span class="id" title="definition">subst_fvar</span></a>. <span class="id" title="var">case_var</span>~.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Substitution preserves labels of definitions: <span class="inlinecode"><span class="id" title="var">label</span>(<span class="id" title="var">d</span>)</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">label</span>(<span class="id" title="var">d</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>])</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_label_of_def"><span class="id" title="lemma">subst_label_of_def</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#label_of_def"><span class="id" title="definition">label_of_def</span></a> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#label_of_def"><span class="id" title="definition">label_of_def</span></a> (<a class="idref" href="Binding.html#subst_def"><span class="id" title="definition">subst_def</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#d"><span class="id" title="variable">d</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>; <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>)</span>     <br>
+    <span class="inlinecode">――――――――――――――――――――――</span> <br>
+    <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="subst_defs_hasnt"><span class="id" title="lemma">subst_defs_hasnt</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> <span class="id" title="var">ds</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="Binding.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a> (<a class="idref" href="Binding.html#subst_defs"><span class="id" title="definition">subst_defs</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a>) <a class="idref" href="Binding.html#l"><span class="id" title="variable">l</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> <span class="id" title="var">ds</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a>. <span class="id" title="tactic">induction</span> <span class="id" title="var">ds</span>; <span class="id" title="var">introv</span> <span class="id" title="var">Eq</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#get_def"><span class="id" title="definition">get_def</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> &lt;- <a class="idref" href="Binding.html#subst_label_of_def"><span class="id" title="lemma">subst_label_of_def</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="var">Eq</span>. <span class="id" title="var">case_if</span>~.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If a variable has a type, then it is a named variable. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="var_typing_implies_avar_f"><span class="id" title="lemma">var_typing_implies_avar_f</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">a</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#475d58042806a5294f9ce6903e16f6d3"><span class="id" title="notation">⊢</span></a> <a class="idref" href="Definitions.html#trm_var"><span class="id" title="constructor">trm_var</span></a> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#475d58042806a5294f9ce6903e16f6d3"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">exists</span> <span class="id" title="var">x</span><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#a"><span class="id" title="variable">a</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <span class="id" title="var">x</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
