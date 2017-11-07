@@ -7,8 +7,11 @@
 Set Implicit Arguments.
 
 Require Import LibLN.
+Require Import Definitions.
+Require Import SubEnvironments.
+Require Import Weakening.
 Require Import Coq.Program.Equality.
-Require Import Definitions Subenvironments Weakening.
+
 
 (** * Narrowing Lemma *)
 (** The narrowing lemma states that typing is preserved under subenvironments.
@@ -97,3 +100,21 @@ Lemma narrow_subtyping: forall G G' S U,
 Proof.
   intros. apply* narrow_rules.
 Qed.
+
+(** The subenvironment relation [⪯] is transitive.*)
+Lemma subenv_trans : forall G1 G2 G3,
+    G1 ⪯ G2 ->
+    G2 ⪯ G3 ->
+    G1 ⪯ G3.
+Proof.
+  introv H. gen G3. induction H; intros; auto.
+  dependent induction H3.
+  - apply empty_push_inv in x. contradiction.
+  - rename x into He. apply eq_push_inv in He. destruct_all.
+    subst.
+    apply IHsubenv in H3.
+    constructor; auto.
+    apply narrow_subtyping with (G':=G) in H6; auto.
+    eapply subtyp_trans; eauto.
+Qed.
+Hint Resolve subenv_trans.

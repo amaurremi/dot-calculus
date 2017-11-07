@@ -8,7 +8,11 @@ Set Implicit Arguments.
 
 Require Import LibLN.
 Require Import Coq.Program.Equality.
-Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping.
+Require Import Definitions.
+Require Import RecordAndInertTypes.
+Require Import PreciseTypes.
+Require Import TightTypes.
+Require Import InvertibleTypes.
 
 (** * Sel-<: Premise
     This lemma corresponds to Lemma 3.5 in the paper.

@@ -1,7 +1,7 @@
-(** printing ⊢#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
-(** printing ⊢##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
-(** printing ⊢##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
-(** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
+(** printing |-#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
+(** printing |-##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
+(** printing |-##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
+(** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
 Set Implicit Arguments.
@@ -52,12 +52,12 @@ Lemma narrow_rules:
   (forall G t T, G ⊢ t : T -> forall G',
     G' ⪯ G ->
     G' ⊢ t : T)
-/\ (forall G d D, G /- d : D -> forall G',
+/\ (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G',
     G' ⪯ G ->
-    G' /- d : D)
-/\ (forall G ds T, G /- ds :: T -> forall G',
+    z; bs; P; G' ⊢ d : D)
+/\ (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G',
     G' ⪯ G ->
-    G' /- ds :: T)
+    z; bs; P; G' ⊢ ds :: T)
 /\ (forall G S U, G ⊢ S <: U -> forall G',
     G' ⪯ G ->
     G' ⊢ S <: U).
@@ -78,7 +78,6 @@ Proof.
   [ eapply ty_sub; [eauto 2 | apply weaken_subtyp; trivial]
   | apply weaken_ty_trm; auto].
 Qed.
-
 
 (** The narrowing lemma, formulated only for term typing. *)
 Lemma narrow_typing: forall G G' t T,
