@@ -8,7 +8,11 @@ Set Implicit Arguments.
 
 Require Import LibLN.
 Require Import Coq.Program.Equality.
-Require Import Definitions Binding.
+Require Import Definitions.
+Require Import Binding.
+
+(** The following typing relations are not part of the DOT calculus, but are used
+    in the proof of DOT's safety theorems. *)
 
 (** * Record Types *)
 
@@ -124,6 +128,8 @@ Lemma ty_defs_record_type : forall G ds T,
     G /- ds :: T ->
     record_type T.
 Proof.
+
+
  intros. induction H; destruct D;
     repeat match goal with
         | [ H: record_type _ |- _ ] =>
@@ -288,19 +294,3 @@ Inductive inert : ctx -> Prop :=
     bounds [{A: T..T}] and field declarations [{a: T}]. *)
 
 Hint Constructors inert_typ inert.
-
-Lemma inert_concat: forall G' G,
-    inert G ->
-    inert G' ->
-    ok (G & G') ->
-    inert (G & G').
-Proof.
-  induction G' using env_ind; introv Hg Hg' Hok.
-  - rewrite* concat_empty_r.
-  - rewrite concat_assoc.
-    inversions Hg'; inversions Hok;
-      rewrite concat_assoc in *; try solve [false* empty_push_inv].
-    destruct (eq_push_inv H) as [Heq1 [Heq2 Heq3]]; subst.
-    destruct (eq_push_inv H3) as [Heq1 [Heq2 Heq3]]; subst.
-    apply inert_all; auto.
-Qed.

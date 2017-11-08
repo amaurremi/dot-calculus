@@ -9,22 +9,6 @@ Set Implicit Arguments.
 Require Import LibLN.
 Require Import Definitions Binding Weakening.
 
-Ltac subst_open_fresh :=
-  repeat match goal with
-    | [ |- context [ open_typ ?z (subst_typ ?x ?y ?T) ] ] =>
-        replace (open_typ z (subst_typ x y T)) with (open_typ (subst_fvar x y z) (subst_typ x y T))
-          by (unfold subst_fvar; rewrite~ If_r);
-        rewrite_all <- subst_open_commut_typ
-    | [ |- context [ open_defs ?z (subst_defs ?x ?y ?ds) ] ] =>
-        replace (open_defs z (subst_defs x y ds)) with (open_defs (subst_fvar x y z) (subst_defs x y ds))
-          by (unfold subst_fvar; rewrite~ If_r);
-        rewrite_all <- subst_open_commut_defs
-     | [ |- context [ open_trm ?z (subst_trm ?x ?y ?t) ] ] =>
-        replace (open_trm z (subst_trm x y t)) with (open_trm (subst_fvar x y z) (subst_trm x y t))
-          by (unfold subst_fvar; rewrite~ If_r);
-        rewrite_all <- subst_open_commut_trm
-    end.
-
 Ltac subst_solver :=
     fresh_constructor;
     subst_open_fresh;
@@ -193,22 +177,4 @@ Lemma renaming_typ: forall G z T U t x,
 Proof.
   introv Hok Hnz Hnz' Hz Hx. rewrite subst_intro_typ with (x:=z). rewrite subst_intro_trm with (x:=z).
   eapply subst_ty_trm; auto. eapply Hz. rewrite subst_fresh_typ. all: auto.
-Qed.
-
-(** Renaming the name of the opening variable for term typing. #<br>#
-    [ok G]                   #<br>#
-    [z] fresh                #<br>#
-    [G, z: U ⊢ t^z : T^z]    #<br>#
-    [――――――――――――――――――――――] #<br>#
-    [G ⊢ t^x : T^x]         *)
-Lemma renaming_fresh : forall L G T u U x,
-    ok G ->
-    (forall x : var, x \notin L -> G & x ~ T ⊢ open_trm x u : U) ->
-    G ⊢ trm_var (avar_f x) : T ->
-    G ⊢ open_trm x u : U.
-Proof.
-  introv Hok Hu Hx. pick_fresh y.
-  rewrite subst_intro_trm with (x:=y); auto.
-  rewrite <- subst_fresh_typ with (x:=y) (y:=x); auto.
-  eapply subst_ty_trm; eauto. rewrite~ subst_fresh_typ.
 Qed.

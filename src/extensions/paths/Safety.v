@@ -84,7 +84,7 @@ Proof.
   dependent induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
-    | [Hx: _ ⊢ trm_var (avar_f _) : typ_all _ _ |- _] =>
+    | [Hx: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
         pose proof (canonical_forms_fun Hin Hwf Hx) as [L [T' [t [Bis [Hsub Hty]]]]];
           inversions Hred;
           binds_eq

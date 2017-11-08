@@ -8,3 +8,4 @@
 *.swo
 *.cache
 .DS_Store
+*.iml

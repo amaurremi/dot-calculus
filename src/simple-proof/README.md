@@ -13,7 +13,7 @@ The documentation can be accessed from the [table of contents](https://amaurremi
 The Coq proof is split up into the following modules:
   * [Definitions.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Definitions.html): The main inductive definitions and functions that are used in the proof. Defines the abstract syntax and type system.
   * [Binding.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Binding.html): Proves helper lemmas related to opening, closing, and local closure.
-  * [SubEnvironments.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/SubEnvironments.v): Defines and proves lemmas related to subenvironments.
+  * [SubEnvironments.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/SubEnvironments.html): Defines and proves lemmas related to subenvironments.
   * [Weakening.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Weakening.html): Proves the Weakening Lemma.
   * [RecordAndInertTypes.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/RecordAndInertTypes.html): Defines and proves lemmas related to record and inert types.
   * [Narrowing.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Narrowing.html): Proves the Narrowing Lemma.
@@ -28,6 +28,15 @@ The Coq proof is split up into the following modules:
 
 The following figure shows a dependency graph between the Coq modules.
 ![Dependency graph](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/graph.png)
+
+### Evaluation Contexts vs. Runtime Environments
+
+On paper, DOT's operational semantics is defined in terms of evaluation contexts. A type-soundness proof based on that semantics can be found in the [proof-ec](https://github.com/amaurremi/dot-calculus/tree/master/src/simple-proof/proof-ec) directory.
+
+Evaluation contexts introduce complexity into the proof, which can be avoided by using an alternative semantics that is based on stacks.
+
+A stack is a sequence of variable-to-value bindings, which serves as a runtime environment (in the literature, stacks are commonly referred to as stores). In the stack representation, the operational semantics is defined on pairs `(s, t)`, where `s` is a stack and `t` is a term. For example, the term `let x1 = v1 in let x1 = v2 in t` is represented as `({(x1, v1), (x2, v2)}, t)`.
+
 
 ## Compiling the Proof
 

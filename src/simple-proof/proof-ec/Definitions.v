@@ -128,15 +128,10 @@ Definition defs_hasnt(ds: defs)(l: label) := get_def l ds = None.
 (** Typing environment ([G]) *)
 Definition ctx := env typ.
 
-(** A stack, represented as the sequence of variable-to-value
-    let bindings, [(let x = v in)*], that is represented as a value environment
-    which maps variables to values.
-    The operational semantics will be defined in terms of pairs [(s, t)] where
-    [s] is a stack and [t] is a term.
-    For example, the term [let x1 = v1 in let x2 = v2 in t] is represented as
-    [({(x1 = v1), (x2 = v2)}, t)].
-    *)
-Definition sta := env val.
+(** An evaluation context, represented as the sequence of variable-to-value
+     let bindings, [(let x = v in)*], that is represented as a value environment
+     which maps variables to values: *)
+Definition ec := env val.
 
 (** * Opening *)
 (** Opening takes a bound variable that is represented with a de Bruijn index [k]
@@ -201,6 +196,71 @@ Definition open_def  u d := open_rec_def   0 u d.
 Definition open_defs u l := open_rec_defs  0 u l.
 Hint Unfold open_avar open_typ open_dec open_trm open_val open_def open_defs.
 
+(** * Closing *)
+(** Closing replaces a variable [u] with a de Bruijn index [k]. *)
+
+(** Closing for variables *)
+Definition close_rec_avar k u a : avar :=
+  match a with
+  | avar_b i => avar_b i
+  | avar_f x => If x = u then avar_b k else avar_f x
+  end.
+Hint Unfold close_rec_avar.
+
+(** Closing for types and declarations *)
+Fixpoint close_rec_typ (k: nat) (u: var) (T: typ): typ :=
+  match T with
+  | typ_top        => typ_top
+  | typ_bot        => typ_bot
+  | typ_rcd D      => typ_rcd (close_rec_dec k u D)
+  | typ_and T1 T2  => typ_and (close_rec_typ k u T1) (close_rec_typ k u T2)
+  | typ_sel x L    => typ_sel (close_rec_avar k u x) L
+  | typ_bnd T      => typ_bnd (close_rec_typ (S k) u T)
+  | typ_all T1 T2  => typ_all (close_rec_typ k u T1) (close_rec_typ (S k) u T2)
+  end
+with close_rec_dec (k: nat) (u: var) (D: dec): dec :=
+  match D with
+  | dec_typ L T U => dec_typ L (close_rec_typ k u T) (close_rec_typ k u U)
+  | dec_trm m T   => dec_trm m (close_rec_typ k u T)
+  end.
+Hint Unfold close_rec_typ close_rec_dec.
+
+(** Closing for terms, values, and definitions *)
+Fixpoint close_rec_trm (k: nat) (u: var) (t: trm): trm :=
+  match t with
+  | trm_var a      => trm_var (close_rec_avar k u a)
+  | trm_val v      => trm_val (close_rec_val k u v)
+  | trm_sel v m    => trm_sel (close_rec_avar k u v) m
+  | trm_app f a    => trm_app (close_rec_avar k u f) (close_rec_avar k u a)
+  | trm_let t1 t2  => trm_let (close_rec_trm k u t1) (close_rec_trm (S k) u t2)
+  end
+with close_rec_val (k: nat) (u: var) (v: val): val :=
+  match v with
+  | val_new T ds   => val_new (close_rec_typ (S k) u T) (close_rec_defs (S k) u ds)
+  | val_lambda T e => val_lambda (close_rec_typ k u T) (close_rec_trm (S k) u e)
+  end
+with close_rec_def (k: nat) (u: var) (d: def): def :=
+  match d with
+  | def_typ L T => def_typ L (close_rec_typ k u T)
+  | def_trm m e => def_trm m (close_rec_trm k u e)
+  end
+with close_rec_defs (k: nat) (u: var) (ds: defs): defs :=
+  match ds with
+  | defs_nil       => defs_nil
+  | defs_cons tl d => defs_cons (close_rec_defs k u tl) (close_rec_def k u d)
+  end.
+Hint Unfold close_rec_trm close_rec_val close_rec_def close_rec_defs.
+
+Definition close_avar u a := close_rec_avar  0 u a.
+Definition close_typ  u t := close_rec_typ   0 u t.
+Definition close_dec  u D := close_rec_dec   0 u D.
+Definition close_trm  u e := close_rec_trm   0 u e.
+Definition close_val  u v := close_rec_val   0 u v.
+Definition close_def  u d := close_rec_def   0 u d.
+Definition close_defs u l := close_rec_defs  0 u l.
+Hint Unfold close_avar close_typ close_dec close_trm close_val close_def close_defs.
+
+
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
 
@@ -255,7 +315,7 @@ with fv_defs(ds: defs) : vars :=
 
 (** Free variables in the range (types) of a context *)
 Definition fv_ctx_types(G: ctx): vars := (fv_in_values (fun T => fv_typ T) G).
-Definition fv_sta_vals(s: sta): vars := (fv_in_values (fun v => fv_val v) s).
+Definition fv_ec_vals(e: ec): vars := (fv_in_values (fun v => fv_val v) e).
 
 (** * Typing Rules *)
 
@@ -470,28 +530,26 @@ with subtyp : ctx -> typ -> typ -> Prop :=
     G ⊢ typ_all S1 T1 <: typ_all S2 T2
 where "G '⊢' T '<:' U" := (subtyp G T U).
 
-(** * Well-typed stacks *)
+(** * Well-typed Evaluation Contexts *)
 
-(** The operational semantics is defined in terms of pairs [(s, t)], where
-    [s] is a stack and [t] is a term.
-    Given a typing [G ⊢ (s, t): T], [well_typed] establishes a correspondence
-    between [G] and the stack [s].
+(** Given a typing [G ⊢ e[t]: T], [well_typed] establishes a correspondence
+    between [G] and the evaluation context [e].
 
-    We say that [s] is well-typed with respect to [G] if
+    We say that [e] is well-typed with respect to [G] if
     - [G = {(xi mapsto Ti) | i = 1, ..., n}]
-    - [s = {(xi mapsto vi) | i = 1, ..., n}]
+    - [e = {(xi mapsto vi) | i = 1, ..., n}]
     - [G ⊢ vi: Ti].
 
-    We say that [e] is well-typed with respect to [G], denoted as [s: G]. *)
+    We say that [e] is well-typed with respect to [G], denoted as [e: G]. *)
 
-Inductive well_typed: ctx -> sta -> Prop :=
+Inductive well_typed: ctx -> ec -> Prop :=
 | well_typed_empty: well_typed empty empty
-| well_typed_push: forall G s x T v,
-    well_typed G s ->
+| well_typed_push: forall G e x T v,
+    well_typed G e ->
     x # G ->
-    x # s ->
+    x # e ->
     G ⊢ trm_val v : T ->
-    well_typed (G & x ~ T) (s & x ~ v).
+    well_typed (G & x ~ T) (e & x ~ v).
 
 (** * Infrastructure *)
 
@@ -530,7 +588,7 @@ Ltac gather_vars :=
   let A := gather_vars_with (fun x : vars      => x         ) in
   let B := gather_vars_with (fun x : var       => \{ x }    ) in
   let C := gather_vars_with (fun x : ctx       => (dom x) \u (fv_ctx_types x)) in
-  let D := gather_vars_with (fun x : sta       => dom x \u fv_sta_vals x) in
+  let D := gather_vars_with (fun x : ec        => dom x \u fv_ec_vals x) in
   let E := gather_vars_with (fun x : avar      => fv_avar  x) in
   let F := gather_vars_with (fun x : trm       => fv_trm   x) in
   let G := gather_vars_with (fun x : val       => fv_val   x) in
