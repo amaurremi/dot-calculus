@@ -37,7 +37,7 @@ Ltac lookup_eq :=
   match goal with
   | [Hl1: ?s ∋ ?t1,
      Hl2: ?s ∋ ?t2 |- _] =>
-     apply (lookup_func_s Hl1) in Hl2; inversions Hl2
+     apply (lookup_func Hl1) in Hl2; inversions Hl2
   end.
 
 Ltac invert_red :=
@@ -91,7 +91,7 @@ Proof.
     lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ_open; eauto.
+    eapply renaming_typ; eauto.
   - Case "ty_let".
     destruct t; try solve [solve_let].
      + SCase "[t = (let x = v in u)] where v is a value".

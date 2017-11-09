@@ -1032,7 +1032,7 @@ Substitution preserves labels of definitions: <span class="inlinecode"><span cla
 </div>
 
 <div class="doc">
-Looking up a path in a stack. 
+Looking up a path in a stack (generalization of variable binding). 
 </div>
 <div class="code">
 
@@ -1266,15 +1266,15 @@ Opening of definitions:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <a name="lookup_func"><span class="id" title="lemma">lookup_func</span></a> :<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_func_mut"><span class="id" title="lemma">lookup_func_mut</span></a> :<br/>
 &nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">t</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">=</span> <span class="id" title="notation">(</span><a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v1"><span class="id" title="variable">v1</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v2"><span class="id" title="variable">v2</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#v1"><span class="id" title="variable">v1</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#v2"><span class="id" title="variable">v2</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
-&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">p</span> <span class="id" title="var">ds1</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#ds1"><span class="id" title="variable">ds1</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="keyword">forall</span> <span class="id" title="var">ds2</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#ds2"><span class="id" title="variable">ds2</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">ds1</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#ds1"><span class="id" title="variable">ds1</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="keyword">forall</span> <span class="id" title="var">ds2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#ds2"><span class="id" title="variable">ds2</span></a> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#ds1"><span class="id" title="variable">ds1</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#ds2"><span class="id" title="variable">ds2</span></a><span class="id" title="notation">)</span>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_mutind"><span class="id" title="definition">lookup_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [<span class="id" title="var">lookup_solve</span>].<br/>
@@ -1287,13 +1287,200 @@ Opening of definitions:
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <a name="lookup_func_s"><span class="id" title="lemma">lookup_func_s</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>,<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_func"><span class="id" title="lemma">lookup_func</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v1"><span class="id" title="variable">v1</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v2"><span class="id" title="variable">v2</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#v1"><span class="id" title="variable">v1</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#v2"><span class="id" title="variable">v2</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="var">lets</span> <span class="id" title="var">Hl</span>: (<span class="id" title="notation">proj21</span> <a class="idref" href="Binding.html#lookup_func"><span class="id" title="lemma">lookup_func</span></a>). <span class="id" title="tactic">specialize</span> (<span class="id" title="var">Hl</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="constructor">eq_refl</span> <span class="id" title="var">H0</span>). <span class="id" title="tactic">apply</span> <span class="id" title="var">Hl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="var">lets</span> <span class="id" title="var">Hl</span>: (<span class="id" title="notation">proj21</span> <a class="idref" href="Binding.html#lookup_func_mut"><span class="id" title="lemma">lookup_func_mut</span></a>). <span class="id" title="tactic">specialize</span> (<span class="id" title="var">Hl</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="constructor">eq_refl</span> <span class="id" title="var">H0</span>). <span class="id" title="tactic">apply</span> <span class="id" title="var">Hl</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_empty_mut"><span class="id" title="lemma">lookup_empty_mut</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">t</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">=</span> <span class="id" title="axiom">empty</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">False</span><span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">ds</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#ds"><span class="id" title="variable">ds</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">=</span> <span class="id" title="axiom">empty</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">False</span><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_mutind"><span class="id" title="definition">lookup_mutind</span></a>; <span class="id" title="tactic">auto</span>. <span class="id" title="tactic">intros</span>. <span class="id" title="tactic">subst</span>. <span class="id" title="var">false</span>* <span class="id" title="lemma">binds_empty_inv</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_empty"><span class="id" title="lemma">lookup_empty</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">t</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="axiom">empty</span> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="inductive">False</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">eapply</span> (<span class="id" title="notation">proj21</span> <a class="idref" href="Binding.html#lookup_empty_mut"><span class="id" title="lemma">lookup_empty_mut</span></a>); <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_ctx_empty_mut"><span class="id" title="lemma">lookup_ctx_empty_mut</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">p</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">=</span> <span class="id" title="axiom">empty</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">False</span><span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">p</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#9c89ef9247048c21940cb7d2a452484e"><span class="id" title="notation">↓↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#9c89ef9247048c21940cb7d2a452484e"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">=</span> <span class="id" title="axiom">empty</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">False</span><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_ctx_mutind"><span class="id" title="definition">lookup_ctx_mutind</span></a>; <span class="id" title="tactic">auto</span>. <span class="id" title="tactic">intros</span>. <span class="id" title="tactic">subst</span>. <span class="id" title="var">false</span>* <span class="id" title="lemma">binds_empty_inv</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_ctx_empty"><span class="id" title="lemma">lookup_ctx_empty</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="axiom">empty</span> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="inductive">False</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">eapply</span> (<span class="id" title="notation">proj21</span> <a class="idref" href="Binding.html#lookup_ctx_empty_mut"><span class="id" title="lemma">lookup_ctx_empty_mut</span></a>); <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_implies_named_mut"><span class="id" title="lemma">lookup_implies_named_mut</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">p</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#named_path"><span class="id" title="definition">named_path</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">/\</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">p</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#9c89ef9247048c21940cb7d2a452484e"><span class="id" title="notation">↓↓</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#9c89ef9247048c21940cb7d2a452484e"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#named_path"><span class="id" title="definition">named_path</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_ctx_mutind"><span class="id" title="definition">lookup_ctx_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">unfolds</span> <a class="idref" href="Binding.html#named_path"><span class="id" title="definition">named_path</span></a>, <a class="idref" href="Definitions.html#pvar"><span class="id" title="definition">pvar</span></a>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> (<span class="id" title="var">destruct_all</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#sel_fields"><span class="id" title="definition">sel_fields</span></a>); <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">eexists</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab29"></a><h2 class="section">"Field selection" on types</h2>
+
+
+<div class="paragraph"> </div>
+
+       For example, if <span class="inlinecode"><span class="id" title="var">T</span></span> is a recursive type with a field declaration <span class="inlinecode">{<span class="id" title="var">a</span>:</span> <span class="inlinecode"><span class="id" title="var">U</span>}</span>,
+       then <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">▼</span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">==</span> <span class="inlinecode"><span class="id" title="var">U</span></span>.  
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Reserved Notation</span> &quot;T '▼' bs '==' U" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 5, <span class="id" title="var">U</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50).<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="field_sel_typ"><span class="id" title="inductive">field_sel_typ</span></a> : <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Definitions.html#fields"><span class="id" title="definition">fields</span></a> <span class="id" title="notation">-&gt;</span> <a class="idref" href="Definitions.html#typ"><span class="id" title="inductive">typ</span></a> <span class="id" title="notation">-&gt;</span> <span class="id" title="keyword">Prop</span> :=<br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">▼</span> <span class="inlinecode">[]</span> <span class="inlinecode">==</span> <span class="inlinecode"><span class="id" title="var">T</span></span> 
+</div>
+<div class="code">
+| <a name="fields_empty"><span class="id" title="constructor">fields_empty</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">▼</span></a> <span class="id" title="constructor">nil</span> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a><br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">▼</span> <span class="inlinecode"><span class="id" title="var">b1.b2</span>...<span class="id" title="var">bn</span></span> <span class="inlinecode">==</span> <span class="inlinecode"><span class="id" title="var">μ</span>(<span class="id" title="var">x</span>:</span> <span class="inlinecode">...{<span class="id" title="var">b</span>:</span> <span class="inlinecode"><span class="id" title="var">V</span>}...)</span> <br>
+    <span class="inlinecode">――――――――――――――――――――――――――――――――――――</span> <br>
+    <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">▼</span> <span class="inlinecode"><span class="id" title="var">b1.b2</span>...<span class="id" title="var">bn.b</span></span> <span class="inlinecode">==</span> <span class="inlinecode"><span class="id" title="var">V</span></span>                
+</div>
+<div class="code">
+| <a name="fields_sel"><span class="id" title="constructor">fields_sel</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> <span class="id" title="var">b</span> <span class="id" title="var">bs</span> <span class="id" title="var">V</span> <span class="id" title="var">U</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">▼</span></a> <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">==</span></a> <a class="idref" href="Definitions.html#typ_bnd"><span class="id" title="constructor">typ_bnd</span></a> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a> (<a class="idref" href="Definitions.html#dec_trm"><span class="id" title="constructor">dec_trm</span></a> <a class="idref" href="Binding.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Binding.html#V"><span class="id" title="variable">V</span></a>) <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">▼</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">(</span></a><a class="idref" href="Binding.html#b"><span class="id" title="variable">b</span></a><span class="id" title="notation">::</span><a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">)</span></a> <a class="idref" href="Binding.html#a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">==</span></a> <a class="idref" href="Binding.html#V"><span class="id" title="variable">V</span></a><br/>
+<br/>
+<span class="id" title="keyword">where</span> <a name="a11f2bd6d1622535a625396eae9afb7f"><span class="id" title="notation">&quot;</span></a>T '▼' bs '==' U" := (<a class="idref" href="Binding.html#field_sel_typ"><span class="id" title="inductive">field_sel_typ</span></a> <span class="id" title="var">T</span> <span class="id" title="var">bs</span> <span class="id" title="var">U</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_ctx_push_eq_inv_var"><span class="id" title="lemma">lookup_ctx_push_eq_inv_var</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Definitions.html#pvar"><span class="id" title="definition">pvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hx</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hx</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="lemma">binds_push_eq_inv</span> <span class="id" title="keyword">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">subst</span>*.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> (<a class="idref" href="Binding.html#last_field"><span class="id" title="lemma">last_field</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">bs</span> <span class="id" title="var">Hbs</span>]. <span class="id" title="tactic">inversion</span> <span class="id" title="var">Hbs</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_push_eq_inv_var"><span class="id" title="lemma">lookup_push_eq_inv_var</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">v</span> <span class="id" title="var">v'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#pvar"><span class="id" title="definition">pvar</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v'"><span class="id" title="variable">v'</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#v'"><span class="id" title="variable">v'</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hx</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hx</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> (<span class="id" title="tactic">destruct</span> (<a class="idref" href="Binding.html#last_field"><span class="id" title="lemma">last_field</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">bs</span> <span class="id" title="var">Hbs</span>]; <span class="id" title="tactic">inversion</span> <span class="id" title="var">Hbs</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="lemma">binds_push_eq_inv</span> <span class="id" title="keyword">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">subst</span>*.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="comment">(*&nbsp;todo:&nbsp;mutual&nbsp;induction&nbsp;*)</span><br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_ctx_push_neq_inv_var"><span class="id" title="lemma">lookup_ctx_push_neq_inv_var</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">G</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">bs</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">&lt;&gt;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">∋</span></a> <a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a> <a class="idref" href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0"><span class="id" title="notation">:</span></a> <a class="idref" href="Binding.html#U"><span class="id" title="variable">U</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hx</span> <span class="id" title="var">Hneq</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hx</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">lets</span> <span class="id" title="var">Hb</span>: (<span class="id" title="lemma">binds_push_neq_inv</span> <span class="id" title="var">H3</span> <span class="id" title="var">Hneq</span>). <span class="id" title="tactic">constructor</span>*.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> (<a class="idref" href="Binding.html#last_field"><span class="id" title="lemma">last_field</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">bs'</span> <span class="id" title="var">Hbs</span>]. <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">constructor</span>*. <span class="id" title="var">Admitted</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_push_neq"><span class="id" title="lemma">lookup_push_neq</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">v</span> <span class="id" title="var">y</span> <span class="id" title="var">v'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">&lt;&gt;</span> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">-&gt;</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v'"><span class="id" title="variable">v'</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hp</span> <span class="id" title="var">Hn</span>. <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">Hp</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">Admitted</span>.<br/>
+
+<br/>
+<span class="comment">(*<br/>
+Lemma&nbsp;lookup_ctx_push_eq_inv_mut&nbsp;:<br/>
+&nbsp;&nbsp;(forall&nbsp;G'&nbsp;p&nbsp;U,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G'&nbsp;∋&nbsp;p:&nbsp;U&nbsp;-&gt;&nbsp;forall&nbsp;G&nbsp;x&nbsp;T&nbsp;b&nbsp;bs&nbsp;p',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G'&nbsp;=&nbsp;G&nbsp;&amp;&nbsp;x&nbsp;~&nbsp;T&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p'&nbsp;=&nbsp;p_sel&nbsp;(avar_f&nbsp;x)&nbsp;bs&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p&nbsp;=&nbsp;p'•b&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;T&nbsp;▼&nbsp;(b::bs)&nbsp;==&nbsp;open_typ_p&nbsp;p&nbsp;U)&nbsp;/\<br/>
+&nbsp;&nbsp;(forall&nbsp;G'&nbsp;p&nbsp;U,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G'&nbsp;↓↓&nbsp;p&nbsp;==&nbsp;U&nbsp;-&gt;&nbsp;forall&nbsp;G&nbsp;x&nbsp;T&nbsp;b&nbsp;bs&nbsp;p',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G'&nbsp;=&nbsp;G&nbsp;&amp;&nbsp;x&nbsp;~&nbsp;T&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p'&nbsp;=&nbsp;p_sel&nbsp;(avar_f&nbsp;x)&nbsp;bs&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p&nbsp;=&nbsp;p'•b&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;T&nbsp;▼&nbsp;(b::bs)&nbsp;==&nbsp;open_typ_p&nbsp;p&nbsp;U).<br/>
+Proof.<br/>
+&nbsp;&nbsp;apply&nbsp;lookup_ctx_mutind;&nbsp;intros;&nbsp;subst.<br/>
+&nbsp;&nbsp;-&nbsp;Case&nbsp;"lookup_ctx_var".<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;inversion&nbsp;H1.<br/>
+&nbsp;&nbsp;-&nbsp;Case&nbsp;"lookup_ctx_path".<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply&nbsp;invert_path_sel&nbsp;in&nbsp;H2.&nbsp;destruct&nbsp;H2&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">Heq1</span></span> <span class="inlinecode"><span class="id" title="var">Heq2</span></span>.&nbsp;subst.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;inversions&nbsp;l.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply&nbsp;fields_sel.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;specialize&nbsp;(H&nbsp;_&nbsp;_&nbsp;_&nbsp;b&nbsp;bs&nbsp;_&nbsp;eq_refl&nbsp;eq_refl).<br/>
+<br/>
+&nbsp;&nbsp;-&nbsp;Case&nbsp;"lookup_ctx_defs".<br/>
+<br/>
+<br/>
+Lemma&nbsp;lookup_ctx_push_eq_inv&nbsp;:&nbsp;forall&nbsp;G&nbsp;x&nbsp;b&nbsp;bs&nbsp;p&nbsp;T&nbsp;U,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;p&nbsp;=&nbsp;p_sel&nbsp;(avar_f&nbsp;x)&nbsp;bs&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;G&nbsp;&amp;&nbsp;x&nbsp;~&nbsp;T&nbsp;∋&nbsp;p•b&nbsp;:&nbsp;U&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;T&nbsp;▼&nbsp;(b::bs)&nbsp;==&nbsp;open_typ_p&nbsp;p&nbsp;U.<br/>
+Proof.<br/>
+&nbsp;&nbsp;introv&nbsp;Heq&nbsp;Hg.&nbsp;subst.&nbsp;dependent&nbsp;induction&nbsp;Hg.<br/>
+&nbsp;&nbsp;-&nbsp;apply&nbsp;binds_push_eq_inv&nbsp;in&nbsp;H.&nbsp;subst.<br/>
+<br/>
+Lemma&nbsp;lookup_push_eq_inv&nbsp;:&nbsp;forall&nbsp;G&nbsp;x&nbsp;T&nbsp;U,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;G&nbsp;&amp;&nbsp;x&nbsp;~&nbsp;T&nbsp;∋&nbsp;p_sel&nbsp;(avar_f&nbsp;x)&nbsp;bs&nbsp;:&nbsp;U&nbsp;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;T&nbsp;=&nbsp;U.<br/>
+Proof.<br/>
+&nbsp;&nbsp;Admitted.<br/>
+<br/>
+Lemma&nbsp;lookup_push_neq_inv.<br/>
+*)</span><br/>
 </div>
 </div>
 <div id="footer">

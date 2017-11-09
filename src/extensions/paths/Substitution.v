@@ -233,7 +233,7 @@ Qed. *)
     [G ⊢ p: U]               #<br>#
     [――――――――――――――――――――――] #<br>#
     [G ⊢ t^p : T^p]         *)
-Lemma renaming_typ_open: forall G z T U t p,
+Lemma renaming_typ: forall G z T U t p,
     ok G ->
     z # G ->
     z \notin (fv_ctx_types G \u fv_typ U \u fv_typ T \u fv_trm t) ->
@@ -244,23 +244,6 @@ Proof.
   introv Hok Hnz Hnz' Hz Hx. rewrite subst_intro_typ with (x:=z). rewrite subst_intro_trm with (x:=z).
   eapply subst_ty_trm; auto. eapply Hz.
   rewrite subst_fresh_typ. all: eauto using typed_paths_named.
-Qed.
-
-Lemma renaming_typ: forall G T U t x y,
-    ok G ->
-    y # G ->
-    y \notin fv_ctx_types G \u \{x} \u fv_typ U \u fv_typ T \u fv_trm t ->
-    G & y ~ U ⊢ open_trm y t : T ->
-    x # G ->
-    G & x ~ U ⊢ open_trm x t : T.
-Proof.
-  introv Hok Hy Hy' Ht Hx.
-  rewrite open_var_trm_eq. rewrite subst_intro_trm with (x:=y); auto.
-  rewrite <- subst_fresh_typ with (x:=y) (p:=pvar x); auto.
-  apply subst_ty_trm with (S:=U).
-  apply* weaken_rules.
-  apply* ok_push. rewrite fv_ctx_types_push_eq. apply* notin_union.
-  rewrite~ subst_fresh_typ. constructor*. unfold named_path, pvar. repeat eexists.
 Qed.
 
 (** Renaming the name of the opening variable for term typing. #<br>#

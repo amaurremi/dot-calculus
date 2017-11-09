@@ -56,7 +56,7 @@
 <td>Z</td>
 <td>_</td>
 <td><a href="indexpage.html#global_*">other</a></td>
-<td>(450 entries)</td>
+<td>(462 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -88,7 +88,7 @@
 <td>Z</td>
 <td>_</td>
 <td><a href="indexpage.html#notation_*">other</a></td>
-<td>(18 entries)</td>
+<td>(19 entries)</td>
 </tr>
 <tr>
 <td>Library Index</td>
@@ -152,7 +152,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(142 entries)</td>
+<td>(150 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -161,7 +161,7 @@
 <td>C</td>
 <td><a href="indexpage.html#constructor_D">D</a></td>
 <td>E</td>
-<td>F</td>
+<td><a href="indexpage.html#constructor_F">F</a></td>
 <td>G</td>
 <td>H</td>
 <td><a href="indexpage.html#constructor_I">I</a></td>
@@ -184,7 +184,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(129 entries)</td>
+<td>(131 entries)</td>
 </tr>
 <tr>
 <td>Axiom Index</td>
@@ -225,7 +225,7 @@
 <td>C</td>
 <td><a href="indexpage.html#inductive_D">D</a></td>
 <td>E</td>
-<td>F</td>
+<td><a href="indexpage.html#inductive_F">F</a></td>
 <td>G</td>
 <td>H</td>
 <td><a href="indexpage.html#inductive_I">I</a></td>
@@ -248,7 +248,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(34 entries)</td>
+<td>(35 entries)</td>
 </tr>
 <tr>
 <td>Definition Index</td>
@@ -318,6 +318,9 @@
 <a href="Definitions.html#def_typ">def_typ</a> [constructor, in <a href="Definitions.html">Definitions</a>]<br/>
 <br/><br/><a name="global_F"></a><h2>F </h2>
 <a href="Definitions.html#fields">fields</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
+<a href="Binding.html#fields_sel">fields_sel</a> [constructor, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#fields_empty">fields_empty</a> [constructor, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#field_sel_typ">field_sel_typ</a> [inductive, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#fv_ctx_types_push_eq">fv_ctx_types_push_eq</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Definitions.html#fv_sta_vals">fv_sta_vals</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#fv_ctx_types">fv_ctx_types</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
@@ -365,8 +368,17 @@
 <a href="Definitions.html#label_typ">label_typ</a> [constructor, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Binding.html#last_field">last_field</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup">lookup</a> [inductive, in <a href="Binding.html">Binding</a>]<br/>
-<a href="Binding.html#lookup_func_s">lookup_func_s</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_push_neq">lookup_push_neq</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_push_neq_inv_var">lookup_ctx_push_neq_inv_var</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_push_eq_inv_var">lookup_push_eq_inv_var</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_push_eq_inv_var">lookup_ctx_push_eq_inv_var</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_implies_named_mut">lookup_implies_named_mut</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_empty">lookup_ctx_empty</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_empty_mut">lookup_ctx_empty_mut</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_empty">lookup_empty</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_empty_mut">lookup_empty_mut</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_func">lookup_func</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_func_mut">lookup_func_mut</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_ctx_func">lookup_ctx_func</a> [lemma, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_ctx_mutind">lookup_ctx_mutind</a> [definition, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_ctx_open_mut">lookup_ctx_open_mut</a> [definition, in <a href="Binding.html">Binding</a>]<br/>
@@ -517,7 +529,6 @@
 <a href="OperationalSemantics.html#red_app">red_app</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
 <a href="Substitution.html#renaming_fresh">renaming_fresh</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
 <a href="Substitution.html#renaming_typ">renaming_typ</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
-<a href="Substitution.html#renaming_typ_open">renaming_typ_open</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
 <a href="Definitions.html#rh_andr">rh_andr</a> [constructor, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rh_andl">rh_andl</a> [constructor, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rh_one">rh_one</a> [constructor, in <a href="Definitions.html">Definitions</a>]<br/>
@@ -738,6 +749,7 @@
 <br/><br/><a name="global_*"></a><h2>other </h2>
 <a href="TightTyping.html#ffeaea3f10fafc9fae0b394530b170ab">_ ⊢# _ <: _</a> [notation, in <a href="TightTyping.html">TightTyping</a>]<br/>
 <a href="TightTyping.html#9e5bbd6e0016492cf8c98848ffa3efcf">_ ⊢# _ : _</a> [notation, in <a href="TightTyping.html">TightTyping</a>]<br/>
+<a href="Binding.html#a11f2bd6d1622535a625396eae9afb7f">_ ▼ _ == _</a> [notation, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#9c89ef9247048c21940cb7d2a452484e">_ ↓↓ _ == _</a> [notation, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0">_ ∋ _ : _</a> [notation, in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b">_ ↓ _ == _</a> [notation, in <a href="Binding.html">Binding</a>]<br/>
@@ -759,6 +771,7 @@
 <a name="notation_*"></a><h2>other </h2>
 <a href="TightTyping.html#ffeaea3f10fafc9fae0b394530b170ab">_ ⊢# _ <: _</a> [in <a href="TightTyping.html">TightTyping</a>]<br/>
 <a href="TightTyping.html#9e5bbd6e0016492cf8c98848ffa3efcf">_ ⊢# _ : _</a> [in <a href="TightTyping.html">TightTyping</a>]<br/>
+<a href="Binding.html#a11f2bd6d1622535a625396eae9afb7f">_ ▼ _ == _</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#9c89ef9247048c21940cb7d2a452484e">_ ↓↓ _ == _</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#3e32763a223a0fbdbe5ea869e9e21cb0">_ ∋ _ : _</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#8ccdd8820cd3e5b8d75d212c30ac837b">_ ↓ _ == _</a> [in <a href="Binding.html">Binding</a>]<br/>
@@ -836,8 +849,17 @@
 <a href="InvertibleTyping.html#inv_to_tight">inv_to_tight</a> [in <a href="InvertibleTyping.html">InvertibleTyping</a>]<br/>
 <br/><br/><a name="lemma_L"></a><h2>L </h2>
 <a href="Binding.html#last_field">last_field</a> [in <a href="Binding.html">Binding</a>]<br/>
-<a href="Binding.html#lookup_func_s">lookup_func_s</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_push_neq">lookup_push_neq</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_push_neq_inv_var">lookup_ctx_push_neq_inv_var</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_push_eq_inv_var">lookup_push_eq_inv_var</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_push_eq_inv_var">lookup_ctx_push_eq_inv_var</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_implies_named_mut">lookup_implies_named_mut</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_empty">lookup_ctx_empty</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_ctx_empty_mut">lookup_ctx_empty_mut</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_empty">lookup_empty</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_empty_mut">lookup_empty_mut</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_func">lookup_func</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#lookup_func_mut">lookup_func_mut</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#lookup_ctx_func">lookup_ctx_func</a> [in <a href="Binding.html">Binding</a>]<br/>
 <br/><br/><a name="lemma_N"></a><h2>N </h2>
 <a href="Narrowing.html#narrow_subtyping">narrow_subtyping</a> [in <a href="Narrowing.html">Narrowing</a>]<br/>
@@ -904,7 +926,6 @@
 <a href="RecordAndInertTypes.html#record_open">record_open</a> [in <a href="RecordAndInertTypes.html">RecordAndInertTypes</a>]<br/>
 <a href="Substitution.html#renaming_fresh">renaming_fresh</a> [in <a href="Substitution.html">Substitution</a>]<br/>
 <a href="Substitution.html#renaming_typ">renaming_typ</a> [in <a href="Substitution.html">Substitution</a>]<br/>
-<a href="Substitution.html#renaming_typ_open">renaming_typ_open</a> [in <a href="Substitution.html">Substitution</a>]<br/>
 <br/><br/><a name="lemma_S"></a><h2>S </h2>
 <a href="Binding.html#sel_fields_subst">sel_fields_subst</a> [in <a href="Binding.html">Binding</a>]<br/>
 <a href="Binding.html#sel_fields_open">sel_fields_open</a> [in <a href="Binding.html">Binding</a>]<br/>
@@ -976,6 +997,9 @@
 <a href="Definitions.html#defs_nil">defs_nil</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#def_trm">def_trm</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#def_typ">def_typ</a> [in <a href="Definitions.html">Definitions</a>]<br/>
+<br/><br/><a name="constructor_F"></a><h2>F </h2>
+<a href="Binding.html#fields_sel">fields_sel</a> [in <a href="Binding.html">Binding</a>]<br/>
+<a href="Binding.html#fields_empty">fields_empty</a> [in <a href="Binding.html">Binding</a>]<br/>
 <br/><br/><a name="constructor_I"></a><h2>I </h2>
 <a href="Definitions.html#inert_push">inert_push</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#inert_empty">inert_empty</a> [in <a href="Definitions.html">Definitions</a>]<br/>
@@ -1119,6 +1143,8 @@
 <a href="Definitions.html#dec">dec</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#def">def</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#defs">defs</a> [in <a href="Definitions.html">Definitions</a>]<br/>
+<br/><br/><a name="inductive_F"></a><h2>F </h2>
+<a href="Binding.html#field_sel_typ">field_sel_typ</a> [in <a href="Binding.html">Binding</a>]<br/>
 <br/><br/><a name="inductive_I"></a><h2>I </h2>
 <a href="Definitions.html#inert">inert</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#inert_typ">inert_typ</a> [in <a href="Definitions.html">Definitions</a>]<br/>
@@ -1316,7 +1342,7 @@
 <td>Z</td>
 <td>_</td>
 <td><a href="indexpage.html#global_*">other</a></td>
-<td>(450 entries)</td>
+<td>(462 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -1348,7 +1374,7 @@
 <td>Z</td>
 <td>_</td>
 <td><a href="indexpage.html#notation_*">other</a></td>
-<td>(18 entries)</td>
+<td>(19 entries)</td>
 </tr>
 <tr>
 <td>Library Index</td>
@@ -1412,7 +1438,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(142 entries)</td>
+<td>(150 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -1421,7 +1447,7 @@
 <td>C</td>
 <td><a href="indexpage.html#constructor_D">D</a></td>
 <td>E</td>
-<td>F</td>
+<td><a href="indexpage.html#constructor_F">F</a></td>
 <td>G</td>
 <td>H</td>
 <td><a href="indexpage.html#constructor_I">I</a></td>
@@ -1444,7 +1470,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(129 entries)</td>
+<td>(131 entries)</td>
 </tr>
 <tr>
 <td>Axiom Index</td>
@@ -1485,7 +1511,7 @@
 <td>C</td>
 <td><a href="indexpage.html#inductive_D">D</a></td>
 <td>E</td>
-<td>F</td>
+<td><a href="indexpage.html#inductive_F">F</a></td>
 <td>G</td>
 <td>H</td>
 <td><a href="indexpage.html#inductive_I">I</a></td>
@@ -1508,7 +1534,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(34 entries)</td>
+<td>(35 entries)</td>
 </tr>
 <tr>
 <td>Definition Index</td>

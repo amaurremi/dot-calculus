@@ -48,16 +48,20 @@ Lemma corresponding_types: forall G s p T,
           G ⊢ trm_val v : T).
 Proof.
   introv Hwf BiG. induction Hwf.
-  - dependent induction BiG. Admitted. (*false* binds_empty_inv. inversions H.
-  - destruct (classicT (x = x0)).
-    + subst. apply binds_push_eq_inv in BiG. subst.
-      exists v. repeat split~. apply~ weaken_ty_trm.
-      apply* ok_push.
-    + apply binds_push_neq_inv in BiG; auto.
-      specialize (IHHwf BiG) as [v' [Bis Ht]].
-      exists v'. repeat split~. apply~ weaken_ty_trm.
-      apply* ok_push.
-Qed.*)
+  - false* lookup_ctx_empty.
+  - destruct p as [y bs].
+    lets Hn: ((proj21 lookup_implies_named_mut) _ _ _ BiG).
+    inversions Hn. destruct H2 as [bs' Heq]. inversions Heq.
+    assert (p_sel (avar_f x0) nil = pvar x0) as Heq by auto.
+    destruct (classicT (x = x0)).
+    * subst. destruct bs'.
+      + inversions Heq. apply lookup_ctx_push_eq_inv_var in BiG. subst.
+        exists v. split. constructor. auto.
+        apply* weaken_ty_trm.
+      + admit.
+    * apply lookup_ctx_push_neq_inv_var in BiG. specialize (IHHwf BiG) as [v' [Hl Ht]].
+      exists v'. repeat split. apply* lookup_push_neq. apply* weaken_ty_trm. auto.
+Qed.
 
 (** [G ⊢##v v: forall(S)T]                 #<br>#
     [inert G]                          #<br>#
@@ -233,16 +237,17 @@ Lemma var_typ_rcd_to_binds: forall G p a T,
         record_has (open_typ_p p S) (dec_trm a T') /\
         G ⊢ T' <: T).
 Proof.
-  introv Hin Ht. Admitted. (*
+  introv Hin Ht.
+  lets Hn: (typed_paths_named Ht). destruct Hn as [x [bs Heq]]. subst.
   destruct (typing_implies_bound Ht) as [S BiG].
   lets Htt: (general_to_tight_typing Hin Ht).
   lets Hinv: (tight_to_invertible Hin Htt).
   destruct (invertible_to_precise_trm_dec Hinv) as [T' [Htp Hs]].
   destruct (precise_flow_lemma Htp) as [U Pf].
   destruct (pf_inert_rcd_U Hin Pf) as [U' Hr]. subst.
-  lets Hr': (precise_flow_record_has Hin Pf). apply pf_binds in Pf.
+  lets Hr': (precise_flow_record_has Hin Pf). (*apply pf_binds in Pf.
   exists U' T'. split. assumption. split. rewrite open_var_typ_eq. assumption. apply* tight_to_general.
-Qed.*)
+Qed.*) Admitted.
 
 (** [mu] to [nu])
 

@@ -51,7 +51,7 @@ This module proves the Canonical Forms Lemmas, which allow us
 </div>
 
 <div class="doc">
-<a name="lab52"></a><h1 class="section">Well-typedness</h1>
+<a name="lab53"></a><h1 class="section">Well-typedness</h1>
 
 <div class="paragraph"> </div>
 
@@ -101,16 +101,20 @@ This module proves the Canonical Forms Lemmas, which allow us
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="CanonicalForms.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#475d58042806a5294f9ce6903e16f6d3"><span class="id" title="notation">⊢</span></a> <a class="idref" href="Definitions.html#trm_val"><span class="id" title="constructor">trm_val</span></a> <span class="id" title="var">v</span> <a class="idref" href="Definitions.html#475d58042806a5294f9ce6903e16f6d3"><span class="id" title="notation">:</span></a> <a class="idref" href="CanonicalForms.html#T"><span class="id" title="variable">T</span></a><span class="id" title="notation">)</span>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hwf</span> <span class="id" title="var">BiG</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">Hwf</span>.<br/>
-&nbsp;&nbsp;- <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">BiG</span>. <span class="id" title="var">Admitted</span>. <span class="comment">(*false*&nbsp;binds_empty_inv.&nbsp;inversions&nbsp;H.<br/>
-&nbsp;&nbsp;-&nbsp;destruct&nbsp;(classicT&nbsp;(x&nbsp;=&nbsp;x0)).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;+&nbsp;subst.&nbsp;apply&nbsp;binds_push_eq_inv&nbsp;in&nbsp;BiG.&nbsp;subst.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exists&nbsp;v.&nbsp;repeat&nbsp;split~.&nbsp;apply~&nbsp;weaken_ty_trm.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply*&nbsp;ok_push.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;+&nbsp;apply&nbsp;binds_push_neq_inv&nbsp;in&nbsp;BiG;&nbsp;auto.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;specialize&nbsp;(IHHwf&nbsp;BiG)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">v'</span></span> <span class="inlinecode">[<span class="id" title="var">Bis</span></span> <span class="inlinecode"><span class="id" title="var">Ht</span>]</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exists&nbsp;v'.&nbsp;repeat&nbsp;split~.&nbsp;apply~&nbsp;weaken_ty_trm.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply*&nbsp;ok_push.<br/>
-Qed.*)</span><br/>
+&nbsp;&nbsp;- <span class="id" title="var">false</span>* <a class="idref" href="Binding.html#lookup_ctx_empty"><span class="id" title="lemma">lookup_ctx_empty</span></a>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">p</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">y</span> <span class="id" title="var">bs</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">lets</span> <span class="id" title="var">Hn</span>: ((<span class="id" title="notation">proj21</span> <a class="idref" href="Binding.html#lookup_implies_named_mut"><span class="id" title="lemma">lookup_implies_named_mut</span></a>) <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">BiG</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inversions</span> <span class="id" title="var">Hn</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">bs'</span> <span class="id" title="var">Heq</span>]. <span class="id" title="var">inversions</span> <span class="id" title="var">Heq</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <span class="id" title="var">x0</span>) <span class="id" title="constructor">nil</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#pvar"><span class="id" title="definition">pvar</span></a> <span class="id" title="var">x0</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">Heq</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="lemma">classicT</span> (<span class="id" title="var">x</span> <span class="id" title="notation">=</span> <span class="id" title="var">x0</span>)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">subst</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">bs'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">Heq</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_ctx_push_eq_inv_var"><span class="id" title="lemma">lookup_ctx_push_eq_inv_var</span></a> <span class="id" title="keyword">in</span> <span class="id" title="var">BiG</span>. <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">v</span>. <span class="id" title="tactic">split</span>. <span class="id" title="tactic">constructor</span>. <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span>* <a class="idref" href="Weakening.html#weaken_ty_trm"><span class="id" title="lemma">weaken_ty_trm</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">admit</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#lookup_ctx_push_neq_inv_var"><span class="id" title="axiom">lookup_ctx_push_neq_inv_var</span></a> <span class="id" title="keyword">in</span> <span class="id" title="var">BiG</span>. <span class="id" title="tactic">specialize</span> (<span class="id" title="var">IHHwf</span> <span class="id" title="var">BiG</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">v'</span> [<span class="id" title="var">Hl</span> <span class="id" title="var">Ht</span>]].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">v'</span>. <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">split</span>. <span class="id" title="tactic">apply</span>* <a class="idref" href="Binding.html#lookup_push_neq"><span class="id" title="axiom">lookup_push_neq</span></a>. <span class="id" title="tactic">apply</span>* <a class="idref" href="Weakening.html#weaken_ty_trm"><span class="id" title="lemma">weaken_ty_trm</span></a>. <span class="id" title="tactic">auto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
 </div>
@@ -220,7 +224,7 @@ Qed.*)</span><br/>
 </div>
 
 <div class="doc">
-<a name="lab53"></a><h1 class="section">Canonical Forms for Functions</h1>
+<a name="lab54"></a><h1 class="section">Canonical Forms for Functions</h1>
 
 
 <div class="paragraph"> </div>
@@ -244,7 +248,7 @@ Qed.*)</span><br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hin</span> <span class="id" title="var">Hwt</span> <span class="id" title="var">Hty</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#var_typ_all_to_binds"><span class="id" title="lemma">var_typ_all_to_binds</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Hty</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">L</span> [<span class="id" title="var">S</span> [<span class="id" title="var">T'</span> [<span class="id" title="var">BiG</span> [<span class="id" title="var">Hs1</span> <span class="id" title="var">Hs2</span>]]]]].<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#corresponding_types"><span class="id" title="axiom">corresponding_types</span></a> <span class="id" title="var">Hwt</span> <span class="id" title="var">BiG</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">v</span> [<span class="id" title="var">Bis</span> <span class="id" title="var">Ht</span>]].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#corresponding_types"><span class="id" title="lemma">corresponding_types</span></a> <span class="id" title="var">Hwt</span> <span class="id" title="var">BiG</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">v</span> [<span class="id" title="var">Bis</span> <span class="id" title="var">Ht</span>]].<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#val_typ_all_to_lambda"><span class="id" title="lemma">val_typ_all_to_lambda</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Ht</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">L'</span> [<span class="id" title="var">S'</span> [<span class="id" title="var">t</span> [<span class="id" title="var">Heq</span> [<span class="id" title="var">Hs1'</span> <span class="id" title="var">Hs2'</span>]]]]].<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">subst</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="var">L</span> <span class="id" title="notation">\</span><span class="id" title="notation">u</span> <span class="id" title="var">L'</span> <span class="id" title="notation">\</span><span class="id" title="notation">u</span> <span class="id" title="notation">(</span><span class="id" title="axiom">dom</span> <span class="id" title="var">G</span><span class="id" title="notation">)</span>) <span class="id" title="var">S'</span> <span class="id" title="var">t</span>. <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">split</span>~.<br/>
@@ -337,16 +341,17 @@ This lemma corresponds to Lemma 3.9 (<span class="inlinecode"><span class="id" t
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> (<a class="idref" href="Definitions.html#open_typ_p"><span class="id" title="definition">open_typ_p</span></a> <a class="idref" href="CanonicalForms.html#p"><span class="id" title="variable">p</span></a> <span class="id" title="var">S</span>) (<a class="idref" href="Definitions.html#dec_trm"><span class="id" title="constructor">dec_trm</span></a> <a class="idref" href="CanonicalForms.html#a"><span class="id" title="variable">a</span></a> <span class="id" title="var">T'</span>) <span class="id" title="notation">/\</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="CanonicalForms.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#f5d99e17f5ca8d1d631e108ef40e0c62"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">T'</span> <a class="idref" href="Definitions.html#f5d99e17f5ca8d1d631e108ef40e0c62"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="CanonicalForms.html#T"><span class="id" title="variable">T</span></a><span class="id" title="notation">)</span>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hin</span> <span class="id" title="var">Ht</span>. <span class="id" title="var">Admitted</span>. <span class="comment">(*<br/>
-&nbsp;&nbsp;destruct&nbsp;(typing_implies_bound&nbsp;Ht)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">BiG</span></span>.<br/>
-&nbsp;&nbsp;lets&nbsp;Htt:&nbsp;(general_to_tight_typing&nbsp;Hin&nbsp;Ht).<br/>
-&nbsp;&nbsp;lets&nbsp;Hinv:&nbsp;(tight_to_invertible&nbsp;Hin&nbsp;Htt).<br/>
-&nbsp;&nbsp;destruct&nbsp;(invertible_to_precise_trm_dec&nbsp;Hinv)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">T'</span></span> <span class="inlinecode">[<span class="id" title="var">Htp</span></span> <span class="inlinecode"><span class="id" title="var">Hs</span>]</span>.<br/>
-&nbsp;&nbsp;destruct&nbsp;(precise_flow_lemma&nbsp;Htp)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">U</span></span> <span class="inlinecode"><span class="id" title="var">Pf</span></span>.<br/>
-&nbsp;&nbsp;destruct&nbsp;(pf_inert_rcd_U&nbsp;Hin&nbsp;Pf)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">U'</span></span> <span class="inlinecode"><span class="id" title="var">Hr</span></span>.&nbsp;subst.<br/>
-&nbsp;&nbsp;lets&nbsp;Hr':&nbsp;(precise_flow_record_has&nbsp;Hin&nbsp;Pf).&nbsp;apply&nbsp;pf_binds&nbsp;in&nbsp;Pf.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hin</span> <span class="id" title="var">Ht</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">lets</span> <span class="id" title="var">Hn</span>: (<a class="idref" href="Binding.html#typed_paths_named"><span class="id" title="lemma">typed_paths_named</span></a> <span class="id" title="var">Ht</span>). <span class="id" title="tactic">destruct</span> <span class="id" title="var">Hn</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">x</span> [<span class="id" title="var">bs</span> <span class="id" title="var">Heq</span>]]. <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="Binding.html#typing_implies_bound"><span class="id" title="lemma">typing_implies_bound</span></a> <span class="id" title="var">Ht</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">S</span> <span class="id" title="var">BiG</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="var">lets</span> <span class="id" title="var">Htt</span>: (<a class="idref" href="GeneralToTight.html#general_to_tight_typing"><span class="id" title="lemma">general_to_tight_typing</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Ht</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="var">lets</span> <span class="id" title="var">Hinv</span>: (<a class="idref" href="InvertibleTyping.html#tight_to_invertible"><span class="id" title="lemma">tight_to_invertible</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Htt</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="InvertibleTyping.html#invertible_to_precise_trm_dec"><span class="id" title="lemma">invertible_to_precise_trm_dec</span></a> <span class="id" title="var">Hinv</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">T'</span> [<span class="id" title="var">Htp</span> <span class="id" title="var">Hs</span>]].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="PreciseTyping.html#precise_flow_lemma"><span class="id" title="lemma">precise_flow_lemma</span></a> <span class="id" title="var">Htp</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">U</span> <span class="id" title="var">Pf</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="PreciseTyping.html#pf_inert_rcd_U"><span class="id" title="lemma">pf_inert_rcd_U</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Pf</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">U'</span> <span class="id" title="var">Hr</span>]. <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">lets</span> <span class="id" title="var">Hr'</span>: (<a class="idref" href="PreciseTyping.html#precise_flow_record_has"><span class="id" title="lemma">precise_flow_record_has</span></a> <span class="id" title="var">Hin</span> <span class="id" title="var">Pf</span>). <span class="comment">(*apply&nbsp;pf_binds&nbsp;in&nbsp;Pf.<br/>
 &nbsp;&nbsp;exists&nbsp;U'&nbsp;T'.&nbsp;split.&nbsp;assumption.&nbsp;split.&nbsp;rewrite&nbsp;open_var_typ_eq.&nbsp;assumption.&nbsp;apply*&nbsp;tight_to_general.<br/>
-Qed.*)</span><br/>
+Qed.*)</span> <span class="id" title="var">Admitted</span>.<br/>
 
 <br/>
 </div>
@@ -403,7 +408,7 @@ Qed.<br/>
 </div>
 
 <div class="doc">
-<a name="lab54"></a><h1 class="section">Canonical Forms for Objects</h1>
+<a name="lab55"></a><h1 class="section">Canonical Forms for Objects</h1>
 
 
 <div class="paragraph"> </div>
@@ -429,7 +434,7 @@ Qed.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hi</span> <span class="id" title="var">Hwt</span> <span class="id" title="var">Hty</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#var_typ_rcd_to_binds"><span class="id" title="axiom">var_typ_rcd_to_binds</span></a> <span class="id" title="var">Hi</span> <span class="id" title="var">Hty</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">S</span> [<span class="id" title="var">T'</span> [<span class="id" title="var">Bi</span> [<span class="id" title="var">Hr</span> <span class="id" title="var">Hs</span>]]]].<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#corresponding_types"><span class="id" title="axiom">corresponding_types</span></a> <span class="id" title="var">Hwt</span> <span class="id" title="var">Bi</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">v</span> [<span class="id" title="var">Bis</span> <span class="id" title="var">Ht</span>]]. <span class="id" title="var">Admitted</span>. <span class="comment">(*<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="CanonicalForms.html#corresponding_types"><span class="id" title="lemma">corresponding_types</span></a> <span class="id" title="var">Hwt</span> <span class="id" title="var">Bi</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">v</span> [<span class="id" title="var">Bis</span> <span class="id" title="var">Ht</span>]]. <span class="id" title="var">Admitted</span>. <span class="comment">(*<br/>
 &nbsp;&nbsp;apply&nbsp;ty_var&nbsp;in&nbsp;Bi.&nbsp;apply&nbsp;ty_rec_elim&nbsp;in&nbsp;Bi.&nbsp;rewrite&nbsp;&lt;-&nbsp;open_var_typ_eq&nbsp;in&nbsp;Bi.<br/>
 &nbsp;&nbsp;destruct&nbsp;(val_mu_to_new&nbsp;Hi&nbsp;Ht&nbsp;Bi&nbsp;Hr)&nbsp;as&nbsp;<span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode">[<span class="id" title="var">ds</span></span> <span class="inlinecode">[<span class="id" title="var">Heq</span></span> <span class="inlinecode">[<span class="id" title="var">Hdefs</span></span> <span class="inlinecode"><span class="id" title="var">Ht'</span>]]]</span>.<br/>
 &nbsp;&nbsp;subst.&nbsp;exists&nbsp;S&nbsp;ds&nbsp;t.&nbsp;repeat&nbsp;split~.&nbsp;eapply&nbsp;ty_sub;&nbsp;eauto.<br/>
