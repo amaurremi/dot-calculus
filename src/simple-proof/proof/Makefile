@@ -4,7 +4,7 @@ OBJECTS=$(FILES:.v=.vo)
 TLCDIR=../../../lib/tlc
 DOCDIR=../doc
 
-TLCSRC=$(TLCDIR)
+TLCSRC=$(TLCDIR)/src
 LIBLN=$(TLCSRC)/LibLN.vo
 TLCNAME=TLC
 

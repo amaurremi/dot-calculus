@@ -8,7 +8,8 @@ Set Implicit Arguments.
 
 Require Import List Coq.Program.Equality.
 Require Import LibLN.
-Require Import Definitions Binding LocalClosure Weakening.
+Require Import Definitions Binding Weakening.
+
 
 Ltac subst_open_fresh :=
   match goal with
@@ -94,7 +95,6 @@ Ltac subst_tydef_solver :=
 
 (** The proof is by mutual induction on term typing, definition typing, and subtyping. *)
 Lemma subst_rules: forall p S,
-  lc_path p ->
   (forall G t T, G ⊢ t : T -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2) ->
@@ -124,9 +124,9 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     G1 & (subst_ctx x p G2) ⊢ subst_typ x p T <: subst_typ x p U).
 Proof.
-  introv Hl. apply rules_mutind; intros; subst; simpl;
+  introv. apply rules_mutind; intros; subst; simpl;
             try (subst_fresh_solver || rewrite subst_open_commut_typ_p);
-            simpl in *; autounfold; eauto 4.
+            simpl in *; autounfold; eauto 4. Admitted. (*
   - Case "ty_var".
     cases_if.
     + apply binds_middle_eq_inv in b; subst*. destruct* p.
@@ -139,7 +139,7 @@ Proof.
   - Case "ty_new_intro".
     fresh_constructor.
     subst_open_fresh.
-    destruct p as [p_x p_bs]. admit. (*
+    destruct p as [p_x p_bs].
   match goal with
   | [ H: forall z, z \notin ?L -> forall G, _
       |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
@@ -153,7 +153,7 @@ Proof.
     apply* H; try rewrite* concat_assoc;
     rewrite <- B, concat_assoc; unfold subst_ctx;
     auto using weaken_ty_trm, ok_push, ok_concat_map
-  end.*)
+  end.
 
   - Case "ty_new_elim".
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
@@ -168,7 +168,7 @@ Proof.
     subst_tydef_solver. admit.
     (*apply* ty_def_path. intro. case_if; case_if*. *)
   - Case "ty_defs_cons".
-    admit. (*constructor*.
+    admit. constructor*.
     rewrite <- subst_label_of_def.
     apply subst_defs_hasnt. assumption.*)
 Qed.*)
@@ -179,12 +179,11 @@ Lemma subst_ty_trm: forall p S G x t T,
     G & x ~ S ⊢ t : T ->
     ok (G & x ~ S) ->
     x \notin fv_ctx_types G ->
-    lc_path p ->
     G ⊢ trm_path p : subst_typ x p S ->
     G ⊢ subst_trm x p t : subst_typ x p T.
 Proof.
-  introv Ht Hok Hx Hl Hp.
-  apply (proj41 (subst_rules S Hl)) with (G1:=G) (G2:=empty) (x:=x) in Ht.
+  introv Ht Hok Hx Hp.
+  apply (proj41 (subst_rules p S)) with (G1:=G) (G2:=empty) (x:=x) in Ht.
   unfold subst_ctx in Ht. rewrite map_empty, concat_empty_r in Ht.
   apply Ht. rewrite* concat_empty_r. rewrite* concat_empty_r. assumption.
   unfold subst_ctx. rewrite map_empty, concat_empty_r. assumption.
@@ -200,12 +199,10 @@ Lemma subst_ty_defs: forall z bs P G x S ds T p p_x p_bs sbs,
     subst_var x p_x z; sbs; P; G ⊢ subst_defs x p ds :: subst_typ x p T.
 Proof.
   introv Hds Heq Hok Hx Hp Hsbs.
-  assert (lc_path p) as Hl by (destruct p; inversion Heq; auto).
-  Admitted. (*
-  eapply (proj43 (subst_rules S Hl)) with
-      (G1:=G) (G2:=empty) (x:=x) (p_x0:=p_x) (p_bs0:=p_bs) (sbs:=sbs) in Hds;
+  eapply (proj43 (subst_rules p S)) with
+      (G1:=G) (G2:=empty) (x:=x) (p_x:=p_x) (p_bs:=p_bs) (sbs:=sbs) in Hds;
     unfold subst_ctx in *; try rewrite map_empty in *; try rewrite concat_empty_r in *; auto.
-Qed.*)
+Qed.
 
 (*
 (** * Renaming  *)
@@ -227,26 +224,46 @@ Lemma renaming_def: forall G z T ds x,
 Proof.
   introv Hok Hnz Hnz' Hz Hx. rewrite subst_intro_typ with (x:=z). rewrite subst_intro_defs with (x:=z).
   eapply subst_ty_defs; auto. eapply Hz. rewrite <- subst_intro_typ. all: auto.
-Qed.
+Qed. *)
 
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#
     [z] fresh                #<br>#
     [G, z: U ⊢ t^z : T^z]    #<br>#
+    [G ⊢ p: U]               #<br>#
     [――――――――――――――――――――――] #<br>#
-    [G ⊢ t^x : T^x]         *)
-Lemma renaming_typ: forall G z T U t x,
+    [G ⊢ t^p : T^p]         *)
+Lemma renaming_typ_open: forall G z T U t p,
     ok G ->
     z # G ->
     z \notin (fv_ctx_types G \u fv_typ U \u fv_typ T \u fv_trm t) ->
     G & z ~ U ⊢ open_trm z t : open_typ z T ->
-    G ⊢ trm_var (avar_f x) : U ->
-    G ⊢ open_trm x t : open_typ x T.
+    G ⊢ trm_path p : U ->
+    G ⊢ open_trm_p p t : open_typ_p p T.
 Proof.
   introv Hok Hnz Hnz' Hz Hx. rewrite subst_intro_typ with (x:=z). rewrite subst_intro_trm with (x:=z).
-  eapply subst_ty_trm; auto. eapply Hz. rewrite subst_fresh_typ. all: auto.
+  eapply subst_ty_trm; auto. eapply Hz.
+  rewrite subst_fresh_typ. all: eauto using typed_paths_named.
 Qed.
 
+Lemma renaming_typ: forall G T U t x y,
+    ok G ->
+    y # G ->
+    y \notin fv_ctx_types G \u \{x} \u fv_typ U \u fv_typ T \u fv_trm t ->
+    G & y ~ U ⊢ open_trm y t : T ->
+    x # G ->
+    G & x ~ U ⊢ open_trm x t : T.
+Proof.
+  introv Hok Hy Hy' Ht Hx.
+  rewrite open_var_trm_eq. rewrite subst_intro_trm with (x:=y); auto.
+  rewrite <- subst_fresh_typ with (x:=y) (p:=pvar x); auto.
+  apply subst_ty_trm with (S:=U).
+  apply* weaken_rules.
+  apply* ok_push. rewrite fv_ctx_types_push_eq. apply* notin_union.
+  rewrite~ subst_fresh_typ. constructor*. unfold named_path, pvar. repeat eexists.
+Qed.
+
+(*
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#
     [z] fresh                #<br>#

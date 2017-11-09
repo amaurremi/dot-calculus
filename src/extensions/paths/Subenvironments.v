@@ -18,7 +18,7 @@ Reserved Notation "G1 ⪯ G2" (at level 35).
 
 Inductive subenv: ctx -> ctx -> Prop :=
 | subenv_empty : empty ⪯ empty
-| subenv_grow: forall G G' x T T',
+| subenv_push: forall G G' x T T',
     G ⪯ G' ->
     ok (G & x ~ T) ->
     ok (G' & x ~ T') ->
@@ -41,14 +41,14 @@ Hint Resolve subenv_refl.
     [ok(G', x: T)]               #<br>#
     [―――――――――――――――――――――――――――――]  #<br>#
     [G', x: T subG G, x: T]  #<br># *)
-Lemma subenv_push : forall G1 G2 x T,
+Lemma subenv_extend : forall G1 G2 x T,
     G1 ⪯ G2 ->
     ok (G1 & x ~ T) -> ok (G2 & x ~ T) ->
     (G1 & x ~ T) ⪯ (G2 & x ~ T).
 Proof.
   intros. induction H; intros; auto.
 Qed.
-Hint Resolve subenv_push.
+Hint Resolve subenv_extend.
 
 
 (** [G ⊢ S <: U]                      #<br>#

@@ -50,7 +50,7 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
 | ty_all_elim_t : forall G p q S T,
     G ⊢# trm_path p : typ_all S T ->
     G ⊢# trm_path q : S ->
-    G ⊢# trm_app p q : open_typ_p p T
+    G ⊢# trm_app p q : open_typ_p q T
 
 (** [z; P; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
     [z fresh]                          #<br>#

@@ -1,82 +1,151 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-PROOFS= \
-    Definitions.v \
-    Wellformed_store.v \
-    Weakening.v \
-    Some_lemmas.v \
-    Precise_flow.v \
-    Has_member.v \
-    Inert_types.v \
-    Tight_possible_types.v \
-    Tight_possible_types_val.v \
-    Tight_bound_completeness.v \
-    Substitution.v \
-    Narrowing.v \
-    General_to_tight.v \
-    Extra_rec.v \
-    Canonical_forms1.v \
-    Canonical_forms2.v \
-    Canonical_forms3.v \
-    Misc.v \
-    Safety.v
-PROOFOBJECTS=$(PROOFS:.v=.vo)
+TLCDIR=../../../lib/tlc
+DOCDIR=doc
 
-TLCDIR=../../../lib/tlc/
-LIBLN=$(TLCDIR)/LibLN.vo
+TLCSRC=$(TLCDIR)/src
+LIBLN=$(TLCSRC)/LibLN.vo
 TLCNAME=TLC
 
-COQINCLUDE=-R $(TLCDIR) $(TLCNAME) -R . \"\"
+COQINCLUDE=-R $(TLCSRC) $(TLCNAME) -R . \"\"
 COQMAKEFILE=$(COQBIN)coq_makefile
 
 PROOFMAKEFILE=Makefile.coq
+PROOFS=$(wildcard *.v)
 
 ##############
 # Main Rules #
 ##############
 
-.PHONY: all clean
-all:
+.PHONY: all doc proofs clean cleanall
+all: proofs doc
+
+proofs: $(PROOFMAKEFILE)
 	$(MAKE) -f $(PROOFMAKEFILE) $(OBJECTS)
 
-clean:
+clean: $(PROOFMAKEFILE)
 	$(MAKE) -f $(PROOFMAKEFILE) cleanall
+
+cleanall:: clean
+cleanall::
+	-rm .*.aux
+	-rm *.vo
+	-rm *.glob
+	-rm *.v.d
+	-rm $(PROOFMAKEFILE)
+
+doc: $(DOCDIR)/toc.html
 
 %.vo:
 	$(MAKE) -f $(PROOFMAKEFILE) $@
 
-all clean: $(PROOFMAKEFILE)
+all doc clean: $(PROOFMAKEFILE)
 %vo: $(PROOFMAKEFILE)
 
 all: $(LIBLN)
+doc: $(LIBLN)
+proofs: $(LIBLN)
 %vo: $(LIBLN)
 
-##############
-# Main Rules #
-##############
+#############
+# IDE Setup #
+#############
 
-.PHONY: ide
+.PHONY: ide _CoqProject
 ide: _CoqProject
+
+_CoqProject:
+	echo $(COQINCLUDE) > _CoqProject
 
 ########################
 # Library Dependencies #
 ########################
 
-$(LIBLN):
-	cd $(TLCDIR) && make
+$(LIBLN): $(wildcard $(TLCSRC)/*.v)
+	$(MAKE) -C $(TLCDIR)
 
 ###################
 # Forced Rebuilds #
 ###################
 
-.PHONY: init
-init: $(PROOFMAKEFILE) _CoqProject
+.PHONY: $(PROOFMAKEFILE)
 
-$(PROOFMAKEFILE): .FORCE
-	@$(COQMAKEFILE) $(COQINCLUDE) -install none $(PROOFS) > $@
+$(PROOFMAKEFILE):
+	$(COQMAKEFILE) $(COQINCLUDE) -install none -o $(PROOFMAKEFILE) $(PROOFS)
+	sed -i -e "s|mkdir -p html|mkdir -p $(DOCDIR)|g" $(PROOFMAKEFILE)
+	sed -i -e "s|-d html|-d $(DOCDIR)|g" $(PROOFMAKEFILE)
+	sed -i -e "s|rm -rf html|rm -f $(DOCDIR)/*.*|g" $(PROOFMAKEFILE)
 
-_CoqProject: .FORCE
-	@echo $(COQINCLUDE) > $@
+#################
+# Documentation #
+#################
 
-.FORCE:
+DOCDEP=$(shell coqdep -sort $(FILES) | sed -e "s|\\.vo|\\.v|g")
+
+$(DOCDIR)/toc.html: $(DOCDEP)
+	$(MAKE) -f $(PROOFMAKEFILE) VFILES="$(DOCDEP)" html
+
+EXTRA_DIR:=$(DOCDIR)/assets
+COQDOCFLAGS:= \
+  --no-externals \
+  --toc --toc-depth 2 --html \
+  --index indexpage --no-lib-name --parse-comments \
+  --with-header $(EXTRA_DIR)/header.html --with-footer $(EXTRA_DIR)/footer.html
+export COQDOCFLAGS
+
+##########
+# Graphs #
+##########
+
+GRAPHDEP=$(shell coqdep -sort $(FILES) | sed -e "s|\\.vo|\\.v|g")
+GRAPHEXCLUDE=?
+
+graph: $(DOCDIR)/graph.png
+
+graph.dot: $(GRAPHDEP)
+	coqdep -dumpgraph graph.dot $(GRAPHDEP) >/dev/null 2>/dev/null
+
+$(DOCDIR)/graph.png: graph.dot $(PROOFS)
+	dot -Tpng graph.dot > $(DOCDIR)/graph.png
+
+######################
+# Lemma Dependencies #
+######################
+
+DPDMODALL=$(shell coqdep -sort Safety.v | sed "s|\(\./\)||g" | sed "s|\.vo||g")
+DPDFILENAME=dpdraw.dpd
+DPDDOT=$(DPDFILENAME:=.dot)
+
+DPDEXCLUDE ?=
+DPDMODULES=$(filter-out $(DPDEXCLUDE), $(DPDMODALL))
+
+DPDTEXT=Require dpdgraph.dpdgraph. Require LibLN. Require Coq.Program.Equality.
+DPDTEXT+=Require $(DPDMODULES).
+DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
+DPDTEXT+=Print FileDependGraph $(DPDMODULES).
+
+$(DPDFILENAME): $(shell coqdep -sort $(FILES))
+	echo $(DPDTEXT) | coqtop -R $(TLCSRC) $(TLCNAME) -notop
+
+$(DPDDOT): $(DPDFILENAME)
+	dpd2dot -without-defs $<
+	dpdusage $<
+
+.PHONY: dpdraw
+dpdraw: $(DPDDOT)
+
+DPDFILTER=dpdgraph.dpd
+DPDFILDOT=$(DPDFILTER:=.dot)
+$(DPDFILDOT): $(DPDFILTER)
+	dpd2dot -without-defs $<
+
+$(DPDFILTER): $(DPDFILENAME)
+	grep -P '(kind=construct|^N: [0-9]+ "[^"]*(_ind|mutind|_mut)")' $(DPDFILENAME) | sed -e "s|^N: \([0-9][0-9]*\) .*|\1|g" | paste -sd "|" | xargs -I {} grep -P -v "^((E: ({}) )|(E: [0-9]+ ({}) )|(N: ({}) ))" $(DPDFILENAME) > $(DPDFILTER)
+
+.PHONY: dpdgraph
+dpdgraph: $(DPDFILDOT)
+
+cleanall::
+	-rm *.dot
+	-rm *.dpd

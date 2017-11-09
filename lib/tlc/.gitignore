@@ -1,0 +1,14 @@
+*.vo
+*.vio
+*.vq
+*.glob
+*.v.d
+.*.aux
+.depend
+.coq-native
+.coqide
+_CoqProject
+*~
+*#
+README.html
+.lia.cache

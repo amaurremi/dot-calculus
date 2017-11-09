@@ -258,21 +258,6 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
-(** [ds = ... /\ {a = t} /\ ...]  #<br>#
-    [ds = ... /\ {a = t'} /\ ...] #<br>#
-    [―――――――――――――――――――――――――] #<br>#
-    [t = t'] *)
-Lemma defs_has_inv: forall ds a t t',
-    defs_has ds (def_trm a t) ->
-    defs_has ds (def_trm a t') ->
-    t = t'.
-Proof.
-  intros. unfold defs_has in *.
-  inversions H. inversions H0.
-  rewrite H1 in H2. inversions H2.
-  reflexivity.
-Qed.
-
 Lemma record_has_sel_typ: forall G p T a U,
     G ⊢ trm_path p : T ->
     record_has T (dec_trm a U) ->
@@ -294,5 +279,5 @@ Lemma inert_concat: forall G' G,
        rewrite concat_assoc in *; try solve [false* empty_push_inv].
      destruct (eq_push_inv H) as [Heq1 [Heq2 Heq3]]; subst.
      destruct (eq_push_inv H3) as [Heq1 [Heq2 Heq3]]; subst.
-     apply inert_all; auto.
+     eauto.
  Qed.

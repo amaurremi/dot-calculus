@@ -14,28 +14,6 @@ Require Import LibLN.
 Require Import Binding Definitions GeneralToTight InvertibleTyping Narrowing PreciseTyping
          RecordAndInertTypes Substitution Subenvironments TightTyping Weakening.
 
-(** * Simple Implications of Typing *)
-
-(** If a variable can be typed in an environment,
-    then it is bound in that environment. *)
-Lemma typing_implies_bound: forall G x bs T,
-  G ⊢ trm_path (p_sel (avar_f x) bs) : T ->
-  exists S, binds x S G.
-Proof.
-  introv Ht. dependent induction Ht; eauto.
-  destruct (last_field _ _ x) as [bs' Hbs]. subst.
-  eapply IHHt. destruct p. inversion* x.
-Qed.
-
-Lemma var_typing_implies_avar_f: forall G a bs T,
-  G ⊢ trm_path (p_sel a bs) : T ->
-  exists x, a = avar_f x.
-Proof.
-  intros. dependent induction H; eauto.
-  destruct (last_field _ _ x) as [bs' Hbs]. subst.
-  eapply IHty_trm. destruct p. inversion* x.
-Qed.
-
 (** * Well-typedness *)
 
 (** If [e: G], the variables in the domain of [e] are distinct. *)
@@ -66,11 +44,11 @@ Qed.
 Lemma corresponding_types: forall G s p T,
     well_typed G s ->
     G ∋ p : T ->
-    (exists v, lookup s (p, v) /\
+    (exists v, s ∋ (p, v) /\
           G ⊢ trm_val v : T).
 Proof.
   introv Hwf BiG. induction Hwf.
-  - dependent induction BiG. false* binds_empty_inv. inversions H.
+  - dependent induction BiG. Admitted. (*false* binds_empty_inv. inversions H.
   - destruct (classicT (x = x0)).
     + subst. apply binds_push_eq_inv in BiG. subst.
       exists v. repeat split~. apply~ weaken_ty_trm.
@@ -79,7 +57,7 @@ Proof.
       specialize (IHHwf BiG) as [v' [Bis Ht]].
       exists v'. repeat split~. apply~ weaken_ty_trm.
       apply* ok_push.
-Qed.
+Qed.*)
 
 (** [G ⊢##v v: forall(S)T]                 #<br>#
     [inert G]                          #<br>#
@@ -176,7 +154,7 @@ Lemma canonical_forms_fun: forall G s p T U,
   inert G ->
   well_typed G s ->
   G ⊢ trm_path p : typ_all T U ->
-                   (exists L T' t, lookup s (p, val_lambda T' t) /\
+                   (exists L T' t, s ∋ (p, val_lambda T' t) /\
                     G ⊢ T <: T' /\
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.
@@ -193,8 +171,7 @@ Proof.
     specialize (Hs2 y HL).
     specialize (Hs2' y HL').
     apply narrow_typing with (G':=G & y ~ T) in Hs2'; auto.
-    + eapply ty_sub; eauto.
-    + apply~ subenv_last.
+    eapply ty_sub; eauto.
 Qed.
 
 (** [d1 isin ds]             #<br>#
@@ -243,20 +220,20 @@ Qed.
 (** This lemma corresponds to Lemma 3.9 ([mu] to [G(x)]) in the paper.
 
     [inert G]                    #<br>#
-    [G ⊢ x: {a: T}]              #<br>#
+    [G ⊢ p: {a: T}]              #<br>#
     [―――――――――――――――――――――――]    #<br>#
     [exists S, T', G(x) = mu(S)]       #<br>#
-    [S^x = ... /\ {a: T'} /\ ...]  #<br>#
+    [S^p = ... /\ {a: T'} /\ ...]  #<br>#
     [G ⊢ T' <: T]                *)
-Lemma var_typ_rcd_to_binds: forall G x a T,
+Lemma var_typ_rcd_to_binds: forall G p a T,
     inert G ->
-    G ⊢ tvar x : typ_rcd (dec_trm a T) ->
+    G ⊢ trm_path p : typ_rcd (dec_trm a T) ->
     (exists S T',
-        binds x (typ_bnd S) G /\
-        record_has (open_typ x S) (dec_trm a T') /\
+        G ∋ p : typ_bnd S /\
+        record_has (open_typ_p p S) (dec_trm a T') /\
         G ⊢ T' <: T).
 Proof.
-  introv Hin Ht.
+  introv Hin Ht. Admitted. (*
   destruct (typing_implies_bound Ht) as [S BiG].
   lets Htt: (general_to_tight_typing Hin Ht).
   lets Hinv: (tight_to_invertible Hin Htt).
@@ -265,26 +242,26 @@ Proof.
   destruct (pf_inert_rcd_U Hin Pf) as [U' Hr]. subst.
   lets Hr': (precise_flow_record_has Hin Pf). apply pf_binds in Pf.
   exists U' T'. split. assumption. split. rewrite open_var_typ_eq. assumption. apply* tight_to_general.
-Qed.
+Qed.*)
 
-(** This lemma corresponds to Lemma 3.10 ([mu] to [nu]) in the paper.
+(** [mu] to [nu])
 
     [inert G]                    #<br>#
     [G ⊢ v: mu(T)]               #<br>#
-    [G ⊢ x: T^x]                 #<br>#
-    [T^x = ... /\ {a: U} /\ ...  ] #<br>#
+    [G ⊢ p: T^p]                 #<br>#
+    [T^p = ... /\ {a: U} /\ ...  ] #<br>#
     [――――――――――――――――――――――――――] #<br>#
     [exists t, ds, v = nu(T)ds      ] #<br>#
-    [ds^x = ... /\ {a = t} /\ ...] #<br>#
+    [ds^p = ... /\ {a = t} /\ ...] #<br>#
     [G ⊢ t: U] *)
-(*Lemma val_mu_to_new: forall G v T U a x,
+Lemma val_mu_to_new: forall G v T U a p,
     inert G ->
     G ⊢ trm_val v: typ_bnd T ->
-    G ⊢ tvar x : open_typ x T ->
-    record_has (open_typ x T) (dec_trm a U) ->
+    G ⊢ trm_path p : open_typ_p p T ->
+    record_has (open_typ_p p T) (dec_trm a U) ->
     exists t ds,
       v = val_new T ds /\
-      defs_has (open_defs x ds) (def_trm a t) /\
+      defs_has (open_defs_p p ds) (def_trm a t) /\
       G ⊢ t: U.
 Proof.
   introv Hi Ht Hx Hr.
@@ -294,14 +271,21 @@ Proof.
   pick_fresh z.
   assert (z \notin L) as Hz by auto.
   specialize (H3 z Hz).
-  assert (x; nil; P; G ⊢ open_defs x ds :: open_typ x T) as Hds by apply* renaming_def.
+  destruct p as [x bs].
+  lets Hv: (typed_paths_named Hx). inversions Hv. destruct_all.
+  assert (x0; bs; P; G ⊢
+    open_defs_p (p_sel (avar_f x0) bs) ds :: open_typ_p (p_sel (avar_f x0) bs) T)
+    as Hds by admit. (*apply* renaming_def.*)
+  inversions H.
   destruct (record_has_ty_defs Hds Hr) as [d [Hh Hd]].
   inversions Hd; eauto.
   Case "ty_def_new".
   exists (trm_val (val_new T0 ds0)) ds. repeat split*.
   fresh_constructor. simpls. lets Hrs: (record_has_sel_typ Hx Hr). apply ty_rec_elim in Hrs.
+  Admitted. (*
   apply* renaming_def'.
 Qed.
+  *)
 
 (** * Canonical Forms for Objects
 
@@ -313,15 +297,18 @@ Qed.
     [s(x) = nu(S)ds] #<br>#
     [ds^x = ... /\ {a = t} /\ ...] #<br>#
     [G ⊢ t: T] *)
-Lemma canonical_forms_obj: forall G s x a T,
+Lemma canonical_forms_obj: forall G s p a T,
   inert G ->
-  G ~~ s ->
-  G ⊢ tvar x : typ_rcd (dec_trm a T) ->
-  (exists S ds t, binds x (val_new S ds) s /\ defs_has (open_defs x ds) (def_trm a t) /\ G ⊢ t : T).
+  well_typed G s ->
+  G ⊢ trm_path p: typ_rcd (dec_trm a T) ->
+               (exists S ds t,
+                   s ∋ (p, val_new S ds) /\
+                   defs_has (open_defs_p p ds) (def_trm a t) /\
+                   G ⊢ t : T).
 Proof.
   introv Hi Hwt Hty.
   destruct (var_typ_rcd_to_binds Hi Hty) as [S [T' [Bi [Hr Hs]]]].
-  destruct (corresponding_types Hwt Bi) as [v [Bis Ht]].
+  destruct (corresponding_types Hwt Bi) as [v [Bis Ht]]. Admitted. (*
   apply ty_var in Bi. apply ty_rec_elim in Bi. rewrite <- open_var_typ_eq in Bi.
   destruct (val_mu_to_new Hi Ht Bi Hr) as [t [ds [Heq [Hdefs Ht']]]].
   subst. exists S ds t. repeat split~. eapply ty_sub; eauto.

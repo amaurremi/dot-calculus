@@ -420,7 +420,7 @@ Definition record_type T := exists ls, record_typ T ls.
 (** An inert context is a typing context whose range consists only of inert types. *)
 Inductive inert : ctx -> Prop :=
   | inert_empty : inert empty
-  | inert_all : forall G x T,
+  | inert_push : forall G x T,
       inert G ->
       inert_typ T ->
       x # G ->
@@ -474,7 +474,7 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
 | ty_all_elim : forall G p q S T,
     G ⊢ trm_path p : typ_all S T ->
     G ⊢ trm_path q : S ->
-    G ⊢ trm_app p q : open_typ_p p T
+    G ⊢ trm_app p q : open_typ_p q T
 
 (** [z; P; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
     [z fresh]                          #<br>#
@@ -697,101 +697,6 @@ Inductive well_typed: ctx -> sta -> Prop :=
     x # s ->
     G ⊢ trm_val v : T ->
     well_typed (G & x ~ T) (s & x ~ v).
-
-(** * Path Lookup *)
-
-(** ** Path lookup in stacks *)
-
-Reserved Notation "s '∋' t" (at level 60).
-Reserved Notation "s '↓' p '==' ds" (at level 60).
-
-
-(** Looking up a path in a stack. *)
-
-Inductive lookup : sta -> path * val -> Prop :=
-
-(** [s(x) = v  ]    #<br>#
-    [――――――――――]    #<br>#
-    [s ∋ (x, v)]    *)
-| lookup_var : forall s x v,
-    binds x v s ->
-    s ∋ (pvar x, v)
-
-(** [s ↓ p = ...{a = v}...  ]    #<br>#
-    [―――――――――――――――――――――――]    #<br>#
-    [s ∋ (p.a, v)]               *)
-| lookup_val : forall s p ds a v,
-    s ↓ p == ds ->
-    defs_has ds (def_trm a (trm_val v)) ->
-    s ∋ (p•a, v)
-
-| lookup_path : forall s ds a p v,
-    s ↓ p == ds ->
-    defs_has ds (def_trm a (trm_path p)) ->
-    s ∋ (p, v) ->
-    s ∋ (p•a, v)
-
-where "s '∋' t" := (lookup s t)
-
-(** Opening of definitions:
-    If [s ∋ (p, ν(x: T)ds)], then [lookup_open] gives us [ds] opened with [p]. *)
-
-with lookup_open : sta -> path -> defs -> Prop :=
-
-(** [s ∋ (p, ν(T)ds         ]    #<br>#
-    [―――――――――――――――――――――――]    #<br>#
-    [s ↓ p = ds^p           ]    *)
-| lo_ds : forall s p T ds,
-    s ∋ (p, val_new T ds) ->
-    s ↓ p == open_defs_p p ds
-
-where "s '↓' p '==' ds" := (lookup_open s p ds).
-
-Reserved Notation "t1 '|->' t2" (at level 40, t2 at level 39).
-Hint Constructors lookup lookup_open.
-
-(** ** Path lookup in typing contexts *)
-
-Reserved Notation "G '∋' p ':' T" (at level 60, p at level 50).
-Reserved Notation "G '↓↓' p '==' ds" (at level 60).
-
-(** Looking up a path in a typing context. *)
-
-Inductive lookup_ctx : ctx -> path -> typ -> Prop :=
-
-(** [G(x) = T   ]    #<br>#
-    [―――――――――――]    #<br>#
-    [G ∋ (x : T)]    *)
-| lookup_ctx_var : forall G x T,
-    binds x T G ->
-    G ∋ pvar x : T
-
-(** [G ↓↓ p = ...{a: T}...  ]    #<br>#
-    [―――――――――――――――――――――――]    #<br>#
-    [G ∋ (p.a, T)]               *)
-| lookup_ctx_path : forall G p a T,
-    G ↓↓ p == T ->
-    record_has T (dec_trm a T) ->
-    G ∋ p•a : T
-
-where "G '∋' p ':' T" := (lookup_ctx G p T )
-
-(** Opening of definitions:
-    If [s ∋ (p, ν(x: T)ds)], then [lookup_open] gives us [ds] opened with [p]. *)
-
-with lookup_ctx_open : ctx -> path -> typ -> Prop :=
-
-(** [G ∋ (p: μ(T))         ]    #<br>#
-    [――――――――――――――――――――――]    #<br>#
-    [G ↓↓ p = T^p          ]    *)
-| lo_ctx_ds : forall G p T ,
-    G ∋ p : typ_bnd T ->
-    G ↓↓ p == open_typ_p p T
-
-where "G '↓↓' p '==' T" := (lookup_ctx_open G p T).
-
-Reserved Notation "t1 '|->' t2" (at level 40, t2 at level 39).
-Hint Constructors lookup_ctx lookup_ctx_open.
 
 (** * Infrastructure *)
 

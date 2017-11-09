@@ -181,6 +181,7 @@ Qed.
     [ok G]                   #<br>#
     [z] fresh                #<br>#
     [G, z: U ⊢ t^z : T^z]    #<br>#
+    [G ⊢ x: U]               #<br>#
     [――――――――――――――――――――――] #<br>#
     [G ⊢ t^x : T^x]         *)
 Lemma renaming_typ: forall G z T U t x,

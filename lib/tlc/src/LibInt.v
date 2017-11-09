@@ -203,7 +203,11 @@ Ltac generalize_arith :=
     end
   | H:?E |- _ =>
     match is_arith E with
-    | true => generalize H; clear H (* todo: revert H? *)
+    | true =>
+      tryif has_evar E then
+        clear H
+      else
+        generalize H; clear H (* todo: revert H? *)
     | false => clear H
     end
   end.

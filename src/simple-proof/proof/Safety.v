@@ -81,7 +81,7 @@ Lemma preservation_helper: forall G s t s' t' T,
           G & G' ⊢ t' : T.
 Proof.
   introv Hwf Hin Hred Ht. gen t'.
-  dependent induction Ht; intros; try solve [invert_red].
+  induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
     | [Hx: _ ⊢ trm_var (avar_f _) : typ_all _ _ |- _] =>

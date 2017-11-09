@@ -1,0 +1,181 @@
+<style>
+h2 { color: blue; }
+h3 { color: red; }
+h4 { font-weight: bold; }
+table { border-collapse:collapse; }
+td { padding: 3px; }
+pre { margin: 8px 0px 8px 0px; }
+ul { margin-top: 0.8em; }
+ol { margin-top: 0.8em; }
+</style> 
+
+<h2>Overview of the tactics from LibTactics</h2>
+
+<p><i>Arthur Charguraud</i>
+
+<h3>Notation</h3>
+
+<pre>
+E: stands for an expression
+H: stands for an existing hypothesis
+X: stands for a fresh identifier
+I: stands for an introduction pattern 
+R: stands for a definition (a "reference") 
+__: is a special notation for "wildcard" 
+</pre>
+
+<h3>Manipulation of hypotheses</h3>
+
+<pre>
+introv I1 I2 .. IN   (introduction that inputs only the name of hypotheses, not variables)
+intros_all           (introduces all arguments, unfolding all definitions on the way)
+gen H1 H2 .. HN      (generalizes and clears hypotheses and their dependencies)
+clears H1 ... HN     (clears hypotheses and their dependencies)
+sets X: E            (defines X as a local definition for E, and replaces occurences of E with X)
+sets_eq X: E         (introduces a name X and an equality X = E, and replaces occurences of E with X)
+</pre>
+
+<h3>Proof structure</h3>
+
+<pre>
+asserts I: E      (asserts statement E as first subgoal, destruct E as I in the second goal)
+cuts I: E         (asserts statement E as second subgoal, destruct E as I in the first goal)
+put X: E          (define X to be a name for E, synonymous of pose)
+lets I: E         (adds an hypothesis I whose type is the type of E)
+lets I1 .. IN: E  (a shortand for "lets [I1[..IN]]: E", useful to decompose conjunctions)
+sets_let X        (finds the first let-binding in the goal and name its body X)
+</pre>
+
+<h3>Absurd goals</h3>
+
+<pre>
+false             (replaces the goal by "False", and try to solve it with contradiction and discriminate)
+false E           (proves any goal by contradiction, using an absurd term E)
+tryfalse          (proves a goal by contradiction or discriminate, or do nothing)
+false_invert      (try to invert hypotheses to find one that contradicts the goal)
+tryfalse_invert   (same as "false_invert" but leaves the goal if it can't be solved)
+</pre>
+
+<h3>Logical constructs</h3>
+
+<pre>
+iff as I1 I2     (tactic to prove an equivalence)
+splits           (splits an N-ary conjunction into N goals)
+splits N         (same as above, but unfolds if necessary to obtain N branches)
+destructs E      (destructs an N-ary conjunction E into N hypotheses)
+branch N         (selects the N-th branch of a M-ary disjunction)
+branch N of M    (same as above, but unfolds if necessary to obtain M branches)
+branches E       (case analysis on an N-ary disjunction E)
+exists E1 .. EN  (to provide witnesses to an N-ary existential goal, wildcards are supported)
+</pre>
+
+<h3>Case analysis and inversion</h3>
+
+<pre>
+cases E as I          (case analysis on E, remembering the equality as H)
+case_if as I          (case analysis on the first "if" statement in the goal)
+cases_if as I         (similar to "case_if", but performs additional substitutions)
+inverts H             (inversion followed with substitution of freshly introduced variables)
+inverts keep H        (same as above, but H is not cleared)
+inverts H as I1..IN   (same as inverts H, but allows to name produced hypotheses)
+invert H              (same as inverts H, but leaves hypotheses in the goal)
+inversions H          (faster implementation of inverts H, but might substitute too many variables)
+</pre>
+
+<h3>Induction and co-induction</h3>
+
+<pre>
+inductions_wf X: E H  (applies the well-founded induction principle for a particular well-founded relation)
+gen_eq X: E           (generalize X as E and add "X = E" as hypothesis in the goal, useful for induction)
+cofixs IH             (like "cofix IH" but tugs the coinduction hypothesis using tactic "clear_coind")
+</pre>
+
+<h3>Working with equalities</h3>
+
+<pre>
+substs            (improved implementation of subst  does not fail on circular equalities)
+subst_hyp H       (substitutes the equality described by H; supports equality between tuples)
+intro_subst       (shorthand for "intro H; subst_hyp H")
+fequals           (improved implementation of f_equal  calls congruence, and better on tuples)
+fequals_rec       (recursively apply fequals)           
+changes E1 with E2(behaves like "change" but works better ---it does not silently fail)
+decides_equality  (improved implementation of decide equality  ability to unfold definitions)
+rewrite_all E     (rewrites E as many time as possible)
+asserts_rewrite E (rewrites with E and generates E as first subgoal)
+cuts_rewrite E    (rewrites with E and generates E as second subgoal)
+pi_rewrite E      (replace E with an evar that describes a proof term justifying the same proposition; useful to exploit proof irrelevance)
+equates i1 .. iN  (introduces evars for arguments of the goal [P x1 .. xK] at the specified indices)
+</pre>
+
+<h3>Simplification and unfolding</h3>
+
+<pre>
+simpls        (simpl everywhere in hypotheses and conclusion)
+unsimpl E     (replace the simplification of E with E)
+unfolds R     (unfolds the definition of R in hypotheses and conclusion)
+unfolds       (unfolds the head definition of the goal)
+unfolds in H  (unfolds the head definition of the hypothesis H)
+folds R       (folds R in hypotheses and conclusion)
+renames H1 to H1', .., HN to HN'  (multiple renaming)
+</pre>
+
+<h3>Development</h3>
+
+<pre>
+skip             (admits the current goal - works even if it contains existential variables)
+skip I: E        (adds an hypothesis I of type E to the context, and assume it is true)
+skip_cuts E      (replaces the current goal with an arbitrary new goal E)
+skip_rewrite E   (rewrites with the equality E, admitting the statement E)
+skip_goal IH     (adds the goal as hypothesis; useful for setting up inductions)
+sort             (reorders hypotheses to get all the propositions at the bottom of the goal)
+</pre>
+
+<h3>Automation</h3>
+
+<pre>
+- any tactic name followed with the symbol "~" will call [auto] on all subgoals
+- any tactic name followed with the symbol "*" will call [induction eauto] on all subgoals
+- these default bindings may be customized locally in a development
+</pre>
+
+<pre>
+jauto                 ([jauto] like [intuition eauto] but with cheaper and less complete version of [intuition])
+hint H1 .. HN         (add lemmas in the context, documenting them as local hints)
+</pre>
+
+<h3>Advanced instantiation mode</h3>
+
+<br>Below, H stands for the lemma to be instantiated, and the names Ei correspond to the arguments.
+<br>Note that wildcards, written "__", can be provided in place of any argument.
+<p><pre>
+lets I: H E1 ... EN                    (instantiates a lemma and names it)
+lets I: (>> H E1 ... EN)     
+
+applys H E1 ... EN                     (instantiates a lemma and applies it)
+applys (>> H E1 ... EN)     
+
+specializes H E1 ... EN                (instantiates an hypothesis H in-place)
+specializes H (>> E1 ... EN)
+
+forwards I: H                          (instantiates a lemma, then "forwards" it)
+forwards I: (>> H E1 ... EN) 
+
+rewrites (>> H E1 ... EN)              (instantiates a lemma, then rewrite with it)
+
+applys_to H E                          (like: "lets H: (E H)")
+
+applys_eq H i1 .. iN                   (applys H up to equality on arguments of the goal at specified indices)
+</pre>
+
+<p>Note: "<code>forwards I: H</code>" is equivalent to "<code>lets I: (>> H __ __ .. __)</code>",<br>
+which can also be abbreviated as "<code>lets I: (>> H ___)</code>", with a triple-underscore.
+
+<p>Note: any subterm can be of the form <code>rm X</code>, which indicates that the variable <code>X</code> should be cleared after the operation is complete.
+
+
+<h3>Demos</h3>
+
+<pre>
+dup    (duplicate the current goal, useful for demos)
+demo   (alias for "skip", useful for demos)
+</pre>

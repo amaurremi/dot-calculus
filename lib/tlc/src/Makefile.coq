@@ -12,6 +12,7 @@ SHELL := /usr/bin/env bash
 #
 # This Makefile relies on the following variables:
 # COQBIN     (default: empty)
+# COQFLAGS   (default: empty) (passed to coqc and coqide, not coqdep)
 # COQINCLUDE (default: empty)
 # V          (default: *.v)
 # V_AUX      (default: undefined/empty)
@@ -54,10 +55,9 @@ SERIOUS := 1
 ############################################################################
 # Binaries
 
-COQC   := $(COQBIN)coqc $(COQFLAGS) 
+COQC   := $(COQBIN)coqc $(COQFLAGS)
 COQDEP := $(COQBIN)coqdep
 COQIDE := $(COQBIN)coqide $(COQFLAGS)
-COQCHK := $(COQBIN)coqchk
 
 ############################################################################
 # Targets

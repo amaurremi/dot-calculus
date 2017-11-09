@@ -182,7 +182,7 @@ Lemma image_singleton : forall A B (f : A -> B) (x : A),
 Proof using.
   intros. apply in_extens. intros z. iff N.
     lets (y&Hy&Ey): in_image_inv (rm N). rewrite in_single_eq in Hy. subst~.
-    rewrite in_single_eq in N. applys* in_image_prove.
+    rewrite in_single_eq in N. applys* in_image_prove; auto.
 Qed.
 
 End FunctionImage.

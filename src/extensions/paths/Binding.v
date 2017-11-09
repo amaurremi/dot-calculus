@@ -10,7 +10,8 @@ Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
 Require Import LibLN.
-Require Import Definitions LocalClosure.
+Require Import Definitions.
+
 
 (** Substitution on variables: [a[u/z]] (substituting [z] with [u] in [a]). *)
 
@@ -119,6 +120,32 @@ Lemma invert_path_sel : forall p q a b,
 Proof.
   introv Heq. destruct p as [x1 bs1]. destruct q as [x2 bs2].
   induction bs1; inversion* Heq.
+Qed.
+
+(** * Simple Implications of Typing *)
+
+Definition named_path p := exists x bs, p = p_sel (avar_f x) bs.
+
+(** If a variable can be typed in an environment,
+    then it is bound in that environment. *)
+Lemma typing_implies_bound: forall G x bs T,
+  G ⊢ trm_path (p_sel (avar_f x) bs) : T ->
+  exists S, binds x S G.
+Proof.
+  introv Ht. dependent induction Ht; eauto.
+  destruct (last_field _ _ x) as [bs' Hbs]. subst.
+  eapply IHHt. destruct p. inversion* x.
+Qed.
+
+Lemma typed_paths_named: forall G p T,
+    G ⊢ trm_path p : T ->
+    named_path p.
+Proof.
+  intros. destruct p.
+  dependent induction H; eauto; unfolds named_path, pvar.
+  - repeat eexists.
+  - destruct (last_field _ _ x) as [bs' Hbs]. subst. destruct p.
+    specialize (IHty_trm _ _ eq_refl). destruct_all. inversions x. inversions H0. repeat eexists.
 Qed.
 
 (** * Opening Lemmas *)
@@ -383,18 +410,18 @@ Definition subst_fvar(x y z: var): var := If z = x then y else z.
 (** Substitution commutes with opening
     - variables *)
 Lemma subst_open_commut_avar: forall x p u y n,
-    lc_path p ->
+    named_path p ->
     subst_avar x p (open_rec_avar n u y)
     = open_rec_path_p n (subst_var_p x p u) (subst_avar x p y).
 Proof.
   introv Hl. unfold subst_var_p, subst_avar, open_rec_avar, subst_var_p.
   destruct y as [n' | y]; autounfold; destruct p as [z bs]; destruct z as [m | z'];
-    repeat case_if; simpl; try case_if*; eauto; inversions  Hl; inversion H0; inversion H1.
+    repeat case_if; simpl; try case_if*; eauto; inversions  Hl; destruct_all; inversion H.
 Qed.
 
 (** - paths *)
 Lemma subst_open_commut_path: forall p n x q u,
-    lc_path p ->
+    named_path p ->
     subst_path x p (open_rec_path n u q)
     = open_rec_path_p n (subst_var_p x p u) (subst_path x p q).
 Proof.
@@ -403,7 +430,7 @@ Qed.
 
 (** - types and declarations *)
 Lemma subst_open_commut_typ_dec: forall x p u,
-  lc_path p ->
+  named_path p ->
   (forall t : typ, forall n: nat,
      subst_typ x p (open_rec_typ n u t)
      = open_rec_typ_p n (subst_var_p x p u) (subst_typ x p t)) /\
@@ -415,18 +442,18 @@ Proof.
 Qed.
 
 Lemma subst_open_commut_p: forall x p u y n,
-    lc_path p ->
+    named_path p ->
     subst_path x p (open_rec_avar_p n u y)
     = open_rec_path_p n (subst_path x p u) (subst_avar x p y).
 Proof.
   introv Hl. unfold subst_path, subst_avar, subst_var_p.
   destruct y as [n' | y]; simpl; repeat case_if; destruct u; destruct a; simpl;
     try (rewrite* app_nil_r); repeat case_if; unfold sel_fields; destruct* p;
-      inversions Hl; inversions H0; rewrite* app_nil_l; inversion H.
+      inversions Hl; destruct_all; inversions H; rewrite* app_nil_l; inversion H.
 Qed.
 
 Lemma subst_open_commut_path_p: forall p n x q u,
-    lc_path q ->
+    named_path q ->
     subst_path x q (open_rec_path_p n u p)
     = open_rec_path_p n (subst_path x q u) (subst_path x q p).
 Proof.
@@ -436,13 +463,13 @@ Proof.
   destruct z; simpl; destruct a; repeat case_if*;
     unfold subst_var_p; repeat case_if;
       destruct q; simpl; try (rewrite app_assoc || rewrite app_nil_r);
-        inversion* Hl; subst. inversions H0. (*inversions H0. eauto. inversions H.
+        inversion* Hl; subst; destruct_all; inversions H. (*inversions H0. eauto. inversions H.
         try solve [inversion Hl; inversion* H0].*)
 
 Admitted.
 
 Lemma subst_open_commut_typ_dec_p: forall x y u,
-  lc_path y ->
+  named_path y ->
   (forall t : typ, forall n: nat,
      subst_typ x y (open_rec_typ_p n u t)
      = open_rec_typ_p n (subst_path x y u) (subst_typ x y t)) /\
@@ -456,14 +483,14 @@ Qed.
 
 (** - types only *)
 Lemma subst_open_commut_typ: forall x y u T,
-  lc_path y ->
+  named_path y ->
   subst_typ x y (open_typ u T) = open_typ_p (subst_var_p x y u) (subst_typ x y T).
 Proof.
   intros. apply* subst_open_commut_typ_dec.
 Qed.
 
 Lemma subst_open_commut_typ_p: forall x y u T,
-    lc_path y ->
+    named_path y ->
     subst_typ x y (open_typ_p u T) = open_typ_p (subst_path x y u) (subst_typ x y T).
 Proof.
   intros. apply* subst_open_commut_typ_dec_p.
@@ -471,7 +498,7 @@ Qed.
 
 (** - terms, values, definitions, and list of definitions *)
 Lemma subst_open_commut_trm_val_def_defs: forall x y u,
-    lc_path y ->
+    named_path y ->
   (forall t : trm, forall n: nat,
      subst_trm x y (open_rec_trm n u t)
      = open_rec_trm_p n (subst_var_p x y u) (subst_trm x y t)) /\
@@ -490,7 +517,7 @@ Proof.
 Qed.
 
 Lemma subst_open_commut_trm_val_def_defs_p: forall x y u,
-    lc_path y ->
+    named_path y ->
   (forall t : trm, forall n: nat,
      subst_trm x y (open_rec_trm_p n u t)
      = open_rec_trm_p n (subst_path x y u) (subst_trm x y t)) /\
@@ -510,7 +537,7 @@ Qed.
 
 (** - terms only *)
 Lemma subst_open_commut_trm: forall x y u t,
-    lc_path y ->
+    named_path y ->
     subst_trm x y (open_trm u t)
     = open_trm_p (subst_var_p x y u) (subst_trm x y t).
 Proof.
@@ -518,7 +545,7 @@ Proof.
 Qed.
 
 Lemma subst_open_commut_trm_p: forall x y u t,
-    lc_path y ->
+    named_path y ->
     subst_trm x y (open_trm_p u t)
     = open_trm_p (subst_path x y u) (subst_trm x y t).
 Proof.
@@ -527,7 +554,7 @@ Qed.
 
 (** - definitions only *)
 Lemma subst_open_commut_defs: forall x y u ds,
-    lc_path y ->
+    named_path y ->
     subst_defs x y (open_defs u ds)
     = open_defs_p (subst_var_p x y u) (subst_defs x y ds).
 Proof.
@@ -535,7 +562,7 @@ Proof.
 Qed.
 
 Lemma subst_open_commut_defs_p: forall x y u ds,
-    lc_path y ->
+    named_path y ->
     subst_defs x y (open_defs_p u ds)
     = open_defs_p (subst_path x y u) (subst_defs x y ds).
 Proof.
@@ -549,7 +576,7 @@ Qed.
 
 (** Substitution after opening
     - terms *)
-Lemma subst_intro_trm: forall x u t, x \notin (fv_trm t) -> lc_path u ->
+Lemma subst_intro_trm: forall x u t, x \notin (fv_trm t) -> named_path u ->
   open_trm_p u t = subst_trm x u (open_trm x t).
 Proof.
   introv Fr Hl. unfold open_trm. rewrite* subst_open_commut_trm.
@@ -558,7 +585,7 @@ Proof.
 Qed.
 
 (** - definitions *)
-Lemma subst_intro_defs: forall x u ds, x \notin (fv_defs ds) -> lc_path u ->
+Lemma subst_intro_defs: forall x u ds, x \notin (fv_defs ds) -> named_path u ->
   open_defs_p u ds = subst_defs x u (open_defs x ds).
 Proof.
   introv Fr Hl. unfold open_trm. rewrite* subst_open_commut_defs.
@@ -567,7 +594,7 @@ Proof.
 Qed.
 
 (** - types *)
-Lemma subst_intro_typ: forall x u T, x \notin (fv_typ T) -> lc_path u ->
+Lemma subst_intro_typ: forall x u T, x \notin (fv_typ T) -> named_path u ->
   open_typ_p u T = subst_typ x u (open_typ x T).
 Proof.
   introv Fr Hl. unfold open_typ. rewrite* subst_open_commut_typ.
@@ -605,4 +632,215 @@ Proof.
   intros x y l ds. unfold defs_hasnt. induction ds; introv Eq; auto.
   unfold get_def. simpl. rewrite <- subst_label_of_def.
   simpl in Eq. case_if~.
+Qed.
+
+(** [ds = ... /\ {a = t} /\ ...]  #<br>#
+    [ds = ... /\ {a = t'} /\ ...] #<br>#
+    [―――――――――――――――――――――――――] #<br>#
+    [t = t'] *)
+Lemma defs_has_inv: forall ds a t t',
+    defs_has ds (def_trm a t) ->
+    defs_has ds (def_trm a t') ->
+    t = t'.
+Proof.
+  intros. unfold defs_has in *.
+  inversions H. inversions H0.
+  rewrite H1 in H2. inversions H2.
+  reflexivity.
+Qed.
+
+(** * Environment Lookup *)
+
+(** * Path Lookup *)
+
+(** ** Path lookup in stacks *)
+
+Reserved Notation "s '∋' t" (at level 60, t at level 50).
+Reserved Notation "s '↓' p '==' ds" (at level 60).
+
+
+(** Looking up a path in a stack. *)
+
+Inductive lookup : sta -> path * val -> Prop :=
+
+(** [s(x) = v  ]    #<br>#
+    [――――――――――]    #<br>#
+    [s ∋ (x, v)]    *)
+| lookup_var : forall s x v,
+    binds x v s ->
+    s ∋ (pvar x, v)
+
+(** [s ↓ p = ...{a = v}...  ]    #<br>#
+    [―――――――――――――――――――――――]    #<br>#
+    [s ∋ (p.a, v)]               *)
+| lookup_val : forall s p ds a v,
+    s ↓ p == ds ->
+    defs_has ds (def_trm a (trm_val v)) ->
+    s ∋ (p•a, v)
+
+(** [s ↓ p = ...{a = q}...  ]    #<br>#
+    [s ∋ (q, v)             ]    #<br>#
+    [―――――――――――――――――――――――]    #<br>#
+    [s ∋ (p.a, v)]               *)
+| lookup_path : forall s ds a p q v,
+    s ↓ p == ds ->
+    defs_has ds (def_trm a (trm_path q)) ->
+    s ∋ (q, v) ->
+    s ∋ (p•a, v)
+
+where "s '∋' t" := (lookup s t)
+
+(** Opening of definitions:
+    If [s ∋ (p, ν(x: T)ds)], then [lookup_open] gives us [ds] opened with [p]. *)
+
+with lookup_open : sta -> path -> defs -> Prop :=
+
+(** [s ∋ (p, ν(T)ds)        ]    #<br>#
+    [―――――――――――――――――――――――]    #<br>#
+    [s ↓ p = ds^p           ]    *)
+| lookup_defs : forall s p T ds,
+    s ∋ (p, val_new T ds) ->
+    s ↓ p == open_defs_p p ds
+
+where "s '↓' p '==' ds" := (lookup_open s p ds).
+
+Reserved Notation "t1 '|->' t2" (at level 40, t2 at level 39).
+
+(** ** Path lookup in typing contexts *)
+
+Reserved Notation "G '∋' p ':' T" (at level 60, p at level 50).
+Reserved Notation "G '↓↓' p '==' ds" (at level 60).
+
+(** Looking up a path in a typing context. *)
+
+Inductive lookup_ctx : ctx -> path -> typ -> Prop :=
+
+(** [G(x) = T   ]    #<br>#
+    [―――――――――――]    #<br>#
+    [G ∋ (x : T)]    *)
+| lookup_ctx_var : forall G x T,
+    binds x T G ->
+    G ∋ pvar x : T
+
+(** [G ↓↓ p = ...{a: T}...  ]    #<br>#
+    [―――――――――――――――――――――――]    #<br>#
+    [G ∋ (p.a, T)]               *)
+| lookup_ctx_path : forall G p a T,
+    G ↓↓ p == T ->
+    record_has T (dec_trm a T) ->
+    G ∋ p•a : T
+
+where "G '∋' p ':' T" := (lookup_ctx G p T )
+
+(** Opening of definitions:
+    If [s ∋ (p, ν(x: T)ds)], then [lookup_open] gives us [ds] opened with [p]. *)
+
+with lookup_ctx_open : ctx -> path -> typ -> Prop :=
+
+(** [G ∋ (p: μ(T))         ]    #<br>#
+    [――――――――――――――――――――――]    #<br>#
+    [G ↓↓ p = T^p          ]    *)
+| lookup_ctx_defs : forall G p T ,
+    G ∋ p : typ_bnd T ->
+    G ↓↓ p == open_typ_p p T
+
+where "G '↓↓' p '==' T" := (lookup_ctx_open G p T).
+
+Hint Constructors lookup lookup_open lookup_ctx lookup_ctx_open.
+
+Scheme lookup_mut := Induction for lookup Sort Prop
+  with lookup_open_mut := Induction for lookup_open Sort Prop.
+Combined Scheme lookup_mutind from lookup_mut, lookup_open_mut.
+
+Scheme lookup_ctx_mut := Induction for lookup_ctx Sort Prop
+  with lookup_ctx_open_mut := Induction for lookup_ctx_open Sort Prop.
+Combined Scheme lookup_ctx_mutind from lookup_ctx_mut, lookup_ctx_open_mut.
+
+(** ** Lemmas about Environment Lookup *)
+
+Lemma lookup_ctx_func :
+  (forall G p T1,
+    G ∋ p : T1 -> forall T2,
+    G ∋ p : T2 ->
+    T1 = T2) /\
+  (forall G p T1,
+    G ↓↓ p == T1 -> forall T2,
+    G ↓↓ p == T2 ->
+    T1 = T2).
+Proof.
+  apply lookup_ctx_mutind; intros.
+  - Case "lookup_ctx_var".
+    inversions H. eapply binds_func; eauto. destruct p. inversion H0.
+  - Case "lookup_ctx_path".
+    inversions H0; unfolds sel_fields.
+    * destruct p. inversion H1.
+    * destruct p0, p. inversions H1. apply* H.
+  - Case "lookup_ctx_defs".
+    lets Hl: (lookup_ctx_defs l). inversions H0.
+    apply H in H1. inversion* H1.
+Qed.
+
+
+Ltac lookup_solve :=
+   match goal with
+   | [H: (?p • _, _) = (_, _) |- _] =>
+     inversions H; destruct p
+   end;
+   match goal with
+   | [H: _ ∋ (_, _) |- _] =>
+     inversions H; subst
+   end;
+   match goal with
+   | [p: path,
+         Hl: _ ↓ ?p == _ |- _] =>
+     destruct p; unfolds sel_fields
+   end;
+   repeat match goal with
+         | [Heq: trm_path _ = trm_path _ |- _] =>
+           inversion* Heq
+         | [Heq: p_sel _ _ = p_sel _ _ |- _] =>
+           inversions Heq
+         | [IH: forall _ _ _, _ -> _ ∋ _ -> _,
+           Hl: _ ∋ (_, ?v2) |- _ = ?v2] =>
+           apply IH in Hl; subst
+         | [IH: forall _, _ ↓ _ == _ -> _,
+            Hl: _ ↓ _ == _
+            |- _] =>
+           apply IH in Hl; subst
+         | [IH: forall _, _ ↓ _ == _ -> _,
+              Hl1: _ ↓ _ == _,
+              Hl2: _ ↓ _ == _
+            |- _] =>
+           apply IH in Hl1; apply IH in Hl2; subst
+         | [Hd1: defs_has _ _,
+            Hd2: defs_has _ _ |- _] =>
+           apply (defs_has_inv Hd1) in Hd2; try congruence
+         end.
+
+Lemma lookup_func :
+  (forall s t,
+    s ∋ t -> forall p v1 v2,
+    t = (p, v1) ->
+    s ∋ (p, v2) ->
+    v1 = v2) /\
+  (forall G p ds1,
+    G ↓ p == ds1 -> forall ds2,
+    G ↓ p == ds2 ->
+    ds1 = ds2).
+Proof.
+  apply lookup_mutind; intros; try solve [lookup_solve].
+  - Case "lookup_var".
+    inversions H. inversions H0; unfolds sel_fields. eapply binds_func; eauto.
+    destruct p. inversions H. destruct p. inversions H.
+  - Case "lookup_defs".
+    lets Hl: (lookup_defs l). inversions H0. specialize (H _ _ _ eq_refl H1).
+    inversion* H.
+Qed.
+
+Lemma lookup_func_s : forall s p v1 v2,
+    s ∋ (p, v1) ->
+    s ∋ (p, v2) ->
+    v1 = v2.
+Proof.
+  intros. lets Hl: (proj21 lookup_func). specialize (Hl _ _ H _ _ _ eq_refl H0). apply Hl.
 Qed.

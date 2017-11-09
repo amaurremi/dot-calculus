@@ -33,11 +33,11 @@ Qed.
 
 (** Helper tactics for proving Preservation *)
 
-Ltac binds_eq :=
+Ltac lookup_eq :=
   match goal with
-  | [Hb1: binds ?x _ ?G,
-     Hb2: binds ?x _ ?G |- _] =>
-     apply (binds_func Hb1) in Hb2; inversions Hb2
+  | [Hl1: ?s ∋ ?t1,
+     Hl2: ?s ∋ ?t2 |- _] =>
+     apply (lookup_func_s Hl1) in Hl2; inversions Hl2
   end.
 
 Ltac invert_red :=
@@ -50,10 +50,10 @@ Ltac solve_IH :=
   | [IH: well_typed _ _ ->
          inert _ ->
          forall t', (_, _) |-> (_, _) -> _,
-       Wf: well_typed _ _,
+       Wt: well_typed _ _,
        In: inert _,
        Hr: (_, _) |-> (_, ?t') |- _] =>
-    specialize (IH Wf In t' Hr); destruct_all
+    specialize (IH Wt In t' Hr); destruct_all
   end;
   match goal with
   | [Hi: _ & ?G' ⊢ _ : _ |- _] =>
@@ -80,20 +80,47 @@ Lemma preservation_helper: forall G s t s' t' T,
           well_typed (G & G') s' /\
           G & G' ⊢ t' : T.
 Proof.
-  introv Hwf Hin Hred Ht. gen t'.
-  dependent induction Ht; intros; try solve [invert_red].
+  introv Hwt Hin Hred Ht. gen t'.
+  induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
-    | [Hx: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
-        pose proof (canonical_forms_fun Hin Hwf Hx) as [L [T' [t [Bis [Hsub Hty]]]]];
-          inversions Hred;
-          binds_eq
+    | [Hp: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
+        pose proof (canonical_forms_fun Hin Hwt Hp) as [L [T' [t [Bis [Hsub Hty]]]]];
+          inversions Hred
     end.
+    lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ; eauto.
+    eapply renaming_typ_open; eauto.
+  - Case "ty_let".
+    inversions Hred.
+    * SCase "red_let_val".
+      destruct (val_typing Ht) as [T' [Hv Hs]].
+      lets Hp: (precise_inert_typ Hv).
+      lets Hn: (well_typed_notin_dom Hwt H2).
+      exists (x ~ T'). repeat split.
+      + rewrite* <- concat_empty_l.
+      + apply well_typed_push; auto. apply* precise_to_general.
+      + pick_fresh y. assert (y \notin L) as Hy by auto. specialize (H y Hy).
+        apply* renaming_typ. apply* narrow_typing.
+    * SCase "red_let_path".
+
+
+      match goal with
+      | [IH: well_typed _ _ ->
+             inert _ ->
+             forall t', (_, _) |-> (_, _) -> _,
+           Wt: well_typed _ _,
+           In: inert _,
+           Hr: (_, _) |-> (_, ?t') |- _] =>
+        specialize (IH Wt In t' Hr); destruct_all
+      end;
+        match goal with
+        | [Hi: _ & ?G' ⊢ _ : _ |- _] =>
+          exists G'; repeat split; auto
+        end.
   - Case "ty_new_elim".
-    pose proof (canonical_forms_obj Hin Hwf Ht) as [S [ds [t [Bis [Has Ty]]]]].
+    pose proof (canonical_forms_obj Hin Hwt Ht) as [S [ds [t [Bis [Has Ty]]]]].
     invert_red. binds_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     match goal with
