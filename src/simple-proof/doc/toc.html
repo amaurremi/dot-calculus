@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../README.html">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<a href="Definitions.html"><h2>Definitions</h2></a>
+<ul class="doclist">
+<li><a href="Definitions.html#lab1">Abstract Syntax</a>
+
+</li>
+<li><a href="Definitions.html#lab6">Opening</a>
+
+</li>
+<li><a href="Definitions.html#lab7">Free variables</a>
+
+</li>
+<li><a href="Definitions.html#lab8">Typing Rules</a>
+<ul class="doclist">
+<li><a href="Definitions.html#lab9">Term typing <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="Definitions.html#lab10">Single-definition typing <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">d</span>:</span> <span class="inlinecode"><span class="id" title="var">D</span></span></a>
+
+</li>
+<li><a href="Definitions.html#lab11">Multiple-definition typing <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="Definitions.html#lab12">Subtyping <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">&lt;:</span> <span class="inlinecode"><span class="id" title="var">U</span></span></a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Definitions.html#lab13">Well-typed stacks</a>
+
+</li>
+<li><a href="Definitions.html#lab14">Infrastructure</a>
+<ul class="doclist">
+<li><a href="Definitions.html#lab15">Mutual Induction Principles</a>
+
+</li>
+<li><a href="Definitions.html#lab16">Tactics</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Binding.html"><h2>Binding</h2></a>
+<ul class="doclist">
+<li><a href="Binding.html#lab17">Substitution Definitions</a>
+
+</li>
+<li><a href="Binding.html#lab18">Opening Lemmas</a>
+
+</li>
+<li><a href="Binding.html#lab19">Variable Substitution Lemmas</a>
+
+</li>
+</ul>
+<a href="RecordAndInertTypes.html"><h2>RecordAndInertTypes</h2></a>
+<ul class="doclist">
+<li><a href="RecordAndInertTypes.html#lab20">Record Types</a>
+<ul class="doclist">
+<li><a href="RecordAndInertTypes.html#lab21">Lemmas About Records and Record Types</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="RecordAndInertTypes.html#lab22">Inert types</a>
+
+</li>
+</ul>
+<a href="PreciseTyping.html"><h2>PreciseTyping</h2></a>
+<ul class="doclist">
+<li><a href="PreciseTyping.html#lab23">Precise typing <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢!</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="PreciseTyping.html#lab24">Precise Flow</a>
+
+</li>
+</ul>
+<a href="TightTyping.html"><h2>TightTyping</h2></a>
+<ul class="doclist">
+<li><a href="TightTyping.html#lab25">Tight typing <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">|-#</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+</ul>
+<a href="Subenvironments.html"><h2>Subenvironments</h2></a>
+<ul class="doclist">
+<li><a href="Subenvironments.html#lab28">Subenvironments <span class="inlinecode"><span class="id" title="var">G1</span></span> <span class="inlinecode">⪯</span> <span class="inlinecode"><span class="id" title="var">G2</span></span></a>
+
+</li>
+</ul>
+<a href="Weakening.html"><h2>Weakening</h2></a>
+<ul class="doclist">
+<li><a href="Weakening.html#lab29">Weakening Lemma</a>
+
+</li>
+</ul>
+<a href="Narrowing.html"><h2>Narrowing</h2></a>
+<ul class="doclist">
+<li><a href="Narrowing.html#lab30">Narrowing Lemma</a>
+
+</li>
+</ul>
+<a href="InvertibleTyping.html"><h2>InvertibleTyping</h2></a>
+<ul class="doclist">
+<li><ul class="doclist">
+<li><a href="InvertibleTyping.html#lab31">Invertible typing</a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab32">Invertible typing of variables <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢##</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab33">Invertible typing for values <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢##<span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">v</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab34">Invertible to Precise Typing <span class="inlinecode">|-##</span> <span class="inlinecode"><span class="id" title="var">to</span></span> <span class="inlinecode">|-!</span></a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab35">Invertible Subtyping Closure</a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab36">Tight-to-Invertible Lemma for Variables <span class="inlinecode">|-#</span> <span class="inlinecode"><span class="id" title="var">to</span></span> <span class="inlinecode">|-##</span></a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="InvertibleTyping.html#lab37">Invertible Value Typing</a>
+<ul class="doclist">
+<li><a href="InvertibleTyping.html#lab38">Invertible Subtyping Closure</a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab39">Tight-to-Invertible Lemma for Values <span class="inlinecode">|-#</span> <span class="inlinecode"><span class="id" title="var">to</span></span> <span class="inlinecode">|-##</span></a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="GeneralToTight.html"><h2>GeneralToTight</h2></a>
+<ul class="doclist">
+<li><a href="GeneralToTight.html#lab40">Sel-&lt;: Premise</a>
+
+</li>
+<li><a href="GeneralToTight.html#lab41">Sel-&lt;: Replacement</a>
+
+</li>
+<li><a href="GeneralToTight.html#lab42">General to Tight <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">to</span></span> <span class="inlinecode">⊢#</span></a>
+
+</li>
+</ul>
+<a href="Substitution.html"><h2>Substitution</h2></a>
+<ul class="doclist">
+<li><a href="Substitution.html#lab43">Substitution Lemma</a>
+
+</li>
+<li><a href="Substitution.html#lab44">Renaming</a>
+
+</li>
+</ul>
+<a href="CanonicalForms.html"><h2>CanonicalForms</h2></a>
+<ul class="doclist">
+<li><a href="CanonicalForms.html#lab45">Simple Implications of Typing</a>
+
+</li>
+<li><a href="CanonicalForms.html#lab46">Well-typedness</a>
+
+</li>
+<li><a href="CanonicalForms.html#lab47">Canonical Forms for Functions</a>
+
+</li>
+<li><a href="CanonicalForms.html#lab48">Canonical Forms for Objects</a>
+
+</li>
+</ul>
+<a href="OperationalSemantics.html"><h2>OperationalSemantics</h2></a>
+<ul class="doclist">
+<li><a href="OperationalSemantics.html#lab49">Stack-Based Operational Semantics</a>
+<ul class="doclist">
+<li><a href="OperationalSemantics.html#lab50">Normal forms</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Safety.html"><h2>Safety</h2></a>
+<ul class="doclist">
+<li><a href="Safety.html#lab51">Preservation</a>
+<ul class="doclist">
+<li><a href="Safety.html#lab52">Preservation Theorem</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Safety.html#lab53">Progress</a>
+<ul class="doclist">
+<li><a href="Safety.html#lab54">Progress Theorem</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
