@@ -263,22 +263,21 @@ Proof.
   rewrite~ subst_fresh_typ. constructor*. unfold named_path, pvar. repeat eexists.
 Qed.
 
-(*
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#
     [z] fresh                #<br>#
     [G, z: U ⊢ t^z : T^z]    #<br>#
     [――――――――――――――――――――――] #<br>#
     [G ⊢ t^x : T^x]         *)
-Lemma renaming_fresh : forall L G T u U x,
+Lemma renaming_fresh : forall L G T u U p,
     ok G ->
     (forall x : var, x \notin L -> G & x ~ T ⊢ open_trm x u : U) ->
-    G ⊢ trm_var (avar_f x) : T ->
-    G ⊢ open_trm x u : U.
+    G ⊢ trm_path p : T ->
+    G ⊢ open_trm_p p u : U.
 Proof.
-  introv Hok Hu Hx. pick_fresh y.
+  introv Hok Hu Hp. pick_fresh y.
   rewrite subst_intro_trm with (x:=y); auto.
-  rewrite <- subst_fresh_typ with (x:=y) (y:=x); auto.
+  rewrite <- subst_fresh_typ with (x:=y) (p:=p); auto.
   eapply subst_ty_trm; eauto. rewrite~ subst_fresh_typ.
+  apply* typed_paths_named.
 Qed.
-*)
