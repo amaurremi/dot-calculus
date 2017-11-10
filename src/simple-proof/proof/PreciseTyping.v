@@ -67,11 +67,11 @@ Hint Constructors ty_val_p.
     If [precise_flow x G T U], denoted as [G ⊢ x: T ⪼ U],
     then [G(x) = T] and [G ⊢! x: U].   #<br>#
     For example, if [G(x) = mu(x: {a: T} /\ {B: S..U})], then we can derive the following
-    precise flows for [x]:                                                 #<br>#
-    [precise_flow x G mu(x: {a: T} /\ {B: S..U}) mu(x: {a: T} /\ {B: S..U}]  #<br>#
-    [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {a: T} /\ {B: S..U}]        #<br>#
-    [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {a: T}]                    #<br>#
-    [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {B: S..U}]. *)
+    precise flows for [x]:                                                  #<br>#
+    [G ⊢! x: mu(x: {a: T} /\ {B: S..U}) ⪼ mu(x: {a: T} /\ {B: S..U}]         #<br>#
+    [G ⊢! x: mu(x: {a: T} /\ {B: S..U}) ⪼ {a: T} /\ {B: S..U}]               #<br>#
+    [G ⊢! x: mu(x: {a: T} /\ {B: S..U}) ⪼ {a: T}]                           #<br>#
+    [G ⊢! x: mu(x: {a: T} /\ {B: S..U}) ⪼ {B: S..U}]. *)
 
 Reserved Notation "G '⊢!' x ':' T '⪼' U" (at level 40, x at level 59).
 
