@@ -24,7 +24,7 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
     This lemma corresponds to Lemma 3.15 in the paper. *)
 Lemma val_typing: forall G v T,
   G ⊢ trm_val v : T ->
-  exists T', G ⊢! trm_val v : T' /\
+  exists T', G ⊢!v v : T' /\
         G ⊢ T' <: T.
 Proof.
   intros G v T H. dependent induction H; eauto.
@@ -115,7 +115,7 @@ Proof.
       pose proof (val_typing Ht) as [V [Hv Hs]].
       exists (x ~ V). repeat split.
       ** rewrite <- concat_empty_l. constructor~. apply (precise_inert_typ Hv).
-      ** constructor~. apply (precise_to_general Hv).
+      ** constructor~. apply (precise_to_general_v Hv).
       ** eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. apply* weaken_subtyp.
   - Case "ty_sub".

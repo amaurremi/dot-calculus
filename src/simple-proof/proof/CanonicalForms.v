@@ -80,7 +80,7 @@ Lemma invertible_val_to_precise_lambda: forall G v S T,
     G ⊢##v v : typ_all S T ->
     inert G ->
     exists L S' T',
-      G ⊢! trm_val v : typ_all S' T' /\
+      G ⊢!v v : typ_all S' T' /\
       G ⊢ S <: S' /\
       (forall y, y \notin L ->
                  G & y ~ S ⊢ open_typ y T' <: open_typ y T).
@@ -119,9 +119,9 @@ Proof.
   introv Hin Ht.
   lets Htt: (general_to_tight_typing Hin Ht).
   lets Hinv: (tight_to_invertible Hin Htt).
-  destruct (invertible_to_precise_typ_all (inert_ok Hin) Hinv) as [T' [U' [L [Htp [Hs1 Hs2]]]]].
+  destruct (invertible_to_precise_typ_all (inert_ok Hin) Hinv) as [T' [U' [V' [L [Htp [Hs1 Hs2]]]]]].
   exists L T' U'. repeat split.
-  - apply~ inert_precise_all_inv.
+  - apply* inert_precise_all_inv.
   - apply~ tight_to_general.
   - assumption.
 Qed.
@@ -250,10 +250,9 @@ Proof.
   destruct (typing_implies_bound Ht) as [S BiG].
   lets Htt: (general_to_tight_typing Hin Ht).
   lets Hinv: (tight_to_invertible Hin Htt).
-  destruct (invertible_to_precise_trm_dec Hinv) as [T' [Htp Hs]].
-  destruct (precise_flow_lemma Htp) as [U Pf].
-  destruct (pf_inert_rcd_U Hin Pf) as [U' Hr]. subst.
-  lets Hr': (precise_flow_record_has Hin Pf). apply pf_binds in Pf.
+  destruct (invertible_to_precise_trm_dec Hinv) as [T' [U [Htp Hs]]].
+  destruct (pf_inert_rcd_U Hin Htp) as [U' Hr]. subst.
+  lets Hr': (precise_flow_record_has Hin Htp). apply pf_binds in Htp.
   exists U' T'. split. assumption. split. assumption. apply* tight_to_general.
 Qed.
 

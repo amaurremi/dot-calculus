@@ -171,15 +171,15 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 (** [G ⊢! x: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# T <: x.A]         *)
-| subtyp_sel2_t: forall G x A T,
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_typ A T T) ->
+| subtyp_sel2_t: forall G x A T U,
+    G ⊢! x : U ⪼ typ_rcd (dec_typ A T T) ->
     G ⊢# T <: typ_sel (avar_f x) A
 
 (** [G ⊢! x: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# x.A <: T]         *)
-| subtyp_sel1_t: forall G x A T,
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_typ A T T) ->
+| subtyp_sel1_t: forall G x A T U,
+    G ⊢! x : U ⪼ typ_rcd (dec_typ A T T) ->
     G ⊢# typ_sel (avar_f x) A <: T
 
 (** [G ⊢# S2 <: S1]                #<br>#

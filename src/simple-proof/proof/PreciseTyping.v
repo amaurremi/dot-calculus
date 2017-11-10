@@ -12,8 +12,9 @@ Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions RecordAndInertTypes.
 
-(** * Precise typing [G ⊢! t: T] *)
-(** Precise typing is used to reason about the types of variables and values.
+(** * Precise Typing
+
+    Precise typing is used to reason about the types of variables and values.
     Precise typing does not "modify" a variable's or value's type through subtyping.
     - For values, precise typing allows to only retrieve the "immediate" type of the value.
       It types objects with recursive types, and functions with dependent-function types. #<br>#
@@ -29,16 +30,10 @@ Require Import Definitions RecordAndInertTypes.
       [G ⊢! x: {a: T}]                    #<br>#
       [G ⊢! x: {B: S..U}].                *)
 
-Reserved Notation "G '⊢!' t ':' T" (at level 40, t at level 59).
+(** ** Precise typing for values *)
+Reserved Notation "G '⊢!v' v ':' T" (at level 40, v at level 59).
 
-Inductive ty_trm_p : ctx -> trm -> typ -> Prop :=
-
-(** [G(x) = T]      #<br>#
-    [―――――――――――――] #<br>#
-    [G ⊢! x: T] *)
-| ty_var_p : forall G x T,
-    binds x T G ->
-    G ⊢! trm_var (avar_f x) : T
+Inductive ty_val_p : ctx -> val -> typ -> Prop :=
 
 (** [G, x: T ⊢ t^x: U^x]       #<br>#
     [x fresh]                  #<br>#
@@ -47,7 +42,7 @@ Inductive ty_trm_p : ctx -> trm -> typ -> Prop :=
 | ty_all_intro_p : forall L G T t U,
     (forall x, x \notin L ->
       G & x ~ T ⊢ open_trm x t : open_typ x U) ->
-    G ⊢! trm_val (val_lambda T t) : typ_all T U
+    G ⊢!v val_lambda T t : typ_all T U
 
 (** [G, x: T^x ⊢ ds^x :: T^x]   #<br>#
     [x fresh]                   #<br>#
@@ -56,31 +51,12 @@ Inductive ty_trm_p : ctx -> trm -> typ -> Prop :=
 | ty_new_intro_p : forall L G T ds,
     (forall x, x \notin L ->
       G & (x ~ open_typ x T) /- open_defs x ds :: open_typ x T) ->
-    G ⊢! trm_val (val_new T ds) : typ_bnd T
+    G ⊢!v val_new T ds : typ_bnd T
 
-(** [G ⊢! x: mu(T)] #<br>#
-    [――――――――――――――] #<br>#
-    [G ⊢! x: T^x]       *)
-| ty_rec_elim_p : forall G x T,
-    G ⊢! trm_var (avar_f x) : typ_bnd T ->
-    G ⊢! trm_var (avar_f x) : open_typ x T
+where "G '⊢!v' v ':' T" := (ty_val_p G v T).
 
-(** [G ⊢! x: T /\ U] #<br>#
-    [――――――――――――――] #<br>#
-    [G ⊢! x: T]     *)
-| ty_and1_p : forall G x T U,
-    G ⊢! trm_var (avar_f x) : typ_and T U ->
-    G ⊢! trm_var (avar_f x) : T
+Hint Constructors ty_val_p.
 
-(** [G ⊢! x: T /\ U] #<br>#
-    [――――――――――――――] #<br>#
-    [G ⊢! x: U]     *)
-| ty_and2_p : forall G x T U,
-    G ⊢! trm_var (avar_f x) : typ_and T U ->
-    G ⊢! trm_var (avar_f x) : U
-where "G '⊢!' t ':' T" := (ty_trm_p G t T).
-
-Hint Constructors ty_trm_p.
 
 (** * Precise Flow *)
 (** We use the precise flow relation to reason about the relations between
@@ -88,50 +64,45 @@ Hint Constructors ty_trm_p.
     is bound to in the context [G(x)=T'].#<br>#
     If [G(x) = T], the [precise_flow] relation describes all the types [U] that [x] can
     derive through precise typing ([⊢!], see [ty_trm_p]).
-    If [precise_flow x G T U], then [G(x) = T] and [G ⊢! x: U].   #<br>#
+    If [precise_flow x G T U], denoted as [G ⊢ x: T ⪼ U],
+    then [G(x) = T] and [G ⊢! x: U].   #<br>#
     For example, if [G(x) = mu(x: {a: T} /\ {B: S..U})], then we can derive the following
     precise flows for [x]:                                                 #<br>#
     [precise_flow x G mu(x: {a: T} /\ {B: S..U}) mu(x: {a: T} /\ {B: S..U}]  #<br>#
     [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {a: T} /\ {B: S..U}]        #<br>#
     [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {a: T}]                    #<br>#
     [precise_flow x G mu(x: {a: T} /\ {B: S..U}) {B: S..U}]. *)
+
+Reserved Notation "G '⊢!' x ':' T '⪼' U" (at level 40, x at level 59).
+
 Inductive precise_flow : var -> ctx -> typ -> typ -> Prop :=
   | pf_bind : forall x G T,
       binds x T G ->
-      precise_flow x G T T
+      G ⊢! x: T ⪼ T
   | pf_open : forall x G T U,
-      precise_flow x G T (typ_bnd U) ->
-      precise_flow x G T (open_typ x U)
+      G ⊢! x: T ⪼ typ_bnd U ->
+      G ⊢! x: T ⪼ open_typ x U
   | pf_and1 : forall x G T U1 U2,
-      precise_flow x G T (typ_and U1 U2) ->
-      precise_flow x G T U1
+      G ⊢! x: T ⪼ typ_and U1 U2 ->
+      G ⊢! x: T ⪼ U1
   | pf_and2 : forall x G T U1 U2,
-      precise_flow x G T (typ_and U1 U2) ->
-      precise_flow x G T U2.
+      G ⊢! x: T ⪼ typ_and U1 U2 ->
+      G ⊢! x: T ⪼ U2
+where "G '⊢!' x ':' T '⪼' U" := (precise_flow x G T U).
 
 Hint Constructors precise_flow.
 
-
-(** If [precise_flow x G T U] then [G(x) = T]. *)
+(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
 Lemma pf_binds: forall G x T U,
-    precise_flow x G T U ->
+    G ⊢! x: T ⪼ U ->
     binds x T G.
 Proof.
   introv Pf. dependent induction Pf; auto.
 Qed.
 
-(** Introduces [precise_flow], given a variable's precise type. *)
-Lemma precise_flow_lemma : forall U G x,
-    G ⊢! trm_var (avar_f x) : U ->
-    exists T, precise_flow x G T U.
-Proof.
-  introv H. dependent induction H; try (destruct* (IHty_trm _ eq_refl));
-              try (destruct* (IHty_trm_p _ eq_refl)); eauto.
-Qed.
-
 (** If [G(x) = forall(S)T], then [x]'s precise type can be only [forall(S)T]. *)
-Lemma precise_flow_all_inv : forall p G S T U,
-    precise_flow p G (typ_all S T) U ->
+Lemma precise_flow_all_inv : forall x G S T U,
+    G ⊢! x: typ_all S T ⪼ U ->
     U = typ_all S T.
 Proof.
   introv Hpf.
@@ -141,14 +112,19 @@ Qed.
 
 (** The precise type of a value is inert. *)
 Lemma precise_inert_typ : forall G v T,
-    G ⊢! trm_val v : T ->
+    G ⊢!v v : T ->
     inert_typ T.
 Proof.
   introv Ht. inversions Ht; constructor; rename T0 into T.
-  pick_fresh z. assert (Hz: z \notin L) by auto. specialize (H1 z Hz).
-  pose proof (ty_defs_record_type H1).
-  assert (Hz': z \notin fv_typ T) by auto.
-  apply (record_type_open T Hz' H).
+  pick_fresh z. assert (Hz: z \notin L) by auto.
+  match goal with
+  | [H: forall x, _ \notin _ -> _,
+     Hz: ?z \notin _ |- _] =>
+    specialize (H z Hz);
+      pose proof (ty_defs_record_type H);
+      assert (Hz': z \notin fv_typ T) by auto;
+      apply* record_type_open
+  end.
 Qed.
 
 (** The following two lemmas say that the type to which a variable is bound in an inert context is inert. *)
@@ -165,9 +141,9 @@ Proof.
 Qed.
 
 (** See [binds_inert]. *)
-Lemma pf_inert_T : forall G p T U,
+Lemma pf_inert_T : forall G x T U,
     inert G ->
-    precise_flow p G T U ->
+    G ⊢! x: T ⪼ U ->
     inert_typ T.
 Proof.
   introv Hi Pf. induction Pf; eauto.
@@ -175,9 +151,9 @@ Proof.
 Qed.
 
 (** See [inert_typ_bnd_record] *)
-Lemma pf_rcd_T : forall G p T U,
+Lemma pf_rcd_T : forall G x T U,
     inert G ->
-    precise_flow p G (typ_bnd T) U ->
+    precise_flow x G (typ_bnd T) U ->
     record_type T.
 Proof.
   introv Hi Pf. apply pf_inert_T in Pf; inversions Pf; assumption.
@@ -187,7 +163,7 @@ Qed.
      or a record type. *)
 Lemma pf_inert_or_rcd : forall G x T U,
     inert G ->
-    precise_flow x G (typ_bnd T) U ->
+    G ⊢! x: typ_bnd T ⪼ U ->
     U = typ_bnd T \/ record_type U.
 Proof.
   introv Hi Pf.
@@ -207,7 +183,7 @@ Qed.
 (** If [x]'s precise type is [mu(x: U)], then [G(x) = mu(x: U)] *)
 Lemma pf_inert_bnd_U: forall G x T U,
     inert G ->
-    precise_flow x G T (typ_bnd U) ->
+    G ⊢! x: T ⪼ typ_bnd U ->
     T = typ_bnd U.
 Proof.
   introv Hi Pf.
@@ -234,7 +210,7 @@ Qed.
     a recursive type. *)
 Lemma pf_inert_rcd_U: forall G x T D,
     inert G ->
-    precise_flow x G T (typ_rcd D) ->
+    G ⊢! x: T ⪼ typ_rcd D ->
     exists U, T = typ_bnd U.
 Proof.
   introv Hi Pf.
@@ -253,7 +229,7 @@ Qed.
 (** If [x]'s precise type is a record type, then [G(x)] is a recursive type. *)
 Lemma pf_inert_rcd_typ_U: forall G x T Ds,
     inert G ->
-    precise_flow x G T Ds ->
+    G ⊢! x: T ⪼ Ds ->
     record_type Ds ->
     exists U, T = typ_bnd U.
 Proof.
@@ -280,7 +256,7 @@ Qed.
     then [G(x)] is the same function type. *)
 Lemma pf_inert_lambda_U : forall x G S T U,
     inert G ->
-    precise_flow x G U (typ_all S T) ->
+    G ⊢! x: U ⪼ typ_all S T ->
     U = typ_all S T.
 Proof.
   introv Hi Pf.
@@ -292,22 +268,20 @@ Proof.
 Qed.
 
 (** See [pf_inert_lambda_U]. *)
-Lemma inert_precise_all_inv : forall x G S T,
+Lemma inert_precise_all_inv : forall x G S T U,
     inert G ->
-    G ⊢! trm_var (avar_f x) : typ_all S T ->
+    G ⊢! x : U ⪼ typ_all S T ->
     binds x (typ_all S T) G.
 Proof.
-  introv Hgd Htyp.
-  destruct (precise_flow_lemma Htyp) as [V Pf].
-  pose proof (pf_inert_lambda_U Hgd Pf) as H. subst.
+  introv Hi Htyp. lets H: (pf_inert_lambda_U Hi Htyp). subst.
   apply* pf_binds.
 Qed.
 
-(** The following two lemmas say that in an inert context, the precise type of a variable
+(** In an inert context, the precise type of a variable
     cannot be bottom. *)
 Lemma pf_bot_false : forall G x T,
     inert G ->
-    precise_flow x G T typ_bot ->
+    G ⊢! x: T ⪼ typ_bot ->
     False.
 Proof.
   introv Hi Pf.
@@ -316,43 +290,23 @@ Proof.
   - destruct (pf_inert_or_rcd Hi Pf); inversion H0. inversion H1.
 Qed.
 
-(** See [pf_bot_false]. *)
-Lemma precise_bot_false : forall G x,
-    inert G ->
-    G ⊢! trm_var (avar_f x) : typ_bot ->
-    False.
-Proof.
-  introv Hi Hp. destruct (precise_flow_lemma Hp) as [T Pf].
-  apply* pf_bot_false.
-Qed.
-
-(** The following two lemmas say that in an inert context, the precise type of
+(** In an inert context, the precise type of
     a variable cannot be type selection. *)
 Lemma pf_psel_false : forall G T x y A,
     inert G ->
-    precise_flow x G T (typ_sel y A) ->
+    G ⊢! x: T ⪼ typ_sel y A ->
     False.
 Proof.
   introv Hi Pf.
   lets HT: (pf_inert_T Hi Pf). inversions HT.
   - apply precise_flow_all_inv in Pf. inversion Pf.
   - destruct (pf_inert_or_rcd Hi Pf); inversion H0. inversion H1.
-Qed.
-
-(** See [pf_psel_false]. *)
-Lemma precise_psel_false : forall G x y A,
-    inert G ->
-    G ⊢! trm_var (avar_f x) : typ_sel y A ->
-    False.
-Proof.
-  introv Hi Hp. destruct (precise_flow_lemma Hp) as [T Pf].
-  apply* pf_psel_false.
 Qed.
 
 (** If [G(x) = mu(T)], and [G ⊢! x: ... /\ D /\ ...], then [T^x = ... /\ D /\ ...]. *)
 Lemma pf_record_sub : forall x G T T' D,
     inert G ->
-    precise_flow x G (typ_bnd T) T' ->
+    G ⊢! x: typ_bnd T ⪼ T' ->
     record_has T' D ->
     record_has (open_typ x T) D.
 Proof.
@@ -367,21 +321,20 @@ Qed.
     then [S^x = ... /\ D /\ ...]. *)
 Lemma precise_flow_record_has: forall S G x D,
     inert G ->
-    precise_flow x G (typ_bnd S) (typ_rcd D) ->
+    G ⊢! x: typ_bnd S ⪼ typ_rcd D ->
     record_has (open_typ x S) D.
 Proof.
   introv Hi Pf. apply* pf_record_sub.
 Qed.
 
 (** If
-    - [G(x) = mu(T)]
-    - [G ⊢! x: {A: T1..T1}]
-    - [G ⊢! x: {A: T2..T2}]
+    - [G ⊢! x: mu(T) ⪼ {A: T1..T1}]
+    - [G ⊢! x: mu(T) ⪼ {A: T2..T2}]
     then [T1 = T2]. *)
 Lemma pf_record_unique_tight_bounds_rec : forall G x T A T1 T2,
     inert G ->
-    precise_flow x G (typ_bnd T) (typ_rcd (dec_typ A T1 T1)) ->
-    precise_flow x G (typ_bnd T) (typ_rcd (dec_typ A T2 T2)) ->
+    G ⊢! x: typ_bnd T ⪼ typ_rcd (dec_typ A T1 T1) ->
+    G ⊢! x: typ_bnd T ⪼ typ_rcd (dec_typ A T2 T2) ->
     T1 = T2.
 Proof.
   introv Hi Pf1 Pf2.
@@ -392,13 +345,13 @@ Proof.
 Qed.
 
 (** If
-    - [G ⊢! x: {A: T1..T1}]
-    - [G ⊢! x: {A: T2..T2}]
+    - [G ⊢! x: T ⪼ {A: T1..T1}]
+    - [G ⊢! x: T ⪼ {A: T2..T2}]
     then [T1 = T2]. *)(** *)
 Lemma pf_inert_unique_tight_bounds : forall G x T T1 T2 A,
     inert G ->
-    precise_flow x G T (typ_rcd (dec_typ A T1 T1)) ->
-    precise_flow x G T (typ_rcd (dec_typ A T2 T2)) ->
+    G ⊢! x: T ⪼ typ_rcd (dec_typ A T1 T1) ->
+    G ⊢! x: T ⪼ typ_rcd (dec_typ A T2 T2) ->
     T1 = T2.
 Proof.
   introv Hi Pf1 Pf2.
@@ -413,27 +366,13 @@ Qed.
 (** The type to which a variable is bound in an environment is unique. *)
 Lemma x_bound_unique: forall G x T1 T2 U1 U2,
     inert G ->
-    precise_flow x G T1 U1 ->
-    precise_flow x G T2 U2 ->
+    G ⊢! x: T1 ⪼ U1 ->
+    G ⊢! x: T2 ⪼ U2 ->
     T1 = T2.
 Proof.
   introv Hi Pf1. gen T2 U2. induction Pf1; intros;
                               try solve [apply* IHPf1]; auto.
   apply pf_binds in H0. apply (binds_func H H0).
-Qed.
-
-(** See [pf_inert_unique_tight_bound]. *)
-Lemma inert_unique_tight_bounds : forall G x T1 T2 A,
-    inert G ->
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_typ A T1 T1) ->
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_typ A T2 T2) ->
-    T1 = T2.
-Proof.
-  introv Hi H1 H2.
-  destruct (precise_flow_lemma H1) as [T1' Pf1].
-  destruct (precise_flow_lemma H2) as [T2' Pf2].
-  lets Heq: (x_bound_unique Hi Pf1 Pf2). subst.
-  apply* pf_inert_unique_tight_bounds.
 Qed.
 
 (** If a typing context is inert, then the variables in its domain are distinct. #<br>#
@@ -451,10 +390,10 @@ Qed.
 
 Hint Resolve inert_ok.
 
-(** The following two lemmas express that if [G ⊢! x: {A: S..U}] then [S = U]. *)
+(** If [G ⊢! x: {A: S..U}] then [S = U]. *)
 Lemma pf_dec_typ_inv : forall G x T A S U,
     inert G ->
-    precise_flow x G T (typ_rcd (dec_typ A S U)) ->
+    G ⊢! x: T ⪼ typ_rcd (dec_typ A S U) ->
     S = U.
 Proof.
   introv Hi Pf. destruct (pf_inert_rcd_U Hi Pf) as [V H]. subst.
@@ -462,20 +401,19 @@ Proof.
   inversions* H1.
 Qed.
 
-(** See [pf_dec_typ_inv]. *)
-Lemma precise_dec_typ_inv : forall G x A S U,
-    inert G ->
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_typ A S U) ->
-    S = U.
+(** Precise typing implies general typing. *)
+(** - for variables *)
+Lemma precise_to_general: forall G x T U,
+    G ⊢! x : T ⪼ U ->
+    G ⊢ trm_var (avar_f x) : U.
 Proof.
-  introv Hi Hpt. destruct (precise_flow_lemma Hpt) as [V Pf].
-  apply* pf_dec_typ_inv.
+  intros. induction H; intros; subst; eauto.
 Qed.
 
-(** Precise typing implies general typing. *)
-Lemma precise_to_general: forall G t T,
-    G ⊢! t : T ->
-    G ⊢ t : T.
+(** - for values *)
+Lemma precise_to_general_v: forall G v T,
+    G ⊢!v v : T ->
+    G ⊢ trm_val v: T.
 Proof.
   intros. induction H; intros; subst; eauto.
 Qed.

@@ -34,9 +34,9 @@ Inductive ty_var_inv : ctx -> var -> typ -> Prop :=
 (** [G ⊢! x: T]  #<br>#
     [―――――――――――] #<br>#
     [G ⊢## x: T]     *)
-| ty_precise_inv : forall G x T,
-  G ⊢! trm_var (avar_f x) : T ->
-  G ⊢## x : T
+| ty_precise_inv : forall G x T U,
+  G ⊢! x: T ⪼ U ->
+  G ⊢## x : U
 
 (** [G ⊢## x: {a: T}] #<br>#
     [G ⊢# T <: U]     #<br>#
@@ -91,10 +91,10 @@ Inductive ty_var_inv : ctx -> var -> typ -> Prop :=
     [G ⊢! y: {A: S..S}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢## x: y.A           *)
-| ty_sel_inv : forall G x y A S,
+| ty_sel_inv : forall G x y A S U,
   G ⊢## x : S ->
-  G ⊢! trm_var y : typ_rcd (dec_typ A S S) ->
-  G ⊢## x : typ_sel y A
+  G ⊢! y : U ⪼ typ_rcd (dec_typ A S S) ->
+  G ⊢## x : typ_sel (avar_f y) A
 
 (** [G ⊢## x: T]   #<br>#
     [―――――――――――――] #<br>#
@@ -114,7 +114,7 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
     [―――――――――――――] #<br>#
     [G ⊢##v v: T] *)
 | ty_precise_inv_v : forall G v T,
-  G ⊢! trm_val v : T ->
+  G ⊢!v v : T ->
   G ⊢##v v : T
 
 (** [G ⊢##v v: forall(S)T]          #<br>#
@@ -134,10 +134,10 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
     [G ⊢! y: {A: S..S}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢##v v: y.A]         *)
-| ty_sel_inv_v : forall G v y A S,
+| ty_sel_inv_v : forall G v y A S U,
   G ⊢##v v : S ->
-  G ⊢! trm_var y : typ_rcd (dec_typ A S S) ->
-  G ⊢##v v : typ_sel y A
+  G ⊢! y : U ⪼ typ_rcd (dec_typ A S S) ->
+  G ⊢##v v : typ_sel (avar_f y) A
 
 (** [G ⊢##v v : T]        #<br>#
     [G ⊢##v v : U]        #<br>#
@@ -167,15 +167,15 @@ Hint Constructors ty_var_inv ty_val_inv.
     [G ⊢# T' <: T]. *)
 Lemma invertible_to_precise_trm_dec: forall G x a T,
   G ⊢## x : typ_rcd (dec_trm a T) ->
-  exists T',
-    G ⊢! trm_var (avar_f x) : typ_rcd (dec_trm a T') /\
+  exists T' U,
+    G ⊢! x : U ⪼ typ_rcd (dec_trm a T') /\
     G ⊢# T' <: T.
 Proof.
   introv Hinv.
   dependent induction Hinv.
-  - exists T. auto.
-  - specialize (IHHinv _ _ eq_refl). destruct IHHinv as [V [Hx Hs]].
-    exists V. split; auto.
+  - exists T T0. auto.
+  - specialize (IHHinv _ _ eq_refl). destruct IHHinv as [V [V' [Hx Hs]]].
+    exists V V'. split; auto.
     eapply subtyp_trans_t; eassumption.
 Qed.
 
@@ -189,8 +189,8 @@ Qed.
 Lemma invertible_to_precise_typ_all: forall G x S T,
   ok G ->
   G ⊢## x : typ_all S T ->
-  exists S' T' L,
-    G ⊢! trm_var (avar_f x) : typ_all S' T' /\
+  exists S' T' U L,
+    G ⊢! x : U ⪼ typ_all S' T' /\
     G ⊢# S <: S' /\
     (forall y,
         y \notin L ->
@@ -198,10 +198,10 @@ Lemma invertible_to_precise_typ_all: forall G x S T,
 Proof.
   introv HG Hinv.
   dependent induction Hinv.
-  - exists S T (dom G); auto.
+  - exists S T T0 (dom G); auto.
   - specialize (IHHinv _ _ HG eq_refl).
-    destruct IHHinv as [S' [T' [L' [Hpt [HSsub HTsub]]]]].
-    exists S' T' (dom G \u L \u L').
+    destruct IHHinv as [S' [T' [V' [L' [Hpt [HSsub HTsub]]]]]].
+    exists S' T' V' (dom G \u L \u L').
     split; auto.
     assert (Hsub2 : G ⊢# typ_all S0 T0 <: typ_all S T).
     { apply subtyp_all_t with (L:=L); assumption. }
@@ -224,15 +224,16 @@ Lemma invertible_typing_closure_tight: forall G x T U,
   G ⊢# T <: U ->
   G ⊢## x : U.
 Proof.
-  intros G x T U Hgd HT Hsub.
+  intros G x T U Hi HT Hsub.
   dependent induction Hsub; eauto.
   - inversion HT.
-    destruct (precise_bot_false Hgd H).
-  - inversion HT; auto. apply ty_and1_p in H. auto.
-  - inversion HT; auto. apply ty_and2_p in H. auto.
+    destruct (pf_bot_false Hi H).
+  - inversion HT; auto. apply pf_and1 in H. apply* ty_precise_inv.
+  - inversion HT; auto. apply pf_and2 in H. apply* ty_precise_inv.
   - inversions HT.
-    + false* precise_psel_false.
-    + pose proof (inert_unique_tight_bounds Hgd H H5) as Hu. subst. assumption.
+    + false* pf_psel_false.
+    + lets Hu: (x_bound_unique Hi H H5). subst.
+      pose proof (pf_inert_unique_tight_bounds Hi H H5) as Hu. subst. assumption.
 Qed.
 
 (** ** Tight-to-Invertible Lemma for Variables [|-# to |-##]
@@ -251,12 +252,12 @@ Lemma tight_to_invertible :
 Proof.
   intros G U x Hgd Hty.
   dependent induction Hty.
-  - auto.
+  - apply* ty_precise_inv.
   - specialize (IHHty _ Hgd eq_refl).
     eapply ty_bnd_inv.
     apply IHHty.
   - specialize (IHHty _ Hgd eq_refl).
-    inversion IHHty; subst; auto.
+    inversion IHHty; subst. apply* ty_precise_inv. assumption.
   - apply ty_and_inv; auto.
   - eapply invertible_typing_closure_tight; auto.
 Qed.
@@ -272,10 +273,11 @@ Lemma invertible_typing_closure_tight_v: forall G v T U,
   G ⊢# T <: U ->
   G ⊢##v v : U.
 Proof.
-  introv Hgd HT Hsub.
+  introv Hi HT Hsub.
   dependent induction Hsub; eauto; inversions HT; auto; try solve [inversion* H].
   - inversions H0.
-  - lets Hb: (inert_unique_tight_bounds Hgd H H5). subst*.
+  - lets Hu: (x_bound_unique Hi H H5). subst.
+    lets Hb: (pf_inert_unique_tight_bounds Hi H H5). subst*.
 Qed.
 
 (** ** Tight-to-Invertible Lemma for Values [|-# to |-##]

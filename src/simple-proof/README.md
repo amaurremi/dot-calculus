@@ -18,10 +18,10 @@ The Coq proof is split up into the following modules:
   * [RecordAndInertTypes.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/RecordAndInertTypes.html): Defines and proves lemmas related to record and inert types.
   * [Narrowing.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Narrowing.html): Proves the Narrowing Lemma.
   * [OperationalSemantics.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/OperationalSemantics.html): Defines normal forms and the operational semantics of DOT, as well as related helper lemmas.
-  * [PreciseTypes.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/PreciseTypes.html): Defines and proves lemmas related to precise typing. In particular, reasons about the possible precise types that a variable can have in an inert environment.
-  * [TightTypes.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/TightTypes.html): Defines tight typing and subtyping.
+  * [PreciseTyping.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/PreciseTyping.html): Defines and proves lemmas related to precise typing. In particular, reasons about the possible precise types that a variable can have in an inert environment.
+  * [TightTyping.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/TightTyping.html): Defines tight typing and subtyping.
   * [Substitution.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Substitution.html): Proves the Substitution Lemma.
-  * [InvertibleTypes.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/InvertibleTypes.html): Defines invertible typing and proves that in an inert context, tight typing implies invertible typing (both for variables and values).
+  * [InvertibleTyping.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/InvertibleTyping.html): Defines invertible typing and proves that in an inert context, tight typing implies invertible typing (both for variables and values).
   * [GeneralToTight.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/GeneralToTight.html): Proves that in an inert context, general typing implies tight typing.
   * [CanonicalForms.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/CanonicalForms.html): Proves the Canonical Forms Lemmas for functions and objects.
   * [Safety.v](https://amaurremi.github.io/dot-calculus/src/simple-proof/doc/Safety.html): Proves the Progress and Preservation Theorems.
