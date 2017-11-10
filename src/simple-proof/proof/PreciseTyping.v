@@ -76,15 +76,32 @@ Hint Constructors ty_val_p.
 Reserved Notation "G '⊢!' x ':' T '⪼' U" (at level 40, x at level 59).
 
 Inductive precise_flow : var -> ctx -> typ -> typ -> Prop :=
+
+(** [G(x) = T]       #<br>#
+    [ok G]           #<br>#
+    [――――――――――――――] #<br>#
+    [G ⊢! x: T ⪼ T] *)
   | pf_bind : forall x G T,
       binds x T G ->
       G ⊢! x: T ⪼ T
+
+(** [G ⊢! x: T ⪼ mu(U)] #<br>#
+    [――――――――――――――――――] #<br>#
+    [G ⊢! x: T ⪼ U^x]       *)
   | pf_open : forall x G T U,
       G ⊢! x: T ⪼ typ_bnd U ->
       G ⊢! x: T ⪼ open_typ x U
+
+(** [G ⊢! x: T ⪼ U1 /\ U2]   #<br>#
+    [――――――――――――――――――――]   #<br>#
+    [G ⊢! x: T ⪼ U1]        *)
   | pf_and1 : forall x G T U1 U2,
       G ⊢! x: T ⪼ typ_and U1 U2 ->
       G ⊢! x: T ⪼ U1
+
+(** [G ⊢! x: T ⪼ U1 /\ U2]   #<br>#
+    [――――――――――――――――――――]   #<br>#
+    [G ⊢! x: T ⪼ U2]        *)
   | pf_and2 : forall x G T U1 U2,
       G ⊢! x: T ⪼ typ_and U1 U2 ->
       G ⊢! x: T ⪼ U2
