@@ -1,31 +1,5 @@
-# Alternative DOT Proof
+# DOT with Extended Paths
 
-## Old Possible Types Lemma
+We are working on an extension for DOT that supports type selection on paths of arbitrary length, as opposed to type selection on variables. For example, we allow a type of the form `x.a.b.A` instead of only `x.A`.
 
-    Γ ~ s   s(x) = v   Γ ⊢ x: T
-    ---------------------------
-            T ∈ PT(Γ,x,v)
-
-## New Possible Types Lemma
-
-    Γ inert   Γ(x) = T   Γ ⊢ x: U
-    -----------------------------
-            U ∈ PT(Γ,x,T)
-
-## Inert Types
-
-    inert ∀(x: S)T
-
-        record T
-    ----------------
-      inert μ(x: T)
-
-## Inert Environments
-
-    inert {}
-
-        x # Γ
-        inert Γ
-        inert T
-    ---------------
-    inert (Γ, x: T)
+This is work in progress. The definition of the type system can be found in `Definitions.v`.

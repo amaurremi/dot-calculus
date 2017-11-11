@@ -1,2 +1,3 @@
-_CoqProject
-Makefile.coq
+.DS_Store
+*.dot
+*.dpd

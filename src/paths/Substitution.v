@@ -30,6 +30,7 @@ Fixpoint subst_typ (z: var) (u: var) (T: typ) { struct T } : typ :=
   | typ_path p L   => typ_path (subst_path z u p) L
   | typ_bnd T      => typ_bnd (subst_typ z u T)
   | typ_all T U    => typ_all (subst_typ z u T) (subst_typ z u U)
+  | typ_sngl p     => typ_sngl (subst_path z u p)
   end
 with subst_dec (z: var) (u: var) (D: dec) { struct D } : dec :=
   match D with
@@ -248,6 +249,48 @@ Proof.
     simpl in Eq. case_if. apply (IHds Eq).
 Qed.
 
+Lemma subst_dec_preserves_label: forall D x y,
+  label_of_dec D = label_of_dec (subst_dec x y D).
+Proof.
+  intros. induction D; simpl; reflexivity.
+Qed.
+
+Lemma subst_record_dec: forall d x y,
+  record_dec d -> record_dec (subst_dec x y d).
+Proof.
+  introv Hd. inversions Hd. apply rd_typ. apply rd_trm.
+Qed.
+
+Lemma subst_record_typ: forall T x y ls,
+  record_typ T ls -> record_typ (subst_typ x y T) ls.
+Proof.
+  introv Hr. induction Hr; simpl.
+  - apply* rt_one. apply* subst_record_dec. rewrite* <- subst_dec_preserves_label.
+  - apply* rt_cons. apply* subst_record_dec. rewrite* <- subst_dec_preserves_label.
+Qed.
+
+Lemma subst_record_type: forall T x y,
+  record_type T -> record_type (subst_typ x y T).
+Proof.
+  introv Hr. unfolds record_type. destruct Hr as [ls Hr].
+  lets Hr': (subst_record_typ x y Hr). exists* ls.
+Qed.
+
+Lemma inert_subst: forall x y T,
+    inert_typ T ->
+    inert_typ (subst_typ x y T).
+Proof.
+  introv Ht. inversions Ht; simpl. constructor. constructor. apply* subst_record_type.
+Qed.
+
+Lemma inert_sngl_subst: forall x y T,
+    inert_sngl T ->
+    inert_sngl (subst_typ x y T).
+Proof.
+  introv Hi. inversions Hi. apply is_inert. apply* inert_subst.
+  simpl. apply* is_sngl.
+Qed.
+
 (* ###################################################################### *)
 (** ** The substitution principle *)
 
@@ -258,6 +301,12 @@ Lemma subst_rules: forall y S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x y G2) |- trm_path (p_var (avar_f y)) : subst_typ x y S ->
     G1 & (subst_ctx x y G2) |- subst_trm x y t : subst_typ x y T) /\
+  (forall G p T, G |-\||/ p: T -> forall G1 G2 x,
+    G = G1 & x ~ S & G2 ->
+    ok (G1 & x ~ S & G2) ->
+    x \notin fv_ctx_types G1 ->
+    G1 & (subst_ctx x y G2) |- trm_path (p_var (avar_f y)) : subst_typ x y S ->
+    G1 & (subst_ctx x y G2) |-\||/ subst_path x y p : subst_typ x y T) /\
   (forall G z T d D, G && z ~ T |- d : D -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2 & z ~ T) ->
@@ -270,12 +319,6 @@ Lemma subst_rules: forall y S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x y G2) |- trm_path (p_var (avar_f y)) : subst_typ x y S ->
     G1 & (subst_ctx x y G2) && z ~ subst_typ x y T |- subst_defs x y ds :: subst_typ x y U) /\
-  (forall G p, norm G p -> forall G1 G2 x,
-    G = G1 & x ~ S & G2 ->
-    ok (G1 & x ~ S & G2) ->
-    x \notin fv_ctx_types G1 ->
-    G1 & (subst_ctx x y G2) |- trm_path (p_var (avar_f y)) : subst_typ x y S ->
-    norm (G1 & (subst_ctx x y G2)) (subst_trm x y p)) /\
   (forall G T U, G |- T <: U -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2) ->
@@ -328,10 +371,7 @@ Proof.
       unfold subst_ctx. rewrite map_concat. rewrite map_single. reflexivity.
     }
     apply H; eauto.
-  - (* ty_fld_elim_var *)
-    apply* ty_fld_elim_var.
-  - (* ty_fld_elim_path *)
-    apply* ty_fld_elim_path.
+  - (* ty_fld_elim *) simpls. apply* ty_fld_elim.
   - (* ty_let *)
     apply_fresh ty_let as z; eauto.
     assert (subst_ctx x y G2 & z ~ subst_typ x y T = subst_ctx x y (G2 & z ~ T)) as B. {
@@ -359,44 +399,48 @@ Proof.
     }
     rewrite B. apply* H.
   - (* ty_rec_elim *)
-    rewrite subst_open_commute_typ_p.
-    apply ty_rec_elim.
-    apply H; eauto.
+    rewrite subst_open_commute_typ. apply* ty_rec_elim.
   - (* ty_and_intro *)
     apply ty_and_intro; eauto.
+  - (* ty_sngl_intro *)
+    apply* ty_sngl_intro.
   - (* ty_sub *)
-    eapply ty_sub; eauto.
+    apply* ty_sub.
+  - apply* ty_p_intro.
+  - simpls. rewrite subst_open_commute_typ_p. apply* ty_p_rec_elim.
+  - apply* ty_p_and_elim1.
+  - apply* ty_p_and_elim_2.
+  - simpls. apply* ty_p_fld_elim. apply* inert_sngl_subst.
+  - apply* ty_p_sub.
   - (* ty_def_trm *)
     apply ty_def_trm.
-    assert (G1 & subst_ctx x0 y G2 & x ~ subst_typ x0 y U = G1 & subst_ctx x0 y (G2 & x ~ U)) as Hs. {
+    assert (G1 & subst_ctx x y G2 & z ~ subst_typ x y U = G1 & subst_ctx x y (G2 & z ~ U)) as Hs. {
       unfold subst_ctx. rewrite map_concat. rewrite map_single. rewrite concat_assoc.
       reflexivity.
     }
     rewrite Hs.
-    assert (x <> x0) as Hn. {
+    assert (z <> x) as Hn. {
       rewrite <- concat_assoc in H1.
       apply ok_middle_inv_r in H1. unfold not. intro Hx. subst. unfold notin in H1.
       unfold not in H1. simpl_dom.
-      assert (x0 \in \{ x0} \u dom G2) as Hx. {
+      assert (x \in \{ x} \u dom G2) as Hx. {
         rewrite in_union. left. rewrite in_singleton. reflexivity.
       }
       apply H1 in Hx. false.
     }
     apply H; auto. rewrite concat_assoc. reflexivity. rewrite concat_assoc.
     assumption.
-    assert (subst_ctx x0 y (G2 & x ~ U) = (subst_ctx x0 y G2) & x ~ (subst_typ x0 y U)). {
+    assert (subst_ctx x y (G2 & z ~ U) = (subst_ctx x y G2) & z ~ (subst_typ x y U)). {
       unfold subst_ctx. rewrite map_concat. rewrite map_single. reflexivity.
     }
     rewrite H0. rewrite concat_assoc. apply weaken_ty_trm.
     apply H3.
-    assert (subst_ctx x0 y G2 & x ~ subst_typ x0 y U = subst_ctx x0 y (G2 & x ~ U)) as Hsu by auto.
+    assert (subst_ctx x y G2 & z ~ subst_typ x y U = subst_ctx x y (G2 & z ~ U)) as Hsu by auto.
     rewrite <- concat_assoc. rewrite Hsu. apply ok_concat_map. rewrite <- concat_assoc in H1.
     apply ok_remove in H1. assumption.
-  - (* ty_def_path *)
-    apply* ty_def_path.
   - (* ty_def_val *)
-    apply ty_def_val. specialize (H G1 (G2 & x ~ U) x0).
-    replace (G1 & subst_ctx x0 y G2 & x ~ subst_typ x0 y U) with (G1 & subst_ctx x0 y (G2 & x ~ U)).
+    apply ty_def_val. specialize (H G1 (G2 & z ~ U) x).
+    replace (G1 & subst_ctx x y G2 & z ~ subst_typ x y U) with (G1 & subst_ctx x y (G2 & z ~ U)).
     + apply H; auto; try rewrite* concat_assoc. unfold subst_ctx. rewrite map_concat.
       rewrite concat_assoc. unfold subst_ctx in H3. apply* weaken_ty_trm.
       apply ok_concat_map. rewrite <- concat_assoc in H1.
@@ -406,17 +450,6 @@ Proof.
     + unfold subst_ctx. rewrite map_concat. rewrite concat_assoc. rewrite* map_single.
   - (* ty_defs_cons *)
     apply* ty_defs_cons. rewrite <- subst_label_of_def. apply subst_defs_hasnt. assumption.
-  - (* norm_var *)
-    destruct (typing_implies_bound H2) as [U Hb].
-    simpl. case_if.
-    * apply* norm_var.
-    * destruct (binds_concat_inv b) as [b' | [Hx  b']]; clear b.
-      + unfold subst_ctx. apply* norm_var.
-      + lets Hp: (binds_push_neq_inv b' C). apply* norm_var.
-        eapply binds_concat_left. eassumption.
-        unfold notin. intro. unfolds subst_ctx. simpl_dom. false.
-  - (* norm_path *)
-    apply* norm_path. admit.
   - (* subtyp_trans *)
     eapply subtyp_trans; eauto.
   - (* subtyp_sel2 *)
@@ -425,8 +458,14 @@ Proof.
   - (* subtyp_sel1 *)
     eapply subtyp_sel1; eauto.
     eapply H; eauto.
+  - (* subtyp_sngl_sel1 *)
+    specialize (H0 _ _ _ eq_refl H2 H3 H4). simpl in H0.
+    apply* subtyp_sngl_sel1.
+  - (* subtyp_sngl_sel2 *)
+    specialize (H0 _ _ _ eq_refl H2 H3 H4). simpl in H0.
+    apply* subtyp_sngl_sel2.
   - (* subtyp_all *)
-    simpl. apply_fresh subtyp_all as z; eauto.
+    apply_fresh subtyp_all as z; eauto.
     assert (z \notin L) as FrL by eauto.
     assert (subst_fvar x y z = z) as A. {
       unfold subst_fvar. rewrite If_r. reflexivity. eauto.
@@ -469,11 +508,9 @@ Lemma subst_ty_defs: forall y S G x ds z U T,
     G && z ~ subst_typ x y U |- subst_defs x y ds :: subst_typ x y T.
 Proof.
   intros.
-  apply (proj53 (subst_rules y S)) with (G1:=G) (G2:=empty) (x:=x) in H.
-  unfold subst_ctx in H. rewrite map_empty in H. rewrite concat_empty_r in H.
-  apply H.
-  rewrite concat_empty_r. reflexivity.
-  rewrite concat_empty_r. assumption.
-  assumption.
-  unfold subst_ctx. rewrite map_empty. rewrite concat_empty_r. assumption.
+  assert (G & subst_ctx x y empty && z ~ subst_typ x y U |- subst_defs x y ds :: subst_typ x y T) as Hs. {
+    apply* subst_rules; try rewrite* concat_empty_r. unfold subst_ctx. rewrite map_empty.
+    rewrite* concat_empty_r.
+  }
+  unfold subst_ctx in Hs. rewrite map_empty in Hs. rewrite* concat_empty_r in Hs.
 Qed.

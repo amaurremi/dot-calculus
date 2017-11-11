@@ -130,7 +130,7 @@ Fixpoint open_rec_trm (k: nat) (u: var) (t: trm): trm :=
   | trm_sel v m    => trm_sel (open_rec_avar k u v) m
   | trm_app f a    => trm_app (open_rec_avar k u f) (open_rec_avar k u a)
   | trm_let t1 t2  => trm_let (open_rec_trm k u t1) (open_rec_trm (S k) u t2)
-  | trm_ref a t    => trm_ref (open_rec_avar k u a) (open_rec_typ k u t)
+  | trm_ref a T    => trm_ref (open_rec_avar k u a) (open_rec_typ k u T)
   | trm_deref a    => trm_deref (open_rec_avar k u a)
   | trm_asg l r    => trm_asg (open_rec_avar k u l) (open_rec_avar k u r)
   end

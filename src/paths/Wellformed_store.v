@@ -7,7 +7,7 @@ Require Import Weakening.
 Require Import Some_lemmas.
 Require Import Inert_types.
 Require Import General_to_tight.
-Require Import Tight_possible_types_val.
+Require Import Invertible_typing.
 Require Import Narrowing.
 
 (* ###################################################################### *)
@@ -15,6 +15,10 @@ Require Import Narrowing.
 
 Lemma wf_sto_to_ok_G: forall s G,
   G ~~ s -> ok G.
+Proof. intros. induction H; jauto. Qed.
+
+Lemma wf_sto_to_ok_s: forall s G,
+  G ~~ s -> ok s.
 Proof. intros. induction H; jauto. Qed.
 
 Hint Resolve wf_sto_to_ok_G.
@@ -107,7 +111,7 @@ Proof.
       * right. exists T0. exists ds. split*. split*.
         apply* weaken_ty_trm_p.
       * apply general_to_tight_typing in H2.
-        lets Hpt: (tight_possible_types_lemma_v Hg H2).
+        lets Hpt: (invertible_lemma_v Hg H2).
         assert (inert_typ T) as HgT. {
           inversions Hgd. false* empty_push_inv. destruct (eq_push_inv H5) as [Hx [Hv HG]]. subst*.
         }
@@ -171,7 +175,7 @@ Proof.
       apply binds_push_eq_inv in Bi. subst.
       clear IHHwf Hg Bis H H0 Hwf.
       apply general_to_tight_typing in H1; auto.
-      apply tight_possible_types_lemma_v in H1; auto.
+      apply invertible_lemma_v in H1; auto.
       inversions H1; try solve [inversion HT].
       * apply* precise_obj_typ.
       * false* tpt_obj_all.

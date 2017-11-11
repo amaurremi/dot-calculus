@@ -47,6 +47,10 @@ Lemma narrow_rules:
     ok G' ->
     subenv G' G ->
     G' |- t : T)
+/\ (forall G p T, G |-\||/ p: T -> forall G',
+    ok G' ->
+    subenv G' G ->
+    G' |-\||/ p : T)
 /\ (forall G z U d D, G && z ~ U |- d : D -> forall G',
     ok (G' & z ~ U) ->
     subenv G' G ->
@@ -55,10 +59,6 @@ Lemma narrow_rules:
     ok (G' & z ~ U) ->
     subenv G' G ->
     G' && z ~ U |- ds :: T)
-/\ (forall G p, norm G p -> forall G',
-    ok G' ->
-    subenv G' G ->
-    norm G' p)
 /\ (forall G S U, G |- S <: U -> forall G',
     ok G' ->
     subenv G' G ->
@@ -77,20 +77,10 @@ Proof.
   - (* ty_let *)
     subst.
     apply_fresh ty_let as y; eauto using subenv_push.
-  - (* ty_sngl_intro *)
-    unfold subenv in H0. specialize (H0 x T b). destruct* H0. destruct H0 as [T' [Bi Hsub]].
-    apply* ty_sngl_intro.
  - (* ty_def_path *)
     constructor. apply H; auto. apply subenv_push. assumption. assumption.
   - (* ty_def_val *)
     constructor. apply H; auto. apply subenv_push. assumption. assumption.
-  - (* norm_var *)
-    unfold subenv in H0. destruct (H0 x T b) as [Hb | [T1 [Hb Hs]]];
-    apply* norm_var.
-  - (* subtyp_sngl_sel1 *)
-    apply* subtyp_sngl_sel1.
-  - (* subtyp_sngl_sel2 *)
-    apply* subtyp_sngl_sel2.
   - (* subtyp_all *)
     subst.
     apply_fresh subtyp_all as y; eauto.

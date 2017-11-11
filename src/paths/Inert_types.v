@@ -5,6 +5,17 @@ Require Import Coq.Program.Equality.
 Require Import Definitions.
 Require Import Some_lemmas.
 
+Lemma precise_inert_typ : forall G v T,
+    G |-! trm_val v : T ->
+    inert_typ T.
+Proof.
+  introv Ht. inversions Ht; constructor; rename T0 into T.
+  pick_fresh z. assert (Hz: z \notin L) by auto. specialize (H1 z Hz). clear Hz.
+  pose proof (ty_defs_record_type H1).
+  assert (Hz: z \notin fv_typ T) by auto.
+  apply* record_type_open.
+Qed.
+
 (*
 Definition (Precise flow of a variable)
 
@@ -57,20 +68,6 @@ Qed.
 
 (* ###################################################################### *)
 (** ** Inert types *)
-
-(* Definition (Inert context)
-
-A context is inert if it is of the form
-  {}
-  G, x : T where G is a inert context and T is a inert type *)
-
-Inductive inert : ctx -> Prop :=
-  | inert_empty : inert empty
-  | inert_all : forall pre x T,
-      inert pre ->
-      inert_typ T ->
-      x # pre ->
-      inert (pre & x ~ T).
 
 (* Inert contexts bind inert:
 If G |- x : T and G is a inert context then T is a inert type. *)
@@ -239,6 +236,22 @@ Proof.
   apply pf_sngl_T in Pf. inversion Pf. assumption.
 Qed.
 
+Lemma pf_binds: forall G x T U,
+    precise_flow (p_var (avar_f x)) G T U ->
+    binds x T G.
+Proof.
+  introv Pf. dependent induction Pf; auto.
+Qed.
+
+Lemma inert_precise_all_inv: forall G x T U,
+    inert G ->
+    G |-! trm_path (p_var (avar_f x)) : typ_all T U ->
+    binds x (typ_all T U) G.
+Proof.
+  introv Hi Ht. destruct (precise_flow_lemma Ht) as [V Pf].
+  lets HT: (pf_inert_lambda_U Hi Pf). subst. apply* pf_binds.
+Qed.
+
 Lemma pf_bot_false : forall G p T,
     inert G ->
     precise_flow p G T typ_bot ->
@@ -330,13 +343,6 @@ Proof.
   }
   lets Hr: (pf_inert_rcd_typ_U Hi Pf1 Hrt). destruct Hr as [U Heq]. subst.
   apply* pf_record_unique_tight_bounds_rec.
-Qed.
-
-Lemma pf_binds: forall G x T U,
-    precise_flow (p_var (avar_f x)) G T U ->
-    binds x T G.
-Proof.
-  introv Pf. dependent induction Pf; auto.
 Qed.
 
 Lemma inert_pt_unique: forall G p T T1 T2,

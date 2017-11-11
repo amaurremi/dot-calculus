@@ -84,33 +84,15 @@ Proof.
   - rewrite* map_keys_notin.
 Qed.
 
-Lemma subst_dec_preserves_label: forall D x y,
-  label_of_dec D = label_of_dec (subst_dec x y D).
-Proof.
-  intros. induction D; simpl; reflexivity.
-Qed.
-
-Lemma subst_record_dec: forall d x y,
-  record_dec d -> record_dec (subst_dec x y d).
-Proof.
-  introv Hd. inversions Hd. apply rd_typ. apply rd_trm.
-Qed.
-
-Lemma subst_record_type: forall T x y,
-  record_type T -> record_type (subst_typ x y T).
-Proof.
-  introv Hr. unfolds record_type. destruct Hr as [ls Hr].
-  induction Hr; simpl.
-  - eexists. apply* rt_one. apply* subst_record_dec.
-  - destruct IHHr as [ls' Hr']. eexists. apply* rt_cons. apply* subst_record_dec.
-    rewrite <- subst_dec_preserves_label. subst. admit.
-Qed.
-
 Lemma renaming_gen: forall x y,
   (forall G t T, G |- t: T ->
     ok G ->
     y # G ->
     rename_ctx x y G |- subst_trm x y t: subst_typ x y T) /\
+  (forall G p T, G |-\||/ p: T ->
+    ok G ->
+    y # G ->
+    rename_ctx x y G |-\||/ subst_path x y p: subst_typ x y T) /\
   (forall G z U d D, G && z ~ U |- d: D ->
     ok (G & z ~ U) ->
     y # (G & z ~ U) ->
@@ -120,10 +102,6 @@ Lemma renaming_gen: forall x y,
     ok (G & z ~ U) ->
     y # (G & z ~ U) ->
     rename_ctx x y G && rename_var x y z ~ subst_typ x y U |- subst_defs x y ds :: subst_typ x y T) /\
-  (forall G p, norm G p ->
-    ok G ->
-    y # G ->
-    norm (rename_ctx x y G) (subst_trm x y p)) /\
   (forall G T U, G |- T <: U ->
     ok G ->
     y # G ->
@@ -159,41 +137,28 @@ Proof.
   - (* ty_rec_intro *)
     apply ty_rec_intro. simpl in H. rewrite subst_open_commute_typ in H. unfold subst_fvar in H. apply* H.
   - (* ty_rec_elim. *)
-    rewrite subst_open_commute_typ_p. apply ty_rec_elim. unfold subst_typ in H.
+    rewrite subst_open_commute_typ. apply ty_rec_elim. unfold subst_typ in H.
     apply* H.
+  - simpls. rewrite subst_open_commute_typ_p. apply* ty_p_rec_elim.
+  - simpls. apply* ty_p_fld_elim. apply* inert_sngl_subst.
   - (* ty_def_trm *)
     apply ty_def_trm.
-    replace (rename_ctx x y G & rename_var x y x0 ~ subst_typ x y U) with (rename_ctx x y (G & x0 ~ U)).
+    replace (rename_ctx x y G & rename_var x y z ~ subst_typ x y U) with (rename_ctx x y (G & z ~ U)).
     + apply* H.
     + unfold rename_ctx. rewrite map_keys_concat. rewrite map_keys_single.
       unfold subst_ctx. apply map_push.
   - (* ty_def val *)
     apply ty_def_val.
-     replace (rename_ctx x y G & rename_var x y x0 ~ subst_typ x y U) with (rename_ctx x y (G & x0 ~ U)).
+     replace (rename_ctx x y G & rename_var x y z ~ subst_typ x y U) with (rename_ctx x y (G & z ~ U)).
     + apply* H.
     + unfold rename_ctx. rewrite map_keys_concat. rewrite map_keys_single.
       unfold subst_ctx. apply map_push.
   - (* ty_defs_cons *)
     apply* ty_defs_cons. apply subst_defs_hasnt. rewrite <- subst_label_of_def. assumption.
-  - (* norm_var *)
-    eapply norm_var with (T:=(subst_typ x y T)). auto.
-    unfold rename_ctx. unfold subst_ctx.
-    apply binds_map. destruct (binds_destruct b) as [G' [G'' HG]]. subst.
-    destruct (ok_middle_inv H) as [Hl Hr]. case_if.
-    + subst. rewrite* binds_map_keys.
-    + repeat rewrite map_keys_concat. rewrite map_keys_single.
-      replace (rename_var x y x0) with x0.
-      * apply binds_middle_eq. apply* map_other_keys.
-        simpl_dom. repeat rewrite notin_union in H0. destruct* H0 as [[_ Hy] _].
-      * unfold rename_var. case_if*.
-  - (* norm_path *)
-    specialize (H H1 H2). eapply norm_path with (U:=subst_typ x y U); auto.
-    destruct U; inversions i. simpl. apply inert_typ_bnd.
-    lets Hrs: (subst_record_type x y H4). assumption. simpl. constructor.
-  - (* subtyp_sel2 *)
-    apply subtyp_sel2 with (T:=(subst_typ x y T)); auto.
-  - (* subtyp_sel1 *)
-    apply subtyp_sel1 with (S:=(subst_typ x y S)); auto.
+  - (* subtyp_sngl_sel1 *)
+    specialize (H0 H1 H2). simpls. apply* subtyp_sngl_sel1.
+  - (* subtyp_sngl_sel2 *)
+    specialize (H0 H1 H2). simpls. apply* subtyp_sngl_sel2.
   - (* subtyp_all *)
     apply_fresh subtyp_all as z; auto. specialize (H0 z). assert (Hzx: z <> x) by auto.
     rewrite rename_ctx_other_var; auto. repeat rewrite subst_open_commute_typ in H0.
@@ -214,7 +179,8 @@ Proof.
   assert (Hrg: G = rename_ctx z y G). {
     unfold rename_ctx. rewrite <- HG'. assumption.
   }
-  lets Hr: (proj53 (renaming_gen z y)). specialize (Hr G z U ds T Hds Hok Hy).
+  lets Hr: (proj54 (renaming_gen z y)).
+  specialize (Hr G z U ds T Hds Hok Hy).
   rewrite Hrg.
   assert (Hyz: y = (rename_var z y z)). {
     unfold rename_var. case_if. reflexivity.
