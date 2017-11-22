@@ -1,7 +1,7 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-TLCDIR=../../../../lib/tlc
+TLCDIR=../../../lib/tlc
 DOCDIR=doc
 
 TLCSRC=$(TLCDIR)/src
@@ -37,7 +37,7 @@ cleanall::
 
 doc: $(DOCDIR)/toc.html
 
-%.vo:
+%.vo: %.v
 	$(MAKE) -f $(PROOFMAKEFILE) $@
 
 all doc clean: $(PROOFMAKEFILE)
@@ -125,14 +125,14 @@ DPDTEXT+=Require $(DPDMODULES).
 DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
 DPDTEXT+=Print FileDependGraph $(DPDMODULES).
 
-$(DPDFILENAME): $(shell coqdep -sort $(FILES))
+$(DPDFILENAME): $(shell coqdep -sort $(FILES)) all
 	echo $(DPDTEXT) | coqtop -R $(TLCSRC) $(TLCNAME) -notop
 
 $(DPDDOT): $(DPDFILENAME)
 	dpd2dot -without-defs $<
 	dpdusage $<
 
-.PHONY: dpdraw
+.PHONY: dpdraw $(DPDOT) $(DPDFILENAME)
 dpdraw: $(DPDDOT)
 
 DPDFILTER=dpdgraph.dpd
@@ -143,7 +143,7 @@ $(DPDFILDOT): $(DPDFILTER)
 $(DPDFILTER): $(DPDFILENAME)
 	grep -P '(kind=construct|^N: [0-9]+ "[^"]*(_ind|mutind|_mut)")' $(DPDFILENAME) | sed -e "s|^N: \([0-9][0-9]*\) .*|\1|g" | paste -sd "|" | xargs -I {} grep -P -v "^((E: ({}) )|(E: [0-9]+ ({}) )|(N: ({}) ))" $(DPDFILENAME) > $(DPDFILTER)
 
-.PHONY: dpdgraph
+.PHONY: dpdgraph $(DPDFILDOT) $(DPDFILTER)
 dpdgraph: $(DPDFILDOT)
 
 cleanall::

@@ -232,7 +232,7 @@ Proof.
   - inversion HT; auto. apply pf_and2 in H. apply* ty_precise_inv.
   - inversions HT.
     + false* pf_psel_false.
-    + lets Hu: (x_bound_unique Hi H H5). subst.
+    + lets Hu: (x_bound_unique H H5). subst.
       pose proof (pf_inert_unique_tight_bounds Hi H H5) as Hu. subst. assumption.
 Qed.
 
@@ -274,9 +274,9 @@ Lemma invertible_typing_closure_tight_v: forall G v T U,
   G ⊢##v v : U.
 Proof.
   introv Hi HT Hsub.
-  dependent induction Hsub; eauto; inversions HT; auto; try solve [inversion* H].
+  dependent induction Hsub; eauto; inversions HT; try solve [assumption | inversion* H].
   - inversions H0.
-  - lets Hu: (x_bound_unique Hi H H5). subst.
+  - lets Hu: (x_bound_unique H H5). subst.
     lets Hb: (pf_inert_unique_tight_bounds Hi H H5). subst*.
 Qed.
 

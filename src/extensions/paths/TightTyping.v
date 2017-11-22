@@ -172,15 +172,15 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# T <: p.A]         *)
-| subtyp_sel2_t: forall G p A T,
-    G ⊢! trm_path p : typ_rcd (dec_typ A T T) ->
+| subtyp_sel2_t: forall G p A T U,
+    G ⊢! p : U ⪼ typ_rcd (dec_typ A T T) ->
     G ⊢# T <: typ_path p A
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# p.A <: T]         *)
-| subtyp_sel1_t: forall G p A T,
-    G ⊢! trm_path p : typ_rcd (dec_typ A T T) ->
+| subtyp_sel1_t: forall G p A T U,
+    G ⊢! p : U ⪼ typ_rcd (dec_typ A T T) ->
     G ⊢# typ_path p A <: T
 
 (** [G ⊢# S2 <: S1]                #<br>#
