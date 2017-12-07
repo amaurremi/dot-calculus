@@ -484,19 +484,18 @@ where "G '⊢' T '<:' U" := (subtyp G T U).
 
     We say that [e] is well-typed with respect to [G], denoted as [s: G]. *)
 
-Inductive well_typed: ctx -> sta -> Prop :=
-| well_typed_empty: well_typed empty empty
-| well_typed_push: forall G s x T v,
-    well_typed G s ->
-    x # G ->
-    x # s ->
-    G ⊢ trm_val v : T ->
-    well_typed (G & x ~ T) (s & x ~ v).
+Definition well_typed (G : ctx) (s : sta) : Prop :=
+  ok G /\
+  ok s /\
+  (dom G = dom s) /\
+  (forall x T v, binds x T G ->
+            binds x v s ->
+            G ⊢ trm_val v : T).
 
 (** * Infrastructure *)
 
+Hint Unfold well_typed.
 Hint Constructors
-     well_typed
      ty_trm ty_def ty_defs subtyp.
 
 (** ** Mutual Induction Principles *)
@@ -584,6 +583,12 @@ Ltac destruct_all :=
   | [ H : exists x, _ |- _ ]  => destruct H
   | [ H : ?A /\ ?B |- _ ] => destruct H
   | [ H : ?A \/ ?B |- _ ] => destruct H
+  end.
+
+Ltac repeat_split_right :=
+  match goal with
+  | |- ?A /\ ?B => split; repeat_split_right
+  | _ => idtac
   end.
 
 Ltac omega := Coq.omega.Omega.omega.

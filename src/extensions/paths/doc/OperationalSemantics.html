@@ -39,7 +39,7 @@
 </div>
 
 <div class="doc">
-<a name="lab56"></a><h1 class="section">Stack-Based Operational Semantics</h1>
+<a name="lab57"></a><h1 class="section">Stack-Based Operational Semantics</h1>
 
 </div>
 <div class="code">
@@ -58,8 +58,8 @@
     <span class="inlinecode">(<span class="id" title="var">s</span>,</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode"><span class="id" title="var">q</span>)</span> <span class="inlinecode">|-&gt;</span> <span class="inlinecode">(<span class="id" title="var">s</span>,</span> <span class="inlinecode"><span class="id" title="var">t</span>^<span class="id" title="var">q</span>)</span>      
 </div>
 <div class="code">
-| <a name="red_app"><span class="id" title="constructor">red_app</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">T</span> <span class="id" title="var">t</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="OperationalSemantics.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#8f6d5dea873cc567cd87104d2fff79ab"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="OperationalSemantics.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#val_lambda"><span class="id" title="constructor">val_lambda</span></a> <a class="idref" href="OperationalSemantics.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="OperationalSemantics.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">-&gt;</span><br/>
+| <a name="red_app"><span class="id" title="constructor">red_app</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">T</span> <span class="id" title="var">t</span> <span class="id" title="var">ps</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="OperationalSemantics.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Binding.html#756ae8405cffc1231511bc3a9759ed6c"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="OperationalSemantics.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#val_lambda"><span class="id" title="constructor">val_lambda</span></a> <a class="idref" href="OperationalSemantics.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="OperationalSemantics.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <a class="idref" href="Binding.html#756ae8405cffc1231511bc3a9759ed6c"><span class="id" title="notation">//</span></a> <a class="idref" href="OperationalSemantics.html#ps"><span class="id" title="variable">ps</span></a> <span class="id" title="notation">-&gt;</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="OperationalSemantics.html#s"><span class="id" title="variable">s</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_app"><span class="id" title="constructor">trm_app</span></a> <a class="idref" href="OperationalSemantics.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="OperationalSemantics.html#q"><span class="id" title="variable">q</span></a><span class="id" title="notation">)</span> <a class="idref" href="OperationalSemantics.html#02007db97cbde7d2bc4092cba36f71b6"><span class="id" title="notation">|-&gt;</span></a> <span class="id" title="notation">(</span><a class="idref" href="OperationalSemantics.html#s"><span class="id" title="variable">s</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#open_trm_p"><span class="id" title="definition">open_trm_p</span></a> <a class="idref" href="OperationalSemantics.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="OperationalSemantics.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span><br/>
 <br/>
 </div>
@@ -99,7 +99,7 @@
 </div>
 
 <div class="doc">
-<a name="lab57"></a><h2 class="section">Normal forms</h2>
+<a name="lab58"></a><h2 class="section">Normal forms</h2>
 
 <div class="paragraph"> </div>
 

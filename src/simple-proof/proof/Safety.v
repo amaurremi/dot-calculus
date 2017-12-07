@@ -57,7 +57,7 @@ Ltac solve_IH :=
   end;
   match goal with
   | [Hi: _ & ?G' ⊢ _ : _ |- _] =>
-    exists G'; repeat split; auto
+    exists G'; repeat_split_right; auto
   end.
 
 Ltac solve_let :=
@@ -89,13 +89,13 @@ Proof.
           inversions Hred;
           binds_eq
     end.
-    exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
+    exists (@empty typ). rewrite concat_empty_r. repeat_split_right; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
     eapply renaming_typ; eauto.
   - Case "ty_new_elim".
     pose proof (canonical_forms_obj Hin Hwf Ht) as [S [ds [t [Bis [Has Ty]]]]].
     invert_red. binds_eq.
-    exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
+    exists (@empty typ). rewrite concat_empty_r. repeat_split_right; auto.
     match goal with
     | [Hd: defs_has _ (def_trm _ ?t') |- G ⊢ t': T] =>
       rewrite* <- (defs_has_inv Has Hd)
@@ -104,7 +104,7 @@ Proof.
     destruct t; try solve [solve_let].
     + SCase "[t = (let x = a in u)] where a is a variable".
       repeat invert_red.
-      exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
+      exists (@empty typ). rewrite concat_empty_r. repeat_split_right; auto.
       apply* renaming_fresh.
     + SCase "[t = (let x = v in u)] where v is a value".
       repeat invert_red.
@@ -113,9 +113,9 @@ Proof.
           pose proof (well_typed_notin_dom Hwf Hn) as Hng
       end.
       pose proof (val_typing Ht) as [V [Hv Hs]].
-      exists (x ~ V). repeat split.
+      exists (x ~ V). repeat_split_right.
       ** rewrite <- concat_empty_l. constructor~. apply (precise_inert_typ Hv).
-      ** constructor~. apply (precise_to_general_v Hv).
+      ** apply~ well_typed_push. apply (precise_to_general_v Hv).
       ** eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. apply* weaken_subtyp.
   - Case "ty_sub".

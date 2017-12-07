@@ -19,24 +19,12 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** * Preservation *)
 
-(** If a value [v] has type [T], then [v] has a precise type [T']
-    that is a subtype of [T].
-    This lemma corresponds to Lemma 3.15 in the paper. *)
-Lemma val_typing: forall G v T,
-  G ⊢ trm_val v : T ->
-  exists T', G ⊢!v v : T' /\
-        G ⊢ T' <: T.
-Proof.
-  intros G v T H. dependent induction H; eauto.
-  destruct (IHty_trm _ eq_refl). destruct_all. eauto.
-Qed.
-
 (** Helper tactics for proving Preservation *)
 
 Ltac lookup_eq :=
   match goal with
-  | [Hl1: ?s ∋ ?t1,
-     Hl2: ?s ∋ ?t2 |- _] =>
+  | [Hl1: ?s ∋ ?t1 // ?ps1,
+     Hl2: ?s ∋ ?t2 // ?ps2 |- _] =>
      apply (lookup_func Hl1) in Hl2; inversions Hl2
   end.
 
@@ -85,8 +73,8 @@ Proof.
   - Case "ty_all_elim".
     match goal with
     | [Hp: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
-        pose proof (canonical_forms_fun Hin Hwt Hp) as [L [T' [t [Bis [Hsub Hty]]]]];
-          inversions Hred
+        pose proof (canonical_forms_fun Hin Hwt Hp) as [L [T' [t [P [Bis [Hsub Hty]]]]]];
+        inversions Hred
     end.
     lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.

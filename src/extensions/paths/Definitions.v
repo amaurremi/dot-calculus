@@ -442,8 +442,8 @@ Inductive path_precedes : paths -> fields -> fields -> Prop :=
 | pp: forall P P1 P2 p q,
     P = app P1 P2 ->
     uniq P ->
-    In p P1 ->
-    In q P2 ->
+    In q P1 ->
+    In p P2 ->
     path_precedes P p q.
 
 (** ** Term typing [G ⊢ t: T] *)
@@ -559,15 +559,15 @@ with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
      x; (b :: bs); P; G ⊢ open_defs_p p•b ds :: open_typ_p p•b T ->
      x; bs; P; G ⊢ def_trm b (trm_val (val_new T ds)) : dec_trm b (typ_bnd T)
 
-(** if [x == head(q)] then [P ⊢ (b, bs) < fields(q)] #<br>#
+(** if [x == head(q)] then [P ⊢ fields(q) < (b, bs)] #<br>#
     [G ⊢ q: T]                                       #<br>#
     [――――――――――――――――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ {a = q}: {a: T}]                  *)
+    [x; bs; P; G ⊢ {b = q}: {b: T}]                  *)
  | ty_def_path : forall x bs P G q y cs b T,
     G ⊢ trm_path q: T ->
     inert_typ T ->
     q = p_sel (avar_f y) cs ->
-    (x = y -> path_precedes P (b :: bs) cs) ->
+    (x = y -> path_precedes P cs (b :: bs)) ->
     x; bs; P; G ⊢ def_trm b (trm_path q) : dec_trm b T
 
 where "x ';' bs ';' P ';' G '⊢' d ':' D" := (ty_def x bs P G d D)

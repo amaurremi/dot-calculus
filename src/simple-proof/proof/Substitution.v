@@ -163,6 +163,7 @@ Qed.
     [ok G]                   #<br>#
     [z] fresh                #<br>#
     [G, z: T^z ⊢ ds^z : T^z] #<br>#
+    [G ⊢ x: T^x]             #<br>#
     [――――――――――――――――――――――] #<br>#
     [G ⊢ ds^x : T^x]         *)
 Lemma renaming_def: forall G z T ds x,

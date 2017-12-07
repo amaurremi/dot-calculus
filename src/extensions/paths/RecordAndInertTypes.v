@@ -267,17 +267,24 @@ Proof.
 Qed.
 
 Lemma inert_concat: forall G' G,
-     inert G ->
-     inert G' ->
-     ok (G & G') ->
-     inert (G & G').
- Proof.
-   induction G' using env_ind; introv Hg Hg' Hok.
-   - rewrite* concat_empty_r.
-   - rewrite concat_assoc.
-     inversions Hg'; inversions Hok;
-       rewrite concat_assoc in *; try solve [false* empty_push_inv].
-     destruct (eq_push_inv H) as [Heq1 [Heq2 Heq3]]; subst.
-     destruct (eq_push_inv H3) as [Heq1 [Heq2 Heq3]]; subst.
-     eauto.
- Qed.
+    inert G ->
+    inert G' ->
+    ok (G & G') ->
+    inert (G & G').
+Proof.
+  induction G' using env_ind; introv Hg Hg' Hok.
+  - rewrite* concat_empty_r.
+  - rewrite concat_assoc.
+    inversions Hg'; inversions Hok;
+      rewrite concat_assoc in *; try solve [false* empty_push_inv].
+    destruct (eq_push_inv H) as [Heq1 [Heq2 Heq3]]; subst.
+    destruct (eq_push_inv H3) as [Heq1 [Heq2 Heq3]]; subst.
+    eauto.
+Qed.
+
+Lemma inert_prefix: forall G x T,
+    inert (G & x ~ T) ->
+    inert G.
+Proof.
+  introv Hi. inversions Hi. false* empty_push_inv. lets Heq: (eq_push_inv H); destruct_all; subst*.
+Qed.

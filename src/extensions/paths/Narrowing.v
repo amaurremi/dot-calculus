@@ -96,3 +96,11 @@ Lemma narrow_subtyping: forall G G' S U,
 Proof.
   intros. apply* narrow_rules.
 Qed.
+
+Lemma narrow_defs: forall G G' ds T z bs P,
+    z; bs; P; G ⊢ ds :: T ->
+    G' ⪯ G ->
+    z; bs; P; G' ⊢ ds :: T.
+Proof.
+  intros. apply* narrow_rules.
+Qed.

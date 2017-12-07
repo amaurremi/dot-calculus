@@ -179,6 +179,14 @@ Proof.
     eapply subtyp_trans_t; eassumption.
 Qed.
 
+Lemma invertible_to_precise_typ_bnd: forall G p T ls,
+    G ⊢## p: typ_bnd T ->
+    record_typ T ls ->
+    exists U,
+      G ⊢! p: typ_bnd U ⪼ typ_bnd U /\
+      G ⊢ open_typ_p p U <: open_typ_p p T.
+Proof. Admitted.
+
 (** Invertible-to-precise typing for function types: #<br>#
     [ok G]                        #<br>#
     [G ⊢## x: forall(S)T]             #<br>#

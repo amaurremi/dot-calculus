@@ -13,8 +13,8 @@ Inductive red : sta * trm -> sta * trm -> Prop :=
 (** [s ∋ (p, lambda(T)t)  ]      #<br>#
     [―――――――――――――――――――――]      #<br>#
     [(s, p q) |-> (s, t^q)]      *)
-| red_app: forall s p q T t,
-    s ∋ (p, val_lambda T t) ->
+| red_app: forall s p q T t ps,
+    s ∋ (p, val_lambda T t) // ps ->
     (s, trm_app p q) |-> (s, open_trm_p q t)
 
 (** [(s, let x = v in t) |-> ((s, x = v), t^x)] *)
