@@ -670,7 +670,7 @@ Inductive lookup : sta -> path * val -> list path -> Prop :=
 
 (** [s(x) = v         ]    #<br>#
     [―――――――――――――――――]    #<br>#
-    [s ∋ (x, v) // [] ]        *)
+    [s ∋ (x, v) // ps ]        *)
 | lookup_var : forall s x v ps,
     binds x v s ->
     s ∋ (pvar x, v) // ps
