@@ -46,12 +46,18 @@ Proof.
   destruct (IHty_trm _ eq_refl). destruct_all. eauto.
 Qed.
 
+Definition deftrm t : trm :=
+  match t with
+  | defp p => trm_path p
+  | defv v => trm_val v
+  end.
+
 Lemma lookup_step_preservation_prec: forall G s p T T' t,
     inert G ->
     well_typed G s ->
-    s ⟦ trm_path p ⟼ t ⟧ ->
+    s ⟦ p ⟼ t ⟧ ->
     G ⊢! p : T ⪼ T' ->
-    G ⊢ t: T.
+    G ⊢ deftrm t: T.
 Proof.
   introv Hi Hwt Hs Hp. gen T' T p t. induction Hwt; introv Hp Hs.
   - false* lookup_empty.
@@ -84,7 +90,7 @@ Proof.
         lets Hrh: (precise_flow_record_has Hi Hp).
         destruct (record_has_ty_defs Hds Hrh) as [d [Hd Ht]].
         lets Hdt: (defs_has_typing Ht). destruct Hdt as [t' Heq]. subst.
-        lets Heq: (defs_has_inv Hd H4). subst. dependent induction Ht; eauto.
+        lets Heq: (defs_has_inv Hd H4). subst. dependent induction Ht; simpl; eauto.
       (* fresh_constructor; deal with renaming #2 *)
         admit.
       + Case "pf_open".
@@ -95,7 +101,7 @@ Proof.
         eauto.
       + Case "pf_sngl".
         specialize (IHHp1 _ _ H0 _ _ Hi Hwt H IHHwt eq_refl JMeq_refl _ _ Hv Hs).
-        destruct (lookup_inv_path_u Hs) as [[r Heq] | [w Heq]]; subst.
+        destruct t; subst.
         ++ destruct (precise_to_general_h Hp2) as [Hg _]. apply* ty_sngl.
         ++ apply (general_to_tight_typing Hi) in IHHp1.
            apply (tight_to_invertible_v Hi) in IHHp1. inversions IHHp1. inversion H1.
@@ -131,8 +137,8 @@ Proof.
     * specialize (IHprecise_flow _ _ _ JMeq_refl H0 Hi Hwt H H1 IHHwt Hok).
       destruct IHprecise_flow as [v' Hl].
       inversions Hl. gen U T0 a.
-      assert (exists q, s & x ~ v ⟦ trm_path p ⟼* trm_path q ⟧ /\
-                       s & x ~ v ⟦ trm_path q ⟼ trm_val v' ⟧) as Hex by admit.
+      assert (exists q, s & x ~ v ⟦ defp p ⟼* defp q ⟧ /\
+                       s & x ~ v ⟦ q ⟼ defv v' ⟧) as Hex by admit.
       destruct Hex as [q [Hpq Hqv]].
       assert (well_typed (G & x ~ T) (s & x ~ v)) as Hwt' by constructor*.
       dependent induction Hpq; introv Hpt; clear H5.
@@ -162,7 +168,7 @@ Proof.
            exists v, s ∋ (p, v) *)
         admit.
       + destruct (lookup_path_inv Hpq) as [r Heq]. subst.
-        assert (s & x ~ v ⟦ trm_path r ⟼* trm_val v' ⟧) as Hrv'. {
+        assert (s & x ~ v ⟦ defp r ⟼* defv v' ⟧) as Hrv'. {
           eapply star_trans. apply Hpq. apply* star_one.
         }
         specialize (IHHpq _ H0 Hi Hwt H H1 IHHwt Hok Hrv' _ eq_refl eq_refl Hqv Hwt').
@@ -178,8 +184,8 @@ Proof.
         clear Hpq IHHwt Hqv Hwt' Hpt Hrv' Hprl Hr Hpr Hspr Tpr Upr Hok Hwt Hi H1 q U S U' H G
               T v'.
         inversions Hw.
-        assert (exists  q, s & x ~ v ⟦ trm_path r • a ⟼* trm_path q ⟧ /\
-                          s & x ~ v ⟦ trm_path q ⟼ trm_val w ⟧) as Hex by admit.
+        assert (exists  q, s & x ~ v ⟦ defp r • a ⟼* defp q ⟧ /\
+                          s & x ~ v ⟦ q ⟼ defv w ⟧) as Hex by admit.
         destruct Hex as [q [Hraq Hqw]]. clear H3.
         gen w p. dependent induction Hraq; introv Hqw; introv Hpr.
         (*****************************************************)

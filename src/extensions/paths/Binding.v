@@ -71,12 +71,17 @@ with subst_val (z: var) (u: path) (v: val) : val :=
 with subst_def (z: var) (u: path) (d: def) : def :=
   match d with
   | def_typ L T => def_typ L (subst_typ z u T)
-  | { a := t }  => { a := subst_trm z u t }
+  | { a := t }  => { a := subst_defrhs z u t }
   end
 with subst_defs (z: var) (u: path) (ds: defs) : defs :=
   match ds with
   | defs_nil => defs_nil
   | defs_cons rest d => defs_cons (subst_defs z u rest) (subst_def z u d)
+  end
+with subst_defrhs (z: var) (u: path) (drhs: def_rhs) : def_rhs :=
+  match drhs with
+  | defp p => defp (subst_path z u p)
+  | defv v => defv (subst_val z u v)
   end.
 
 (** Substitution on the types of a typing environment: [G[u/z]]. *)
@@ -193,7 +198,9 @@ Lemma open_var_trm_val_def_eq : forall x,
   (forall d n,
       open_rec_def n x d = open_rec_def_p n (pvar x) d) /\
   (forall ds n,
-      open_rec_defs n x ds = open_rec_defs_p n (pvar x) ds).
+      open_rec_defs n x ds = open_rec_defs_p n (pvar x) ds) /\
+  (forall drhs n,
+      open_rec_defrhs n x drhs = open_rec_defrhs_p n (pvar x) drhs).
 Proof.
   introv. apply trm_mutind; intros; simpl; f_equal*;
             try (rewrite* open_var_path_eq); rewrite* (proj1 (open_var_typ_dec_eq x)).
@@ -287,7 +294,12 @@ Lemma open_fresh_trm_val_def_defs_injective:
       x \notin fv_defs ds ->
       x \notin fv_defs ds' ->
       open_rec_defs k x ds = open_rec_defs k x ds' ->
-      ds = ds').
+      ds = ds') /\
+  (forall drhs drhs' k x,
+      x \notin fv_defrhs drhs ->
+      x \notin fv_defrhs drhs' ->
+      open_rec_defrhs k x drhs = open_rec_defrhs k x drhs' ->
+      drhs = drhs').
 Proof.
 
   Ltac injective_solver :=
@@ -310,9 +322,11 @@ Proof.
       try apply* open_fresh_typ_dec_injective; eauto
     | [ H: _ = open_rec_defs _ _ ?ds |- _ ] =>
       destruct ds; inversions H; f_equal; simpl in *; eauto
+    | [ H: _ = open_rec_defrhs _ _ ?drhs |- _ ] =>
+      destruct drhs; inversions H; f_equal; simpl in *; eauto
     end.
 
-  apply trm_mutind; intros; try solve [injective_solver].
+  apply trm_mutind; intros; try solve [injective_solver]. admit.
 Qed.
 
 (** * Variable Substitution Lemmas *)
@@ -356,7 +370,8 @@ Lemma subst_fresh_trm_val_def_defs: forall x y,
   (forall t : trm , x \notin fv_trm  t  -> subst_trm  x y t  = t ) /\
   (forall v : val , x \notin fv_val  v  -> subst_val  x y v  = v ) /\
   (forall d : def , x \notin fv_def  d  -> subst_def  x y d  = d ) /\
-  (forall ds: defs, x \notin fv_defs ds -> subst_defs x y ds = ds).
+  (forall ds: defs, x \notin fv_defs ds -> subst_defs x y ds = ds) /\
+  (forall drhs: def_rhs, x \notin fv_defrhs drhs -> subst_defrhs x y drhs = drhs).
 Proof.
   intros x y. apply trm_mutind; intros; simpls; f_equal*;
     (apply* subst_fresh_typ_dec || apply* subst_fresh_path).
@@ -511,7 +526,10 @@ Lemma subst_open_commut_trm_val_def_defs: forall x y u,
      = open_rec_def_p n (subst_var_p x y u) (subst_def x y d)) /\
   (forall ds: defs, forall n: nat,
      subst_defs x y (open_rec_defs n u ds)
-     = open_rec_defs_p n (subst_var_p x y u) (subst_defs x y ds)).
+     = open_rec_defs_p n (subst_var_p x y u) (subst_defs x y ds)) /\
+  (forall drhs: def_rhs, forall n: nat,
+     subst_defrhs x y (open_rec_defrhs n u drhs)
+     =  open_rec_defrhs_p n (subst_var_p x y u) (subst_defrhs x y drhs)).
 Proof.
   intros. apply trm_mutind; intros; simpl; f_equal*;
   apply* subst_open_commut_path || apply* subst_open_commut_typ_dec.
@@ -530,7 +548,10 @@ Lemma subst_open_commut_trm_val_def_defs_p: forall x y u,
      = open_rec_def_p n (subst_path x y u) (subst_def x y d)) /\
   (forall ds: defs, forall n: nat,
      subst_defs x y (open_rec_defs_p n u ds)
-     = open_rec_defs_p n (subst_path x y u) (subst_defs x y ds)).
+     = open_rec_defs_p n (subst_path x y u) (subst_defs x y ds)) /\
+  (forall drhs: def_rhs, forall n: nat,
+     subst_defrhs x y (open_rec_defrhs_p n u drhs)
+     = open_rec_defrhs_p n (subst_path x y u) (subst_defrhs x y drhs)).
 Proof.
   intros. apply trm_mutind; intros; simpl; f_equal*;
   apply* subst_open_commut_typ_dec_p || apply* subst_open_commut_path_p.
@@ -590,7 +611,7 @@ Lemma subst_intro_defs: forall x u ds, x \notin (fv_defs ds) -> named_path u ->
   open_defs_p u ds = subst_defs x u (open_defs x ds).
 Proof.
   introv Fr Hl. unfold open_trm. rewrite* subst_open_commut_defs.
-  destruct (@subst_fresh_trm_val_def_defs x u) as [_ [_ [_ Q]]]. rewrite~ (Q ds).
+  destruct (@subst_fresh_trm_val_def_defs x u) as [_ [_ [_ [Q _]]]]. rewrite~ (Q ds).
   unfold subst_var_p. case_var~.
 Qed.
 

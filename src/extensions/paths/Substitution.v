@@ -254,7 +254,7 @@ Lemma subst_ty_defs: forall z bs P G x S ds T p p_x p_bs sbs,
 Proof.
   introv Hds Heq Hok Hx Hp Hsbs.
   eapply (proj43 (subst_rules p S)) with
-      (G1:=G) (G2:=empty) (x:=x) (p_x:=p_x) (p_bs:=p_bs) (sbs:=sbs) in Hds;
+      (G1 := G) (G2 := empty) (x := x) (p_x := p_x) (p_bs := p_bs) (sbs := sbs) in Hds;
     unfold subst_ctx in *; try rewrite map_empty in *; try rewrite concat_empty_r in *; auto.
 Qed.
 
@@ -333,7 +333,7 @@ Lemma renaming_fresh : forall L G T u U p,
 Proof.
   introv Hok Hu Hp. pick_fresh y.
   rewrite subst_intro_trm with (x:=y); auto.
-  rewrite <- subst_fresh_typ with (x:=y) (p:=p); auto.
+  rewrite <- subst_fresh_typ with (x := y) (p := p); auto.
   eapply subst_ty_trm; eauto. rewrite~ subst_fresh_typ.
   apply* typed_paths_named.
 Qed.

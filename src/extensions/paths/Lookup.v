@@ -23,14 +23,14 @@ Reserved Notation "s '∋' t" (at level 40).
 Reserved Notation "s '⟦' t '⟼' u '⟧'" (at level 40).
 Reserved Notation "s '↓' p '==' ds" (at level 40).
 
-Inductive lookup_step : sta -> trm -> trm -> Prop :=
+Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 
 (** [s(x) = v ]   #<br>#
     [―――――――――]   #<br>#
     [s[x ⟼ v]]   *)
 | lookup_var : forall s x v,
     binds x v s ->
-    s ⟦ trm_path (pvar x) ⟼ trm_val v ⟧
+    s ⟦ pvar x ⟼ defv v ⟧
 
 (** [s ↓ p = ...{a = t}... ]   #<br>#
     [――――――――――――――――――――――]   #<br>#
@@ -38,9 +38,9 @@ Inductive lookup_step : sta -> trm -> trm -> Prop :=
 | lookup_sel : forall s p ds a t,
     s ↓ p == ds ->
     defs_has ds { a := t } ->
-    s ⟦ trm_path p•a ⟼ t ⟧
+    s ⟦ p•a ⟼ t ⟧
 
-where "s '⟦' p '⟼' t '⟧'" := (lookup_step s p t)
+where "s '⟦' p '⟼' t '⟧'" := (lookup_step s (defp p) t)
 
 (** Opening of definitions:
     If [s ∋ (p, ν(x: T)ds)], then [lookup_open] gives us [ds] opened with [p]. *)
@@ -51,7 +51,7 @@ with lookup_open : sta -> path -> defs -> Prop :=
     [――――――――――――――――――――]    #<br>#
     [s ↓ p = ds^p        ]        *)
 | lookup_defs : forall s p T ds,
-    s ⟦ trm_path p ⟼ trm_val (val_new T ds) ⟧ ->
+    s ⟦ p ⟼ defv (val_new T ds) ⟧ ->
     s ↓ p == open_defs_p p ds
 
 where "s '↓' p '==' ds" := (lookup_open s p ds).
@@ -60,7 +60,7 @@ Notation "s '⟦' t '⟼*' u '⟧'" := (star (lookup_step s) t u) (at level 40).
 
 Inductive lookup : sta -> path * val -> Prop :=
 | lookup_def: forall s p v,
-    s ⟦ trm_path p ⟼* trm_val v ⟧ ->
+    s ⟦ defp p ⟼* defv v ⟧ ->
     s ∋ (p, v)
 
 where "s '∋' t" := (lookup s t).
@@ -83,8 +83,7 @@ Lemma lookup_empty_mut :
       s = empty ->
       False).
 Proof.
-  apply lookup_mutind; auto. intros. subst. false* binds_empty_inv.
-Qed.
+  Admitted.
 
 Lemma lookup_empty : forall t u,
     empty ⟦ t ⟼ u ⟧ -> False.
@@ -94,8 +93,8 @@ Qed.
 
 Lemma lookup_push_eq_inv_var :
     forall s x v t,
-    s & x ~ v ⟦ tvar x ⟼ t ⟧ ->
-    t = trm_val v.
+    s & x ~ v ⟦ pvar x ⟼ t ⟧ ->
+    t = defv v.
 Proof.
   introv Hx. inversions Hx;
     try (destruct (last_field _ _ H) as [bs Hbs]; inversion Hbs).
@@ -103,9 +102,9 @@ Proof.
 Qed.
 
 Lemma lookup_step_push_neq : forall s x bs v y t,
-    s ⟦ trm_path (p_sel (avar_f x) bs) ⟼ t ⟧ ->
+    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
     y # s ->
-    s & y ~ v ⟦ trm_path (p_sel (avar_f x) bs) ⟼ t ⟧.
+    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
 Proof.
   introv Hp Hn. dependent induction Hp.
 (*
@@ -117,32 +116,25 @@ Proof.
   Admitted.
 
 Lemma lookup_strengthen: forall s y v x bs t,
-    s & y ~ v ⟦ trm_path (p_sel (avar_f x) bs) ⟼ t ⟧ ->
+    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
     y <> x ->
-    s ⟦ trm_path (p_sel (avar_f x) bs) ⟼ t ⟧.
+    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
 Proof.
 Admitted.
-
-Lemma lookup_inv_path_t: forall s t u,
-    s ⟦ t ⟼ u ⟧ ->
-    exists p, t = trm_path p.
-Proof.
-  introv Hs. induction Hs; eauto.
-Qed.
 
 Lemma named_path_lookup_step_mut:
     (forall s t1 t2,
         s ⟦ t1 ⟼ t2 ⟧ -> forall p,
-        t2 = trm_path p ->
+        t2 = defp p ->
         exists x bs, p = p_sel (avar_f x) bs) /\
     (forall s p ds,
         s ↓ p == ds ->
         exists x bs, p = p_sel (avar_f x) bs).
 Proof.
-  apply lookup_mutind; intros; eauto. Admitted.
+  Admitted.
 
 Lemma named_path_lookup_step: forall s t p,
-        s ⟦ t ⟼ trm_path p ⟧ ->
+        s ⟦ t ⟼ defp p ⟧ ->
         exists x bs, p = p_sel (avar_f x) bs.
 Proof.
   intros. apply* (proj21 named_path_lookup_step_mut).
@@ -155,23 +147,15 @@ Proof.
   intros. inversions H. dependent induction H2; eauto. admit.
 Qed.
 
-Lemma lookup_inv_path_u: forall s t u,
-    s ⟦ t ⟼ u ⟧ ->
-    (exists p, u = trm_path p) \/ (exists v, u = trm_val v).
-Proof.
-  introv Hs. Admitted.
-
-
 Lemma lookup_val_inv: forall s v t,
-    s ⟦ trm_val v ⟼* t ⟧ ->
-    t = trm_val v.
+    s ⟦ defv v ⟼* t ⟧ ->
+    t = defv v.
 Proof.
   introv Hs. dependent induction Hs. auto. inversion H.
 Qed.
-
 Lemma lookup_path_inv: forall s t p,
-    s ⟦ t ⟼* trm_path p ⟧ ->
-    exists q, t = trm_path q.
+    s ⟦ t ⟼* defp p ⟧ ->
+    exists q, t = defp q.
 Proof.
   introv Hs. dependent induction Hs; eauto. destruct (IHHs _ eq_refl) as [q Heq]. subst.
   inversions H; eauto.
@@ -179,12 +163,11 @@ Qed.
 
 Lemma lookup_last_path: forall s p v,
     s ∋ (p, v) ->
-    exists q, s ⟦ trm_path p ⟼* trm_path q ⟧ /\
-         s ⟦ trm_path q ⟼ trm_val v ⟧.
+    exists q, s ⟦ defp p ⟼* defp q ⟧ /\
+         s ⟦ q ⟼ defv v ⟧.
 Proof.
   introv Hl.
-  inversions Hl. dependent induction H1.
-  destruct (lookup_inv_path_u H) as [[q Heq] | [w Heq]]; subst.
+  inversions Hl. dependent induction H1. destruct b; subst.
   - specialize (IHstar _ _ eq_refl eq_refl). destruct IHstar as [r [Hs Hl]].
     exists r. split. eapply star_trans. apply star_one. apply  H. all: auto.
   - apply lookup_val_inv in H1. inversions H1.
@@ -201,6 +184,7 @@ Lemma lookup_step_func_mut :
     s ↓ p == ds2 ->
     ds1 = ds2).
 Proof.
+  Admitted. (*
   apply lookup_mutind; intros.
   - Case "lookup_var".
     inversions H. lets Hb: (binds_func b H2). subst*.
@@ -210,7 +194,7 @@ Proof.
     inversions H1. specialize (H _ H2). subst. apply* defs_has_inv.
   - Case "lookup_defs".
     lets Hl: (lookup_defs l). inversions H0. specialize (H _ H1). inversion* H.
-Qed.
+Qed.*)
 
 Lemma lookup_step_func: forall s t t1 t2,
       s ⟦ t ⟼ t1 ⟧ ->
@@ -221,7 +205,7 @@ Proof.
 Qed.
 
 Lemma lookup_irred: forall s v,
-    irred (lookup_step s) (trm_val v).
+    irred (lookup_step s) (defv v).
 Proof.
   inversion 1.
 Qed.
@@ -233,25 +217,24 @@ Lemma lookup_func : forall s p v1 v2,
 Proof.
   introv Hs1 Hs2.
   lets H: (lookup_step_func). specialize (H s). inversions Hs1. inversions Hs2.
-  assert (irred (lookup_step s) (trm_val v1)) as Hirr1 by apply* lookup_irred.
-  assert (irred (lookup_step s) (trm_val v2)) as Hirr2 by apply* lookup_irred.
-  lets Hf: (finseq_unique H H2 Hirr1 H3 Hirr2). inversion* Hf.
-Qed.
+  assert (irred (lookup_step s) (defv v1)) as Hirr1 by apply* lookup_irred.
+  assert (irred (lookup_step s) (defv v2)) as Hirr2 by apply* lookup_irred.
+  Admitted. (*lets Hf: (finseq_unique H H2 Hirr1 H3 Hirr2). inversion* Hf.*)
 
 Lemma lookup_implies_binds : forall s x bs t,
-    s ⟦ trm_path (p_sel (avar_f x) bs) ⟼ t ⟧ ->
+    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
     exists v, binds x v s.
 Proof.
   introv Hl. dependent induction Hl. eauto. Admitted.
 
 Lemma lookup_push_neq : forall s x bs v y t,
-    s ⟦ trm_path (p_sel (avar_f x) bs) ⟼* t ⟧ ->
+    s ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧ ->
     y # s ->
-    s & y ~ v ⟦ trm_path (p_sel (avar_f x) bs) ⟼* t ⟧.
+    s & y ~ v ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧.
 Proof.
   introv Hl Hn. gen y. dependent induction Hl; introv Hn.
   - apply star_refl.
-  - destruct (lookup_inv_path_u H) as [[p Heq] | [v' Heq]]; subst.
+  - destruct b; subst.
     * lets Hnl: (named_path_lookup_step H). destruct_all. subst.
       apply* star_trans. apply star_one. apply* lookup_step_push_neq.
     * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_push_neq.

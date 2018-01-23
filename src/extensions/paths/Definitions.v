@@ -104,16 +104,22 @@ with val : Set :=
   - [def_trm a t] represents a field definition [{a = t}]; *)
 with def : Set :=
   | def_typ  : typ_label -> typ -> def
-  | def_trm  : trm_label -> trm -> def
+  | def_trm  : trm_label -> def_rhs -> def
 (**
   [defs] represents a list of definitions that are part of an intersection
   - [defs_nil] represents the empty list;
   - [defs_cons d ds] represents a concatenation of the definition [d] to the definitions [ds]. *)
 with defs : Set :=
   | defs_nil : defs
-  | defs_cons : defs -> def -> defs.
+  | defs_cons : defs -> def -> defs
+
+with def_rhs : Set :=
+  | defp : path -> def_rhs
+  | defv : val -> def_rhs.
 
 Notation "'{' a ':=' t '}'" := (def_trm a t) (t at level 50).
+Notation "'{' a ':=p' p '}'" := (def_trm a (defp p)).
+Notation "'{' a ':=v' v '}'" := (def_trm a (defv v)).
 
 (** Shorthand definitions for variables and field selections *)
 Definition pavar (x: avar) := p_sel x nil.
@@ -131,7 +137,7 @@ Hint Unfold pavar pvar tvar.
 
 Definition label_of_def(d: def): label := match d with
 | def_typ A _ => label_typ A
-| { a := t } => label_trm a
+| { a := t }  => label_trm a
 end.
 
 Definition label_of_dec(D: dec): label := match D with
@@ -211,12 +217,17 @@ with open_rec_val (k: nat) (u: var) (v: val): val :=
 with open_rec_def (k: nat) (u: var) (d: def): def :=
   match d with
   | def_typ A T => def_typ A (open_rec_typ k u T)
-  | { a := t } => {a := open_rec_trm k u t }
+  | { a := t } => { a := open_rec_defrhs k u t }
   end
 with open_rec_defs (k: nat) (u: var) (ds: defs): defs :=
   match ds with
   | defs_nil => defs_nil
   | defs_cons tl d => defs_cons (open_rec_defs k u tl) (open_rec_def k u d)
+  end
+with open_rec_defrhs (k: nat) (u: var) (drhs: def_rhs) : def_rhs :=
+  match drhs with
+  | defp p => defp (open_rec_path k u p)
+  | defv v => defv (open_rec_val k u v)
   end.
 
 Definition open_avar u a := open_rec_avar  0 u a.
@@ -226,6 +237,7 @@ Definition open_trm  u e := open_rec_trm   0 u e.
 Definition open_val  u v := open_rec_val   0 u v.
 Definition open_def  u d := open_rec_def   0 u d.
 Definition open_defs u l := open_rec_defs  0 u l.
+Definition open_defrhs u t := open_rec_defrhs 0 u t.
 Definition open_path u p := open_rec_path  0 u p.
 
 Definition open_paths u ps := map (open_path u) ps.
@@ -282,12 +294,17 @@ with open_rec_val_p (k: nat) (u: path) (v: val): val :=
 with open_rec_def_p (k: nat) (u: path) (d: def): def :=
   match d with
   | def_typ L T => def_typ L (open_rec_typ_p k u T)
-  | { a := t }  => { a := open_rec_trm_p k u t }
+  | { a := t } => { a := open_rec_defrhs_p k u t }
   end
 with open_rec_defs_p (k: nat) (u: path) (ds: defs): defs :=
   match ds with
   | defs_nil => defs_nil
   | defs_cons tl d => defs_cons (open_rec_defs_p k u tl) (open_rec_def_p k u d)
+  end
+with open_rec_defrhs_p (k: nat) (u: path) (drhs: def_rhs) : def_rhs :=
+  match drhs with
+  | defp p => defp (open_rec_path_p k u p)
+  | defv v => defv (open_rec_val_p k u v)
   end.
 
 Definition open_avar_p u a := open_rec_avar_p  0 u a.
@@ -298,6 +315,7 @@ Definition open_trm_p  u t := open_rec_trm_p   0 u t.
 Definition open_val_p  u v := open_rec_val_p   0 u v.
 Definition open_def_p  u d := open_rec_def_p   0 u d.
 Definition open_defs_p u l := open_rec_defs_p 0 u l.
+Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
@@ -348,13 +366,18 @@ with fv_val (v: val) : vars :=
   end
 with fv_def (d: def) : vars :=
   match d with
-  | def_typ _ T     => (fv_typ T)
-  | { _ := t }      => (fv_trm t)
+  | def_typ _ T => (fv_typ T)
+  | { _ := t }  => (fv_defrhs t)
   end
 with fv_defs(ds: defs) : vars :=
   match ds with
   | defs_nil         => \{}
   | defs_cons tl d   => (fv_defs tl) \u (fv_def d)
+  end
+with fv_defrhs(drhs: def_rhs) : vars :=
+  match drhs with
+  | defp p => fv_path p
+  | defv v => fv_val v
   end.
 
 (** Free variables in the range (types) of a context *)
@@ -571,7 +594,7 @@ with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
  | ty_def_all : forall x bs P G T t b U,
     G ⊢ trm_val (val_lambda T t) : U ->
     inert_typ U ->
-    x; bs; P; G ⊢ { b := trm_val (val_lambda T t)} : { b ⦂ U }
+    x; bs; P; G ⊢ { b :=v val_lambda T t } : { b ⦂ U }
 
 (** [x; (b, bs); P; G ⊢ ds^p.b: T^p.b]             #<br>#
     [―――――――――――――――――――――――――――――――――――――] #<br>#
@@ -580,7 +603,7 @@ with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
      p = p_sel (avar_f x) bs ->
      inert_typ (typ_bnd T) ->
      x; (b :: bs); P; G ⊢ open_defs_p p•b ds :: open_typ_p p•b T ->
-     x; bs; P; G ⊢ { b := trm_val (val_new T ds) } : { b ⦂ typ_bnd T }
+     x; bs; P; G ⊢ { b :=v val_new T ds } : { b ⦂ typ_bnd T }
 
 (** if [x == head(q)] then [P ⊢ fields(q) < (b, bs)] #<br>#
     [G ⊢ q: T]                                       #<br>#
@@ -591,7 +614,7 @@ with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
     inert_typ T ->
     q = p_sel (avar_f y) cs ->
     (x = y -> path_precedes P cs (b :: bs)) ->
-    x; bs; P; G ⊢ { b := trm_path q } : { b ⦂ typ_sngl q }
+    x; bs; P; G ⊢ { b :=p q } : { b ⦂ typ_sngl q }
 
 where "x ';' bs ';' P ';' G '⊢' d ':' D" := (ty_def x bs P G d D)
 
@@ -739,8 +762,9 @@ Combined Scheme typ_mutind from typ_mut, dec_mut.
 Scheme trm_mut  := Induction for trm  Sort Prop
   with   val_mut  := Induction for val Sort Prop
   with   def_mut  := Induction for def  Sort Prop
-  with   defs_mut := Induction for defs Sort Prop.
-Combined Scheme trm_mutind from trm_mut, val_mut, def_mut, defs_mut.
+  with   defs_mut := Induction for defs Sort Prop
+  with   defrhs_mut := Induction for def_rhs Sort Prop.
+Combined Scheme trm_mutind from trm_mut, val_mut, def_mut, defs_mut, defrhs_mut.
 
 Scheme ty_trm_mut    := Induction for ty_trm    Sort Prop
   with   ty_def_mut    := Induction for ty_def    Sort Prop
@@ -783,7 +807,8 @@ Ltac gather_vars :=
   let H := gather_vars_with (fun x : def       => fv_def   x) in
   let I := gather_vars_with (fun x : defs      => fv_defs  x) in
   let J := gather_vars_with (fun x : typ       => fv_typ   x) in
-  constr:(A \u B \u C \u D \u E \u F \u G \u H \u I \u J).
+  let K := gather_vars_with (fun x : def_rhs   => fv_defrhs x) in
+  constr:(A \u B \u C \u D \u E \u F \u G \u H \u I \u J \u K).
 
 Ltac pick_fresh x :=
   let L := gather_vars in (pick_fresh_gen L x).
