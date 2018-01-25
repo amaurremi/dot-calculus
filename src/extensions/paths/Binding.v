@@ -12,6 +12,27 @@ Require Import Coq.Program.Equality List.
 Require Import LibLN.
 Require Import Definitions.
 
+Ltac simpl_dot :=
+  match goal with
+  | [ H: ?p • _ = p_sel _ _ |- _ ] =>
+    unfold sel_fields in H; destruct p; inversions H
+  | [ H: _ • _ = pvar _ |- _ ] =>
+    unfold pvar in H; simpl_dot
+  | [ H: pvar _ = _ • _ |- _ ] =>
+    symmetry in H; simpl_dot
+  | [ H: p_sel _ _ = _ • _ |- _ ] =>
+    symmetry in H; simpl_dot
+  | [ H: _ • _ = _ • _ |- _ ] =>
+    unfold sel_fields in H;
+    match goal with
+    | [ H: match ?p1 with
+           | p_sel _ _ => _
+           end = match ?p2 with
+                 | p_sel _ _ => _
+                 end |- _ ] =>
+      destruct p1; destruct p2; inversions H
+    end
+  end.
 
 (** Substitution on variables: [a[u/z]] (substituting [z] with [u] in [a]). *)
 

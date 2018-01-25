@@ -73,10 +73,26 @@ Proof.
         apply lookup_push_eq_inv_var in Hs. destruct_all. subst.
         apply* weaken_ty_trm.
       + Case "pf_fld".
-        unfolds sel_fields. destruct p. inversions x.
-        inversions Hs; unfolds sel_fields; simpls. destruct p. inversions H1.
-        inversions H2. specialize (IHHp _ _ H0 _ _ Hi Hwt H IHHwt eq_refl JMeq_refl _ _ Hv H1).
-        apply (general_to_tight_typing Hi) in IHHp. apply (tight_to_invertible_v Hi) in IHHp.
+        simpl_dot. inversions Hs; simpl_dot.
+        ++ SCase "lookup_sel_p".
+           inversions H3. lets Hlp: (lookup_sel_p a0 H5). simpl_dot.
+           specialize (IHHp _ _ H0 _ _ Hi Hwt H IHHwt eq_refl JMeq_refl _ _ Hv Hlp).
+           constructor.
+
+
+
+
+
+
+           apply (general_to_tight_typing Hi) in IHHp.
+           apply (tight_to_invertible Hi) in IHHp.
+
+
+
+
+
+
+        apply (tight_to_invertible_v Hi) in IHHp.
         assert (inert_typ T0) as HT0. {
           lets His: (pf_inert_T Hi Hp). destruct His. auto. destruct_all. subst.
           inversions IHHp. inversion H2.
