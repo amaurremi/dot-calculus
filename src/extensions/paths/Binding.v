@@ -791,3 +791,31 @@ Proof.
   repeat eexists. rewrite* concat_empty_r.
   specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
 Qed.
+
+(** * Lemmas about Replacement *)
+
+
+Lemma repl_label_of_dec: forall p q D,
+  label_of_dec D = label_of_dec (repl_dec p q D).
+Proof.
+  intros. destruct* D.
+Qed.
+
+Lemma inert_repl_mut :
+  (forall D, record_dec D -> forall p q,
+        record_dec (repl_dec p q D)) /\
+  (forall T ls, record_typ T ls -> forall p q,
+        record_typ (repl_typ p q T) ls) /\
+  (forall T, inert_typ T -> forall p q,
+        inert_typ (repl_typ p q T)).
+Proof.
+  apply rcd_mutind; intros; subst; simpl; try solve [constructor*; erewrite* repl_label_of_dec].
+  apply* inert_typ_bnd.
+Qed.
+
+Lemma inert_repl : forall T p q,
+    inert_typ T ->
+    inert_typ (repl_typ p q T).
+Proof.
+  intros. apply* inert_repl_mut.
+Qed.

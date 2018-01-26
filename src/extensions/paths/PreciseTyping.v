@@ -125,9 +125,11 @@ Inductive precise_flow : path -> ctx -> typ -> typ -> Prop :=
     G ⊢! q : T ⪼ T' ->
     G ⊢! p : T ⪼ T
 
-| pf_repl : forall G p q T,
+| pf_repl : forall G p q T U U',
     G ⊢! p : typ_sngl q ⪼ T ->
-    G ⊢! p : typ_sngl q ⪼ repl_typ p q T
+    G ⊢! p : U ⪼ U' ->
+    inert_typ U ->
+    G ⊢! p : U ⪼ repl_typ p q U'
 
 where "G '⊢!' p ':' T '⪼' U" := (precise_flow p G T U).
 
@@ -181,8 +183,8 @@ Lemma pf_top_top: forall p G T,
 Proof.
   introv Pf.
   dependent induction Pf; auto;
-    specialize (IHPf eq_refl);
-    inversion IHPf.
+    try (specialize (IHPf eq_refl); inversion IHPf).
+  specialize (IHPf2 eq_refl). subst*.
 Qed.
 
 (** The following two lemmas say that the type to which a variable is bound in an inert context is inert. *)
@@ -232,6 +234,16 @@ Proof.
   end.
 Qed.
 
+Lemma pf_lambda_T : forall G p T U S,
+    G ⊢! p: typ_all T U ⪼ S ->
+    exists T' U', S = typ_all T' U'.
+Proof.
+  introv Pf. dependent induction Pf;
+               try (repeat eexists; specialize (IHPf _ _ eq_refl); destruct_all; inversion IHPf);
+               try (specialize (IHPf _ _ eq_refl); destruct_all; inversion H).
+  specialize (IHPf2 _ _ eq_refl). destruct_all. subst. repeat eexists.
+Qed.
+
 (** See [binds_inert]. *)
 Lemma pf_inert_rcd_TU : forall G p T U,
     inert G ->
@@ -253,6 +265,11 @@ Proof.
     right. inversions Hd. inversions H0. eauto.
     subst. right. inversions Hd. inversion* H.
   - split*.
+  - split. auto. specialize (IHPf1 Hi). specialize (IHPf2 Hi).
+    destruct_all; inversions H0; inversions H2;
+      try solve [left; left; apply* inert_repl];
+      try solve [left; right; eexists; simpl; eauto];
+      try solve [right; unfolds record_type; destruct_all; eexists; apply* inert_repl_mut].
 Qed.
 
 (** See [binds_inert]. *)
@@ -262,14 +279,6 @@ Lemma pf_inert_T : forall G p T U,
     inert_sngl T.
 Proof.
   apply* pf_inert_rcd_TU.
-Qed.
-
-Lemma pf_lambda_T : forall G p T U S,
-    G ⊢! p: typ_all T U ⪼ S ->
-    S = typ_all T U.
-Proof.
-  introv Pf. dependent induction Pf;
-                  try (specialize (IHPf T U eq_refl); inversion IHPf); auto.
 Qed.
 
 (** See [inert_typ_bnd_record] *)
@@ -300,13 +309,16 @@ Proof.
   - right. destruct (IHPf T Hi eq_refl) as [F | Hr]. inversion F.
     inversion Hr. inversions H.
     eexists. apply* rt_one.
+  - specialize (IHPf2 _ Hi eq_refl). destruct_all; subst. admit.
+    right. unfolds record_type. destruct_all. eexists. apply* inert_repl_mut.
 Qed.
 
 Lemma pf_sngl_U: forall G p q U,
     G ⊢! p : typ_sngl q ⪼ U ->
     U = typ_sngl q.
 Proof.
-  introv Hp. dependent induction Hp; eauto; specialize (IHHp _ eq_refl); inversion IHHp.
+  introv Hp. dependent induction Hp; eauto; try (specialize (IHHp _ eq_refl); inversion IHHp).
+  inversion H.
 Qed.
 
 (** If [x]'s precise type is [mu(x: U)], then [G(x) = mu(x: U)] *)
@@ -322,13 +334,17 @@ Proof.
   - destruct U0; inversions x.
     specialize (IHPf _ Hi eq_refl H). destruct_all; subst; inversions H. inversion H1.
   - inversions H. apply pf_lambda_T in Pf. inversion Pf.
+    destruct_all. inversion H.
     destruct (pf_inert_or_rcd Hi Pf) as [Heq | Hr].
     * inversions Heq.
     * inversions Hr. inversions H. inversions H3.
   - inversions H. apply pf_lambda_T in Pf. inversion Pf.
+    destruct_all. inversion H.
     destruct (pf_inert_or_rcd Hi Pf) as [Heq | Hr].
     * inversions Heq.
     * inversions Hr. inversions H.
+  - destruct U'; inversions x. admit.
+  - destruct_all. subst. inversion H.
 Qed.
 
 Lemma pf_sngl_T: forall G p q T,
@@ -344,6 +360,7 @@ Proof.
   inversions H. inversions H0. inversion H2.
   destruct (pf_inert_rcd_TU Hi Hp) as [_ [H | H]]. inversion H. inversion H0. destruct_all.
   inversion H0. inversion H. inversion H0.
+  destruct U'; inversions x. admit.
 Qed.
 
 (** If [x]'s precise type is a field or type declaration, then [G(x)] is
@@ -360,9 +377,10 @@ Proof.
                 (destruct_all; subst; apply pf_sngl_U in Pf; inversion Pf)]).
   - inversion H1.
   - destruct U; inversions x. apply (pf_inert_bnd_U Hi) in Pf. destruct_all; subst; eauto.
-  - inversions H. apply pf_lambda_T in Pf. inversion Pf. eauto.
-  - inversions H. apply pf_lambda_T in Pf. inversion Pf. eauto.
-  - destruct_all. subst. inversion H1.
+  - inversions H. apply pf_lambda_T in Pf. destruct_all. inversion H. eauto.
+  - inversions H. apply pf_lambda_T in Pf. destruct_all. inversion H. eauto.
+  - destruct U'; inversions x. specialize (IHPf2 _ Hi eq_refl H0). destruct_all. subst. eauto.
+  - destruct_all. inversion H1.
 Qed.
 
 (** If [x]'s precise type is a record type, then [G(x)] is a recursive type. *)
@@ -376,7 +394,7 @@ Proof.
   lets HT: (pf_inert_T Hi Pf).
   destruct* HT.
   inversions H.
-  apply pf_lambda_T in Pf. subst. inversion Hr. inversion H. eauto. destruct_all. subst.
+  apply pf_lambda_T in Pf. destruct_all. subst. inversion Hr. inversion H. eauto. destruct_all. subst.
   apply pf_sngl_U in Pf. subst. inversion Hr. inversion H.
 Qed.
 
@@ -385,12 +403,12 @@ Qed.
 Lemma pf_inert_lambda_U : forall p G S T U,
     inert G ->
     G ⊢! p: U ⪼ typ_all S T ->
-    U = typ_all S T.
+    exists S' T', U = typ_all S' T'.
 Proof.
   introv Hi Pf.
   lets Hiu: (pf_inert_T Hi Pf).
   inversions Hiu.
-  - inversions H. apply pf_lambda_T in Pf. inversion* Pf.
+  - inversions H. apply pf_lambda_T in Pf. destruct_all. repeat eexists.
     destruct (pf_inert_or_rcd Hi Pf) as [H1 | H1]; inversions H1. inversion H.
   - destruct_all; subst; apply pf_sngl_U in Pf; inversion Pf.
 Qed.
@@ -399,10 +417,10 @@ Qed.
 Lemma inert_precise_all_inv : forall x G S T U,
     inert G ->
     G ⊢! pvar x : U ⪼ typ_all S T ->
-    binds x (typ_all S T) G.
+    exists S' T', binds x (typ_all S' T') G.
 Proof.
   introv Hi Htyp. lets H: (pf_inert_lambda_U Hi Htyp). subst. destruct_all; subst.
-  apply* pf_binds.
+  repeat eexists. apply* pf_binds.
 Qed.
 
 (** In an inert context, the precise type of a variable
@@ -414,7 +432,7 @@ Lemma pf_bot_false : forall G p T,
 Proof.
   introv Hi Pf.
   lets HT: (pf_inert_T Hi Pf). inversions HT.
-  - inversions H. apply pf_lambda_T in Pf. inversion Pf.
+  - inversions H. apply pf_lambda_T in Pf. destruct_all. inversion H.
     destruct (pf_inert_or_rcd Hi Pf); inversion H0; inversion H. inversion H5. inversion H7.
   - destruct_all. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
@@ -429,7 +447,7 @@ Proof.
   introv Hi Pf.
   lets HT: (pf_inert_T Hi Pf). inversions HT.
   - inversions H.
-    * apply pf_lambda_T in Pf. inversion Pf.
+    * apply pf_lambda_T in Pf. destruct_all. inversion H.
     * destruct (pf_inert_or_rcd Hi Pf); inversion H. inversion H1.
   - destruct H as [r Heq]. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
@@ -448,7 +466,7 @@ Proof.
   - apply* IHPf.
   - apply* IHPf.
   - inversion Hr.
-Qed.
+  - Abort.
 
 (** If [G(x) = mu(S)] and [G ⊢! p: D], where [D] is a field or type declaration,
     then [S^x = ... /\ D /\ ...]. *)
@@ -457,8 +475,8 @@ Lemma precise_flow_record_has: forall S G p D,
     G ⊢! p: typ_bnd S ⪼ typ_rcd D ->
     record_has (open_typ_p p S) D.
 Proof.
-  introv Hi Pf. apply* pf_record_sub.
-Qed.
+  introv Hi Pf. Abort. (*apply* pf_record_sub.
+Qed.*)
 
 (** If
     - [G ⊢! p: mu(T) ⪼ {A: T1..T1}]
