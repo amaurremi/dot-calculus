@@ -275,7 +275,7 @@ Fixpoint open_rec_typ_p (k: nat) (u: path) (T: typ): typ :=
   end
 with open_rec_dec_p (k: nat) (u: path) (D: dec): dec :=
   match D with
-  | { L >: T <: U } => { L >: open_rec_typ_p k u T <: open_rec_typ_p k u U }
+  | { A >: T <: U } => { A >: open_rec_typ_p k u T <: open_rec_typ_p k u U }
   | { a ⦂ T } => { a ⦂ open_rec_typ_p k u T }
   end.
 
@@ -380,7 +380,7 @@ Fixpoint fv_typ (T: typ) : vars :=
   end
 with fv_dec (D: dec) : vars :=
   match D with
-  | { L >: T <: U } => (fv_typ T) \u (fv_typ U)
+  | { A >: T <: U } => (fv_typ T) \u (fv_typ U)
   | { a ⦂ T } => fv_typ T
   end.
 
