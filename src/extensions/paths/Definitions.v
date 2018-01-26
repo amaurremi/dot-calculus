@@ -317,6 +317,39 @@ Definition open_def_p  u d := open_rec_def_p   0 u d.
 Definition open_defs_p u l := open_rec_defs_p 0 u l.
 Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 
+(** * Replacing paths with paths *)
+
+(* q [ u / p ] *)
+Definition repl_path (p: path) (u: path) (q: path) : path :=
+  match (q, p) with
+  | (p_sel (avar_f q_x) (q_bs2 :: q_bs1), p_sel p_x p_bs) =>
+    If avar_f q_x = p_x /\ q_bs1 = p_bs
+    then match u with
+         | p_sel u_x u_bs =>
+           p_sel u_x (q_bs2 :: u_bs)
+         end
+    else q
+  | _ => q
+end.
+
+(* T [ u / p ] *)
+Fixpoint repl_typ (p: path) (u: path) (T: typ) : typ :=
+  match T with
+  | typ_top        => typ_top
+  | typ_bot        => typ_bot
+  | typ_rcd D      => typ_rcd (repl_dec p u D)
+  | typ_and T1 T2  => typ_and (repl_typ p u T1) (repl_typ p u T2)
+  | typ_path q A   => typ_path (repl_path p u q) A
+  | typ_bnd T      => typ_bnd (repl_typ p u T)
+  | typ_all T U    => typ_all (repl_typ p u T) (repl_typ p u U)
+  | typ_sngl q     => typ_sngl (repl_path p u q)
+  end
+with repl_dec (p: path) (u: path) (D: dec) { struct D } : dec :=
+  match D with
+  | {A >: T <: U} => {A >: repl_typ p u T <: repl_typ p u U}
+  | {a ⦂ U}        => {a ⦂ repl_typ p u U }
+  end.
+
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
 
@@ -695,6 +728,14 @@ with subtyp : ctx -> typ -> typ -> Prop :=
     G ⊢ S2 <: S1 ->
     G ⊢ T1 <: T2 ->
     G ⊢ typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
+
+| subtyp_sngl1 : forall G p q T,
+    G ⊢ trm_path p : typ_sngl q ->
+    G ⊢ T <: repl_typ p q T
+
+| subtyp_sngl2 : forall G p q T,
+    G ⊢ trm_path p : typ_sngl q ->
+    G ⊢ repl_typ p q T <: T
 
 (** [G ⊢ x: {A: S..T}] #<br>#
     [――――――――――――――――] #<br>#

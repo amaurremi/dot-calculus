@@ -185,6 +185,14 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# T1 <: T2 ->
     G ⊢# typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
+| subtyp_sngl1_t : forall G p q T,
+    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# T <: repl_typ p q T
+
+| subtyp_sngl2_t : forall G p q T,
+    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# repl_typ p q T <: T
+
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# T <: p.A]         *)
