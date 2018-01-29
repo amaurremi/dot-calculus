@@ -125,12 +125,6 @@ Inductive precise_flow : path -> ctx -> typ -> typ -> Prop :=
     G ⊢! q : T ⪼ T' ->
     G ⊢! p : T ⪼ T
 
-| pf_repl : forall G p q T U U',
-    G ⊢! p : typ_sngl q ⪼ T ->
-    G ⊢! p : U ⪼ U' ->
-    inert_typ U ->
-    G ⊢! p : U ⪼ repl_typ p q U'
-
 where "G '⊢!' p ':' T '⪼' U" := (precise_flow p G T U).
 
 Hint Constructors precise_flow.
