@@ -12,7 +12,8 @@ Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
-Definition inert_sngl T := inert_typ T \/ exists p, T = typ_sngl p.
+Definition is_sngl T := exists p, T = typ_sngl p.
+Definition inert_sngl T := inert_typ T \/ is_sngl T.
 
 (* todo consistent lemma naming *)
 (* todo finish doc *)
