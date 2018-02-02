@@ -237,23 +237,6 @@ Proof.
     apply inv_to_tight in Hinv1. eauto. (* renaming *) admit.*)
 Qed.
 
-Lemma invertible_bot : forall G p,
-    inert G ->
-    G ⊢## p: typ_bot -> False.
-Proof.
-  introv Hi Hp. dependent induction Hp; eauto. false* pf_bot.
-  (*destruct T; inversions x. eauto.*)
-Qed.
-
-Lemma invertible_and : forall G p T U,
-    inert G ->
-    G ⊢## p: typ_and T U ->
-    G ⊢## p: T /\ G ⊢## p: U.
-Proof.
-  introv Hi Hp. dependent induction Hp; auto.
-  split. apply pf_and1 in H. eauto. apply pf_and2 in H. eauto.
-Qed.
-
 (** ** Invertible Replacement Closure *)
 
 Lemma invertible_repl_closure : forall G p q r T,
@@ -293,10 +276,38 @@ Proof.
     introv Hy. admit. (*renaming*)
 Admitted.
 
+Lemma invertible_bot : forall G p,
+    inert G ->
+    G ⊢## p: typ_bot -> False.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. false* pf_bot.
+  (*destruct T; inversions x. eauto.*)
+Qed.
+
+Lemma invertible_and : forall G p T U,
+    inert G ->
+    G ⊢## p: typ_and T U ->
+    G ⊢## p: T /\ G ⊢## p: U.
+Proof.
+  introv Hi Hp. dependent induction Hp; auto.
+  split. apply pf_and1 in H. eauto. apply pf_and2 in H. eauto.
+Qed.
+
 
 (** * Replacement typing
     Whereas invertible typing does replacment for singleton types in one direction,
-    replacement typing does the replacment in the other direction. *)
+    replacement typing does the replacment in the other direction.
+
+    Note that we can't simply define this using three rules:
+    1) identity from invertible typing
+    2) two repl subtyping rules
+    The reason is that if we did that, repl typing would necessarily apply the replacement
+    in all subterms of a term, whereas we want to be able to say, for example:
+    Г ⊢## p: T
+    Г ⊢// p: U
+    __________
+    Г ⊢// p: T ∧ U
+*)
 
 Reserved Notation "G '⊢//' p ':' T" (at level 40, p at level 59).
 
@@ -305,6 +316,24 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
 | ty_inv_r : forall G p T,
     G ⊢## p: T ->
     G ⊢// p: T
+(*
+| ty_dec_typ_inv : forall G p A T1 T2 S1 S2,
+  G ⊢// p : typ_rcd {A >: T1 <: S1} ->
+  G ⊢# T2 <: T1 ->
+  G ⊢# S1 <: S2 ->
+  G ⊢## p : typ_rcd {A >: T2 <: S2}
+
+| ty_all_inv : forall G T1 T2 S1 S2 L p,
+  G ⊢## p : typ_all S1 T1 ->
+  G ⊢# S2 <: S1 ->
+  (forall y, y \notin L ->
+   G & y ~ S2 ⊢ open_typ y T1 <: open_typ y T2) ->
+  G ⊢## p : typ_all S2 T2*)
+
+| ty_and_r : forall G p S1 S2,
+  G ⊢// p : S1 ->
+  G ⊢// p : S2 ->
+  G ⊢// p : typ_and S1 S2
 
 | ty_qp2_r : forall G p q r T,
     G ⊢// p : typ_sngl q ->
@@ -320,6 +349,26 @@ where "G '⊢//' p ':' T" := (ty_repl G p T).
 
 Hint Constructors ty_repl.
 
+Lemma repl_bot : forall G p,
+    inert G ->
+    G ⊢// p: typ_bot -> False.
+Proof.
+  introv Hi Hr. dependent induction Hr; eauto. false* invertible_bot.
+  destruct T; inversions x. eauto.
+Qed.
+
+Lemma repl_and : forall G p T U,
+    inert G ->
+    G ⊢// p: typ_and T U ->
+    G ⊢// p: T /\ G ⊢// p: U.
+Proof.
+  introv Hi Hr. dependent induction Hr; auto.
+  - split; constructor. apply (proj21 (invertible_and Hi H)). apply (proj22 (invertible_and Hi H)).
+  - destruct T0; inversions x. specialize (IHHr2 _ _ Hi eq_refl). destruct_all.
+    split; apply ty_qp2_r; auto.
+  - simpls. specialize (IHHr2 _ _ Hi eq_refl). destruct_all. split; apply* ty_pq1_r.
+Qed.
+
 Lemma replacement_repl_closure : forall G p q r T,
     G ⊢// p : T ->
     G ⊢// q : typ_sngl r ->
@@ -327,6 +376,123 @@ Lemma replacement_repl_closure : forall G p q r T,
 Proof.
   induction 1; eauto.
 Qed.
+
+Lemma repl_to_tight : forall G p T,
+    G ⊢// p : T ->
+    G ⊢# trm_path p : T.
+Proof.
+  introv Hp. induction Hp; eauto. apply* inv_to_tight.
+Qed.
+
+(** ** Replacment Subtyping Closure *)
+
+ Lemma replacement_typing_closure: forall G p T U,
+  inert G ->
+  G ⊢// p : T ->
+  G ⊢# T <: U ->
+  G ⊢// p : U.
+Proof.
+  introv Hi HT Hsub.
+  dependent induction Hsub; auto.
+  - induction HT; eauto.
+  - false* repl_bot.
+  - lets Ha: (repl_and Hi HT). destruct_all. assumption.
+  - lets Ha: (repl_and Hi HT). destruct_all. assumption.
+  - clear IHHsub. dependent induction HT; simpls; auto. eauto.
+    destruct T0; inversions x. destruct d; inversions H0.
+    all: apply repl_to_tight in HT1; eauto.
+  - clear IHHsub1 IHHsub2. dependent induction HT; simpls. eauto.
+    destruct T; inversions x. destruct d; inversions H0.
+    all: apply repl_to_tight in HT1; apply* IHHT2.
+  - dependent induction HT.
+    * constructor. apply* invertible_repl_closure.
+
+
+
+Lemma tight_to_repl :
+  (forall G t T, G ⊢# t : T -> forall p,
+     t = trm_path p ->
+     inert G ->
+     G ⊢// p : T) /\
+  (forall G T U, G ⊢# T <: U -> forall p,
+     G ⊢// p : T ->
+     inert G ->
+     G ⊢// p : U).
+Proof.
+  apply ts_mutind_ts; intros; subst; simpls; try solve [inversions H; eauto]; auto.
+  - inversion H1.
+  - inversions H0. specialize (H _ eq_refl H1). clear t.
+    dependent induction H; eauto.
+    * destruct (invertible_to_precise_trm_dec H1 H) as [S [U [Hp Hs]]].
+      clear H. gen T. dependent induction Hp; introv Hs.
+      ** apply (binds_inert H0) in H1. inversion H1.
+      ** apply pf_fld in Hp. apply pf_fld in Hp.
+        assert (G ⊢# typ_rcd {a ⦂ U} <: typ_rcd {a ⦂ T0}) as Hsub by eauto.
+        specialize (IHHp _ H1 _ eq_refl _ Hsub).
+
+    * destruct T0; inversions x. destruct d; inversions H3. eauto.
+
+
+
+  Lemma replacement_typing_closure: forall G p T U,
+  inert G ->
+  G ⊢// p : T ->
+  G ⊢# T <: U ->
+  G ⊢// p : U.
+Proof.
+  introv Hi HT Hsub.
+  dependent induction Hsub; auto.
+  - induction HT; eauto.
+  - false* repl_bot.
+  - lets Ha: (repl_and Hi HT). destruct_all. assumption.
+  - lets Ha: (repl_and Hi HT). destruct_all. assumption.
+  - clear IHHsub. dependent induction HT; simpls; auto. eauto.
+    destruct T0; inversions x. destruct d; inversions H0.
+    all: apply repl_to_tight in HT1; eauto.
+  - clear IHHsub1 IHHsub2. dependent induction HT; simpls. eauto.
+    destruct T; inversions x. destruct d; inversions H0.
+    all: apply repl_to_tight in HT1; apply* IHHT2.
+  - dependent induction HT.
+    * constructor. apply* invertible_repl_closure.
+
+
+
+
+
+
+
+    * (* NEXT: try to prove this by induction on H, and induction on the underlying precise typing *)
+  - (* need mutual induction to get that G ⊢## p: q.type *)
+    assert (G ⊢## p : typ_sngl q) as Hp by admit. admit.
+  - assert (G ⊢## p : typ_sngl q) as Hp by admit. admit.
+  - admit.
+  -
+    dependent induction HT.
+    + false* pf_psel_false.
+    + lets Hu: (pf_inert_rcd_U Hi H). lets Hu': (pf_inert_rcd_U Hi H0). destruct_all. subst.
+      lets Heq: (p_bound_rec_unique Hi H H0). subst.
+      lets Heq: (pf_record_unique_tight_bounds_rec Hi H H0). subst. eauto.
+    + destruct T; inversions x. specialize (IHHT2 Hi _ _ eq_refl). clear IHHT1.
+      unfold repl_path in H. destruct p1, p0, a.
+      * apply precise_to_general in H. apply typed_paths_named in H. inversion H. destruct_all. inversion* H0.
+      * destruct f. admit. case_if.
+        ** destruct q. destruct_all. subst.
+           rename v into q'_x. rename f0 into q'_bs. rename a into q_x. rename f1 into q_bs.
+           rename t into bs.
+           lets Hp: (ty_repl1_inv HT1 HT2).
+           lets Hpr: (invertible_to_precise_sngl Hi HT1).
+           remember (p_sel (avar_f q'_x) q'_bs) as q'. remember (p_sel q_x q_bs) as q.
+           remember (p_sel (avar_f q'_x) (bs :: q'_bs)%list) as q'bs.
+           remember (p_sel q_x (bs :: q_bs)%list) as qbs.
+           destruct (classicT (q'=q)).
+           *** rewrite e in *. clear e Hpr.
+               assert (repl_typ q q (typ_path q'bs A) = typ_path q'bs A) as Heq by admit.
+               rewrite Heq in Hp. clear Heq.
+               subst. inversions Heqq. apply* IHHT2.
+           *** specialize (Hpr n).
+        Admitted.
+
+
 
 (** ** Invertible Subtyping Closure *)
 

@@ -22,7 +22,7 @@ Ltac simpl_dot :=
     symmetry in H; simpl_dot
   | [ H: p_sel _ _ = _ • _ |- _ ] =>
     symmetry in H; simpl_dot
-  | [ H: _ • _ = _ • _ |- _ ] =>
+  | [ H: _ • _ = _ |- _ ] =>
     unfold sel_fields in H;
     match goal with
     | [ H: match ?p1 with
