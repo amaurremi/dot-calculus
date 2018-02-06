@@ -40,6 +40,10 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢! p : U ⪼ T ->
   G ⊢## p : T
 
+| ty_sngl_refl_inv : forall G p T,
+    G ⊢## p : T ->
+    G ⊢## p : typ_sngl p
+
 (** [G ⊢## p: {a: T}] #<br>#
     [G ⊢# T <: U]     #<br>#
     [――――――――――――――――] #<br>#
@@ -203,7 +207,7 @@ Proof.
   dependent induction Hinv.
   - repeat eexists; eauto.
   - specialize (IHHinv _ _ Hi eq_refl). destruct IHHinv as [U [T' [Hp Hs]]]. repeat eexists; eauto.
-(*  - destruct T0; inversions x. destruct d; inversions H0. specialize (IHHinv2 _ _ Hi eq_refl).
+  (*-  destruct T0; inversions x. destruct d; inversions H0. specialize (IHHinv2 _ _ Hi eq_refl).
     destruct IHHinv2 as [qs [T' [Ht Hs]]]. repeat eexists. apply Ht.
     apply subtyp_trans_t with (T:=t0); auto. apply inv_to_tight in Hinv1.
     eauto.*)
@@ -316,19 +320,6 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
 | ty_inv_r : forall G p T,
     G ⊢## p: T ->
     G ⊢// p: T
-(*
-| ty_dec_typ_inv : forall G p A T1 T2 S1 S2,
-  G ⊢// p : typ_rcd {A >: T1 <: S1} ->
-  G ⊢# T2 <: T1 ->
-  G ⊢# S1 <: S2 ->
-  G ⊢## p : typ_rcd {A >: T2 <: S2}
-
-| ty_all_inv : forall G T1 T2 S1 S2 L p,
-  G ⊢## p : typ_all S1 T1 ->
-  G ⊢# S2 <: S1 ->
-  (forall y, y \notin L ->
-   G & y ~ S2 ⊢ open_typ y T1 <: open_typ y T2) ->
-  G ⊢## p : typ_all S2 T2*)
 
 | ty_and_r : forall G p S1 S2,
   G ⊢// p : S1 ->
@@ -377,6 +368,27 @@ Proof.
   induction 1; eauto.
 Qed.
 
+Lemma repl_id: forall p q,
+    repl_path p q p = q.
+Proof. Admitted.
+
+Lemma repl_swap_tight: forall G p q,
+    inert G ->
+    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# trm_path q : typ_sngl p.
+Proof.
+  introv Hi Hpq. assert (G ⊢# trm_path q : typ_sngl q) as Hs by admit.
+  apply ty_sub_t with (U:=repl_typ q p (typ_sngl q)) in Hs.
+  simpls. rewrite repl_id in Hs. auto. auto.
+Qed.
+
+Lemma repl_to_tight : forall G p T,
+    G ⊢// p : T ->
+    G ⊢# trm_path p : T.
+Proof.
+  introv Hp. induction Hp; eauto. apply* inv_to_tight.
+Qed.
+
 Lemma replacement_repl_closure2 : forall G p q r T,
     inert G ->
     G ⊢// p : T ->
@@ -385,16 +397,19 @@ Lemma replacement_repl_closure2 : forall G p q r T,
 Proof.
   introv Hi Hp. gen q r. induction Hp; introv Hq; simpls; auto.
   - constructor. apply* invertible_repl_closure.
-  - lets Hqp: (ty_qp2_r H Hp). (* if we had sngl-refl, we could prove that r0: q0.type and we would be done *)
-    admit.
-  - lets
+  - lets Hqp: (ty_qp2_r H Hp).
 
-Lemma repl_to_tight : forall G p T,
-    G ⊢// p : T ->
-    G ⊢# trm_path p : T.
-Proof.
-  introv Hp. induction Hp; eauto. apply* inv_to_tight.
-Qed.
+        apply ty_sngl_refl_inv in Hr. apply ty_inv_r in Hr. apply (ty_qp2_r Hq) in Hr. simpls.
+    apply repl_to_tight in Hr.
+    assert (repl_path r0 q0 r0 = r0) as Heq by admit. rewrite Heq in Hr.
+    apply
+    specialize (IHHp Hi _ _
+    lets HH: (
+    (* if we had sngl-refl, we could prove that r0: q0.type and we would be done *)
+    admit.
+  -
+
+
 
 (** ** Replacment Subtyping Closure *)
 

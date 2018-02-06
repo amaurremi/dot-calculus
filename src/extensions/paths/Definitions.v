@@ -521,14 +521,13 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
     ok G ->
     G ⊢ tvar x : T
 
-(*
+
 (** [G ⊢ p: T     ]   #<br>#
     [―――――――――――――]   #<br>#
     [G ⊢ p: p.type]  *)
 | ty_sngl_refl: forall p T G,
     G ⊢ trm_path p : T ->
     G ⊢ trm_path p : typ_sngl p
-*)
 
 (** [G, z: T ⊢ t^z: U^z]     #<br>#
     [z fresh]                #<br>#
