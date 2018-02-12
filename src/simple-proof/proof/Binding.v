@@ -193,6 +193,13 @@ Proof.
     reflexivity.
 Qed.
 
+(** [G[y/x], z ~ T[y/x] = (G, z ~ T)[y/x] *)
+Lemma subst_ctx_push : forall x y G z T,
+    subst_ctx x y G & z ~ subst_typ x y T = subst_ctx x y (G & z ~ T).
+Proof.
+  intros. unfold subst_ctx; rewrite map_concat, map_single; auto.
+Qed.
+
 (** Definition of substitution on named variables: #<br>#
     [z[y/x] := if z == x then y else z], where [z] is a named variable. *)
 Definition subst_fvar(x y z: var): var := If z = x then y else z.

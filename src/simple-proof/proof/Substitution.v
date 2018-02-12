@@ -31,13 +31,9 @@ Ltac subst_solver :=
     match goal with
     | [ H: forall z, z \notin ?L -> forall G, _
         |- context [ _ & subst_ctx ?x ?y ?G2 & ?z ~ subst_typ ?x ?y ?V] ] =>
-        assert (subst_ctx x y G2 & z ~ subst_typ x y V = subst_ctx x y (G2 & z ~ V)) as B
-            by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
-        rewrite <- concat_assoc; rewrite B;
-        apply~ H;
-        try (rewrite concat_assoc; auto);
-        rewrite <- B,concat_assoc; unfold subst_ctx;
-        auto using weaken_ty_trm, ok_push, ok_concat_map
+        rewrite <- concat_assoc; rewrite subst_ctx_push;
+        apply H; try rewrite <- subst_ctx_push; try rewrite concat_assoc;
+        unfold subst_ctx; auto using weaken_ty_trm
     end.
 
 Ltac fold_subst :=
@@ -111,9 +107,9 @@ Lemma subst_rules: forall y S,
     G1 & (subst_ctx x y G2) ⊢ trm_var (avar_f y) : subst_typ x y S ->
     G1 & (subst_ctx x y G2) ⊢ subst_typ x y T <: subst_typ x y U).
 Proof.
-  introv. apply rules_mutind; intros; subst; simpl;
-            try (subst_solver || rewrite subst_open_commut_typ);
-            simpl in *; eauto 4.
+  introv. apply rules_mutind; intros; subst; simpl in *;
+            try (subst_solver || rewrite subst_open_commut_typ; eauto);
+            eauto 4.
   - Case "ty_var".
     cases_if.
     + apply binds_middle_eq_inv in b; subst; assumption.
@@ -153,7 +149,8 @@ Lemma subst_ty_defs: forall y S G x ds T,
 Proof.
   intros.
   apply (proj53 (subst_rules y S)) with (G1:=G) (G2:=empty) (x:=x) in H;
-    unfold subst_ctx in *; try rewrite map_empty in *; try rewrite concat_empty_r in *; auto.
+    unfold subst_ctx in *; try rewrite map_empty in *;
+      try rewrite concat_empty_r in *; auto.
 Qed.
 
 (** * Renaming  *)
@@ -212,5 +209,5 @@ Proof.
   introv Hok Hu Hx. pick_fresh y.
   rewrite subst_intro_trm with (x:=y); auto.
   rewrite <- subst_fresh_typ with (x:=y) (y:=x); auto.
-  eapply subst_ty_trm; eauto. rewrite~ subst_fresh_typ.
+  apply~ subst_ty_trm. rewrite~ subst_fresh_typ.
 Qed.
