@@ -193,7 +193,7 @@ with open_rec_defs (k: nat) (u: var) (ds: defs): defs :=
   end.
 
 Definition open_avar u a := open_rec_avar  0 u a.
-Definition open_typ  u t := open_rec_typ   0 u t.
+Definition open_typ  u T := open_rec_typ   0 u T.
 Definition open_dec  u D := open_rec_dec   0 u D.
 Definition open_trm  u e := open_rec_trm   0 u e.
 Definition open_val  u v := open_rec_val   0 u v.
@@ -545,10 +545,16 @@ Tactic Notation "apply_fresh" constr(T) "as" ident(x) :=
   apply_fresh_base T gather_vars x.
 
 Ltac fresh_constructor :=
-  apply_fresh ty_new_intro as z ||
-  apply_fresh ty_all_intro as z ||
-  apply_fresh ty_let as z ||
-  apply_fresh subtyp_all as z; auto.
+  match goal with
+  | [ |- _ ⊢ trm_val (val_new _ _) : typ_bnd _ ] =>
+    apply_fresh ty_new_intro as z
+  | [ |- _ ⊢ trm_val (val_lambda _ _) : typ_all _ _ ] =>
+    apply_fresh ty_all_intro as z
+  | [ |- _ ⊢ trm_let _ _ : _ ] =>
+    apply_fresh ty_let as z
+  | [ |- _ ⊢ typ_all _ _ <: typ_all _ _ ] =>
+    apply_fresh subtyp_all as z
+  end; auto.
 
 (** Tactics for naming cases in case analysis. *)
 
