@@ -190,15 +190,6 @@ Proof.
     + destruct H1. apply (IHHinert H2).
 Qed.
 
-(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
-Lemma pf_binds: forall G x T U,
-    inert G ->
-    G ⊢! pvar x: T ⪼ U ->
-    binds x T G.
-Proof.
-  introv Hi Pf. dependent induction Pf; auto. destruct (last_field _ _ x) as [bs Hbs].
-  inversion* Hbs. Abort.
-
 Lemma pf_TT: forall G p T U,
     G ⊢! p: T ⪼ U ->
     G ⊢! p: T ⪼ T.
@@ -484,59 +475,141 @@ Proof.
   dependent induction Pf1.
   - lets Hb: (pf_bnd_T Hi Pf1). inversions Hb.
     destruct U; inversions x. destruct d; inversions H2.
-Admitted. (*  - assert (record_type (typ_rcd (dec_trm a U2))) as Hrt. {
+    lets Hrh: (pf_record_has_U Hi Pf2).
+    inversion* Hrh.
+  - lets Hrh: (pf_record_has_U Hi Pf2).
+    assert (record_has (typ_and (typ_rcd {a ⦂ U1}) U0) {a ⦂ U1}) as Hrh' by auto.
+    lets Hrh'': (pf_record_has_T Hi Pf1 Hrh'). apply (pf_rcd_T Hi) in Pf2.
+    lets Hrt: (open_record_type_p p Pf2). apply* unique_rcd_trm.
+  - lets Hrh: (pf_record_has_U Hi Pf2).
+    assert (record_has (typ_and U3 (typ_rcd {a ⦂ U1})) {a ⦂ U1}) as Hrh' by auto.
+    lets Hrh'': (pf_record_has_T Hi Pf1 Hrh'). apply (pf_rcd_T Hi) in Pf2.
+    lets Hrt: (open_record_type_p p Pf2). apply* unique_rcd_trm.
+Qed.
 
-      eexists. apply* rt_one. constructor.
+(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
+(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
+Lemma pf_binds: forall G x T U,
+    inert G ->
+    G ⊢! pvar x: T ⪼ U ->
+    binds x T G.
+Proof.
+  introv Hi Pf. dependent induction Pf; try simpl_dot; auto.
+  specialize (IHPf1 _ Hi eq_refl). apply pf_sngl_T in Pf1; auto. subst. apply binds_inert in IHPf1.
+  inversion IHPf1. auto.
+Qed.
 
-    }
-    destruct (pf_inert_rcd_typ_U Hi Pf2 Hrt) as [S Heq]. subst.
-    destruct U; inversions x. destruct d; inversions H0.
-    apply (pf_bnd_Tpf_rec_rcd_U Hi) in Pf1. inversions Pf1.
-    lets Hr: (precise_flow_record_has Hi Pf2). inversion* Hr.
-  - assert (record_type (typ_rcd (dec_trm a U2))) as Hrt. {
-      eexists. apply* rt_one. constructor.
-    }
-    destruct (pf_inert_rcd_typ_U Hi Pf2 Hrt) as [S Heq]. subst.
-    assert (record_has (typ_and (typ_rcd (dec_trm a U1)) U0) (dec_trm a U1)) as H
-        by (apply* rh_andl).
-    lets Hr1: (pf_record_sub Hi Pf1 H).
-    lets Hr2: (precise_flow_record_has Hi Pf2).
-    assert (record_type (open_typ_p p S)) as Hs. {
-      apply open_record_type_p. apply pf_inert in Pf1; auto. inversions Pf1. inversion* H1.
-    }
-    apply* unique_rcd_trm.
-  - assert (record_type (typ_rcd (dec_trm a U2))) as Hrt. {
-      eexists. apply* rt_one. constructor.
-    }
-    destruct (pf_inert_rcd_typ_U Hi Pf2 Hrt) as [S Heq]. subst.
-    assert (record_has (typ_and U3 (typ_rcd (dec_trm a U1))) (dec_trm a U1)) as H
-        by (apply* rh_andr).
-    lets Hr1: (pf_record_sub Hi Pf1 H).
-    lets Hr2: (precise_flow_record_has Hi Pf2).
-    assert (record_type (open_typ_p p S)) as Hs. {
-      apply open_record_type_p. apply pf_inert in Pf1; auto. inversions Pf1. inversion* H.
-    }
-    apply* unique_rcd_trm.*)
 
-(* todo: prove that p goes through a series of singleton types after which it
-         terminates at a unique value *)
+(* we need to be able to show that if
+   G ⊢! p: T ⪼ {a: q.type}
+   then q is in the environment, and it also has an inert type. But for this we would need to
+   - define inertness differently
+   - apply an induction hypothesis to q. And for that, we would need to define this lemma in some different way
+     that I don't know how to do. *)
+Lemma pf_inert_typ : forall G p T U,
+    inert G ->
+    G ⊢! p : T ⪼ U ->
+    exists S, G ⊢! p : S ⪼ S /\ inert_typ S.
+Proof.
+  introv Hi Hp. induction Hp; eauto.
+  - exists T. split. auto. apply binds_inert in H0; auto.
+  - specialize (IHHp Hi). destruct IHHp as [S [Hps Hs]].
+    exists U. split*. destruct (pf_bnd_T2 Hi Hp) as [U' Heq]. subst.
+    destruct (pf_rec_rcd_U Hi Hp) as [H | H]. inversion H. inversions H. inversions H0.
+    inversions H1; auto. Admitted.
+
+(* this lemma statement is too weak:
+   what if p.a has an inert type, but ⊢! p: q.type?
+   then we don't get an IH for q *)
+Lemma pf_T_unique': forall G p T1 T2 U1 U2,
+    inert G ->
+    G ⊢! p: T1 ⪼ U1 ->
+    G ⊢! p: T2 ⪼ U2 ->
+    inert_typ T1 ->
+    inert_typ T2 ->
+    T1 = T2.
+Proof.
+  introv Hi Hp1. gen T2 U2. induction Hp1; introv Hp2 Ht1 Ht2; eauto.
+  - Case "pf_bind".
+    apply (pf_binds Hi) in Hp2. eapply binds_func. apply H0. auto.
+  - Case "pf_fld".
+    gen U T. dependent induction Hp2; introv Hiu; introv Hp IH; try simpl_dot; eauto.
+    * rename a2 into x. rename f0 into bs. clear IHHp2.
+      destruct (pf_bnd_T2 Hi Hp) as [S Heq]. subst. lets Hr: (pf_rcd_T Hi Hp).
+      destruct (pf_bnd_T2 Hi Hp2) as [S' Heq]. subst. lets Hr': (pf_rcd_T Hi Hp2).
+      assert (inert_typ (typ_bnd S)) as His. {
+        inversions Hr. apply* inert_typ_bnd.
+      }
+      assert (inert_typ (typ_bnd S')) as His'. {
+        inversions Hr'. apply* inert_typ_bnd.
+      }
+      specialize (IH Hi _ _ Hp2 His His').
+      inversions IH. lets Hrh: (pf_record_has_U Hi Hp2).
+      lets Hrh': (pf_record_has_U Hi Hp).
+      assert (record_type (open_typ_p (p_sel x bs) S')) as Hrt by apply* open_record_type_p.
+      apply* unique_rcd_trm.
+    * lets Hqs: (pf_sngl_T Hi Hp2_1). subst.
+  Abort.
+
+(* I don't think we can prove this b/c we need to do induction on a sequence of singleton-path transitions.
+   Maybe we should define a type lookup relation and prove that pf_T_unique implies that relation. *)
+Lemma pf_T_unique_sngl: forall G p q T1 T2 U1 U2,
+    inert G ->
+    G ⊢! p: T1 ⪼ U1 ->
+    G ⊢! q: T2 ⪼ U2 ->
+    (p = q \/ G ⊢! p: T2 ⪼ typ_sngl q) ->
+    inert_typ T1 ->
+    inert_typ T2 ->
+    T1 = T2.
+Proof.
+  introv Hi Hp1. gen q T2 U2. induction Hp1; introv Hq Hpq Hi1 Hi2; eauto.
+  - Case "pf_bind".
+    destruct Hpq as [Heq | Hp2]; subst.
+    * apply (pf_binds Hi) in Hq. eapply binds_func. apply H0. auto.
+    * lets Hs: (pf_sngl_T Hi Hp2). subst. inversion Hi2.
+  - Case "pf_fld".
+    gen p T a U. induction Hq; introv IH; introv Hpq; introv Hp1 Hiu; eauto.
+    * SCase "pf_bind".
+      destruct Hpq as [Heq | Hp2]. simpl_dot. lets Hs: (pf_sngl_T Hi Hp2). subst.
+      apply binds_inert in H0. inversion H0. auto.
+    * SCase "pf_fld".
+      destruct (pf_bnd_T2 Hi Hq) as [S Heq]. subst.
+      lets Hr: (pf_rcd_T Hi Hq). inversions Hr. lets Hb: (inert_typ_bnd H).
+      destruct Hpq as [Heq | Hp2].
+      ** simpl_dot.
+         destruct (pf_bnd_T2 Hi Hp1) as [U' Heq]. subst.
+         lets Hr: (pf_rcd_T Hi Hp1). inversions Hr. apply inert_typ_bnd in H0.
+         assert (typ_bnd U' = typ_bnd S) as Heq by apply* IH. inversions Heq.
+         lets Hrh: (pf_record_has_U Hi Hp1).
+         lets Hrh': (pf_record_has_U Hi Hq).
+         assert (record_type (open_typ_p (p_sel a2 f0) S)) as Hrt by apply* open_record_type_p.
+         apply* unique_rcd_trm.
+      ** specialize (IHHq Hi Hb _ _ IH).
+         lets Heq: (pf_sngl_T Hi Hp2). subst. inversion Hi2.
+    * SCase "pf_sngl_trans".
+      lets Heq: (pf_sngl_T Hi Hq1). subst. clear IHHq1. destruct Hpq as [Heq | Hp0p].
+      ** subst. specialize (IHHq2 Hi Hi2 _ _ IH).
+         admit.
+      ** specialize (IHHq2 Hi Hi2 _ _ IH).
+         admit.
+  - SCase "pf_sngl_trans".
+    lets Hs: (pf_sngl_T Hi Hp1_1). subst.
+    destruct Hpq as [Heq | Hp]. subst.
+    * clear IHHp1_1.
+      admit.
+    * lets Hs: (pf_sngl_T Hi Hp). subst. inversion Hi2.
+Qed.
+
 Lemma pf_T_unique: forall G p T1 T2 U1 U2,
     inert G ->
     G ⊢! p: T1 ⪼ U1 ->
     G ⊢! p: T2 ⪼ U2 ->
+    inert_typ T1 ->
+    inert_typ T2 ->
     T1 = T2.
 Proof.
-  introv Hi Hp1 Hp2. gen T2 U2. dependent induction Hp1; intros; eauto.
-  - Abort. (*apply (pf_binds Hi) in Hp2. apply (binds_func H0) in Hp2. inversion* Hp2.
-  - Admitted. (*specialize (IHHp1 Hi _ _ Hp2).
-    dependent induction Hp2; eauto; try unfold sel_fields in x.
-    * destruct p. inversion x.
-    * destruct p0, p. inversions x.
-      destruct (pf_bnd_T2 Hi Hp2) as [T' Heq]. subst.
-      specialize (IHHp2 _ _ eq_refl Hp1 Hi).
-  - lets Hs: (pf_sngl_U Hp1_1). subst. specialize (IHHp1_2 _ Hi eq_refl). clear IHHp1_1.
-    specialize (IHHp1_2 _ _ Hp1_2).*)
-            *)
+  introv Hp1 Hp2 Ht1 Ht2. apply* pf_T_unique_sngl.
+Qed.
 
 (** If a typing context is inert, then the variables in its domain are distinct. #<br>#
     Note: [ok] is defined in [TLC.LibEnv.v]. *)
@@ -612,4 +685,28 @@ Proof.
   apply (binds_inert H0) in Hi. inversion Hi.
   unfolds sel_fields. destruct p0. inversion x.
   lets Hs: (pf_sngl_T Hi Hx1). subst. apply* IHHx1.
+Qed.
+
+Lemma pf_inert_sngl : forall G p q T U,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: T ⪼ U ->
+    inert_typ T ->
+    G ⊢! q: T ⪼ T.
+Proof.
+  introv Hi Hpq Hp Ht. gen q. dependent induction Hp; introv Hpq; eauto.
+  - apply pf_binds in Hpq. apply binds_inert in Hpq. inversion Hpq. all: auto.
+  - destruct (pf_bnd_T2 Hi Hp) as [S Heq]. subst.
+    lets Hr: (pf_rcd_T Hi Hp). inversions Hr. lets His: (inert_typ_bnd H).
+    admit.
+  - admit.
+Qed.
+
+Lemma pf_inert_bnd : forall G p T D,
+    inert G ->
+    G ⊢! p : T ⪼ typ_rcd D ->
+    inert_typ T.
+Proof.
+  introv Hi Hp. lets Hr: (pf_bnd_T2 Hi Hp). destruct_all.
+  subst. apply pf_rcd_T in Hp; auto. inversions Hp. apply* inert_typ_bnd.
 Qed.

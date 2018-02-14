@@ -819,3 +819,78 @@ Lemma inert_repl : forall T p q,
 Proof.
   intros. apply* inert_repl_mut.
 Qed.
+
+Lemma subtract_fields_nil : forall {A} (l:list A),
+    subtract_fields l nil = Some l.
+Proof.
+  introv. unfold subtract_fields. destruct* l.
+Qed.
+
+Lemma subtract_fields_sub : forall {A} (bs cs : list A),
+    subtract_fields (bs ++ cs) bs = Some cs.
+Proof.
+  intros A bs. induction bs; intros; simpl.
+  - eapply subtract_fields_nil.
+  - case_if. auto.
+Qed.
+
+Lemma subtract_fields_cons : forall {A} (a:A) (bs : list A),
+    subtract_fields (a :: bs) (a :: bs) = subtract_fields bs bs.
+Proof.
+  introv. unfold subtract_fields. case_if. auto.
+Qed.
+
+Lemma subtract_fields_refl : forall {A} (bs : list A),
+    subtract_fields bs bs = Some nil.
+Proof.
+  introv. induction bs; auto. rewrite subtract_fields_cons. auto.
+Qed.
+
+Lemma repl_subset : forall x bs y ds cs,
+    repl_path (p_sel (avar_f x) bs) (p_sel (avar_f y) ds) (p_sel (avar_f x) (cs ++ bs))
+    = p_sel (avar_f y) (cs ++ ds).
+Proof.
+  introv. unfold repl_path. induction bs.
+  - rewrite <- app_nil_end. case_if. simpl. rewrite subtract_fields_nil.
+    rewrite* rev_involutive.
+  - case_if. rewrite rev_app_distr in *. rewrite subtract_fields_sub. rewrite subtract_fields_sub in IHbs.
+    auto.
+Qed.
+
+Lemma repl_id: forall p q,
+    named_path p ->
+    named_path q ->
+    repl_path p q p = q.
+Proof.
+  introv Hn1 Hn2. destruct Hn1 as [x [bs Heq]]. destruct Hn2 as [y [bs2 Heq2]]. subst.
+  unfold repl_path. case_if. rewrite subtract_fields_refl. simpl. auto.
+Qed.
+
+Lemma repl_open_path : forall p q r,
+    named_path p ->
+    named_path q ->
+    repl_path p q (open_path_p p r) = open_path_p q (repl_path p q r).
+Proof.
+  introv Hnp Hnq.
+  destruct Hnp as [xp [bsp Hep]].
+  destruct Hnq as [xq [bsq Heq]]. subst.
+  destruct r as [[b | xr] bsr]. simpl.
+  - case_if; auto.
+    subst. unfold repl_path. case_if. rewrite rev_app_distr. rewrite subtract_fields_sub.
+    rewrite rev_involutive. auto.
+  - unfold repl_path. case_if.
+    * subst. simpl. case_if. Admitted.
+
+Lemma repl_open :
+  (forall T p q,
+      named_path p ->
+      named_path q ->
+      repl_typ p q (open_typ_p p T) = open_typ_p q (repl_typ p q T)) /\
+  (forall D p q,
+      named_path p ->
+      named_path q ->
+      repl_dec p q (open_dec_p p D) = open_dec_p q (repl_dec p q D)).
+Proof.
+  apply typ_mutind; intros; simpls; try rewrite* H; try rewrite* H0; auto.
+  - rewrite* repl_open_path.
+  - Admitted.
