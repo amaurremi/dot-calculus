@@ -124,6 +124,7 @@ Inductive precise_flow : ctx -> path -> typ -> typ -> Prop :=
 
 where "G '⊢!' p ':' T '⪼' U" := (precise_flow G p T U).
 
+
 Hint Constructors precise_flow.
 
 Ltac fresh_constructor_p :=

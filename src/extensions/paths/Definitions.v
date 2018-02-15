@@ -320,17 +320,24 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 (** * Replacing paths with paths *)
 
 (* q [ u / p ] *)
+(* if p = q -> u else
+   if q = x -> q else
+   if q = q'.a -> q'[u/p].a *)
+
+Fixpoint repl_path_helper px pbs u qx qbs :=
+  If p_sel px pbs = p_sel qx qbs then u
+  else match qbs with
+       | nil => (* if q is a variable *)
+         p_sel qx qbs
+       | b :: bs =>
+         (repl_path_helper px pbs u qx bs) • b
+       end.
+
 Definition repl_path (p: path) (u: path) (q: path) : path :=
-  match (q, p) with
-  | (p_sel (avar_f q_x) (q_bs2 :: q_bs1), p_sel p_x p_bs) =>
-    If avar_f q_x = p_x /\ q_bs1 = p_bs
-    then match u with
-         | p_sel u_x u_bs =>
-           p_sel u_x (q_bs2 :: u_bs)
-         end
-    else q
-  | _ => q
-end.
+  match (p, q) with
+  | (p_sel px pbs, p_sel qx qbs) =>
+    repl_path_helper px pbs u qx qbs
+  end.
 
 (* T [ u / p ] *)
 Fixpoint repl_typ (p: path) (u: path) (T: typ) : typ :=
