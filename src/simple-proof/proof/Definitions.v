@@ -482,7 +482,7 @@ where "G '⊢' T '<:' U" := (subtyp G T U).
     - [s = {(xi mapsto vi) | i = 1, ..., n}]
     - [G ⊢ vi: Ti].
 
-    We say that [e] is well-typed with respect to [G], denoted as [s: G]. *)
+    We say that [s] is well-typed with respect to [G], denoted as [s: G]. *)
 
 Definition well_typed (G : ctx) (s : sta) : Prop :=
   ok G /\
