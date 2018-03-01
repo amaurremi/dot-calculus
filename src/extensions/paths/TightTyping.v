@@ -35,12 +35,12 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     ok G ->
     G ⊢# tvar x : T
 
-(** [G(x) = T      ]   #<br>#
+(*(** [G(x) = T      ]   #<br>#
     [――――――――――――――]   #<br>#
     [G ⊢# x: x.type]  *)
 | ty_sngl_refl_t: forall p T G,
     G ⊢# trm_path p : T ->
-    G ⊢# trm_path p : typ_sngl p
+    G ⊢# trm_path p : typ_sngl p*)
 
 (** [G, x: T ⊢ t^x: U^x]       #<br>#
     [x fresh]                  #<br>#
@@ -194,13 +194,13 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# trm_path p : typ_sngl q ->
     G ⊢# repl_typ p q T <: T
 
-| subtyp_sngl_qp1_t : forall G p q T,
+(*| subtyp_sngl_qp1_t : forall G p q T,
     G ⊢# trm_path p : typ_sngl q ->
     G ⊢# T <: repl_typ q p T
 
 | subtyp_sngl_qp2_t : forall G p q T,
     G ⊢# trm_path p : typ_sngl q ->
-    G ⊢# repl_typ q p T <: T
+    G ⊢# repl_typ q p T <: T*)
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
