@@ -10,8 +10,8 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
-Require Import String List.
+Require Import LibLN LibOption.
+Require Import List String.
 
 Parameter typ_label: Set.
 Parameter trm_label: Set.
@@ -320,42 +320,51 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 (** * Replacing paths with paths *)
 
 (* q [ u / p ] *)
-(* if p = q -> u else
-   if q = x -> q else
+(* if p = q -> Some u else
+   if q = x -> None else
    if q = q'.a -> q'[u/p].a *)
 
 Fixpoint repl_path_helper px pbs u qx qbs :=
-  If p_sel px pbs = p_sel qx qbs then u
+  If p_sel px pbs = p_sel qx qbs then Some u
   else match qbs with
        | nil => (* if q is a variable *)
-         p_sel qx qbs
+         None
        | b :: bs =>
-         (repl_path_helper px pbs u qx bs) • b
+         map_on (repl_path_helper px pbs u qx bs) (fun p => p•b)
        end.
 
-Definition repl_path (p: path) (u: path) (q: path) : path :=
+Definition repl_path (p: path) (u: path) (q: path) : option path :=
   match (p, q) with
   | (p_sel px pbs, p_sel qx qbs) =>
     repl_path_helper px pbs u qx qbs
   end.
 
-(* T [ u / p ] *)
-Fixpoint repl_typ (p: path) (u: path) (T: typ) : typ :=
+(* T [ u / p, i ] *)
+
+Fixpoint repl_typ (i: nat) (p: path) (u: path) (T: typ) : option typ :=
   match T with
-  | typ_top        => typ_top
-  | typ_bot        => typ_bot
-  | typ_rcd D      => typ_rcd (repl_dec p u D)
-  | typ_and T1 T2  => typ_and (repl_typ p u T1) (repl_typ p u T2)
-  | typ_path q A   => typ_path (repl_path p u q) A
-  | typ_bnd T      => typ_bnd (repl_typ p u T)
-  | typ_all T U    => typ_all (repl_typ p u T) (repl_typ p u U)
-  | typ_sngl q     => typ_sngl (repl_path p u q)
+  | typ_top        => Some typ_top
+  | typ_bot        => Some typ_bot
+  | typ_rcd D      => map_on (repl_dec p u D) typ_rcd
+  | typ_and T1 T2  => apply_on (repl_typ p u T1) (fun T1' =>
+                                                 map_on (repl_typ p u T2) (fun T2' =>
+                                                                             typ_and T1' T2'))
+  | typ_path q A   => map_on (repl_path p u q) (fun p => typ_path p A)
+  | typ_bnd T      => map_on (repl_typ p u T) typ_bnd
+  | typ_all T U    => apply_on (repl_typ p u T) (fun T' =>
+                                                  map_on (repl_typ p u U) (fun U' =>
+                                                                             typ_all T' U'))
+  | typ_sngl q     => map_on (repl_path p u q) typ_sngl
   end
-with repl_dec (p: path) (u: path) (D: dec) { struct D } : dec :=
+with repl_dec (p: path) (u: path) (D: dec) { struct D } : option dec :=
   match D with
-  | {A >: T <: U} => {A >: repl_typ p u T <: repl_typ p u U}
-  | {a ⦂ U}        => {a ⦂ repl_typ p u U }
+  | {A >: T <: U} => apply_on (repl_typ p u T) (fun T' =>
+                                                 map_on (repl_typ p u U) (fun U' =>
+                                                                            {A >: T' <: U'}))
+  | {a ⦂ U}        => map_on (repl_typ p u U) (fun U' => {a ⦂ U'})
   end.
+
+Notation "T '[[' q '/' p ',' i ']]'" := (repl_typ i p q T).
 
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
