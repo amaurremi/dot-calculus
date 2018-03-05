@@ -205,15 +205,15 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# T <: p.A]         *)
-| subtyp_sel2_t: forall G p A T U,
-    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } ->
+| subtyp_sel2_t: forall G p A T U m,
+    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } // m ->
     G ⊢# T <: typ_path p A
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# p.A <: T]         *)
-| subtyp_sel1_t: forall G p A T U,
-    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } ->
+| subtyp_sel1_t: forall G p A T U m,
+    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } // m ->
     G ⊢# typ_path p A <: T
 
 (** [G ⊢# S2 <: S1]                #<br>#
@@ -246,8 +246,8 @@ Proof.
   apply ts_mutind_ts; intros; subst; eauto using precise_to_general.
 Qed.
 
-Lemma precise_to_tight: forall G p T U,
-    G ⊢! p : T ⪼ U ->
+Lemma precise_to_tight: forall G p T U m,
+    G ⊢! p : T ⪼ U // m ->
     G ⊢# trm_path p : T /\ G ⊢# trm_path p : U.
 Proof.
   introv Hp. dependent induction Hp; split*. constructor*.  constructor*.
