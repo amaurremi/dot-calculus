@@ -319,52 +319,49 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 
 (** * Replacing paths with paths *)
 
-(* q [ u / p ] *)
-(* if p = q -> Some u else
-   if q = x -> None else
-   if q = q'.a -> q'[u/p].a *)
+(* replace first path by second path inside of first type, yielding second type *)
+Inductive repl_typ : path -> path -> typ -> typ -> Prop :=
+| rrcd: forall p q D1 D2,
+    repl_dec p q D1 D2 ->
+    repl_typ p q (typ_rcd D1) (typ_rcd D2)
+| rand1: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (typ_and T1 U) (typ_and T2 U)
+| rand2: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (typ_and U T1) (typ_and U T2)
+| rpath: forall p px bs pbs psub q qx qbs p' A,
+    p = p_sel px (bs ++ pbs) ->
+    psub = p_sel px pbs ->
+    q = p_sel qx qbs ->
+    p' = p_sel qx (bs ++ qbs) ->
+    repl_typ psub q (typ_path p A) (typ_path p' A)
+| rbnd: forall p q T1 T2,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (typ_bnd T1) (typ_bnd T2)
+| rall1: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (typ_all T1 U) (typ_all T2 U)
+| rall2: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (typ_all U T1) (typ_all U T2)
+| rsngl: forall p px bs pbs psub q qx qbs p',
+    p = p_sel px (bs ++ pbs) ->
+    psub = p_sel px pbs ->
+    q = p_sel qx qbs ->
+    p' = p_sel qx (bs ++ qbs) ->
+    repl_typ psub q (typ_sngl p) (typ_sngl p')
 
-Fixpoint repl_path_helper px pbs u qx qbs :=
-  If p_sel px pbs = p_sel qx qbs then Some u
-  else match qbs with
-       | nil => (* if q is a variable *)
-         None
-       | b :: bs =>
-         map_on (repl_path_helper px pbs u qx bs) (fun p => p•b)
-       end.
-
-Definition repl_path (p: path) (u: path) (q: path) : option path :=
-  match (p, q) with
-  | (p_sel px pbs, p_sel qx qbs) =>
-    repl_path_helper px pbs u qx qbs
-  end.
-
-(* T [ u / p, i ] *)
-
-Fixpoint repl_typ (i: nat) (p: path) (u: path) (T: typ) : option typ :=
-  match T with
-  | typ_top        => Some typ_top
-  | typ_bot        => Some typ_bot
-  | typ_rcd D      => map_on (repl_dec p u D) typ_rcd
-  | typ_and T1 T2  => apply_on (repl_typ p u T1) (fun T1' =>
-                                                 map_on (repl_typ p u T2) (fun T2' =>
-                                                                             typ_and T1' T2'))
-  | typ_path q A   => map_on (repl_path p u q) (fun p => typ_path p A)
-  | typ_bnd T      => map_on (repl_typ p u T) typ_bnd
-  | typ_all T U    => apply_on (repl_typ p u T) (fun T' =>
-                                                  map_on (repl_typ p u U) (fun U' =>
-                                                                             typ_all T' U'))
-  | typ_sngl q     => map_on (repl_path p u q) typ_sngl
-  end
-with repl_dec (p: path) (u: path) (D: dec) { struct D } : option dec :=
-  match D with
-  | {A >: T <: U} => apply_on (repl_typ p u T) (fun T' =>
-                                                 map_on (repl_typ p u U) (fun U' =>
-                                                                            {A >: T' <: U'}))
-  | {a ⦂ U}        => map_on (repl_typ p u U) (fun U' => {a ⦂ U'})
-  end.
-
-Notation "T '[[' q '/' p ',' i ']]'" := (repl_typ i p q T).
+with repl_dec : path -> path -> dec -> dec -> Prop :=
+| rdtyp1: forall p q T1 T2 A U,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {A >: T1 <: U} {A >: T2 <: U}
+| rdtyp2: forall p q T1 T2 A U,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {A >: U <: T1} {A >: U <: T2}
+| rdtrm: forall p q T1 T2 a,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {a ⦂ T1} {a ⦂ T2}.
 
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
@@ -746,21 +743,15 @@ with subtyp : ctx -> typ -> typ -> Prop :=
     G ⊢ T1 <: T2 ->
     G ⊢ typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
-| subtyp_sngl_pq1 : forall G p q T,
+| subtyp_sngl_pq : forall G p q T T',
     G ⊢ trm_path p : typ_sngl q ->
-    G ⊢ T <: repl_typ p q T
+    repl_typ p q T T' ->
+    G ⊢ T <: T'
 
-| subtyp_sngl_pq2 : forall G p q T,
+| subtyp_sngl_qp : forall G p q T T',
     G ⊢ trm_path p : typ_sngl q ->
-    G ⊢ repl_typ p q T <: T
-
-(*| subtyp_sngl_qp1 : forall G p q T,
-    G ⊢ trm_path p : typ_sngl q ->
-    G ⊢ T <: repl_typ q p T
-
-| subtyp_sngl_qp2 : forall G p q T,
-    G ⊢ trm_path p : typ_sngl q ->
-    G ⊢ repl_typ q p T <: T*)
+    repl_typ q p T T' ->
+    G ⊢ T <: T'
 
 (** [G ⊢ x: {A: S..T}] #<br>#
     [――――――――――――――――] #<br>#
