@@ -174,6 +174,10 @@ Proof.
   specialize (IHty_trm _ _ eq_refl). destruct_all. inversions x. inversions H0. repeat eexists.
 Qed.
 
+Lemma sngl_path_named: forall G t p,
+    G ⊢ t: typ_sngl p ->
+    named_path p. Proof. Admitted.
+
 (** * Opening Lemmas *)
 
 (** ** Conversion between opening with paths and variables *)
@@ -794,91 +798,45 @@ Qed.
 
 (** * Lemmas about Replacement *)
 
-
-Lemma repl_label_of_dec: forall p q D,
-  label_of_dec D = label_of_dec (repl_dec p q D).
+Lemma repl_swap:
+  (forall p q T T',
+      repl_typ p q T T' ->
+      repl_typ q p T' T) /\
+  (forall p q D D',
+      repl_dec p q D D' ->
+      repl_dec q p D' D).
 Proof.
-  intros. destruct* D.
+  apply repl_mutind; intros; eauto.
 Qed.
 
-Lemma inert_repl_mut :
-  (forall D, record_dec D -> forall p q,
-        record_dec (repl_dec p q D)) /\
-  (forall T ls, record_typ T ls -> forall p q,
-        record_typ (repl_typ p q T) ls) /\
-  (forall T, inert_typ T -> forall p q,
-        inert_typ (repl_typ p q T)).
+Lemma repl_open_rec:
+  (forall p q T T',
+      repl_typ p q T T' -> forall x n,
+      named_path p ->
+      named_path q ->
+      repl_typ p q (open_rec_typ n x T) (open_rec_typ n x T')) /\
+  (forall p q D D',
+      repl_dec p q D D' -> forall x n,
+      named_path p ->
+      named_path q ->
+      repl_dec p q (open_rec_dec n x D) (open_rec_dec n x D')).
 Proof.
-  apply rcd_mutind; intros; subst; simpl; try solve [constructor*; erewrite* repl_label_of_dec].
-  apply* inert_typ_bnd.
+  apply repl_mutind; intros; try solve [unfolds open_typ, open_dec; simpls; eauto].
+  - Case "rpath".
+    subst. inversions H. destruct H1 as [bs' Heq]. inversions Heq.
+    inversions H0. destruct H as [bs'' Heq]. inversions Heq.
+    apply* rpath.
+  - Case "rsngl".
+    subst. inversions H. destruct H1 as [bs' Heq]. inversions Heq.
+    inversions H0. destruct H as [bs'' Heq]. inversions Heq.
+    apply* rsngl.
 Qed.
 
-Lemma inert_repl : forall T p q,
-    inert_typ T ->
-    inert_typ (repl_typ p q T).
-Proof.
-  intros. apply* inert_repl_mut.
-Qed.
-
-Lemma repl_id: forall p q,
-    repl_path p q p = q.
-Proof.
-  introv. unfold repl_path. destruct p.
-  unfold repl_path_helper. destruct f; case_if; reflexivity.
-Qed.
-
-Lemma repl_subset : forall x bs y ds cs,
-    repl_path (p_sel (avar_f x) bs) (p_sel (avar_f y) ds) (p_sel (avar_f x) (cs ++ bs))
-    = p_sel (avar_f y) (cs ++ ds).
-Proof.
-  introv. unfold repl_path. induction cs.
-  - unfold repl_path_helper. simpl. destruct bs; case_if; auto.
-  - simpl. case_if. inversions C. clear IHcs. false. admit. (* need to apply some lib functions *)
-    rewrite* IHcs.
-Qed.
-
-Lemma repl_open_path : forall p q r,
+Lemma repl_open: forall p q T T' x,
+    repl_typ p q T T' ->
     named_path p ->
     named_path q ->
-    repl_path p q (open_path_p p r) = open_path_p q (repl_path p q r).
+    repl_typ p q (open_typ x T) (open_typ x T').
 Proof.
-  introv Hnp Hnq.
-  destruct Hnp as [xp [bsp Hep]].
-  destruct Hnq as [xq [bsq Heq]]. subst.
-  destruct r as [[b | xr] bsr]. simpl.
-  - case_if.
-    * subst. unfold repl_path. unfold repl_path_helper. induction bsr; simpl.
-      ** destruct bsp; repeat case_if; simpl; case_if; auto.
-      ** fold repl_path_helper in *. repeat case_if.
-         inversions C. false. admit. (* need to apply some lib functions *)
-         rewrite IHbsr. admit. (* p^q • a = (p • a)^q *)
-    * unfold repl_path, repl_path_helper. induction bsr; simpl.
-      ** repeat case_if. simpl. case_if*.
-      ** fold repl_path_helper in *. case_if.
-         assert (repl_path_helper (avar_f xp) bsp (p_sel (avar_f xq) bsq) (avar_b b) bsr
-                                  = open_path_p (p_sel (avar_f xq) bsq)
-                                                (repl_path_helper (avar_f xp) bsp
-                                                                  (p_sel (avar_f xq) bsq) (avar_b b) bsr))
-           as Heq. {
-           rewrite IHbsr at 1. auto.
-         } rewrite Heq at 1. admit. (*for some reason reflexivity doesn't work *)
-  - induction bsr.
-    * unfold repl_path. simpl. case_if. simpl. auto.
-      simpl. auto.
-    * simpl. unfold repl_path. simpl. case_if. inversions C. simpl. auto.
-      admit. (* todo *)
+  unfold open_typ. intros. apply* repl_open_rec.
 Qed.
-
-Lemma repl_open :
-  (forall T p q,
-      named_path p ->
-      named_path q ->
-      repl_typ p q (open_typ_p p T) = open_typ_p q (repl_typ p q T)) /\
-  (forall D p q,
-      named_path p ->
-      named_path q ->
-      repl_dec p q (open_dec_p p D) = open_dec_p q (repl_dec p q D)).
-Proof.
-  apply typ_mutind; intros; simpls; try rewrite* H; try rewrite* H0; auto.
-  - rewrite* repl_open_path.
-  - Admitted.

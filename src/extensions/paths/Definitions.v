@@ -363,6 +363,8 @@ with repl_dec : path -> path -> dec -> dec -> Prop :=
     repl_typ p q T1 T2 ->
     repl_dec p q {a ⦂ T1} {a ⦂ T2}.
 
+Hint Constructors repl_typ repl_dec.
+
 (** * Free variables
       Functions that retrieve the free variables of a symbol. *)
 
@@ -848,6 +850,10 @@ Scheme rcd_dec_mut := Induction for record_dec Sort Prop
   with rcd_typ_mut := Induction for record_typ Sort Prop
   with inert_mut   := Induction for inert_typ Sort Prop.
 Combined Scheme rcd_mutind from rcd_dec_mut, rcd_typ_mut, inert_mut.
+
+Scheme repl_typ_mut := Induction for repl_typ Sort Prop
+  with repl_dec_mut := Induction for repl_dec Sort Prop.
+Combined Scheme repl_mutind from repl_typ_mut, repl_dec_mut.
 
 (** * Tactics *)
 

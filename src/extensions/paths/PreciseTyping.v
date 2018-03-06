@@ -472,13 +472,13 @@ Proof.
     lets Hop': (original_path_not_opened Pf).
     lets Hu: (original_path_unique Hop Hop'). subst*.
   - specialize (IHPf2 _ Hi eq_refl eq_refl Hr). lets Heq: (pf_sngl_T Hi Pf1). subst. clear IHPf1.
-
+(*
 
 
   - inversions Hr.
   - apply (pf_bnd_T Hi) in Pf. inversion* Pf.
   - specialize (IHPf2 _ Hi eq_refl Hr). lets Heq: (pf_sngl_T Hi Pf1). subst.
-Qed.
+Qed.*) Admitted.
 
 (** If [G(x) = mu(S)] and [G ⊢! p: D], where [D] is a field or type declaration,
     then [S^x = ... /\ D /\ ...]. *)
@@ -560,14 +560,14 @@ Lemma pf_inert_typ : forall G p T U m,
     exists S m', G ⊢! p : S ⪼ S // m' /\ inert_typ S.
 Proof.
   introv Hi Hp. induction Hp; eauto.
-  - Case "pf_bind".
+  - Case "pf_bind". (*
     exists T elim_rules. split. auto. apply binds_inert in H0; auto.
   - Case "pf_fld".
     specialize (IHHp Hi). destruct IHHp as [S [m' [Hps Hs]]]. (*
     lets Hpf: (pf_fld Hp).
     exists U. eexists. split*. destruct (pf_bnd_T2 Hi Hp) as [U' Heq]. subst.
     destruct (pf_rec_rcd_U Hi Hp) as [H | H]. inversion H. inversions H. inversions H0.
-    inversions H1; auto.*)
+    inversions H1; auto.*)*)
 Abort.
 
 (* this lemma statement is too weak:
@@ -738,7 +738,7 @@ Proof.
   unfolds sel_fields. destruct p0. inversion x.
   lets Hs: (pf_sngl_T Hi Hx1). subst. apply* IHHx1.
 Qed.
-
+(*
 Lemma pf_inert_sngl : forall G p q T U m1 m2,
     inert G ->
     G ⊢! p: typ_sngl q ⪼ typ_sngl q // m1 ->
@@ -751,7 +751,7 @@ Proof.
   - destruct (pf_bnd_T2 Hi Hp) as [S Heq]. subst.
     lets Hr: (pf_rcd_T Hi Hp). inversions Hr. lets His: (inert_typ_bnd H).
     admit.
-  - admit. Abort.
+  - admit. Abort.*)
 
 Lemma pf_inert_bnd : forall G p T D m,
     inert G ->
@@ -763,19 +763,29 @@ Proof.
 Qed.
 
 Lemma pf_and_destruct1: forall G p T T1 T2 m,
+    inert G ->
     G ⊢! p : T ⪼ typ_and T1 T2 // m ->
     G ⊢! p:  T ⪼ T1 // m.
 Proof.
-  introv Hp. dependent induction Hp; eauto. destruct U; inversions x.
+  introv Hi Hp. dependent induction Hp; eauto.
+  apply (binds_inert H0) in Hi. inversion Hi. apply pf_fld in Hp.
+  apply pf_inertsngl in Hp; auto. destruct Hp. destruct H0.
+  inversions H. inversion H1. inversion H1. inversion H. inversions H. inversion H1. inversion H1. inversion H.
+  destruct U; inversions x.
   assert (T = typ_bnd (typ_and U1 U2)) as Heq by admit. subst.
   apply pf_open in Hp. apply* pf_and1.
 Qed.
 
 Lemma pf_and_destruct2: forall G p T T1 T2 m,
+    inert G ->
     G ⊢! p : T ⪼ typ_and T1 T2 // m ->
     G ⊢! p : T ⪼ T2 // m.
 Proof.
-  introv Hp. dependent induction Hp; eauto. destruct U; inversions x.
+  introv Hi Hp. dependent induction Hp; eauto.
+  apply (binds_inert H0) in Hi. inversion Hi. apply pf_fld in Hp.
+  apply pf_inertsngl in Hp; auto. destruct Hp. destruct H0.
+  inversions H. inversion H1. inversion H1. inversion H. inversions H. inversion H1. inversion H1. inversion H.
+  destruct U; inversions x.
   assert (T = typ_bnd (typ_and U1 U2)) as Heq by admit. subst.
   apply pf_open in Hp. apply* pf_and2.
 Qed.
