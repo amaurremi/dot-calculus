@@ -430,14 +430,14 @@ Proof.
   - destruct H as [r Heq]. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-Definition original_path G p T q := forall U,
+Definition original_path G p T U q :=
     G ⊢! p: T ⪼ U // opened ->
             G ⊢! q: T ⪼ T // not_opened /\
             (p = q \/ G ⊢! p: typ_sngl q ⪼ typ_sngl q // opened).
 
 Lemma original_path_not_opened: forall G p T U,
     G ⊢! p: T ⪼ U // not_opened ->
-    original_path G p T p.
+    original_path G p T U p.
 Proof.
   introv Hp. unfold original_path. introv Hp'. split*.
   apply* pf_TT.
@@ -445,12 +445,12 @@ Qed.
 
 Lemma original_path_exists: forall G p T U,
     G ⊢! p: T ⪼ U // opened ->
-    exists q, original_path G p T q.
+    exists q, original_path G p T U q.
 Proof. Admitted.
 
-Lemma original_path_unique: forall G p T q1 q2,
-    original_path G p T q1 ->
-    original_path G p T q2 ->
+Lemma original_path_unique: forall G p T q1 q2 U1 U2,
+    original_path G p T U1 q1 ->
+    original_path G p T U2 q2 ->
     q1 = q2.
 Proof. Admitted.
 
@@ -459,7 +459,7 @@ Lemma pf_record_has_T : forall p G T T' D m q,
     inert G ->
     G ⊢! p: typ_bnd T ⪼ T' // m ->
     record_has T' D ->
-    original_path G p (typ_bnd T) q ->
+    original_path G p (typ_bnd T) T' q ->
     record_has (open_typ_p q T) D.
 Proof.
   introv Hi Pf Hr Hop.
@@ -471,14 +471,14 @@ Proof.
   - clear IHPf. lets Heq: (pf_bnd_T Hi Pf). inversions Heq.
     lets Hop': (original_path_not_opened Pf).
     lets Hu: (original_path_unique Hop Hop'). subst*.
-  - specialize (IHPf2 _ Hi eq_refl eq_refl Hr). lets Heq: (pf_sngl_T Hi Pf1). subst. clear IHPf1.
-(*
+  - Admitted. (*specialize (IHPf2 _ Hi eq_refl eq_refl Hr). lets Heq: (pf_sngl_T Hi Pf1). subst. clear IHPf1.
+
 
 
   - inversions Hr.
   - apply (pf_bnd_T Hi) in Pf. inversion* Pf.
   - specialize (IHPf2 _ Hi eq_refl Hr). lets Heq: (pf_sngl_T Hi Pf1). subst.
-Qed.*) Admitted.
+Qed.*)
 
 (** If [G(x) = mu(S)] and [G ⊢! p: D], where [D] is a field or type declaration,
     then [S^x = ... /\ D /\ ...]. *)
