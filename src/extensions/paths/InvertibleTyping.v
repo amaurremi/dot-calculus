@@ -250,6 +250,16 @@ Ltac solve_repl_sub :=
     try solve [apply* repl_sub_swap];
     eauto.
 
+Ltac solve_names :=
+  match goal with
+    | [H: _ ⊢# trm_path ?p : typ_sngl ?q |- named_path ?p ] =>
+      apply tight_to_general in H;
+      apply* typed_paths_named
+    | [H: _ ⊢# trm_path ?p : typ_sngl ?q |- named_path ?q ] =>
+      apply tight_to_general in H;
+      apply* sngl_path_named
+    end.
+
 Lemma invertible_repl_closure_helper :
   (forall D,
       record_dec D -> forall G p T m q r D',
@@ -324,9 +334,9 @@ Proof.
   - eapply ty_all_inv with (L:=L \u dom G).
     * apply Hp.
     * auto.
-    * lets Hg: ((proj21 tight_to_general) _ _ _ Hq). introv Hy. eapply subtyp_trans. apply* H0.
-      eapply repl_open_var in H6. eapply subtyp_sngl_qp.
-      apply* weaken_ty_trm. apply H6. apply* sngl_path_named. apply* typed_paths_named.
+    * introv Hy. eapply subtyp_trans. apply* H0.
+      eapply repl_open_var in H6; try solve_names. eapply subtyp_sngl_qp.
+      apply* weaken_ty_trm. apply tight_to_general. apply Hq. apply H6.
   - Case "ty_sel_inv".
     eauto 5.
   - Case "ty_sngl_qp_inv".
@@ -337,7 +347,7 @@ Lemma invertible_repl_closure_comp: forall G p q r T T',
     inert G ->
     G ⊢## p: T ->
     G ⊢# trm_path q: typ_sngl r ->
-    repl_composition r q T T' ->
+    repl_repeat_typ r q T T' ->
     G ⊢## p: T'.
 Proof.
   introv Hi Hp Hq Hc. gen p. dependent induction Hc; introv Hp; eauto.
@@ -375,9 +385,7 @@ Proof.
     * lets Ht: (pf_sngl_trans Hp' Hq).
       apply ty_precise_inv in Ht. apply precise_to_tight in Hp'. destruct Hp' as [Hp _].
       lets Hop: (repl_comp_open q p T). apply* invertible_repl_closure_comp.
-  - lets Hg: ((proj21 tight_to_general) _ _ _ H).
-    specialize (IHHp _ Hi eq_refl). apply* invertible_repl_closure. apply* repl_open.
-    apply* sngl_path_named. apply* typed_paths_named.
+  - specialize (IHHp _ Hi eq_refl). apply* invertible_repl_closure. apply* repl_open; solve_names.
 Qed.
 
 (** * Replacement typing
@@ -408,9 +416,9 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     G ⊢// p: U ->
     G ⊢// p: typ_and T U
 
-| ty_bnd_r : forall G p T,
+(*| ty_bnd_r : forall G p T,
     G ⊢// p: open_typ_p p T ->
-    G ⊢// p: typ_bnd T
+    G ⊢// p: typ_bnd T*)
 
 | ty_rec_pq_r : forall G p q r T T',
     G ⊢# trm_path p : typ_sngl q ->
@@ -457,37 +465,11 @@ Proof.
   destruct (invertible_and Hi H). split*.
 Qed.
 
-Lemma repl_to_invertible: forall G p U,
-    inert G ->
-    G ⊢// p: U ->
-    exists T, repl_composition U T /\ G ⊢## p: T.
-Admitted.
-
-Lemma repl_rec_intro: forall G p T,
-    inert G ->
-    G ⊢// p: typ_bnd T ->
-    G ⊢// p: open_typ_p p T.
-Proof.
-  introv Hi Hp. dependent induction Hp; auto.
-  - Case "ty_inv_r".
-
-
-
-  - Case "ty_and_r".
-    destruct T; inversions x. unfolds open_typ_p.
-    specialize (IHHp1 _ Hi eq_refl). specialize (IHHp2 _ Hi eq_refl).
-    admit.
-  - destruct T; inversions x.
-
-  destruct (repl_to_invertible Hi Hp) as [U [Hr Hinv]].
-
-
-
-Lemma replacement_repl_closure_qp : forall G p q r T T',
+Lemma replacement_repl_closure_pq : forall G p q r T T',
     inert G ->
     G ⊢# trm_path q : typ_sngl r ->
     G ⊢// p : T ->
-    repl_typ r q T T' ->
+    repl_typ q r T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hq Hp. gen q r T'. induction Hp; introv Hq; introv Hr; invert_repl; eauto 5.
@@ -497,18 +479,18 @@ Proof.
       + inversions Hit; invert_repl.
         ++ apply ty_inv_r. eapply ty_all_inv. apply* ty_precise_inv.
            apply repl_swap in H5.
-           eapply subtyp_sngl_pq_t. apply Hq. auto. introv Hy. auto.
-        ++ apply ty_inv_r. lets Hg: ((proj21 tight_to_general) _ _ _ Hq).
+           eapply subtyp_sngl_qp_t. apply Hq. auto. introv Hy. auto.
+        ++ apply ty_inv_r.
            eapply ty_all_inv. apply* ty_precise_inv.
-           auto. introv Hy. eapply repl_open_var in H5.
-           eapply subtyp_sngl_qp. apply* weaken_ty_trm.
-           apply H5. apply* sngl_path_named. apply* typed_paths_named.
-        ++ apply* ty_rec_qp_r.
+           auto. introv Hy. eapply repl_open_var in H5; try solve_names.
+           eapply subtyp_sngl_pq. apply* weaken_ty_trm. apply tight_to_general. apply Hq.
+           apply H5.
+        ++ apply* ty_rec_pq_r.
       + inversions Hst. invert_repl. eauto.
       + admit. (* inverstion on record type and usual stuff *)
     * Case "ty_dec_typ_inv".
       invert_repl. eapply ty_inv_r. eapply ty_dec_typ_inv. apply  H.
-      eapply subtyp_trans_t. apply repl_swap in H9. eapply subtyp_sngl_pq_t.
+      eapply subtyp_trans_t. apply repl_swap in H9. eapply subtyp_sngl_qp_t.
       apply Hq. apply H9. auto. auto. eauto.
     * Case "ty_all_inv".
       invert_repl; apply ty_inv_r; eapply ty_all_inv. apply H.
@@ -516,26 +498,94 @@ Proof.
       introv Hy. admit. (* narrowing *)
       apply H. auto. introv Hy. eapply subtyp_trans. apply* H1.
       eapply repl_open_var in H7; admit. (* simple *)
-    * Case "ty_sel_pq_inv".
+    * Case "ty_sel_qp_inv".
       inversions Hr. eauto.
-    * Case "ty_sngl_pq_inv".
+    * Case "ty_sngl_qp_inv".
       inversions Hr. eauto.
 Admitted. (* shelved stuff *)
 
-Lemma replacement_repl_closure_pq : forall G p q r T T',
+Definition typed_repl_comp_pq G T1 T2 :=
+  exists p q,
+    G ⊢# trm_path p: typ_sngl q /\ repl_typ p q T1 T2.
+
+Definition repl_composition_pq G := star (typed_repl_comp_pq G).
+
+Lemma repl_to_invertible: forall G p U,
+    inert G ->
+    G ⊢// p: U ->
+    exists T, repl_composition_pq G T U /\ G ⊢## p: T.
+Proof.
+  introv Hi Hp. induction Hp.
+  - exists T. split*. apply star_refl.
+  - destruct (IHHp1 Hi) as [T' [Ht' Hpt']].
+    destruct (IHHp2 Hi) as [U' [Hu' Hpu']].
+    exists (typ_and T' U'). split*. apply star_trans with (b:=typ_and T U').
+    admit. admit.
+  - Admitted.
+
+Lemma repl_rec_intro: forall G p T,
+    inert G ->
+    G ⊢// p: typ_bnd T ->
+    G ⊢// p: open_typ_p p T.
+Proof.
+  introv Hi Hp. dependent induction Hp; auto.
+  - Case "ty_inv_r".
+    apply ty_inv_r. apply* invertible_bnd.
+  - Case "ty_rec_pq_r".
+    specialize (IHHp _ Hi eq_refl).
+    apply repl_open with (r:= r) in H0; try solve_names. apply* replacement_repl_closure_pq.
+Qed.
+
+Lemma replacement_undo: forall G p T U p' q' U',
+    G ⊢## p: T ->
+    star (typed_repl_comp_pq G) T U ->
+    G ⊢# trm_path p': typ_sngl q' ->
+    repl_typ q' p' U U' ->
+    G ⊢// p: U'.
+Proof.
+  Admitted.
+
+Lemma replacement_repl_closure_qp : forall G p q r T T',
     inert G ->
     G ⊢// p : T ->
     G ⊢// q : typ_sngl r ->
-    repl_typ q r T T' ->
+    repl_typ r q T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hp Hqr.
   gen q r T'. induction Hp; introv Hq; introv Hr; invert_repl; eauto 3.
   - Case "ty_inv_r".
     constructor. apply repl_to_tight in Hq. apply* invertible_repl_closure.
-  - Case "ty_rec_qp_r".
-Admitted.
+  - Case "ty_rec_pq_r".
+    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
+    eapply replacement_undo.
+    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq. exists p q. split*.
+    apply repl_to_tight. apply Hq. constructor*.
+  - Case "ty_sel_pq_r".
+    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
+    eapply replacement_undo.
+    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq.
+    exists (p_sel px0 pbs0) (p_sel qx0 qbs0). split*.
+    apply repl_to_tight. apply Hq. eauto.
+  - Case "ty_sngl_pq_r".
+    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
+    eapply replacement_undo.
+    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq.
+    exists (p_sel px0 pbs0) (p_sel qx0 qbs0). split*.
+    apply repl_to_tight. apply Hq. eauto.
+Qed. (* todo do we really have to inline the replacement rules
+        into different types in the definition of ty_repl? *)
 
+Lemma repl_fld : forall G p a T,
+    inert G ->
+    G ⊢// p: typ_rcd {a ⦂ T} ->
+    G ⊢// p•a : T.
+Proof.
+  introv Hi Hp. dependent induction Hp.
+  constructor. dependent induction H.
+  - admit.
+  - specialize (IHty_path_inv _ _ eq_refl Hi).
+Qed.
 
 Lemma replacement_closure :
   (forall G t T, G ⊢# t : T -> forall p,

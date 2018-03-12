@@ -68,12 +68,12 @@ Proof.
   introv Hr. repeat rewrite open_var_typ_eq. apply* repl_open.
 Qed.
 
-Definition repl_composition p q := star (repl_typ p q).
-Definition repl_composition_dec p q := star (repl_dec p q).
+Definition repl_repeat_typ p q := star (repl_typ p q).
+Definition repl_repeat_dec p q := star (repl_dec p q).
 
 Lemma repl_star_rcd: forall p q d1 d2,
-  repl_composition_dec p q d1 d2 ->
-  repl_composition p q (typ_rcd d1) (typ_rcd d2).
+  repl_repeat_dec p q d1 d2 ->
+  repl_repeat_typ p q (typ_rcd d1) (typ_rcd d2).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -82,8 +82,8 @@ Proof.
 Qed.
 
 Lemma repl_star_and1: forall T1 T2 U p q,
-    repl_composition p q T1 T2 ->
-    repl_composition p q (typ_and T1 U) (typ_and T2 U).
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_typ p q (typ_and T1 U) (typ_and T2 U).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -92,8 +92,8 @@ Proof.
 Qed.
 
 Lemma repl_star_and2: forall T1 T2 U p q,
-    repl_composition p q T1 T2 ->
-    repl_composition p q (typ_and U T1) (typ_and U T2).
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_typ p q (typ_and U T1) (typ_and U T2).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:=typ_and U b). apply star_one.
@@ -102,8 +102,8 @@ Proof.
 Qed.
 
 Lemma repl_star_bnd : forall T1 T2 p q,
-    repl_composition p q T1 T2 ->
-    repl_composition p q (typ_bnd T1) (typ_bnd T2).
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_typ p q (typ_bnd T1) (typ_bnd T2).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -112,8 +112,8 @@ Proof.
 Qed.
 
 Lemma repl_star_all1: forall T1 T2 U p q,
-    repl_composition p q T1 T2 ->
-    repl_composition p q (typ_all T1 U) (typ_all T2 U).
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_typ p q (typ_all T1 U) (typ_all T2 U).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -122,8 +122,8 @@ Proof.
 Qed.
 
 Lemma repl_star_all2: forall T1 T2 U p q,
-    repl_composition p q T1 T2 ->
-    repl_composition p q (typ_all U T1) (typ_all U T2).
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_typ p q (typ_all U T1) (typ_all U T2).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:=typ_all U b). apply star_one.
@@ -132,8 +132,8 @@ Proof.
 Qed.
 
 Lemma repl_star_typ1: forall T1 T2 U A p q,
-    repl_composition p q T1 T2 ->
-    repl_composition_dec p q {A >: T1 <: U} {A >: T2 <: U}.
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_dec p q {A >: T1 <: U} {A >: T2 <: U}.
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -142,8 +142,8 @@ Proof.
 Qed.
 
 Lemma repl_star_typ2: forall T1 T2 U A p q,
-    repl_composition p q T1 T2 ->
-    repl_composition_dec p q {A >: U <: T1} {A >: U <: T2}.
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_dec p q {A >: U <: T1} {A >: U <: T2}.
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:={A >: U <: b}). apply star_one.
@@ -152,8 +152,8 @@ Proof.
 Qed.
 
 Lemma repl_star_trm: forall T1 T2 a p q,
-    repl_composition p q T1 T2 ->
-    repl_composition_dec p q {a ⦂ T1} {a ⦂ T2}.
+    repl_repeat_typ p q T1 T2 ->
+    repl_repeat_dec p q {a ⦂ T1} {a ⦂ T2}.
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -163,13 +163,13 @@ Qed.
 
 Lemma repl_comp_open_rec:
   (forall T p q n,
-      repl_composition p q (open_rec_typ_p n p T) (open_rec_typ_p n q T)) /\
+      repl_repeat_typ p q (open_rec_typ_p n p T) (open_rec_typ_p n q T)) /\
   (forall D p q n,
-      repl_composition_dec p q (open_rec_dec_p n p D) (open_rec_dec_p n q D)).
+      repl_repeat_dec p q (open_rec_dec_p n p D) (open_rec_dec_p n q D)).
 Proof.
-  apply typ_mutind; intros; unfolds repl_composition, repl_composition_dec;
+  apply typ_mutind; intros; unfolds repl_repeat_typ, repl_repeat_dec;
     simpl; try solve [apply star_refl]; eauto.
-  - apply* repl_star_rcd. unfold repl_composition_dec. eauto.
+  - apply* repl_star_rcd. unfold repl_repeat_dec. eauto.
   - eapply star_trans.
     apply* repl_star_and1. apply* H.
     apply* repl_star_and2. apply* H0.
@@ -177,18 +177,18 @@ Proof.
     case_if; destruct q as [qx qbs]; subst. apply star_one. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
-  - apply* repl_star_bnd. unfolds repl_composition. eauto.
+  - apply* repl_star_bnd. unfolds repl_repeat_typ. eauto.
   - eapply star_trans. apply repl_star_all1. apply* H. apply repl_star_all2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
     case_if; destruct q as [qx qbs]; subst. apply star_one. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - eapply star_trans. apply repl_star_typ1. apply* H. apply repl_star_typ2. apply* H0.
-  - apply* repl_star_trm. unfolds repl_composition. eauto.
+  - apply* repl_star_trm. unfolds repl_repeat_typ. eauto.
 Qed.
 
 Lemma repl_comp_open: forall p q T,
-    repl_composition p q (open_typ_p p T) (open_typ_p q T).
+    repl_repeat_typ p q (open_typ_p p T) (open_typ_p q T).
 Proof.
   unfold open_typ_p. intros. apply* repl_comp_open_rec.
 Qed.
