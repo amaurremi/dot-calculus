@@ -506,7 +506,7 @@ Admitted. (* shelved stuff *)
 
 Definition typed_repl_comp_pq G T1 T2 :=
   exists p q,
-    G ⊢# trm_path p: typ_sngl q /\ repl_typ p q T1 T2.
+    G ⊢// p: typ_sngl q /\ repl_typ p q T1 T2.
 
 Definition repl_composition_pq G := star (typed_repl_comp_pq G).
 
@@ -536,14 +536,38 @@ Proof.
     apply repl_open with (r:= r) in H0; try solve_names. apply* replacement_repl_closure_pq.
 Qed.
 
-Lemma replacement_undo: forall G p T U p' q' U',
-    G ⊢## p: T ->
-    star (typed_repl_comp_pq G) T U ->
-    G ⊢# trm_path p': typ_sngl q' ->
-    repl_typ q' p' U U' ->
-    G ⊢// p: U'.
+Lemma replacement_undo_one: forall G p T p1 q1 U p2 q2 V,
+    inert G ->
+    G ⊢// p: T ->
+    G ⊢// p1: typ_sngl q1 ->
+    repl_typ p1 q1 T U ->
+    G ⊢// p2: typ_sngl q2 ->
+    repl_typ q2 p2 U V ->
+    G ⊢// p: V.
 Proof.
-  Admitted.
+  introv Hp Hpq1 Hr1 Hpq2 Hr2. Admitted.
+
+
+Lemma replacement_undo: forall G p T U p2 q2 V,
+    inert G ->
+    G ⊢// p: T -> (* this can't be ## for the IH to work *)
+    star (typed_repl_comp_pq G) T U ->
+    G ⊢// p2: typ_sngl q2 ->
+    repl_typ q2 p2 U V ->
+    G ⊢// p: V.
+Proof.
+  introv Hi Hp Hs Hp' Hr.
+  gen p p2 q2 V. dependent induction Hs; introv Hp; introv Hp'; introv Hr'.
+  - lets Ht: (repl_to_tight Hp').
+
+
+  (*apply ty_inv_r. apply* invertible_repl_closure.*)
+  - destruct H as [p1 [q1 [Hpq1 Hr]]].
+    lets Ht: (repl_to_tight Hpq1).
+    lets Hrc: (replacement_repl_closure_pq Hi Ht Hp Hr).
+    apply* IHHs.
+Qed.
+
 
 Lemma replacement_repl_closure_qp : forall G p q r T T',
     inert G ->
@@ -581,11 +605,12 @@ Lemma repl_fld : forall G p a T,
     G ⊢// p: typ_rcd {a ⦂ T} ->
     G ⊢// p•a : T.
 Proof.
-  introv Hi Hp. dependent induction Hp.
-  constructor. dependent induction H.
-  - admit.
-  - specialize (IHty_path_inv _ _ eq_refl Hi).
-Qed.
+  introv Hi Hp.
+  destruct (repl_to_invertible Hi Hp) as [T' [Hr Hinv]].
+  assert (exists U, T' = typ_rcd {a ⦂ U} /\ repl_composition_pq G U T) as [U [Heq Hr']] by admit.
+  subst.
+  destruct (invertible_to_precise_trm_dec Hi Hinv) as [T1 [T2 [m [Hpr Hs]]]].
+  Abort.
 
 Lemma replacement_closure :
   (forall G t T, G ⊢# t : T -> forall p,
@@ -599,7 +624,10 @@ Lemma replacement_closure :
 Proof.
   apply ts_mutind_ts; intros; subst; try solve [(inversions H || inversions H0 || inversions H1); eauto]; eauto.
   - Case "ty_new_elim_t".
-    inversions H0. specialize (H _ eq_refl). admit.
+    inversions H0. specialize (H _ eq_refl).
+
+
+
   - Case "ty_sngl_t".
     inversions H1.
     specialize (H _ eq_refl H2). specialize (H0 _ eq_refl H2). admit.
