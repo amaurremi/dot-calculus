@@ -9,8 +9,8 @@
 
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality.
 Require Import LibLN.
+Require Import Coq.Program.Equality List.
 Require Import Sequences.
 Require Import Definitions Binding Narrowing PreciseTyping RecordAndInertTypes Replacement
                Subenvironments TightTyping Weakening.
@@ -416,10 +416,6 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     G ⊢// p: U ->
     G ⊢// p: typ_and T U
 
-(*| ty_bnd_r : forall G p T,
-    G ⊢// p: open_typ_p p T ->
-    G ⊢// p: typ_bnd T*)
-
 | ty_rec_pq_r : forall G p q r T T' m,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
     G ⊢// r : typ_bnd T ->
@@ -432,7 +428,7 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     repl_typ p q (typ_path r' A) (typ_path r'' A) ->
     G ⊢// r : typ_path r'' A
 
-| ty_sngl_pq_inv : forall G p q r r' r'' m,
+| ty_sngl_pq_r : forall G p q r r' r'' m,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
     G ⊢// r : typ_sngl r' ->
     repl_typ p q (typ_sngl r') (typ_sngl r'') ->
@@ -527,9 +523,22 @@ Proof.
       inversions Hr. eauto.
 Admitted. (* shelved stuff *)
 
-(*Definition typed_repl_comp_pq G T1 T2 :=
-  exists p q,
-    G ⊢// p: typ_sngl q /\ repl_typ p q T1 T2.
+Lemma repl_rec_intro: forall G p T,
+    inert G ->
+    G ⊢// p: typ_bnd T ->
+    G ⊢// p: open_typ_p p T.
+Proof.
+  introv Hi Hp. dependent induction Hp; auto.
+  - Case "ty_inv_r".
+    apply ty_inv_r. apply* invertible_bnd.
+  - Case "ty_rec_pq_r".
+    specialize (IHHp _ Hi eq_refl).
+    apply repl_open with (r:= r) in H0; try solve_names. apply* replacement_repl_closure_pq.
+Qed.
+
+Definition typed_repl_comp_pq G T1 T2 :=
+  exists p q m,
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q // m /\ repl_typ p q T1 T2.
 
 Definition repl_composition_pq G := star (typed_repl_comp_pq G).
 
@@ -544,49 +553,26 @@ Proof.
     destruct (IHHp2 Hi) as [U' [Hu' Hpu']].
     exists (typ_and T' U'). split*. apply star_trans with (b:=typ_and T U').
     admit. admit.
-  - Admitted.*)
+  - Admitted.
 
-Lemma repl_rec_intro: forall G p T,
-    inert G ->
-    G ⊢// p: typ_bnd T ->
-    G ⊢// p: open_typ_p p T.
+Lemma repl_exists: forall p q T, exists T', repl_typ p q T T'.
 Proof.
-  introv Hi Hp. dependent induction Hp; auto.
-  - Case "ty_inv_r".
-    apply ty_inv_r. apply* invertible_bnd.
-  - Case "ty_rec_pq_r".
-    specialize (IHHp _ Hi eq_refl).
-    apply repl_open with (r:= r) in H0; try solve_names. apply* replacement_repl_closure_pq.
-Qed.
+  introv. Admitted.
 
-(*Lemma replacement_undo_one: forall G p T p1 q1 U p2 q2 V,
+Lemma replacement_swap_closure: forall G r q1 p1 T T1 p2 q2 T2 T21 m1 m2,
     inert G ->
-    G ⊢## p: T ->
-    G ⊢// p1: typ_sngl q1 ->
-    repl_typ p1 q1 T U ->
-    G ⊢// p2: typ_sngl q2 ->
-    repl_typ q2 p2 U V ->
-    G ⊢// p: V.
+    G ⊢// r: T ->
+    repl_typ q1 p1 T T1 ->
+    G ⊢// r: T1 ->
+    G ⊢! p1: typ_sngl q1 ⪼ typ_sngl q1 // m1 ->
+    G ⊢! p2: typ_sngl q2 ⪼ typ_sngl q2 // m2 ->
+    repl_typ p2 q2 T T2 ->
+    repl_typ q1 p1 T2 T21 ->
+    G ⊢// r: T21.
 Proof.
-  introv Hp Hpq1 Hr1 Hpq2 Hr2. Admitted.
-
-
-Lemma replacement_undo: forall G p T U p2 q2 V,
-    inert G ->
-    G ⊢// p: T -> (* this can't be ## for the IH to work *)
-    star (typed_repl_comp_pq G) T U ->
-    G ⊢// p2: typ_sngl q2 ->
-    repl_typ q2 p2 U V ->
-    G ⊢// p: V.
-Proof.
-  introv Hi Hp Hs Hp' Hr.
-  gen p p2 q2 V. dependent induction Hs; introv Hp; introv Hp'; introv Hr'.
-  -
-  - destruct H as [p1 [q1 [Hpq1 Hr]]].
-    lets Ht: (repl_to_tight Hpq1).
-    lets Hrc: (replacement_repl_closure_pq Hi Ht Hp Hr).
-    apply* IHHs.
-Qed.*)
+  introv Hi Hr HTT1 Hr1 Hp1 Hp2 HTT2 HT2T21.
+  destruct (repl_exists p2 q2 T1) as [T2' HT1T2].
+  lets Hc: (replacement_repl_closure_pq Hi Hp2 Hr1 HT1T2).
 
 
 Lemma replacement_repl_closure_qp : forall G p q r T T' m,
@@ -600,24 +586,20 @@ Proof.
   gen q r T'. induction Hp; introv Hq; introv Hr; invert_repl; eauto 3.
   - Case "ty_inv_r".
     constructor. apply* invertible_repl_closure.
-  - Case "ty_rec_pq_r". Admitted. (*
-    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
-    eapply replacement_undo. auto. apply ty_inv_r.
-    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq. exists p q. split*.
-
-    apply repl_to_tight. apply Hq. constructor*.
+  - Case "ty_rec_pq_r".
+    destruct (repl_exists r0 q0 (typ_bnd T)) as [U Hr2]. invert_repl.
+    specialize (IHHp Hi _ _ Hq _ (rbnd H5)).
+    eapply (replacement_swap_closure Hi Hp (rbnd H5) IHHp Hq H); eauto.
   - Case "ty_sel_pq_r".
-    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
-    eapply replacement_undo.
-    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq.
-    exists (p_sel px0 pbs0) (p_sel qx0 qbs0). split*.
-    apply repl_to_tight. apply Hq. eauto.
+    destruct (repl_exists (p_sel px pbs) (p_sel qx qbs) (typ_path (p_sel px0 (bs0 ++ pbs0)) A)) as [U Hr2].
+    invert_repl. lets Hrp: (rpath _ A H2 H3 H6 eq_refl).
+    specialize (IHHp Hi _ _ Hq _ Hrp).
+    eapply (replacement_swap_closure Hi Hp Hrp IHHp Hq H); eauto.
   - Case "ty_sngl_pq_r".
-    destruct (repl_to_invertible Hi Hp) as [S [Hs Hinv]].
-    eapply replacement_undo.
-    apply Hinv. eapply star_trans. apply Hs. apply star_one. unfold typed_repl_comp_pq.
-    exists (p_sel px0 pbs0) (p_sel qx0 qbs0). split*.
-    apply repl_to_tight. apply Hq. eauto.
+    destruct (repl_exists (p_sel px pbs) (p_sel qx qbs) (typ_sngl (p_sel px0 (bs0 ++ pbs0)))).
+    invert_repl. lets Hrp: (rsngl _ H2 H3 H4 eq_refl).
+    specialize (IHHp Hi _ _ Hq _ Hrp).
+    eapply (replacement_swap_closure Hi Hp Hrp IHHp Hq H); eauto.
 Qed. (* todo do we really have to inline the replacement rules
         into different types in the definition of ty_repl? *) *)
 
@@ -645,6 +627,7 @@ Proof.
   - Case "subtyp_sngl_qp".
     apply* replacement_repl_closure_qp.
   - Case "subtyp_sel2".
+  (* use repeated-replacement closure, not induction on the // typing *)
     admit.
   - Case "subtyp_sel1".
     admit.
