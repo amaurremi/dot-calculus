@@ -17,29 +17,42 @@ Require Import Definitions Binding.
 (** * Lemmas about Replacement *)
 
 Lemma repl_swap:
-  (forall p q T T',
-      repl_typ p q T T' ->
-      repl_typ q p T' T) /\
-  (forall p q D D',
-      repl_dec p q D D' ->
-      repl_dec q p D' D).
+  (forall n p q T T',
+      repl_typ n p q T T' ->
+      repl_typ n q p T' T) /\
+  (forall n p q D D',
+      repl_dec n p q D D' ->
+      repl_dec n q p D' D).
 Proof.
   apply repl_mutind; intros; eauto.
 Qed.
 
-Lemma repl_open_rec:
-  (forall p q T T',
-      repl_typ p q T T' -> forall r n,
-      named_path p ->
-      named_path q ->
-      repl_typ p q (open_rec_typ_p n r T) (open_rec_typ_p n r T')) /\
-  (forall p q D D',
-      repl_dec p q D D' -> forall r n,
-      named_path p ->
-      named_path q ->
-      repl_dec p q (open_rec_dec_p n r D) (open_rec_dec_p n r D')).
+Lemma numpaths_open:
+  (forall U n p,
+      numpaths U = numpaths (open_rec_typ_p n p U)) /\
+  (forall D n p,
+      numpathsD D = numpathsD (open_rec_dec_p n p D)).
 Proof.
-  apply repl_mutind; intros; try solve [unfolds open_typ_p, open_dec_p; simpls; eauto].
+  apply typ_mutind; intros; simpl; eauto.
+Qed.
+
+Lemma repl_open_rec:
+  (forall m p q T T',
+      repl_typ m p q T T' -> forall r n,
+      named_path p ->
+      named_path q ->
+      repl_typ m p q (open_rec_typ_p n r T) (open_rec_typ_p n r T')) /\
+  (forall m p q D D',
+      repl_dec m p q D D' -> forall r n,
+      named_path p ->
+      named_path q ->
+      repl_dec m p q (open_rec_dec_p n r D) (open_rec_dec_p n r D')).
+Proof.
+  apply repl_mutind; intros;
+    try solve [unfolds open_typ_p, open_dec_p; simpls; eauto];
+    try solve [simpl; assert (numpaths U = numpaths (open_rec_typ_p n0 r0 U))
+                 as Hn by apply* numpaths_open;
+               rewrite* Hn].
   - Case "rpath".
     subst. inversions H. destruct H1 as [bs' Heq]. inversions Heq.
     inversions H0. destruct H as [bs'' Heq]. inversions Heq. simpl. destruct r.
@@ -50,26 +63,29 @@ Proof.
     apply* rsngl.
 Qed.
 
-Lemma repl_open: forall p q T T' r,
-    repl_typ p q T T' ->
+Lemma repl_open: forall p q T T' r n,
+    repl_typ n p q T T' ->
     named_path p ->
     named_path q ->
-    repl_typ p q (open_typ_p r T) (open_typ_p r T').
+    repl_typ n p q (open_typ_p r T) (open_typ_p r T').
 Proof.
   unfold open_typ_p. intros. apply* repl_open_rec.
 Qed.
 
-Lemma repl_open_var: forall p q T T' x,
-    repl_typ p q T T' ->
+Lemma repl_open_var: forall n p q T T' x,
+    repl_typ n p q T T' ->
     named_path p ->
     named_path q ->
-    repl_typ p q (open_typ x T) (open_typ x T').
+    repl_typ n p q (open_typ x T) (open_typ x T').
 Proof.
   introv Hr. repeat rewrite open_var_typ_eq. apply* repl_open.
 Qed.
 
-Definition repl_repeat_typ p q := star (repl_typ p q).
-Definition repl_repeat_dec p q := star (repl_dec p q).
+Definition repl_some_typ p q T T' := exists n, repl_typ n p q T T'.
+Definition repl_some_dec p q D D' := exists n, repl_dec n p q D D'.
+
+Definition repl_repeat_typ p q := star (repl_some_typ p q).
+Definition repl_repeat_dec p q := star (repl_some_dec p q).
 
 Lemma repl_star_rcd: forall p q d1 d2,
   repl_repeat_dec p q d1 d2 ->
@@ -77,6 +93,7 @@ Lemma repl_star_rcd: forall p q d1 d2,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_dec.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -87,6 +104,7 @@ Lemma repl_star_and1: forall T1 T2 U p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -97,6 +115,7 @@ Lemma repl_star_and2: forall T1 T2 U p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:=typ_and U b). apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -107,6 +126,7 @@ Lemma repl_star_bnd : forall T1 T2 p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -117,6 +137,7 @@ Lemma repl_star_all1: forall T1 T2 U p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -127,6 +148,7 @@ Lemma repl_star_all2: forall T1 T2 U p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:=typ_all U b). apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -137,6 +159,7 @@ Lemma repl_star_typ1: forall T1 T2 U A p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -147,6 +170,7 @@ Lemma repl_star_typ2: forall T1 T2 U A p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. apply star_trans with (b:={A >: U <: b}). apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -157,6 +181,7 @@ Lemma repl_star_trm: forall T1 T2 a p q,
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
+  unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
 Qed.
@@ -174,13 +199,13 @@ Proof.
     apply* repl_star_and1. apply* H.
     apply* repl_star_and2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. eauto.
+    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - apply* repl_star_bnd. unfolds repl_repeat_typ. eauto.
   - eapply star_trans. apply repl_star_all1. apply* H. apply repl_star_all2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. eauto.
+    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - eapply star_trans. apply repl_star_typ1. apply* H. apply repl_star_typ2. apply* H0.
@@ -192,3 +217,38 @@ Lemma repl_comp_open: forall p q T,
 Proof.
   unfold open_typ_p. intros. apply* repl_comp_open_rec.
 Qed.
+
+Fixpoint ith_path T i : option path :=
+  match T with
+  | typ_rcd D =>
+    ith_path_dec D i
+  | typ_and T1 T2 =>
+    let n := numpaths T1 in
+    If i < n then ith_path T1 i else ith_path T2 (n - i)
+  | typ_path p _ =>
+    match i with
+    | 0 => Some p
+    | _ => None
+    end
+  | typ_bnd T =>
+    ith_path T i
+  | typ_all T U =>
+    let n := numpaths T in
+    If i < n then ith_path T i else ith_path U (n - i)
+  | typ_sngl p =>
+    match i with
+    | 0 => Some p
+    | _ => None
+    end
+  | _ => None
+  end
+with ith_path_dec D i :=
+  match D with
+  | { _ >: T <: U } =>
+    let n := numpaths T in
+    If i < n then ith_path T i else ith_path U (n - i)
+  | { _ ⦂ T } =>
+    ith_path T i
+  end.
+
+Notation "T '⚬' i" := (ith_path T i) (at level 50).

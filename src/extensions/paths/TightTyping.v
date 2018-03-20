@@ -179,14 +179,14 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# T1 <: T2 ->
     G ⊢# typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
-| subtyp_sngl_pq_t : forall G p q T T' m,
+| subtyp_sngl_pq_t : forall G p q T T' m n,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
-    repl_typ p q T T' ->
+    repl_typ n p q T T' ->
     G ⊢# T <: T'
 
-| subtyp_sngl_qp_t : forall G p q T T' m,
+| subtyp_sngl_qp_t : forall G p q T T' m n,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
-    repl_typ q p T T' ->
+    repl_typ n q p T T' ->
     G ⊢# T <: T'
 
 (** [G ⊢! p: {A: T..T}] #<br>#

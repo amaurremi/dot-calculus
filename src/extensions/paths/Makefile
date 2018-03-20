@@ -1,7 +1,7 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-TLCDIR=../../../lib/tlc
+TLCDIR=../../../lib/tlc/src
 LEROYDIR=../../../lib/leroy
 LFDIR=../../../lib/lf
 DOCDIR=doc

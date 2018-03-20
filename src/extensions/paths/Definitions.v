@@ -320,48 +320,65 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 (** * Replacing paths with paths *)
 
 (* replace first path by second path inside of first type, yielding second type *)
-Inductive repl_typ : path -> path -> typ -> typ -> Prop :=
-| rrcd: forall p q D1 D2,
-    repl_dec p q D1 D2 ->
-    repl_typ p q (typ_rcd D1) (typ_rcd D2)
-| rand1: forall p q T1 T2 U,
-    repl_typ p q T1 T2 ->
-    repl_typ p q (typ_and T1 U) (typ_and T2 U)
-| rand2: forall p q T1 T2 U,
-    repl_typ p q T1 T2 ->
-    repl_typ p q (typ_and U T1) (typ_and U T2)
+
+Fixpoint numpaths T :=
+  match T with
+  | typ_rcd D => numpathsD D
+  | typ_and T1 T2 => numpaths T1 + numpaths T2
+  | typ_path _ _ => 1
+  | typ_bnd T => numpaths T
+  | typ_all T U => numpaths T + numpaths U
+  | typ_sngl _ => 1
+  | _ => 0
+  end
+with numpathsD D :=
+  match D with
+  | { _ >: T <: U } => numpaths T + numpaths U
+  | { _ ⦂ T } => numpaths T
+  end.
+
+Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
+| rrcd: forall p q D1 D2 n,
+    repl_dec n p q D1 D2 ->
+    n p q (typ_rcd D1) (typ_rcd D2)
+| rand1: forall p q T1 T2 U n,
+    repl_typ n p q T1 T2 ->
+    repl_typ n p q (typ_and T1 U) (typ_and T2 U)
+| rand2: forall p q T1 T2 U n,
+    repl_typ n p q T1 T2 ->
+    repl_typ (numpaths U + n) p q (typ_and U T1) (typ_and U T2)
 | rpath: forall p px bs pbs psub q qx qbs p' A,
     p = p_sel px (bs ++ pbs) ->
     psub = p_sel px pbs ->
     q = p_sel qx qbs ->
     p' = p_sel qx (bs ++ qbs) ->
-    repl_typ psub q (typ_path p A) (typ_path p' A)
-| rbnd: forall p q T1 T2,
-    repl_typ p q T1 T2 ->
-    repl_typ p q (typ_bnd T1) (typ_bnd T2)
-| rall1: forall p q T1 T2 U,
-    repl_typ p q T1 T2 ->
-    repl_typ p q (typ_all T1 U) (typ_all T2 U)
-| rall2: forall p q T1 T2 U,
-    repl_typ p q T1 T2 ->
-    repl_typ p q (typ_all U T1) (typ_all U T2)
+    repl_typ 0 psub q (typ_path p A) (typ_path p' A)
+| rbnd: forall p q T1 T2 n,
+    repl_typ n p q T1 T2 ->
+    repl_typ n p q (typ_bnd T1) (typ_bnd T2)
+| rall1: forall p q T1 T2 U n,
+    repl_typ n p q T1 T2 ->
+    repl_typ n p q (typ_all T1 U) (typ_all T2 U)
+| rall2: forall p q T1 T2 U n,
+    repl_typ n p q T1 T2 ->
+    repl_typ (numpaths U + n) p q (typ_all U T1) (typ_all U T2)
 | rsngl: forall p px bs pbs psub q qx qbs p',
     p = p_sel px (bs ++ pbs) ->
     psub = p_sel px pbs ->
     q = p_sel qx qbs ->
     p' = p_sel qx (bs ++ qbs) ->
-    repl_typ psub q (typ_sngl p) (typ_sngl p')
+    repl_typ 0 psub q (typ_sngl p) (typ_sngl p')
 
-with repl_dec : path -> path -> dec -> dec -> Prop :=
-| rdtyp1: forall p q T1 T2 A U,
-    repl_typ p q T1 T2 ->
-    repl_dec p q {A >: T1 <: U} {A >: T2 <: U}
-| rdtyp2: forall p q T1 T2 A U,
-    repl_typ p q T1 T2 ->
-    repl_dec p q {A >: U <: T1} {A >: U <: T2}
-| rdtrm: forall p q T1 T2 a,
-    repl_typ p q T1 T2 ->
-    repl_dec p q {a ⦂ T1} {a ⦂ T2}.
+with repl_dec : nat -> path -> path -> dec -> dec -> Prop :=
+| rdtyp1: forall p q T1 T2 A U n,
+    repl_typ n p q T1 T2 ->
+    repl_dec n p q {A >: T1 <: U} {A >: T2 <: U}
+| rdtyp2: forall p q T1 T2 A U n,
+    repl_typ n p q T1 T2 ->
+    repl_dec (numpaths U + n) p q {A >: U <: T1} {A >: U <: T2}
+| rdtrm: forall p q T1 T2 a n,
+    repl_typ n p q T1 T2 ->
+    repl_dec n p q {a ⦂ T1} {a ⦂ T2}.
 
 Hint Constructors repl_typ repl_dec.
 
@@ -745,14 +762,14 @@ with subtyp : ctx -> typ -> typ -> Prop :=
     G ⊢ T1 <: T2 ->
     G ⊢ typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
-| subtyp_sngl_pq : forall G p q T T',
+| subtyp_sngl_pq : forall G p q T T' n,
     G ⊢ trm_path p : typ_sngl q ->
-    repl_typ p q T T' ->
+    repl_typ n p q T T' ->
     G ⊢ T <: T'
 
-| subtyp_sngl_qp : forall G p q T T',
+| subtyp_sngl_qp : forall G p q T T' n,
     G ⊢ trm_path p : typ_sngl q ->
-    repl_typ q p T T' ->
+    repl_typ n q p T T' ->
     G ⊢ T <: T'
 
 (** [G ⊢ x: {A: S..T}] #<br>#
