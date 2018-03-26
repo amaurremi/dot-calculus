@@ -340,7 +340,7 @@ with numpathsD D :=
 Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
 | rrcd: forall p q D1 D2 n,
     repl_dec n p q D1 D2 ->
-    n p q (typ_rcd D1) (typ_rcd D2)
+    repl_typ n p q (typ_rcd D1) (typ_rcd D2)
 | rand1: forall p q T1 T2 U n,
     repl_typ n p q T1 T2 ->
     repl_typ n p q (typ_and T1 U) (typ_and T2 U)

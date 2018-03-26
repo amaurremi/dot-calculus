@@ -391,6 +391,18 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
+(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
+(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
+Lemma pf_binds: forall G x T U m,
+    inert G ->
+    G ⊢! pvar x: T ⪼ U // m ->
+    binds x T G.
+Proof.
+  introv Hi Pf. dependent induction Pf; try simpl_dot; auto.
+  specialize (IHPf1 _ Hi eq_refl). apply pf_sngl_T in Pf1; auto. subst. apply binds_inert in IHPf1.
+  inversion IHPf1. auto.
+Qed.
+
 (** See [pf_lambda_T]. *)
 Lemma binds_forall : forall x G S T U m,
     inert G ->
@@ -430,21 +442,47 @@ Proof.
   - destruct H as [r Heq]. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
+(*Lemma unelim_field: forall G p a q m,
+    inert G ->
+    G ⊢! p • a : typ_sngl q ⪼ typ_sngl q // m ->
+    exists T q' m', G ⊢! p: T ⪼ typ_rcd {a ⦂ typ_sngl q'} // m'.
+Proof.
+  introv Hi Hp. dependent induction Hp; try simpl_dot; eauto;
+                  try solve [apply pf_sngl_U in Hp; inversion Hp].
+  lets Heq: (pf_sngl_T Hi Hp1). subst. eauto.
+Qed.
+
+Lemma not_opened_sngl_false: forall G p T U q m,
+    inert G ->
+    G ⊢! p : T ⪼ U // not_opened ->
+    inert_typ T ->
+    G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
+    False.
+Proof.
+  introv Hi Hp. gen q. dependent induction Hp; introv Hit Hpq; eauto.
+  - Case "pf_bind".
+    lets Hb: (pf_binds Hi Hpq). apply binds_inert in Hb. inversion Hb. auto.
+  - Case "pf_fld".
+    destruct (unelim_field _ _ Hi Hpq) as [T' [q' [m' Hp']]].
+    assert (U = typ_sngl q') as Heq by admit.
+    subst. inversion Hit.
+Qed.*)
+
 Definition original_path G p T U q :=
-    G ⊢! p: T ⪼ U // opened ->
-            G ⊢! q: T ⪼ T // not_opened /\
-            (p = q \/ G ⊢! p: typ_sngl q ⪼ typ_sngl q // opened).
+    G ⊢! p: T ⪼ U // opened /\
+    G ⊢! q: T ⪼ T // not_opened /\
+    (p = q \/ G ⊢! p: typ_sngl q ⪼ typ_sngl q // opened).
 
 Lemma original_path_not_opened: forall G p T U,
     G ⊢! p: T ⪼ U // not_opened ->
     original_path G p T U p.
 Proof.
-  introv Hp. unfold original_path. introv Hp'. split*.
-  apply* pf_TT.
+  introv Hp. unfold original_path. split*. split.
+  apply* pf_TT. left*.
 Qed.
 
-Lemma original_path_exists: forall G p T U,
-    G ⊢! p: T ⪼ U // opened ->
+Lemma original_path_exists: forall G p T U m,
+    G ⊢! p: T ⪼ U // m ->
     exists q, original_path G p T U q.
 Proof. Admitted.
 
@@ -453,6 +491,56 @@ Lemma original_path_unique: forall G p T q1 q2 U1 U2,
     original_path G p T U2 q2 ->
     q1 = q2.
 Proof. Admitted.
+
+(*
+Lemma original_path_typing: forall G p T U m q,
+    G ⊢! p: T ⪼ U // m ->
+    inert_typ T ->
+    original_path G p T U q ->
+    G ⊢! q: T ⪼ U // m.
+Proof.
+  introv Hp Hi Ho. destruct Ho as [Hp' [Hq [Heq | Hpq]]]; subst; auto.
+  clear Hp. admit.
+Qed.
+
+Lemma original_path_sngl: forall G p q m T U r,
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q // m ->
+    original_path G p T U r ->
+    original_path G q T U r.
+Proof.
+  introv Hp Ho.
+  destruct Ho as [Hp' [Hq [Heq | Hpq]]].
+  - subst. split. admit.
+    split. auto.
+Admitted.
+
+Lemma pf_inert_trans: forall G p T U m q m',
+  inert G ->
+  G ⊢! p: T ⪼ U // m ->
+  inert_typ T ->
+  G ⊢! p: typ_sngl q ⪼ typ_sngl q // m' ->
+  G ⊢! q: T ⪼ U // m.
+Proof.
+  introv Hi Hp Hit Hpq.
+  destruct (original_path_exists Hp) as [r Ho].
+  lets Ho': (original_path_sngl Hpq Ho).
+  lets Ht: (original_path_typing Hp Hit Ho).
+  inversions Ho'. destruct m; auto.
+  false* (not_opened_sngl_false Hi Hp Hit Hpq).
+Qed.
+
+Lemma precise_fld_elim: forall G p T a q U m1 m2,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q // m1 ->
+    G ⊢! p: T ⪼ typ_rcd {a ⦂ U} // m2 ->
+    exists T' m, G ⊢! q•a : T' ⪼ U // m.
+Proof.
+  introv Hi Hp1 Hp2.
+  lets Hb: (pf_inert_bnd Hi Hp2).
+  destruct (pf_inert_typ Hi Hp1) as [S [m [Hp Hi']]].
+  lets Hit: (pf_inert_trans Hi Hp2 Hb Hp1). destruct m2. apply pf_not_opened in Hit.
+  eauto. eauto.
+Qed. *)
 
 (** If [G(x) = mu(T)], and [G ⊢! p: ... /\ D /\ ...], then [T^x = ... /\ D /\ ...]. *)
 Lemma pf_record_has_T : forall p G T T' D m q,
@@ -535,17 +623,6 @@ Proof.
   - eauto.
 Qed.*)
 
-(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
-(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
-Lemma pf_binds: forall G x T U m,
-    inert G ->
-    G ⊢! pvar x: T ⪼ U // m ->
-    binds x T G.
-Proof.
-  introv Hi Pf. dependent induction Pf; try simpl_dot; auto.
-  specialize (IHPf1 _ Hi eq_refl). apply pf_sngl_T in Pf1; auto. subst. apply binds_inert in IHPf1.
-  inversion IHPf1. auto.
-Qed.
 
 
 (* we need to be able to show that if
@@ -568,12 +645,12 @@ Proof.
     exists U. eexists. split*. destruct (pf_bnd_T2 Hi Hp) as [U' Heq]. subst.
     destruct (pf_rec_rcd_U Hi Hp) as [H | H]. inversion H. inversions H. inversions H0.
     inversions H1; auto.*)*)
-Abort.
+Admitted.
 
 (* this lemma statement is too weak:
    what if p.a has an inert type, but ⊢! p: q.type?
    then we don't get an IH for q *)
-Lemma pf_T_unique': forall G p T1 T2 U1 U2 m1 m2,
+Lemma pf_T_unique: forall G p T1 T2 U1 U2 m1 m2,
     inert G ->
     G ⊢! p: T1 ⪼ U1 // m1 ->
     G ⊢! p: T2 ⪼ U2 // m2 ->
@@ -601,7 +678,7 @@ Proof.
       assert (record_type (open_typ_p (p_sel x bs) S')) as Hrt by apply* open_record_type_p.
       apply* unique_rcd_trm.
     * lets Hqs: (pf_sngl_T Hi Hp2_1). subst.*)
-  Abort.
+  Admitted.
 
 (* I don't think we can prove this b/c we need to do induction on a sequence of singleton-path transitions.
    Maybe we should define a type lookup relation and prove that pf_T_unique implies that relation. *)

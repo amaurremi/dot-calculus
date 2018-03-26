@@ -379,7 +379,7 @@ Proof.
   introv Hi Hp. dependent induction Hp; auto.
   - destruct m. apply pf_open in H. eauto.
     destruct (original_path_exists H) as [q Hor]. unfolds original_path.
-    specialize (Hor H). destruct Hor as [Hq Hand].
+    destruct Hor as [_ [Hq Hand]].
     lets Hb: (pf_bnd_T Hi H). subst. apply pf_open in Hq. destruct Hand as [Heq | Hp'].
     * subst. eauto.
     * lets Ht: (pf_sngl_trans Hp' Hq).
@@ -560,6 +560,28 @@ Definition typed_repl_comp_qp G T1 T2 :=
 
 Definition repl_composition_qp G := star (typed_repl_comp_qp G).
 
+Lemma repl_comp_and1: forall G T T' U,
+    repl_composition_qp G T T' ->
+    repl_composition_qp G (typ_and T U) (typ_and T' U).
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - apply star_trans with (b:=typ_and b U); auto. apply star_one.
+    unfolds typed_repl_comp_qp. destruct_all.
+    repeat eexists; eauto.
+Qed.
+
+Lemma repl_comp_and2: forall G T T' U,
+    repl_composition_qp G T T' ->
+    repl_composition_qp G (typ_and U T) (typ_and U T').
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - apply star_trans with (b:=typ_and U b); auto. apply star_one.
+    unfolds typed_repl_comp_qp. destruct_all.
+    repeat eexists; eauto.
+Qed.
+
 Lemma repl_to_invertible: forall G p U,
     inert G ->
     G ⊢// p: U ->
@@ -570,8 +592,17 @@ Proof.
   - destruct (IHHp1 Hi) as [T' [Ht' Hpt']].
     destruct (IHHp2 Hi) as [U' [Hu' Hpu']].
     exists (typ_and T' U'). split*. apply star_trans with (b:=typ_and T U').
-    admit. admit.
-  - Admitted.
+    apply* repl_comp_and1. apply* repl_comp_and2.
+  - specialize (IHHp Hi). destruct IHHp as [U [Hr Hr']].
+    eexists. split*. eapply star_trans. apply Hr. apply star_one. repeat eexists. apply H.
+    constructor. eauto.
+  - specialize (IHHp Hi). destruct IHHp as [U [Hr Hr']].
+    eexists. split*. eapply star_trans. apply Hr. apply star_one. repeat eexists. apply H.
+    apply H0.
+  - specialize (IHHp Hi). destruct IHHp as [U [Hr Hr']].
+    eexists. split*. eapply star_trans. apply Hr. apply star_one. repeat eexists. apply H.
+    apply H0.
+Qed.
 
 (* if n <> m then
    T[q1 / p1,n][q2 / p2,m] = T[q2 / p2,m][q1 / p1,n] *)
