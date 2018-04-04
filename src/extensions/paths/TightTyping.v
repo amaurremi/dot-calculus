@@ -89,6 +89,11 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     G ⊢# trm_path q : T ->
     G ⊢# trm_path p : T
 
+| ty_path_elim_t : forall G p q a T,
+    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# trm_path q • a : T ->
+    G ⊢# trm_path p • a : typ_sngl q • a
+
 (** [G ⊢# p: T^p]   #<br>#
     [――――――――――――] #<br>#
     [G ⊢# p: mu(T)]     *)
@@ -179,28 +184,28 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# T1 <: T2 ->
     G ⊢# typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
-| subtyp_sngl_pq_t : forall G p q T T' m n,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
+| subtyp_sngl_pq_t : forall G p q T T' n,
+    G ⊢!!! p : typ_sngl q ->
     repl_typ n p q T T' ->
     G ⊢# T <: T'
 
-| subtyp_sngl_qp_t : forall G p q T T' m n,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q // m ->
+| subtyp_sngl_qp_t : forall G p q T T' n,
+    G ⊢!!! p : typ_sngl q ->
     repl_typ n q p T T' ->
     G ⊢# T <: T'
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# T <: p.A]         *)
-| subtyp_sel2_t: forall G p A T U m,
-    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } // m ->
+| subtyp_sel2_t: forall G p A T ,
+    G ⊢!!! p : typ_rcd { A >: T <: T } ->
     G ⊢# T <: typ_path p A
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# p.A <: T]         *)
-| subtyp_sel1_t: forall G p A T U m,
-    G ⊢! p : U ⪼ typ_rcd { A >: T <: T } // m ->
+| subtyp_sel1_t: forall G p A T,
+    G ⊢!!! p : typ_rcd { A >: T <: T } ->
     G ⊢# typ_path p A <: T
 
 (** [G ⊢# S2 <: S1]                #<br>#
@@ -230,12 +235,26 @@ Lemma tight_to_general:
      G ⊢# S <: U ->
      G ⊢ S <: U).
 Proof.
-  apply ts_mutind_ts; intros; subst; eauto using precise_to_general.
+  apply ts_mutind_ts; intros; subst; eauto using precise_to_general3.
 Qed.
 
-Lemma precise_to_tight: forall G p T U m,
-    G ⊢! p : T ⪼ U // m ->
+Lemma precise_to_tight: forall G p T U,
+    G ⊢! p : T ⪼ U ->
     G ⊢# trm_path p : T /\ G ⊢# trm_path p : U.
 Proof.
   introv Hp. dependent induction Hp; split*. constructor*.  constructor*.
+Qed.
+
+Lemma precise_to_tight2: forall G p T,
+    G ⊢!! p : T ->
+    G ⊢# trm_path p : T.
+Proof.
+  introv Hp. dependent induction Hp; eauto. apply* precise_to_tight.
+Qed.
+
+Lemma precise_to_tight3: forall G p T,
+    G ⊢!!! p : T ->
+    G ⊢# trm_path p : T.
+Proof.
+  introv Hp. dependent induction Hp; eauto. apply* precise_to_tight2.
 Qed.

@@ -162,6 +162,7 @@ Proof.
   introv Ht. dependent induction Ht; eauto.
   destruct (last_field _ _ x) as [bs' Hbs]. subst.
   eapply IHHt. destruct p. inversion* x.
+  simpl_dot. eauto.
 Qed.
 
 Lemma typed_paths_named: forall G p T,
@@ -171,7 +172,8 @@ Proof.
   intros. destruct p.
   dependent induction H; eauto; unfolds named_path, pvar; try solve [repeat eexists].
   destruct (last_field _ _ x) as [bs' Hbs]. subst. destruct p.
-  specialize (IHty_trm _ _ eq_refl). destruct_all. inversions x. inversions H0. repeat eexists.
+  specialize (IHty_trm _ _ eq_refl). destruct_all. inversions x. inversions H0. repeat eexists. simpl_dot. specialize (IHty_trm1 _ _ eq_refl). destruct_all.
+  inversions H1. eauto.
 Qed.
 
 Lemma sngl_path_named: forall G t p,
