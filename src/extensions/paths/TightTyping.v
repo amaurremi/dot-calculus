@@ -257,4 +257,5 @@ Lemma precise_to_tight3: forall G p T,
     G ⊢# trm_path p : T.
 Proof.
   introv Hp. dependent induction Hp; eauto. apply* precise_to_tight2.
+  apply precise_to_tight2 in H. eauto.
 Qed.
