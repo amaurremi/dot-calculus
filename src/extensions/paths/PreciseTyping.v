@@ -789,6 +789,68 @@ Proof.
     specialize (IHHp2_1 Hi His' _ _ Hp). inversion IHHp2_1.
 Qed.
 
+Lemma pf_pt2_sngl: forall G p T U q,
+    inert G ->
+    G ⊢! p: T ⪼ U ->
+    G ⊢!! p: typ_sngl q ->
+    T = typ_sngl q.
+Proof.
+  introv Hi Hp1 Hp2. apply* pf_pt2. right. eexists. auto.
+Qed.
+
+Lemma field_elim_q0: forall G p q a T,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢!! p•a : T ->
+    exists U, G ⊢!! q•a: U.
+Proof.
+  introv Hi Hp Hpa. gen q.
+  dependent induction Hpa; introv Hp; eauto.
+  - dependent induction H; try simpl_dot; eauto.
+    lets Heq: (pf_T_unique Hi Hp H). subst.
+    apply pf_sngl_U in H. inversion H.
+  - clear IHHpa1 IHHpa2. simpl_dot.
+    lets Heq: (pf_pt2_sngl Hi Hp Hpa1). inversion* Heq.
+Qed.
+
+Lemma field_elim_q0': forall G p q a T T',
+    inert G ->
+    G ⊢!! p: typ_sngl q ->
+    G ⊢! p•a : T ⪼ T' ->
+    exists U, G ⊢!! q•a: U.
+Proof.
+  introv Hi Hp Hpa. gen q.
+  dependent induction Hpa; introv Hp; try simpl_dot; eauto.
+  lets Hp2: (pf_pt2_sngl Hi Hpa Hp). subst.
+  apply pf_sngl_U in Hpa. inversion Hpa.
+Qed.
+
+Lemma pt2_unique: forall G p T1 T2,
+    inert G ->
+    G ⊢!! p: T1 ->
+    G ⊢!! p: T2 ->
+    inert_sngl T1 ->
+    inert_sngl T2 ->
+    T1 = T2.
+Proof.
+  introv Hi Hp1 Hp2 His1 His2. gen T2. dependent induction Hp1; introv Hp2 His2.
+  - dependent induction Hp2.
+    * lets HU: (pf_T_unique Hi H H0). subst.
+      admit. (*easy*)
+    * clear His2. lets Hp: (pt2_sngl_trans _ Hp2_1 Hp2_2).
+      lets Heq: (pf_pt2_sngl Hi H Hp). subst.
+      apply* pf_sngl_U.
+  - assert (inert_sngl (typ_sngl q)) as His. { right. eexists. auto. }
+    clear His1 His.
+    gen q U. dependent induction Hp2; introv Hp1 IH1 Hqa IH2; eauto.
+    * lets Hp: (pt2_sngl_trans _ Hp1 Hqa).
+      lets Heq: (pf_pt2_sngl Hi H Hp). subst. lets Heq: (pf_sngl_U H). auto.
+    * simpl_dot.
+      assert (inert_sngl (typ_sngl q0)) as His. { right. eexists. auto. }
+      assert (inert_sngl (typ_sngl q)) as His'. { right. eexists. auto. }
+      specialize (IH1 Hi His _ Hp2_1 His'). inversion* IH1.
+Qed.
+
 Lemma field_elim_q: forall G p q a T,
     inert G ->
     G ⊢!! p: typ_sngl q ->
@@ -796,15 +858,21 @@ Lemma field_elim_q: forall G p q a T,
     exists U, G ⊢!! q•a: U.
 Proof.
   introv Hi Hp Hpa. gen a T. dependent induction Hp; introv Hpa.
-  - lets Heq: (pf_sngl_T Hi H). subst.
-    dependent induction Hpa.
-    * dependent induction H0; try simpl_dot; eauto.
-      lets Heq: (pf_T_unique Hi H0 H). subst.
-      apply pf_sngl_U in H0. inversion H0.
-    * clear IHHpa1 IHHpa2. simpl_dot.
-      assert (inert_sngl (typ_sngl q0)) as His. { right. eexists. auto. }
-      lets Heq: (pf_pt2 Hi H Hpa1 His). inversion* Heq.
-  - Admitted.
+  - lets Heq: (pf_sngl_T Hi H). subst. apply* field_elim_q0.
+  - clear IHHp1 IHHp2.
+    gen q0 U. dependent induction Hpa; introv Hp; introv Hq0.
+    * apply* field_elim_q0'.
+    * unfold sel_fields in x. destruct p0, p. inversions x.
+      lets Hxbs: (pt2_sngl_trans _ Hp Hq0).
+      assert (inert_sngl (typ_sngl q)) as His. {
+        right. eexists. eauto.
+      }
+      assert (inert_sngl (typ_sngl q0 • a)) as His'. {
+        right. eexists. eauto.
+      }
+      lets Hu: (pt2_unique Hi Hpa1 Hxbs His His').
+      inversions Hu. eauto.
+Qed.
 
 Lemma field_elim_q2: forall G p q a T,
     inert G ->
