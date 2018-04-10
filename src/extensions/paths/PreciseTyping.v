@@ -900,3 +900,65 @@ Proof.
     * destruct* (field_elim_q _ Hi H Hpa).
     * lets Hp': (pt3_sngl_trans H Hp). apply* field_elim_q2.
 Qed.
+
+Lemma pt3_field_elim_p: forall G p q a U,
+    inert G ->
+    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p • a : U ->
+    G ⊢!!! p • a : typ_sngl q • a.
+Proof.
+  introv Hi Hpq Hpa. destruct (field_elim_q3 _ Hi Hpq Hpa) as [T Hqa].
+  apply* path_elim_prec.
+Qed.
+
+Lemma pt2_backtrack : forall G p a T,
+    G ⊢!! p • a : T ->
+    exists U, G ⊢!! p : U.
+Proof.
+  introv Hp. dependent induction Hp; eauto.
+  - dependent induction H; try simpl_dot; eauto.
+  - simpl_dot. eauto.
+Qed.
+
+Lemma pt3_backtrack : forall G p a T,
+    G ⊢!!! p • a : T ->
+    exists U, G ⊢!!! p : U.
+Proof.
+  introv Hp. dependent induction Hp;
+               apply pt2_backtrack in H; destruct_all; eauto.
+Qed.
+
+Lemma pt3_sngl_trans3: forall G p q T,
+    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! q: T ->
+    G ⊢!!! p : T.
+Proof.
+  introv Hp Hq. gen T. dependent induction Hp; introv Hq; eauto.
+Qed.
+
+Lemma pt3_field_trans: forall G px pbs qx qbs bs T,
+    inert G ->
+    G ⊢!!! p_sel px pbs : typ_sngl (p_sel qx qbs) ->
+    G ⊢!!! p_sel qx (bs ++ qbs) : T ->
+    G ⊢!!! p_sel px (bs ++ pbs) : typ_sngl (p_sel qx (bs ++ qbs)).
+Proof.
+  introv Hi Hp Hq. gen T qx qbs. induction bs; introv Hp Hq; simpls. auto.
+  rewrite proj_rewrite in *.
+  destruct (pt3_backtrack _ _ Hq) as [U Hb].
+  specialize (IHbs _ _ _ Hp Hb). rewrite proj_rewrite. apply* path_elim_prec.
+Qed.
+
+Lemma pt3_field_trans': forall G px pbs qx qbs bs T,
+    inert G ->
+    G ⊢!!! p_sel px pbs : typ_sngl (p_sel qx qbs) ->
+    G ⊢!!! p_sel qx (bs ++ qbs) : T ->
+    G ⊢!!! p_sel px (bs ++ pbs) : T.
+Proof.
+  introv Hi Hp1 Hp2. gen px pbs qx qbs T.
+  induction bs; introv Hp1; introv Hp2; simpls.
+  - apply* pt3_sngl_trans3.
+  - rewrite proj_rewrite in *.
+    destruct (pt3_backtrack _ _ Hp2) as [S Hb].
+    lets Hh: (pt3_field_trans _ Hi Hp1 Hb).
+    apply* pt3_sngl_trans3. apply* path_elim_prec.
+Qed.
