@@ -936,26 +936,27 @@ Proof.
   introv Hp Hq. gen T. dependent induction Hp; introv Hq; eauto.
 Qed.
 
-Lemma pt3_field_trans: forall G px pbs qx qbs bs T,
+Lemma pt3_field_trans: forall G p q bs T,
     inert G ->
-    G ⊢!!! p_sel px pbs : typ_sngl (p_sel qx qbs) ->
-    G ⊢!!! p_sel qx (bs ++ qbs) : T ->
-    G ⊢!!! p_sel px (bs ++ pbs) : typ_sngl (p_sel qx (bs ++ qbs)).
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! q••bs : T ->
+    G ⊢!!! p••bs : typ_sngl q••bs.
 Proof.
-  introv Hi Hp Hq. gen T qx qbs. induction bs; introv Hp Hq; simpls. auto.
+  introv Hi Hp Hq. gen T q. induction bs; introv Hp Hq;
+                              unfolds sel_fields; destruct q, p; simpls; auto.
   rewrite proj_rewrite in *.
   destruct (pt3_backtrack _ _ Hq) as [U Hb].
-  specialize (IHbs _ _ _ Hp Hb). rewrite proj_rewrite. apply* path_elim_prec.
+  specialize (IHbs _ _ Hp Hb). rewrite proj_rewrite. apply* path_elim_prec.
 Qed.
 
-Lemma pt3_field_trans': forall G px pbs qx qbs bs T,
+Lemma pt3_field_trans': forall G p q bs T,
     inert G ->
-    G ⊢!!! p_sel px pbs : typ_sngl (p_sel qx qbs) ->
-    G ⊢!!! p_sel qx (bs ++ qbs) : T ->
-    G ⊢!!! p_sel px (bs ++ pbs) : T.
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! q••bs : T ->
+    G ⊢!!! p••bs : T.
 Proof.
-  introv Hi Hp1 Hp2. gen px pbs qx qbs T.
-  induction bs; introv Hp1; introv Hp2; simpls.
+  introv Hi Hp1 Hp2. gen p q T.
+  induction bs; introv Hp1; introv Hp2; unfolds sel_fields; destruct q, p; simpls.
   - apply* pt3_sngl_trans3.
   - rewrite proj_rewrite in *.
     destruct (pt3_backtrack _ _ Hp2) as [S Hb].

@@ -678,7 +678,27 @@ Qed.
   if T[n] starts with p2 then G ⊢// r: T[q2 / p2, n]
   __________________________________________________
   G ⊢// r: T[p1 / q1, n][q2 / p2, n]
-*)
+ *)
+
+Notation "p '••' bs" := (sel_fields p bs) (at level 5).
+
+Lemma proj_rewrite_mult: forall x bs cs,
+    p_sel x (bs ++ cs) = (p_sel x cs) •• bs.
+Proof. auto. Qed.
+
+Lemma pt3_destruct: forall G p q r bs,
+    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p••bs : typ_sngl q••bs ->
+    G ⊢!!! p••bs : typ_sngl r ->
+    r = q••bs \/ G ⊢!!! q••bs: typ_sngl r.
+Proof. Admitted.
+
+Lemma pt3_trans_trans: forall G p q bs T,
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p••bs : T ->
+    G ⊢!!! p••bs : typ_sngl q••bs.
+Proof. Admitted.
+
 Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
     inert G ->
     G ⊢// r: T ->
@@ -686,10 +706,16 @@ Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
     G ⊢!!! p2: typ_sngl q2 ->
     repl_typ n q1 p1 T T1 ->
     repl_typ n p2 q2 T1 T2 ->
-    (forall U, repl_typ n p2 q2 T U -> G ⊢// r: U) ->
     G ⊢// r: T2.
 Proof.
-  introv Hr Hp1 Hp2 Hr1 Hr2 IH. Admitted.
+  introv Hi Hr Hp1 Hp2 Hr1 Hr2.
+  assert (exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs) as [bs [Heq | Heq]] by admit.
+  - subst. lets Ht: (pt3_trans_trans _ Hp2 Hp1).
+    rewrite proj_rewrite_mu
+
+    destruct (pt3_destruct _ Ht Hp1) as [Heq | [Hin Hq1] | [Hin Hq2]].
+    * inversions Heq. assert (T2 = T) as Heq by admit. subst*.
+    *
 
 
 Lemma replacement_repl_closure_pq : forall G p q r n T T',
@@ -929,6 +955,10 @@ Proof.
     specialize (IHHp1 _ Hi eq_refl). specialize (IHHp2 _ Hi eq_refl). clear Hp1 Hp2.
     gen T. dependent induction IHHp1; introv Hq.
     * SCase "ty_inv_r".
+      gen p. induction Hq; introv Hp; eauto.
+      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]]. clear Hp.
+      constructor.
+
       admit.
     * SCase "ty_sngl_pq_inv".
       specialize (IHIHHp1 _ eq_refl Hi).

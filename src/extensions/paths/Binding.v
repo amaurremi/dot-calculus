@@ -15,7 +15,7 @@ Require Import Definitions.
 Ltac simpl_dot :=
   match goal with
   | [ H: ?p • _ = p_sel _ _ |- _ ] =>
-    unfold sel_fields in H; destruct p; inversions H
+    unfold sel_field in H; destruct p; inversions H
   | [ H: _ • _ = pvar _ |- _ ] =>
     unfold pvar in H; simpl_dot
   | [ H: pvar _ = _ • _ |- _ ] =>
@@ -23,7 +23,7 @@ Ltac simpl_dot :=
   | [ H: p_sel _ _ = _ • _ |- _ ] =>
     symmetry in H; simpl_dot
   | [ H: _ • _ = _ |- _ ] =>
-    unfold sel_fields in H;
+    unfold sel_field in H;
     match goal with
     | [ H: match ?p1 with
            | p_sel _ _ => _
@@ -709,7 +709,11 @@ Lemma proj_rewrite : forall x bs a,
 Proof.
   auto. Qed.
 
-Hint Rewrite proj_rewrite.
+Lemma proj_rewrite_mult: forall x bs cs,
+    p_sel x (bs ++ cs) = (p_sel x cs) •• bs.
+Proof. auto. Qed.
+
+Hint Rewrite proj_rewrite proj_rewrite_mult.
 
 Lemma typing_empty_false: forall p T,
     empty ⊢ trm_path p: T -> False.
