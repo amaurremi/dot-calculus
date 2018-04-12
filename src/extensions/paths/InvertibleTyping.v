@@ -691,13 +691,20 @@ Lemma pt3_destruct: forall G p q r bs,
     G ⊢!!! p••bs : typ_sngl q••bs ->
     G ⊢!!! p••bs : typ_sngl r ->
     r = q••bs \/ G ⊢!!! q••bs: typ_sngl r.
-Proof. Admitted.
+Proof.
+  introv Hp1 Hp2 Hp3. Admitted.
 
 Lemma pt3_trans_trans: forall G p q bs T,
+    inert G ->
     G ⊢!!! p : typ_sngl q ->
     G ⊢!!! p••bs : T ->
     G ⊢!!! p••bs : typ_sngl q••bs.
-Proof. Admitted.
+Proof.
+  introv Hi Hp Hpbs. gen p q T.
+  induction bs; introv Hp; introv Hpbs; unfolds sel_fields; destruct p, q; simpls; auto.
+  repeat rewrite proj_rewrite in *. apply* pt3_field_elim_p.
+  specialize (IHbs _ _ Hp). apply pt3_backtrack in Hpbs. destruct_all. eauto.
+Qed.
 
 Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
     inert G ->
