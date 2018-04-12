@@ -711,11 +711,15 @@ Proof.
   introv Hi Hr Hp1 Hp2 Hr1 Hr2.
   assert (exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs) as [bs [Heq | Heq]] by admit.
   - subst. lets Ht: (pt3_trans_trans _ Hp2 Hp1).
-    rewrite proj_rewrite_mu
-
-    destruct (pt3_destruct _ Ht Hp1) as [Heq | [Hin Hq1] | [Hin Hq2]].
-    * inversions Heq. assert (T2 = T) as Heq by admit. subst*.
-    *
+    destruct (pt3_destruct _ Hp2 Ht Hp1) as [Heq | Hpbs].
+    * subst. assert (T2 = T) as Heq by admit. subst*.
+    * assert (repl_typ n q1 q2••bs T T2) as Hr' by admit.
+      apply* replacement_repl_closure_qp.
+  - subst. lets Ht: (pt3_trans_trans _ Hp1 Hp2).
+    destruct (pt3_destruct _ Hp1 Ht Hp2) as [Heq | Hpbs].
+    * subst. assert (T2 = T) as Heq by admit. subst*.
+    * assert (repl_typ n q1••bs q2 T T2) as Hr' by admit.
+      apply* replacement_repl_closure_qp.
 
 
 Lemma replacement_repl_closure_pq : forall G p q r n T T',
