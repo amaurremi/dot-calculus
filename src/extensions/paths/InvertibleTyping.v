@@ -363,6 +363,17 @@ Proof.
     eauto.
 Qed.
 
+Lemma invertible_repl_closure3 : forall G p q r T T' n,
+    inert G ->
+    G ⊢## p : T ->
+    G ⊢!!! q : typ_sngl r ->
+    repl_typ n q r T T' ->
+    G ⊢## p : T'.
+Proof.
+  introv Hi Hp Hq Hr. dependent induction Hq.
+  - apply* invertible_repl_closure2.
+  - specialize (IHHq _ Hi Hp eq_refl). Abort.
+
 Lemma invertible_repl_closure_comp: forall G p q r T T',
     inert G ->
     G ⊢## p: T ->
