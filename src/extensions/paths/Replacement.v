@@ -252,3 +252,14 @@ with ith_path_dec D i :=
   end.
 
 Notation "T '⚬' i" := (ith_path T i) (at level 50).
+
+Lemma repl_insert: forall n p q T U r,
+    repl_typ n p q T U ->
+    exists V, repl_typ n p r T V /\ repl_typ n r q V U.
+Proof.
+  introv Hr. Admitted.
+
+Lemma repl_field_elim : forall n p q a T U,
+    repl_typ n p•a q•a T U ->
+    repl_typ n p q T U.
+Proof. Admitted.

@@ -202,6 +202,8 @@ Proof.
             rewrite <- B, concat_assoc; unfold subst_ctx;
               auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
+  - Case "ty_path_elim".
+    admit.
   - Case "ty_rec_intro".
     constructor. rewrite* <- subst_open_commut_typ_p.
   - Case "ty_def_all".
@@ -225,6 +227,8 @@ Proof.
     admit.
   - Case "subtyp_all".
     admit.
+  - admit.
+  - admit.
 Qed.
 
 (** The substitution lemma for term typing.
