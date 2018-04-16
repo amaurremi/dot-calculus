@@ -1040,14 +1040,6 @@ Proof.
   destruct* (sngl_typed2 Hi H).
 Qed.
 
-Lemma pt3_destruct: forall G p q r bs,
-    G ⊢!!! p: typ_sngl q ->
-    G ⊢!!! p••bs : typ_sngl q••bs ->
-    G ⊢!!! p••bs : typ_sngl r ->
-    r = q••bs \/ G ⊢!!! q••bs: typ_sngl r.
-Proof.
-  introv Hp1 Hp2 Hp3. Admitted.
-
 Lemma pt3_trans_trans: forall G p q bs T,
     inert G ->
     G ⊢!!! p : typ_sngl q ->
