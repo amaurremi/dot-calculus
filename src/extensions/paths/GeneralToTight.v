@@ -113,20 +113,81 @@ Proof.
     econstructor. apply H. eauto. eauto.
 Qed.*)
 
-Lemma repl_composition_sngl: forall G p q,
+Lemma sngl_typed : forall G p q,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    exists T, G ⊢! q: T ⪼ T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto; try solve [apply pf_sngl_U in Hp; inversion Hp].
+  - apply binds_inert in H0. inversion H0. auto.
+  - destruct (pf_bnd_T2 Hi Hp) as [U Heq]. subst. destruct (pf_rec_rcd_U Hi Hp).
+    * inversion H.
+    * inversions H. inversions H0. admit.
+      (* here we change the def of inertness and get what we want? *)
+Qed.
+
+Lemma sngl_typed2 : forall G p q,
+    inert G ->
+    G ⊢!! p: typ_sngl q ->
+    exists T, G ⊢!! q: T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. lets Heq: (pf_sngl_T Hi H). subst.
+  destruct* (sngl_typed Hi H).
+Qed.
+
+Lemma sngl_typed3 : forall G p q,
+    inert G ->
+    G ⊢!!! p: typ_sngl q ->
+    exists T, G ⊢!!! q: T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+  destruct* (sngl_typed2 Hi H).
+Qed.
+
+Lemma repl_composition_sngl: forall G p q T,
+    inert G ->
     repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!!! p : T ->
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
-  introv Hc. dependent induction Hc; eauto.
+  introv Hi Hc Hq. dependent induction Hc; eauto.
   assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
-  specialize (IHHc _ _ eq_refl eq_refl).
+  specialize (IHHc _ _ Hi eq_refl eq_refl Hq).
   destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
   rewrite proj_rewrite_mult in *. set (p_sel qx qbs) as q in *.
   set (p_sel px pbs) as p' in *.
+  lets H': (pt3 (pt2 H)).
   destruct IHHc as [Heq | Hp]; subst.
-  - clear Hc. Abort.
+  - lets Htt: (pt3_trans_trans _ Hi H' Hq).
+    right*.
+  - right.
+    destruct (sngl_typed3 Hi Hp) as [S Hqbs].
+    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
+Qed.
 
-
+Lemma repl_composition_sngl2: forall G p q T,
+    inert G ->
+    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!!! q : T ->
+    p = q \/ G ⊢!!! p : typ_sngl q.
+Proof.
+  introv Hi Hc Hq. gen T. dependent induction Hc; introv Hq; eauto.
+  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
+  specialize (IHHc _ _ Hi eq_refl eq_refl).
+  destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
+  rewrite proj_rewrite_mult in *. set (p_sel qx qbs) as q in *.
+  set (p_sel px pbs) as p' in *.
+  lets H': (pt3 (pt2 H)).
+  assert (exists S, G ⊢!!! q •• bs : S) as [S Hqs]. {
+    eexists. apply* pt3_field_trans.
+  }
+  destruct (IHHc _ Hqs) as [Heq | Hp]; subst.
+  - lets Htt: (pt3_trans_trans _ Hi H' Hqs).
+    right*.
+  - right.
+    destruct (sngl_typed3 Hi Hp) as [S' Hqbs].
+    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
+Qed.
 
 Lemma sngl_replacement: forall G p q n T U,
     inert G ->
@@ -138,7 +199,36 @@ Proof.
   lets Hc: (replacement_closure Hi Hp).
   lets Hri: (repl_to_invertible Hi Hc). destruct Hri as [V [Hrc Hpt]].
   destruct (repl_comp_sngl_inv Hrc) as [r Heq]. subst.
-  destruct (inv_to_precise_sngl Hpt) as [r' [Ht Hrc']]. Admitted.
+  destruct (inv_to_precise_sngl Hpt) as [r' [Ht Hrc']].
+  destruct (sngl_typed3 Hi Ht) as [V Hst].
+  destruct (repl_composition_sngl Hi Hrc' Hst) as [Heq | Hpq].
+  - subst. destruct (repl_composition_sngl2 Hi Hrc Hst).
+    * subst. split. eauto. apply repl_swap in Hr. eauto.
+    * split.
+      ** destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+         apply subtyp_trans_t with (T:=S); eauto.
+      ** apply repl_swap in Hr.
+         destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+         apply subtyp_trans_t with (T:=S); eauto.
+  - destruct (sngl_typed3 Hi Hpq) as [T' Ht'].
+    destruct (repl_composition_sngl2 Hi Hrc Ht').
+    * subst. split.
+      ** destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
+         apply subtyp_trans_t with (T:=S); eauto.
+      ** apply repl_swap in Hr.
+         destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
+         apply subtyp_trans_t with (T:=S); eauto.
+    * destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
+      split.
+      ** apply subtyp_trans_t with (T:=S). eauto.
+         destruct (repl_insert r Hr2) as [S' [Hr1' Hr2']].
+         apply subtyp_trans_t with (T:=S'); eauto.
+      ** apply repl_swap in Hr. destruct (repl_insert r Hr) as [S' [Hr1' Hr2']].
+         apply subtyp_trans_t with (T:=S'). eauto.
+         destruct (repl_insert r' Hr2') as [S'' [Hr1'' Hr2'']].
+         apply subtyp_trans_t with (T:=S''); eauto.
+Qed.
+
 
 
 (** * General to Tight [⊢ to ⊢#] *)
