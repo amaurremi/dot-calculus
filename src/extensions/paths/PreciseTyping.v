@@ -9,11 +9,56 @@
 Set Implicit Arguments.
 
 Require Import LibLN.
+Require Import Sequences.
 Require Import Coq.Program.Equality List.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
 Definition is_sngl T := exists p, T = typ_sngl p.
 Definition inert_sngl T := inert_typ T \/ is_sngl T.
+
+Ltac invert_repl :=
+  repeat match goal with
+         | [H: repl_dec _ _ _ {_ ⦂ _} _ |- _ ] =>
+           inversions H
+         | [H: repl_dec _ _ _ _ {_ ⦂ _} |- _ ] =>
+           inversions H
+         | [H: repl_dec _ _ _ {_ >: _ <: _} _ |- _ ] =>
+           inversions H
+         | [H: repl_dec _ _ _ _ {_ >: _ <: _} |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_rcd _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_rcd _) |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_and _ _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_and _ _) |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_bnd _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_bnd _) |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_all _ _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_all _ _) |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_path _ _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_path _ _) |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ typ_top _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ typ_top |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ typ_bot _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ typ_bot |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ (typ_sngl _) _ |- _ ] =>
+           inversions H
+         | [H: repl_typ _ _ _ _ (typ_sngl _) |- _ ] =>
+           inversions H
+    end.
 
 (* todo consistent lemma naming *)
 (* todo finish doc *)
@@ -867,7 +912,7 @@ Proof.
       assert (inert_sngl (typ_sngl q)) as His. {
         right. eexists. eauto.
       }
-      assert (inert_sngl (typ_sngl q0 • a)) as His'. {
+      assert (inert_sngl (typ_sngl q0•a)) as His'. {
         right. eexists. eauto.
       }
       lets Hu: (pt2_unique Hi Hpa1 Hxbs His His').
@@ -962,4 +1007,224 @@ Proof.
     destruct (pt3_backtrack _ _ Hp2) as [S Hb].
     lets Hh: (pt3_field_trans _ Hi Hp1 Hb).
     apply* pt3_sngl_trans3. apply* path_elim_prec.
+Qed.
+
+Lemma sngl_typed : forall G p q,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    exists T, G ⊢! q: T ⪼ T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto; try solve [apply pf_sngl_U in Hp; inversion Hp].
+  - apply binds_inert in H0. inversion H0. auto.
+  - destruct (pf_bnd_T2 Hi Hp) as [U Heq]. subst. destruct (pf_rec_rcd_U Hi Hp).
+    * inversion H.
+    * inversions H. inversions H0. admit.
+      (* here we change the def of inertness and get what we want? *)
+Qed.
+
+Lemma sngl_typed2 : forall G p q,
+    inert G ->
+    G ⊢!! p: typ_sngl q ->
+    exists T, G ⊢!! q: T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. lets Heq: (pf_sngl_T Hi H). subst.
+  destruct* (sngl_typed Hi H).
+Qed.
+
+Lemma sngl_typed3 : forall G p q,
+    inert G ->
+    G ⊢!!! p: typ_sngl q ->
+    exists T, G ⊢!!! q: T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+  destruct* (sngl_typed2 Hi H).
+Qed.
+
+Lemma pt3_destruct: forall G p q r bs,
+    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p••bs : typ_sngl q••bs ->
+    G ⊢!!! p••bs : typ_sngl r ->
+    r = q••bs \/ G ⊢!!! q••bs: typ_sngl r.
+Proof.
+  introv Hp1 Hp2 Hp3. Admitted.
+
+Lemma pt3_trans_trans: forall G p q bs T,
+    inert G ->
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p••bs : T ->
+    G ⊢!!! p••bs : typ_sngl q••bs.
+Proof.
+  introv Hi Hp Hpbs. gen p q T.
+  induction bs; introv Hp; introv Hpbs; unfolds sel_fields; destruct p, q; simpls; auto.
+  repeat rewrite proj_rewrite in *. apply* pt3_field_elim_p.
+  specialize (IHbs _ _ Hp). apply pt3_backtrack in Hpbs. destruct_all. eauto.
+Qed.
+
+Lemma pf_sngl_fld_elim: forall G p q a T U,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p•a : T ⪼ U ->
+    False.
+Proof.
+  introv Hi Hp Hpa. dependent induction Hpa; try simpl_dot; eauto.
+  lets Hu: (pf_T_unique Hi Hpa Hp). subst. apply pf_sngl_U in Hpa. false*.
+Qed.
+
+Lemma pf_sngl_flds_elim: forall G p q T U bs,
+    inert G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p••bs : T ⪼ U ->
+    bs = nil.
+Proof.
+  introv Hi Hp Hpbs. gen T U. induction bs; introv Hpbs. auto.
+  assert (exists T' U', G ⊢! p •• bs : T' ⪼ U') as [T' [U' Hpbs']]. {
+    clear IHbs Hp. dependent induction Hpbs; try simpl_dot; eauto.
+    unfolds sel_field, sel_fields. destruct p0, p. inversions x. repeat eexists. eauto.
+  }
+  specialize (IHbs _ _ Hpbs'). subst. unfold sel_fields in Hpbs. destruct p. simpls.
+  rewrite proj_rewrite in *. false* pf_sngl_fld_elim.
+Qed.
+
+(** Lemmas about replacement composition *)
+
+Definition typed_repl_comp_qp G T1 T2 :=
+  exists p q n,
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q /\ repl_typ n q p T1 T2.
+
+Definition repl_composition_qp G := star (typed_repl_comp_qp G).
+
+Lemma repl_comp_sngl_inv : forall G T p,
+    repl_composition_qp G T (typ_sngl p) ->
+    exists q, T = typ_sngl q.
+Proof.
+  introv Hr. dependent induction Hr; eauto.
+  specialize (IHHr _ eq_refl). destruct_all. subst.
+  inversions H. destruct_all. invert_repl. eexists; eauto.
+Qed.
+
+Lemma repl_comp_and1: forall G T T' U,
+    repl_composition_qp G T T' ->
+    repl_composition_qp G (typ_and T U) (typ_and T' U).
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - apply star_trans with (b:=typ_and b U); auto. apply star_one.
+    unfolds typed_repl_comp_qp. destruct_all.
+    repeat eexists; eauto.
+Qed.
+
+Lemma repl_comp_and2: forall G T T' U,
+    repl_composition_qp G T T' ->
+    repl_composition_qp G (typ_and U T) (typ_and U T').
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - apply star_trans with (b:=typ_and U b); auto. apply star_one.
+    unfolds typed_repl_comp_qp. destruct_all.
+    repeat eexists; eauto.
+Qed.
+
+Lemma repl_composition_sngl: forall G p q T,
+    inert G ->
+    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!!! p : T ->
+    p = q \/ G ⊢!!! p : typ_sngl q.
+Proof.
+  introv Hi Hc Hq. dependent induction Hc; eauto.
+  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
+  specialize (IHHc _ _ Hi eq_refl eq_refl Hq).
+  destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
+  rewrite proj_rewrite_mult in *. set (p_sel qx qbs) as q in *.
+  set (p_sel px pbs) as p' in *.
+  lets H': (pt3 (pt2 H)).
+  destruct IHHc as [Heq | Hp]; subst.
+  - lets Htt: (pt3_trans_trans _ Hi H' Hq).
+    right*.
+  - right.
+    destruct (sngl_typed3 Hi Hp) as [S Hqbs].
+    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
+Qed.
+
+Lemma repl_composition_sngl2: forall G p q T,
+    inert G ->
+    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!!! q : T ->
+    p = q \/ G ⊢!!! p : typ_sngl q.
+Proof.
+  introv Hi Hc Hq. gen T. dependent induction Hc; introv Hq; eauto.
+  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
+  specialize (IHHc _ _ Hi eq_refl eq_refl).
+  destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
+  rewrite proj_rewrite_mult in *. set (p_sel qx qbs) as q in *.
+  set (p_sel px pbs) as p' in *.
+  lets H': (pt3 (pt2 H)).
+  assert (exists S, G ⊢!!! q •• bs : S) as [S Hqs]. {
+    eexists. apply* pt3_field_trans.
+  }
+  destruct (IHHc _ Hqs) as [Heq | Hp]; subst.
+  - lets Htt: (pt3_trans_trans _ Hi H' Hqs).
+    right*.
+  - right.
+    destruct (sngl_typed3 Hi Hp) as [S' Hqbs].
+    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
+Qed.
+
+Lemma field_typing_comp1: forall G r q a U,
+  inert G ->
+  repl_composition_qp G (typ_sngl r) (typ_sngl q) ->
+  G ⊢!!! q•a : U ->
+  exists T, G ⊢!!! r•a : T.
+Proof.
+  introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hq; eauto.
+  destruct (repl_comp_sngl_inv Hr) as [p Heq]. subst.
+  destruct H as [p' [q' [n [Hp' Hr']]]].
+  specialize (IHHr _ _ Hi eq_refl eq_refl _ _ Hq). destruct IHHr as [T Hpa].
+  assert (G ⊢!!! p : typ_sngl r) as Hpr. {
+    clear Hq Hr. inversions Hr'. gen qx qbs a T. induction bs; introv Hpa Hq. auto.
+    simpl. repeat rewrite proj_rewrite in *.
+    destruct (pt3_backtrack _ _ Hq) as [T1 Ht1]. simpls. rewrite proj_rewrite in *.
+    constructor*.
+    simpls. repeat rewrite proj_rewrite in *.
+    simpls. rewrite proj_rewrite in *.
+    apply pt3_backtrack in Hq. destruct_all. rewrite proj_rewrite in *.
+    apply* pt3_field_elim_p.
+  }
+  apply* field_elim_q3.
+Qed.
+
+Lemma field_typing_comp2: forall G r q a U,
+  inert G ->
+  repl_composition_qp G (typ_sngl q) (typ_sngl r) ->
+  G ⊢!!! q•a : U ->
+  exists T, G ⊢!!! r•a : T.
+Proof.
+  introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hqa; eauto. inversions H.
+  rename x into p.
+  destruct H0 as [q' [n [Hp Hr']]].
+  assert (exists q', b = typ_sngl q') as [q'' Heq] by inversion* Hr'.
+  subst. specialize (IHHr _ _ Hi eq_refl eq_refl). invert_repl. apply* IHHr. clear IHHr Hr.
+  gen px pbs a U. induction bs; intros; simpls.
+  - rewrite proj_rewrite in *. apply* pt3_trans2.
+  - do 2 rewrite app_comm_cons in *. rewrite proj_rewrite_mult in *. apply* pt3_field_trans'.
+Qed.
+
+Lemma repl_composition_fld_elim: forall G p q a T,
+    inert G ->
+    repl_composition_qp G (typ_sngl p) (typ_sngl q) ->
+    G ⊢!!! p • a : T ->
+    repl_composition_qp G (typ_sngl p•a) (typ_sngl q•a).
+Proof.
+  introv Hi Hr. gen T. dependent induction Hr; introv Hpa.
+  - apply star_refl.
+  - assert (exists p', b = typ_sngl p') as [p' Heq]. {
+      dependent induction H; destruct_all; eauto. inversions H0. eauto.
+    } subst.
+    specialize (IHHr _ _ Hi eq_refl eq_refl).
+    destruct H as [p'' [q' [n [Hpq Hr']]]]. apply star_trans with (b:=typ_sngl p' • a).
+    * apply star_one.
+      repeat eexists. apply Hpq.
+      inversions Hr'. eapply rsngl. simpl. rewrite app_comm_cons. all: auto.
+    * invert_repl. apply* IHHr. clear IHHr. simpls. rewrite app_comm_cons.
+      rewrite proj_rewrite_mult in *.
+      apply* pt3_field_trans'.
 Qed.

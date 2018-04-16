@@ -263,3 +263,31 @@ Lemma repl_field_elim : forall n p q a T U,
     repl_typ n p•a q•a T U ->
     repl_typ n p q T U.
 Proof. Admitted.
+
+(* if n <> m then
+   T[q1 / p1,n][q2 / p2,m] = T[q2 / p2,m][q1 / p1,n] *)
+Lemma repl_order_swap: forall n p1 q1 T U V m p2 q2 U' V',
+    repl_typ n p1 q1 T U ->
+    repl_typ m p2 q2 U V ->
+    n <> m ->
+    repl_typ m p2 q2 T U' ->
+    repl_typ n p1 q1 U' V' ->
+    V = V'.
+Proof.
+  Admitted.
+
+Lemma repl_preserved1 : forall n p q T U V m r s,
+        repl_typ n p q T U ->
+        repl_typ m r s U V ->
+        n <> m ->
+        exists V', repl_typ m r s T V'.
+Proof.
+Admitted.
+
+Lemma repl_preserved2 : forall n p q T U1 U2 m r s,
+        repl_typ n p q T U1 ->
+        repl_typ m r s T U2 ->
+        n <> m ->
+        exists V, repl_typ m r s U1 V.
+Proof.
+  Admitted.
