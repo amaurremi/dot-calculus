@@ -1,6 +1,6 @@
 (** * Lists: Working with Structured Data *)
 
-Require Export LF.Induction.
+Require Export Induction.
 Module NatList.
 
 (* ################################################################# *)
@@ -45,7 +45,7 @@ Notation "( x , y )" := (pair x y).
 
 (** The new pair notation can be used both in expressions and in
     pattern matches (indeed, we've actually seen this already in the
-    previous chapter, in the definition of the [minus] function --
+    [Basics] chapter, in the definition of the [minus] function --
     this works because the pair notation is also provided as part of
     the standard library): *)
 
@@ -266,6 +266,7 @@ Fixpoint nonzeros (l:natlist) : natlist
 Example test_nonzeros:
   nonzeros [0;1;0;2;3;0;0] = [1;2;3].
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_nonzeros *)
 
 Fixpoint oddmembers (l:natlist) : natlist
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
@@ -273,6 +274,7 @@ Fixpoint oddmembers (l:natlist) : natlist
 Example test_oddmembers:
   oddmembers [0;1;0;2;3;0;0] = [1;3].
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_oddmembers *)
 
 Definition countoddmembers (l:natlist) : nat
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
@@ -345,11 +347,12 @@ Example test_count1:              count 1 [1;2;3;1;4;1] = 3.
  (* FILL IN HERE *) Admitted.
 Example test_count2:              count 6 [1;2;3;1;4;1] = 0.
  (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_count2 *)
 
-(** Multiset [sum] is similar to set [union]: [sum a b] contains
-    all the elements of [a] and of [b].  (Mathematicians usually
-    define [union] on multisets a little bit differently, which
-    is why we don't use that name for this operation.)
+(** Multiset [sum] is similar to set [union]: [sum a b] contains all
+    the elements of [a] and of [b].  (Mathematicians usually define
+    [union] on multisets a little bit differently -- using max instead
+    of sum -- which is why we don't use that name for this operation.)
     For [sum] we're giving you a header that does not give explicit
     names to the arguments.  Moreover, it uses the keyword
     [Definition] instead of [Fixpoint], so even if you had names for
@@ -363,6 +366,7 @@ Definition sum : bag -> bag -> bag
 
 Example test_sum1:              count 1 (sum [1;2;3] [1;4;1]) = 3.
  (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_sum1 *)
 
 Definition add (v:nat) (s:bag) : bag
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
@@ -371,15 +375,19 @@ Example test_add1:                count 1 (add 1 [1;4;1]) = 3.
  (* FILL IN HERE *) Admitted.
 Example test_add2:                count 5 (add 1 [1;4;1]) = 0.
  (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_add1 *)
+(* GRADE_THEOREM 0.5: NatList.test_add2 *)
 
 Definition member (v:nat) (s:bag) : bool
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
 Example test_member1:             member 1 [1;4;1] = true.
  (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.test_member1 *)
+(* GRADE_THEOREM 0.5: NatList.test_member2 *)
 
 Example test_member2:             member 2 [1;4;1] = false.
- (* FILL IN HERE *) Admitted.
+(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (bag_more_functions)  *)
@@ -428,7 +436,7 @@ Example test_subset2:              subset [1;2;2] [2;1;4;1] = false.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, recommendedM (bag_theorem)  *)
+(** **** Exercise: 3 stars, recommended (bag_theorem)  *)
 (** Write down an interesting theorem [bag_theorem] about bags
     involving the functions [count] and [add], and prove it.  Note
     that, since this problem is somewhat open-ended, it's possible
@@ -458,9 +466,9 @@ Theorem nil_app : forall l:natlist,
 Proof. reflexivity. Qed.
 
 (** ... because the [[]] is substituted into the
-    "scrutinee" (the value being "scrutinized" by the match) in the
-    definition of [app], allowing the match itself to be
-    simplified. *)
+    "scrutinee" (the expression whose value is being "scrutinized" by
+    the match) in the definition of [app], allowing the match itself
+    to be simplified. *)
 
 (** Also, as with numbers, it is sometimes helpful to perform case
     analysis on the possible shapes (empty or non-empty) of an unknown
@@ -757,23 +765,26 @@ Proof.
 (* ================================================================= *)
 (** ** List Exercises, Part 1 *)
 
-(** **** Exercise: 3 starsM (list_exercises)  *)
+(** **** Exercise: 3 stars (list_exercises)  *)
 (** More practice with lists: *)
 
 Theorem app_nil_r : forall l : natlist,
   l ++ [] = l.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.app_nil_r *)
 
 Theorem rev_app_distr: forall l1 l2 : natlist,
   rev (l1 ++ l2) = rev l2 ++ rev l1.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.rev_app_distr *)
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.rev_involutive *)
 
 (** There is a short solution to the next one.  If you find yourself
     getting tangled up, step back and try to look for a simpler
@@ -783,6 +794,7 @@ Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
   l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: NatList.app_assoc4 *)
 
 (** An exercise about your implementation of [nonzeros]: *)
 
@@ -821,16 +833,17 @@ Proof.
 (* ================================================================= *)
 (** ** List Exercises, Part 2 *)
 
-(** **** Exercise: 3 stars, advanced (bag_proofs)  *)
 (** Here are a couple of little theorems to prove about your
     definitions about bags above. *)
 
+(** **** Exercise: 1 star (count_member_nonzero)  *)
 Theorem count_member_nonzero : forall (s : bag),
   leb 1 (count 1 (1 :: s)) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
+(** [] *)
 
-(** The following lemma about [leb] might help you in the next proof. *)
+(** The following lemma about [leb] might help you in the next exercise. *)
 
 Theorem ble_n_Sn : forall n,
   leb n (S n) = true.
@@ -841,21 +854,22 @@ Proof.
   - (* S n' *)
     simpl.  rewrite IHn'.  reflexivity.  Qed.
 
+(** **** Exercise: 3 stars, advanced (remove_decreases_count)  *)
 Theorem remove_decreases_count: forall (s : bag),
   leb (count 0 (remove_one 0 s)) (count 0 s) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, optionalM (bag_count_sum)  *)
+(** **** Exercise: 3 stars, optional (bag_count_sum)  *)
 (** Write down an interesting theorem [bag_count_sum] about bags
-    involving the functions [count] and [sum], and prove it.  (You may
-    find that the difficulty of the proof depends on how you defined
-    [count]!) *)
+    involving the functions [count] and [sum], and prove it using
+    Coq.  (You may find that the difficulty of the proof depends on
+    how you defined [count]!) *)
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, advancedM (rev_injective)  *)
+(** **** Exercise: 4 stars, advanced (rev_injective)  *)
 (** Prove that the [rev] function is injective -- that is,
 
     forall (l1 l2 : natlist), rev l1 = rev l2 -> l1 = l2.
@@ -991,9 +1005,9 @@ Inductive id : Type :=
 (** Internally, an [id] is just a number.  Introducing a separate type
     by wrapping each nat with the tag [Id] makes definitions more
     readable and gives us the flexibility to change representations
-    later if we wish.
+    later if we wish. *)
 
-    We'll also need an equality test for [id]s: *)
+(** We'll also need an equality test for [id]s: *)
 
 Definition beq_id (x1 x2 : id) :=
   match x1, x2 with
@@ -1062,19 +1076,18 @@ Proof.
 (** [] *)
 End PartialMap.
 
-(** **** Exercise: 2 starsM (baz_num_elts)  *)
+(** **** Exercise: 2 stars (baz_num_elts)  *)
 (** Consider the following inductive definition: *)
 
 Inductive baz : Type :=
   | Baz1 : baz -> baz
   | Baz2 : baz -> bool -> baz.
 
-(** How _many_ elements does the type [baz] have?  (Answer in English
-    or the natural language of your choice.)
+(** How _many_ elements does the type [baz] have?
+    (Explain your answer in words, preferrably English.)
 
 (* FILL IN HERE *)
 *)
 (** [] *)
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)
 

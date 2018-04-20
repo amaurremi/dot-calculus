@@ -7,8 +7,7 @@
 Set Warnings "-notation-overridden,-parsing".
 Require Export Lists.
 
-(* ################################################################# *)
-(** * Polymorphism *)
+(*** Polymorphism *)
 
 (** In this chapter we continue our development of basic
     concepts of functional programming.  The critical new ideas are
@@ -88,7 +87,7 @@ Check (cons nat 3 (nil nat)).
 Check nil.
 (* ===> nil : forall X : Type, list X *)
 
-(** Similarly, the type of [cons] as read off from the definition is
+(** Similarly, the type of [cons] from the definition looks like
     [X -> list X -> list X], but using this convention to explain the
     meaning of [X] results in the type [forall X, X -> list X -> list
     X]. *)
@@ -125,7 +124,7 @@ Fixpoint repeat (X : Type) (x : X) (count : nat) : list X :=
   end.
 
 (** As with [nil] and [cons], we can use [repeat] by applying it
-    first to a type and then to its list argument: *)
+    first to a type and then to an element of this type (and a number): *)
 
 Example test_repeat1 :
   repeat nat 4 2 = cons nat 4 (cons nat 4 (nil nat)).
@@ -141,7 +140,7 @@ Proof. reflexivity.  Qed.
 
 Module MumbleGrumble.
 
-(** **** Exercise: 2 starsM (mumble_grumble)  *)
+(** **** Exercise: 2 stars (mumble_grumble)  *)
 (** Consider the following two inductively defined types. *)
 
 Inductive mumble : Type :=
@@ -237,7 +236,7 @@ Check repeat.
 
     to tell Coq to attempt to infer the missing information.
 
-    Using implicit arguments, the [count] function can be written like
+    Using implicit arguments, the [repeat] function can be written like
     this: *)
 
 Fixpoint repeat'' X x count : list X :=
@@ -265,11 +264,13 @@ Definition list123' :=
 
 (** We can go further and even avoid writing [_]'s in most cases by
     telling Coq _always_ to infer the type argument(s) of a given
-    function.  The [Arguments] directive specifies the name of the
-    function (or constructor) and then lists its argument names, with
-    curly braces around any arguments to be treated as implicit.  (If
-    some arguments of a definition don't have a name, as is often the
-    case for constructors, they can be marked with a wildcard pattern
+    function.
+
+    The [Arguments] directive specifies the name of the function (or
+    constructor) and then lists its argument names, with curly braces
+    around any arguments to be treated as implicit.  (If some
+    arguments of a definition don't have a name, as is often the case
+    for constructors, they can be marked with a wildcard pattern
     [_].) *)
 
 Arguments nil {X}.
@@ -295,12 +296,12 @@ Fixpoint repeat''' {X : Type} (x : X) (count : nat) : list X :=
     provide one!)
 
     We will use the latter style whenever possible, but we will
-    continue to use use explicit [Argument] declarations for
-    [Inductive] constructors.  The reason for this is that marking the
-    parameter of an inductive type as implicit causes it to become
-    implicit for the type itself, not just for its constructors.  For
-    instance, consider the following alternative definition of the
-    [list] type: *)
+    continue to use explicit [Argument] declarations for [Inductive]
+    constructors.  The reason for this is that marking the parameter
+    of an inductive type as implicit causes it to become implicit for
+    the type itself, not just for its constructors.  For instance,
+    consider the following alternative definition of the [list]
+    type: *)
 
 Inductive list' {X:Type} : Type :=
   | nil' : list'
@@ -486,7 +487,7 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
   | x :: tx, y :: ty => (x, y) :: (combine tx ty)
   end.
 
-(** **** Exercise: 1 star, optionalM (combine_checks)  *)
+(** **** Exercise: 1 star, optional (combine_checks)  *)
 (** Try answering the following questions on paper and
     checking your answers in coq:
     - What is the type of [combine] (i.e., what does [Check
@@ -854,7 +855,7 @@ Example fold_example3 :
   fold app  [[1];[];[2;3];[4]] [] = [1;2;3;4].
 Proof. reflexivity. Qed.
 
-(** **** Exercise: 1 star, advancedM (fold_types_different)  *)
+(** **** Exercise: 1 star, advanced (fold_types_different)  *)
 (** Observe that the type of [fold] is parameterized by _two_ type
     variables, [X] and [Y], and the parameter [f] is a binary operator
     that takes an [X] and a [Y] and returns a [Y].  Can you think of a
@@ -931,10 +932,11 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
+Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 starsM (fold_map)  *)
+(** **** Exercise: 3 stars (fold_map)  *)
 (** We can also define [map] in terms of [fold].  Finish [fold_map]
     below. *)
 
@@ -976,7 +978,7 @@ Definition prod_uncurry {X Y Z : Type}
 (** As a (trivial) example of the usefulness of currying, we can use it
     to shorten one of the examples that we saw above: *)
 
-Example test_map4: map (plus 3) [2;0;2] = [5;3;5].
+Example test_map1': map (plus 3) [2;0;2] = [5;3;5].
 Proof. reflexivity.  Qed.
 
 (** Thought exercise: before running the following commands, can you
@@ -999,7 +1001,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advancedM (nth_error_informal)  *)
+(** **** Exercise: 2 stars, advanced (nth_error_informal)  *)
 (** Recall the definition of the [nth_error] function:
 
    Fixpoint nth_error {X : Type} (l : list X) (n : nat) : option X :=
@@ -1122,5 +1124,4 @@ End Church.
 
 End Exercises.
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)
 

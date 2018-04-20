@@ -60,9 +60,9 @@
          that you may find useful.  Take a look at the table of contents and the chapter dependency diagram to find
          them.
 
-       - If you're interested in real-world applications of formal
-         verification to critical software, see the Postscript chapter
-         of _Programming Language Foundations_.
+       - For questions about Coq, the #coq area of Stack
+         Overflow (https://stackoverflow.com/questions/tagged/coq)
+         is an excellent community resource.
 
        - Here are some great books on functional programming
             - Learn You a Haskell for Great Good, by Miran Lipovaca
@@ -72,12 +72,21 @@
             - ...and many other excellent books on Haskell, OCaml,
               Scheme, Racket, Scala, F sharp, etc., etc.
 
-       - And some deeper resources for Coq:
+       - And some further resources for Coq:
            - Certified Programming with Dependent Types, by Adam
              Chlipala [Chlipala 2013].
            - Interactive Theorem Proving and Program Development:
              Coq'Art: The Calculus of Inductive Constructions, by Yves
              Bertot and Pierre Casteran [Bertot 2004].
+
+       - If you're interested in real-world applications of formal
+         verification to critical software, see the Postscript chapter
+         of _Programming Language Foundations_.
+
+       - For applications of Coq in building verified systems, the
+         lectures and course materials for the 2017 DeepSpec Summer
+         School are a great resource.
+         https://deepspec.org/event/dsss17/index.html
 *)
 
-(* $Date: 2017-06-20 14:46:24 -0400 (Tue, 20 Jun 2017) $ *)
+(** $Date$ *)

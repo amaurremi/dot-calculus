@@ -1,3 +1,4 @@
+
 val negb : bool -> bool
 
 type 'a option =
@@ -34,21 +35,17 @@ type string =
 
 val string_dec : string -> string -> sumbool
 
-type id =
-  string
-  (* singleton inductive, whose constructor was Id *)
+val beq_string : string -> string -> bool
 
-val beq_id : id -> id -> bool
+type 'a total_map = string -> 'a
 
-type 'a total_map = id -> 'a
-
-val t_update : 'a1 total_map -> id -> 'a1 -> id -> 'a1
+val t_update : 'a1 total_map -> string -> 'a1 -> string -> 'a1
 
 type state = int total_map
 
 type aexp =
 | ANum of int
-| AId of id
+| AId of string
 | APlus of aexp * aexp
 | AMinus of aexp * aexp
 | AMult of aexp * aexp
@@ -67,7 +64,7 @@ val beval : state -> bexp -> bool
 
 type com =
 | CSkip
-| CAss of id * aexp
+| CAss of string * aexp
 | CSeq of com * com
 | CIf of bexp * com * com
 | CWhile of bexp * com

@@ -1,3 +1,4 @@
+
 (** val negb : bool -> bool **)
 
 let negb = function
@@ -25,15 +26,12 @@ let rec mul = ( * )
 let rec sub n m =
   (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-    (fun _ ->
-    n)
+    (fun _ -> n)
     (fun k ->
     (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-      (fun _ ->
-      n)
-      (fun l ->
-      sub k l)
+      (fun _ -> n)
+      (fun l -> sub k l)
       m)
     n
 
@@ -53,15 +51,12 @@ module Nat =
   let rec leb n m =
     (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-      (fun _ ->
-      true)
+      (fun _ -> true)
       (fun n' ->
       (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-        (fun _ ->
-        false)
-        (fun m' ->
-        leb n' m')
+        (fun _ -> false)
+        (fun m' -> leb n' m')
         m)
       n
  end
@@ -102,43 +97,38 @@ type string =
 
 (** val string_dec : string -> string -> sumbool **)
 
-let rec string_dec s s0 =
+let rec string_dec s x =
   match s with
-  | EmptyString ->
-    (match s0 with
-     | EmptyString -> Left
-     | String (_, _) -> Right)
-  | String (a, s1) ->
-    (match s0 with
+  | EmptyString -> (match x with
+                    | EmptyString -> Left
+                    | String (_, _) -> Right)
+  | String (a, s0) ->
+    (match x with
      | EmptyString -> Right
-     | String (a0, s2) ->
+     | String (a0, s1) ->
        (match ascii_dec a a0 with
-        | Left -> string_dec s1 s2
+        | Left -> string_dec s0 s1
         | Right -> Right))
 
-type id =
-  string
-  (* singleton inductive, whose constructor was Id *)
+(** val beq_string : string -> string -> bool **)
 
-(** val beq_id : id -> id -> bool **)
-
-let beq_id x y =
+let beq_string x y =
   match string_dec x y with
   | Left -> true
   | Right -> false
 
-type 'a total_map = id -> 'a
+type 'a total_map = string -> 'a
 
-(** val t_update : 'a1 total_map -> id -> 'a1 -> id -> 'a1 **)
+(** val t_update : 'a1 total_map -> string -> 'a1 -> string -> 'a1 **)
 
 let t_update m x v x' =
-  if beq_id x x' then v else m x'
+  if beq_string x x' then v else m x'
 
 type state = int total_map
 
 type aexp =
 | ANum of int
-| AId of id
+| AId of string
 | APlus of aexp * aexp
 | AMinus of aexp * aexp
 | AMult of aexp * aexp
@@ -172,7 +162,7 @@ let rec beval st = function
 
 type com =
 | CSkip
-| CAss of id * aexp
+| CAss of string * aexp
 | CSeq of com * com
 | CIf of bexp * com * com
 | CWhile of bexp * com
@@ -182,8 +172,7 @@ type com =
 let rec ceval_step st c i =
   (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-    (fun _ ->
-    None)
+    (fun _ -> None)
     (fun i' ->
     match c with
     | CSkip -> Some st

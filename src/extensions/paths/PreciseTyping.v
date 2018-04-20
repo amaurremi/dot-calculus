@@ -8,7 +8,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Sequences.
 Require Import Coq.Program.Equality List.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
@@ -252,12 +251,13 @@ Proof.
       pose proof (ty_defs_record_type H) as Hr;
       destruct Hr as [ls Hr];
       apply inert_typ_bnd with ls;
+      destruct_notin;
       apply* record_open
   end.
 Qed.
 
 Lemma pf_forall_U : forall G p T U S,
-    G ⊢! p: typ_all T U ⪼ S->
+    G ⊢! p: typ_all T U ⪼ S ->
     S = typ_all T U.
 Proof.
   introv Pf. dependent induction Pf; eauto;
@@ -577,7 +577,7 @@ Lemma pf_T_unique: forall G p T1 T2 U1 U2,
 Proof.
   introv Hi Hp1. gen T2 U2. induction Hp1; introv Hp2; eauto.
   - Case "pf_bind".
-    apply (pf_binds Hi) in Hp2. eapply binds_func. apply H0. auto.
+    apply (pf_binds Hi) in Hp2. eapply binds_functional. apply H0. auto.
   - Case "pf_fld".
     gen U T. dependent induction Hp2; introv Hp IH; try simpl_dot; eauto.
     * rename a2 into x. rename f0 into bs. clear IHHp2.

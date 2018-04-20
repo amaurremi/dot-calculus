@@ -7,3 +7,7 @@ body { 	background-image: url('../media/image/verified_bg.jpg');   }
 /*   This volume's color   */
 .section, ul#menu li.section_name, div.button  { background-color: #c2c26c; }
 
+.slide img {
+   border: 2px solid gray;
+   margin: 1em;
+}

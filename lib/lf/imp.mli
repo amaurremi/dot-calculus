@@ -1,18 +1,5 @@
-type unit0 =
-| Tt
 
 val negb : bool -> bool
-
-type 'a option =
-| Some of 'a
-| None
-
-type ('a, 'b) prod =
-| Pair of 'a * 'b
-
-type 'a list =
-| Nil
-| Cons of 'a * 'a list
 
 val app : 'a1 list -> 'a1 list -> 'a1 list
 
@@ -78,33 +65,23 @@ val n_of_ascii : char -> n
 
 val nat_of_ascii : char -> int
 
-type string =
-| EmptyString
-| String of char * string
+val string_dec : char list -> char list -> bool
 
-val string_dec : string -> string -> bool
+val append : char list -> char list -> char list
 
-val append : string -> string -> string
+val beq_string : char list -> char list -> bool
 
-type id =
-  string
-  (* singleton inductive, whose constructor was Id *)
-
-val beq_id : id -> id -> bool
-
-type 'a total_map = id -> 'a
+type 'a total_map = char list -> 'a
 
 val t_empty : 'a1 -> 'a1 total_map
 
-val t_update : 'a1 total_map -> id -> 'a1 -> id -> 'a1
+val t_update : 'a1 total_map -> char list -> 'a1 -> char list -> 'a1
 
 type state = int total_map
 
-val empty_state : state
-
 type aexp =
 | ANum of int
-| AId of id
+| AId of char list
 | APlus of aexp * aexp
 | AMinus of aexp * aexp
 | AMult of aexp * aexp
@@ -123,7 +100,7 @@ val beval : state -> bexp -> bool
 
 type com =
 | CSkip
-| CAss of id * aexp
+| CAss of char list * aexp
 | CSeq of com * com
 | CIf of bexp * com * com
 | CWhile of bexp * com
@@ -146,55 +123,56 @@ type chartype =
 
 val classifyChar : char -> chartype
 
-val list_of_string : string -> char list
+val list_of_string : char list -> char list
 
-val string_of_list : char list -> string
+val string_of_list : char list -> char list
 
-type token = string
+type token = char list
 
 val tokenize_helper : chartype -> char list -> char list -> char list list
 
-val tokenize : string -> string list
+val tokenize : char list -> char list list
 
 type 'x optionE =
 | SomeE of 'x
-| NoneE of string
+| NoneE of char list
 
-type 't parser0 = token list -> ('t, token list) prod optionE
+type 't parser0 = token list -> ('t * token list) optionE
 
 val many_helper :
-  'a1 parser0 -> 'a1 list -> int -> token list -> ('a1 list, token list) prod
+  'a1 parser0 -> 'a1 list -> int -> token list -> ('a1 list * token list)
   optionE
 
 val many : 'a1 parser0 -> int -> 'a1 list parser0
 
 val firstExpect : token -> 'a1 parser0 -> 'a1 parser0
 
-val expect : token -> unit0 parser0
+val expect : token -> unit parser0
 
-val parseIdentifier : token list -> (id, token list) prod optionE
+val parseIdentifier : token list -> (char list * token list) optionE
 
-val parseNumber : token list -> (int, token list) prod optionE
+val parseNumber : token list -> (int * token list) optionE
 
-val parsePrimaryExp : int -> token list -> (aexp, token list) prod optionE
+val parsePrimaryExp : int -> token list -> (aexp * token list) optionE
 
-val parseProductExp : int -> token list -> (aexp, token list) prod optionE
+val parseProductExp : int -> token list -> (aexp * token list) optionE
 
-val parseSumExp : int -> token list -> (aexp, token list) prod optionE
+val parseSumExp : int -> token list -> (aexp * token list) optionE
 
-val parseAExp : int -> token list -> (aexp, token list) prod optionE
+val parseAExp : int -> token list -> (aexp * token list) optionE
 
-val parseAtomicExp : int -> token list -> (bexp, token list) prod optionE
+val parseAtomicExp : int -> token list -> (bexp * token list) optionE
 
-val parseConjunctionExp : int -> token list -> (bexp, token list) prod optionE
+val parseConjunctionExp : int -> token list -> (bexp * token list) optionE
 
-val parseBExp : int -> token list -> (bexp, token list) prod optionE
+val parseBExp : int -> token list -> (bexp * token list) optionE
 
-val parseSimpleCommand : int -> token list -> (com, token list) prod optionE
+val parseSimpleCommand : int -> token list -> (com * token list) optionE
 
-val parseSequencedCommand :
-  int -> token list -> (com, token list) prod optionE
+val parseSequencedCommand : int -> token list -> (com * token list) optionE
 
 val bignumber : int
 
-val parse : string -> (com, token list) prod optionE
+val parse : char list -> (com * token list) optionE
+
+val empty_state : int total_map

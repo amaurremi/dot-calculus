@@ -1,6 +1,5 @@
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
             OperationalSemantics PreciseTyping RecordAndInertTypes Substitution Weakening.

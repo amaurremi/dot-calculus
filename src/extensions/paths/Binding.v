@@ -9,7 +9,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
-Require Import LibLN.
 Require Import Definitions.
 
 Ltac simpl_dot :=
@@ -316,7 +315,7 @@ Lemma open_fresh_typ_dec_injective:
     D = D').
 Proof.
   apply typ_mutind; intros; invert_open; simpl in *;
-    f_equal; eauto using open_fresh_avar_injective, open_fresh_path_injective.
+    f_equal; destruct_notin; eauto using open_fresh_avar_injective, open_fresh_path_injective.
 Qed.
 
 Lemma open_fresh_trm_val_def_defs_injective:
@@ -361,18 +360,17 @@ Proof.
            end
     | [ H: _ = open_rec_val _ _ ?v |- _ ] =>
       destruct v; inversions H; f_equal; simpl in *;
-      try apply* open_fresh_typ_dec_injective; eauto
+      try apply* open_fresh_typ_dec_injective; destruct_notin; eauto
     | [ H: _ = open_rec_def _ _ ?d |- _ ] =>
       destruct d; inversions H; f_equal;
-      try apply* open_fresh_typ_dec_injective; eauto
+      try apply* open_fresh_typ_dec_injective; destruct_notin; eauto
     | [ H: _ = open_rec_defs _ _ ?ds |- _ ] =>
-      destruct ds; inversions H; f_equal; simpl in *; eauto
+      destruct ds; inversions H; f_equal; simpl in *; destruct_notin; eauto
     | [ H: _ = open_rec_defrhs _ _ ?drhs |- _ ] =>
-      destruct drhs; inversions H; f_equal; simpl in *; eauto
+      destruct drhs; inversions H; f_equal; simpl in *; destruct_notin; eauto
     end.
 
-  apply trm_mutind; intros; try solve [injective_solver]. admit.
-Qed.
+  apply trm_mutind; intros; try solve [injective_solver]. Admitted.
 
 (** * Variable Substitution Lemmas *)
 

@@ -2,10 +2,10 @@ Preface.vo Preface.glob Preface.v.beautified: Preface.v
 Preface.vio: Preface.v
 Basics.vo Basics.glob Basics.v.beautified: Basics.v
 Basics.vio: Basics.v
-Induction.vo Induction.glob Induction.v.beautified: Induction.v
-Induction.vio: Induction.v
-Lists.vo Lists.glob Lists.v.beautified: Lists.v
-Lists.vio: Lists.v
+Induction.vo Induction.glob Induction.v.beautified: Induction.v Basics.vo
+Induction.vio: Induction.v Basics.vio
+Lists.vo Lists.glob Lists.v.beautified: Lists.v Induction.vo
+Lists.vio: Lists.v Induction.vio
 Poly.vo Poly.glob Poly.v.beautified: Poly.v Lists.vo
 Poly.vio: Poly.v Lists.vio
 Tactics.vo Tactics.glob Tactics.v.beautified: Tactics.v Poly.vo
@@ -28,8 +28,8 @@ ImpParser.vo ImpParser.glob ImpParser.v.beautified: ImpParser.v Maps.vo Imp.vo
 ImpParser.vio: ImpParser.v Maps.vio Imp.vio
 ImpCEvalFun.vo ImpCEvalFun.glob ImpCEvalFun.v.beautified: ImpCEvalFun.v Imp.vo Maps.vo
 ImpCEvalFun.vio: ImpCEvalFun.v Imp.vio Maps.vio
-Extraction.vo Extraction.glob Extraction.v.beautified: Extraction.v ImpCEvalFun.vo Imp.vo ImpParser.vo
-Extraction.vio: Extraction.v ImpCEvalFun.vio Imp.vio ImpParser.vio
+Extraction.vo Extraction.glob Extraction.v.beautified: Extraction.v ImpCEvalFun.vo Imp.vo ImpParser.vo Maps.vo
+Extraction.vio: Extraction.v ImpCEvalFun.vio Imp.vio ImpParser.vio Maps.vio
 Auto.vo Auto.glob Auto.v.beautified: Auto.v Maps.vo Imp.vo
 Auto.vio: Auto.v Maps.vio Imp.vio
 Postscript.vo Postscript.glob Postscript.v.beautified: Postscript.v

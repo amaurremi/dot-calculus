@@ -7,7 +7,6 @@
 Set Implicit Arguments.
 
 Require Import List Coq.Program.Equality.
-Require Import LibLN.
 Require Import Definitions Binding Weakening.
 
 

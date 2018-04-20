@@ -54,14 +54,18 @@ vo_to_obj = $(addsuffix .o,\
 #                        #
 ##########################
 
+LFDIR="../lf"
+LFSRC=$(LFDIR)
+LFNAME=LF
+
 COQLIBS?=\
-  -R "../lf" LF\
+  -R $(LFSRC) $(LFNAME)\
   -R "." compiler 
 COQCHKLIBS?=\
-  -R "../lf" LF\
+  -R $(LFSRC) $(LFNAME)\
   -R "." compiler
 COQDOCLIBS?=\
-  -R "../lf" LF\
+  -R $(LFSRC) $(LFNAME)\
   -R "." compiler
 
 ##########################
@@ -131,6 +135,19 @@ HASNATDYNLINK_OR_EMPTY := yes
 else
 HASNATDYNLINK_OR_EMPTY :=
 endif
+
+##############
+# LF Library #
+##############
+
+all: $(LFNAME)
+doc: $(LFNAME)
+proofs: $(LFNAME)
+%vo: $(LFNAME)
+          
+$(LFNAME): $(wildcard $(LFSRC)/*.v)
+	$(MAKE) -C $(LFDIR)
+
 
 #######################################
 #                                     #

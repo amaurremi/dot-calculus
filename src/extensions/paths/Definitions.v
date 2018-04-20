@@ -10,7 +10,8 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN LibOption.
+Require Export TLC.LibLN.
+Require Import TLC.LibOption.
 Require Import List String.
 
 Parameter typ_label: Set.
@@ -536,7 +537,7 @@ Reserved Notation "x ';' bs ';' P ';' G '⊢' ds '::' D"
          (at level 40, bs at level 39, P at level 39, G at level 39, ds at level 59).
 (* Reserved Notation "P '⊢' p '<' q" (at level 40, p at level 59). *)
 
-Definition uniq := LibList.No_duplicates.
+Definition uniq := TLC.LibList.noduplicates.
 
 Inductive path_precedes : paths -> fields -> fields -> Prop :=
 | pp: forall P P1 P2 p q,
@@ -937,6 +938,12 @@ Ltac destruct_all :=
   | [ H : exists x, _ |- _ ]  => destruct H
   | [ H : ?A /\ ?B |- _ ] => destruct H
   | [ H : ?A \/ ?B |- _ ] => destruct H
-  end.
+         end.
+
+Ltac destruct_notin :=
+  repeat match goal with
+         | [ H: ?z \notin ?E1 \u ?E2 |- _ ] =>
+           apply notin_union in H; destruct H
+         end.
 
 Ltac omega := Coq.omega.Omega.omega.

@@ -7,21 +7,20 @@
     and Java.  Here is a familiar mathematical function written in
     Imp.
 
-     Z ::= X;; 
-     Y ::= 1;; 
-     WHILE not (Z = 0) DO 
-       Y ::= Y * Z;; 
-       Z ::= Z - 1 
-     END
+       Z ::= X;; 
+       Y ::= 1;; 
+       WHILE ! (Z = 0) DO 
+         Y ::= Y * Z;; 
+         Z ::= Z - 1 
+       END
 *)
 
 (** This chapter looks at how to define the _syntax_ and _semantics_
-    of Imp; further chapters in _Programming Language
-    Foundations_ (_Software Foundations_, volume 2) develop a theory
-    of _program equivalence_ and introduce _Hoare Logic_, a widely
-    used logic for reasoning about imperative programs. *)
+    of Imp; further chapters in _Programming Language Foundations_
+    (_Software Foundations_, volume 2) develop a theory of _program
+    equivalence_ and introduce _Hoare Logic_, a widely used logic for
+    reasoning about imperative programs. *)
 
-(* IMPORTS *)
 Set Warnings "-notation-overridden,-parsing".
 Require Import Coq.Bool.Bool.
 Require Import Coq.Arith.Arith.
@@ -32,7 +31,6 @@ Require Import Coq.omega.Omega.
 Import ListNotations.
 
 Require Import Maps.
-(* /IMPORTS *)
 
 (* ################################################################# *)
 (** * Arithmetic and Boolean Expressions *)
@@ -64,7 +62,7 @@ Inductive bexp : Type :=
   | BNot : bexp -> bexp
   | BAnd : bexp -> bexp -> bexp.
 
-(** In this chapter, we'll elide the translation from the
+(** In this chapter, we'll mostly elide the translation from the
     concrete syntax that a programmer would actually write to these
     abstract syntax trees -- the process that, for example, would
     translate the string ["1+2*3"] to the AST
@@ -349,7 +347,7 @@ Proof.
         IH.
 
         The interesting case is when [a1 = ANum n] for some [n].  If
-        [n = ANum 0], then
+        [n = 0], then
 
           optimize_0plus (APlus a1 a2) = optimize_0plus a2
 
@@ -427,19 +425,19 @@ Qed.
 (** The tactic [repeat T] also does not have any upper bound on the
     number of times it applies [T].  If [T] is a tactic that always
     succeeds, then repeat [T] will loop forever (e.g., [repeat simpl]
-    loops forever, since [simpl] always succeeds).  While evaluation
-    in Coq's term language, Gallina, is guaranteed to terminate,
-    tactic evaluation is not!  This does not affect Coq's logical
+    loops, since [simpl] always succeeds).  While evaluation in Coq's
+    term language, Gallina, is guaranteed to terminate, tactic
+    evaluation is not!  This does not affect Coq's logical
     consistency, however, since the job of [repeat] and other tactics
     is to guide Coq in constructing proofs; if the construction
     process diverges, this simply means that we have failed to
     construct a proof, not that we have constructed a wrong one. *)
 
-(** **** Exercise: 3 stars (optimize_0plus_b)  *)
+(** **** Exercise: 3 stars (optimize_0plus_b_sound)  *)
 (** Since the [optimize_0plus] transformation doesn't change the value
     of [aexp]s, we should be able to apply it to all the [aexp]s that
     appear in a [bexp] without changing the [bexp]'s value.  Write a
-    function which performs that transformation on [bexp]s, and prove
+    function that performs this transformation on [bexp]s and prove
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
 
@@ -507,7 +505,7 @@ Tactic Notation "simpl_and_try" tactic(c) :=
 
 (** The [omega] tactic implements a decision procedure for a subset of
     first-order logic called _Presburger arithmetic_.  It is based on
-    the Omega algorithm invented in 1991 by William Pugh [Pugh 1991].
+    the Omega algorithm invented by William Pugh [Pugh 1991].
 
     If the goal is a universally quantified formula made out of
 
@@ -515,12 +513,13 @@ Tactic Notation "simpl_and_try" tactic(c) :=
         and [pred]), and multiplication by constants (this is what
         makes it Presburger arithmetic),
 
-      - equality ([=] and [<>]) and inequality ([<=]), and
+      - equality ([=] and [<>]) and ordering ([<=]), and
 
       - the logical connectives [/\], [\/], [~], and [->],
 
-    then invoking [omega] will either solve the goal or tell you that
-    it is actually false. *)
+    then invoking [omega] will either solve the goal or fail, meaning
+    that the goal is actually false.  (If the goal is _not_ of this
+    form, [omega] will also fail.) *)
 
 Example silly_presburger_example : forall m n o p,
   m + n <= n + o /\ o + 3 = p + 3 ->
@@ -529,7 +528,8 @@ Proof.
   intros. omega.
 Qed.
 
-(** (Note the [Require Import Coq.omega.Omega.] at the top of the file.) *)
+(** (Note the [Require Import Coq.omega.Omega.] at the top of
+    the file.) *)
 
 (* ================================================================= *)
 (** ** A Few More Handy Tactics *)
@@ -746,7 +746,7 @@ Proof.
        try apply IHa1; try apply IHa2; reflexivity.
 Qed.
 
-(** **** Exercise: 3 stars  (bevalR)  *)
+(** **** Exercise: 3 stars (bevalR)  *)
 (** Write a relation [bevalR] in the same style as
     [aevalR], and prove that it is equivalent to [beval].*)
 
@@ -829,7 +829,7 @@ Inductive aexp : Type :=
 
 (** Again, extending [aeval] would be tricky, since now evaluation is
     _not_ a deterministic function from expressions to numbers, but
-    extending [aevalR] is no problem: *)
+    extending [aevalR] is no problem... *)
 
 Inductive aevalR : aexp -> nat -> Prop :=
   | E_Any : forall (n:nat),
@@ -854,12 +854,13 @@ End aevalR_extended.
     as a function, or indeed where it is _not_ a function, there is no
     choice.  But what about when both styles are workable?
 
-    One point in favor of relational definitions is that some people
-    feel they are more elegant and easier to understand.  Another is
-    that Coq automatically generates nice inversion and induction
-    principles from [Inductive] definitions.
+    One point in favor of relational definitions is that they can be
+    more elegant and easier to understand.
 
-    On the other hand, functional definitions can often be more
+    Another is that Coq automatically generates nice inversion and
+    induction principles from [Inductive] definitions. *)
+
+(** On the other hand, functional definitions can often be more
     convenient:
      - Functions are by definition deterministic and defined on all
        arguments; for a relation we have to show these properties
@@ -868,9 +869,9 @@ End aevalR_extended.
        mechanism to simplify expressions during proofs.
 
     Furthermore, functions can be directly "extracted" to executable
-    code in OCaml or Haskell.
+    code in OCaml or Haskell. *)
 
-    Ultimately, the choice often comes down to either the specifics of
+(** Ultimately, the choice often comes down to either the specifics of
     a particular situation or simply a question of taste.  Indeed, in
     large Coq developments it is common to see a definition given in
     _both_ functional and relational styles, plus a lemma stating that
@@ -889,8 +890,8 @@ End aevalR_extended.
 (** ** States *)
 
 (** Since we'll want to look variables up to find out their current
-    values, we'll reuse the type [id] from the [Maps] chapter for the
-    type of variables in Imp.
+    values, we'll reuse maps from the [Maps] chapter, with 
+    [string]s as the type of variables in Imp.
 
     A _machine state_ (or just _state_) represents the current values
     of _all_ variables at some point in the execution of a program. *)
@@ -900,13 +901,11 @@ End aevalR_extended.
     mention a finite number of them.  The state captures all of the
     information stored in memory.  For Imp programs, because each
     variable stores a natural number, we can represent the state as a
-    mapping from identifiers to [nat].  For more complex programming
-    languages, the state might have more structure. *)
+    mapping from strings to [nat], and will use [0] as default value 
+    in the store. For more complex programming languages, the state 
+    might have more structure. *)
 
 Definition state := total_map nat.
-
-Definition empty_state : state :=
-  t_empty 0.
 
 (* ================================================================= *)
 (** ** Syntax  *)
@@ -916,7 +915,7 @@ Definition empty_state : state :=
 
 Inductive aexp : Type :=
   | ANum : nat -> aexp
-  | AId : id -> aexp                (* <----- NEW *)
+  | AId : string -> aexp                (* <----- NEW *)
   | APlus : aexp -> aexp -> aexp
   | AMinus : aexp -> aexp -> aexp
   | AMult : aexp -> aexp -> aexp.
@@ -924,18 +923,18 @@ Inductive aexp : Type :=
 (** Defining a few variable names as notational shorthands will make
     examples easier to read: *)
 
-Definition W : id := Id "W".
-Definition X : id := Id "X".
-Definition Y : id := Id "Y".
-Definition Z : id := Id "Z".
+Definition W : string := "W".
+Definition X : string := "X".
+Definition Y : string := "Y".
+Definition Z : string := "Z".
 
 (** (This convention for naming program variables ([X], [Y],
     [Z]) clashes a bit with our earlier use of uppercase letters for
     types.  Since we're not using polymorphism heavily in the chapters
-    devoped to Imp, this overloading should not cause confusion.) *)
+    developed to Imp, this overloading should not cause confusion.) *)
 
-(** The definition of [bexp]s is unchanged (except for using the new
-    [aexp]s): *)
+(** The definition of [bexp]s is unchanged (except that it now refers
+    to the new [aexp]s): *)
 
 Inductive bexp : Type :=
   | BTrue : bexp
@@ -944,6 +943,43 @@ Inductive bexp : Type :=
   | BLe : aexp -> aexp -> bexp
   | BNot : bexp -> bexp
   | BAnd : bexp -> bexp -> bexp.
+
+(* ================================================================= *)
+(** ** Notations *)
+(** To make Imp programs easier to read and write, we introduce some
+    notations and implicit coercions.
+
+    You do not need to understand what these declarations do in detail
+    to follow this chapter.  Briefly, though, the [Coercion]
+    declaration in Coq stipulates that a function (or constructor) can
+    be implicitly used by the type system to coerce a value of the
+    input type to a value of the output type.  For instance, the
+    coercion declaration for [AId] allows us to use plain strings when
+    an [aexp] is expected; the string will implicitly be wrapped with
+    [AId]. *)
+
+(** The notations below are declared in specific _notation scopes_, in
+    order to avoid conflicts with other interpretations of the same
+    symbols.  Again, it is not necessary to understand the details. *)
+
+Coercion AId : string >-> aexp.
+Coercion ANum : nat >-> aexp.
+Definition bool_to_bexp (b: bool) : bexp :=
+  if b then BTrue else BFalse.
+Coercion bool_to_bexp : bool >-> bexp.
+
+Bind Scope aexp_scope with aexp.
+Infix "+" := APlus : aexp_scope.
+Infix "-" := AMinus : aexp_scope.
+Infix "*" := AMult : aexp_scope.
+Bind Scope bexp_scope with bexp.
+Infix "<=" := BLe : bexp_scope.
+Infix "=" := BEq : bexp_scope.
+Infix "&&" := BAnd : bexp_scope.
+Notation "'!' b" := (BNot b) (at level 60) : bexp_scope.
+
+(** We can now write [3 + (X * 2)] instead  of [APlus 3 (AMult X 2)], 
+    and [true && !(X <= 4)] instead of [BAnd true (BNot (BLe X 4))]. *)
 
 (* ================================================================= *)
 (** ** Evaluation *)
@@ -971,15 +1007,29 @@ Fixpoint beval (st : state) (b : bexp) : bool :=
   | BAnd b1 b2  => andb (beval st b1) (beval st b2)
   end.
 
+(** We specialize our notation for total maps to the specific case of states, 
+    i.e. using [{ --> 0 }] as empty state. *)
+
+Notation "{ a --> x }" := 
+  (t_update { --> 0 } a x) (at level 0).
+Notation "{ a --> x ; b --> y }" := 
+  (t_update ({ a --> x }) b y) (at level 0).
+Notation "{ a --> x ; b --> y ; c --> z }" := 
+  (t_update ({ a --> x ; b --> y }) c z) (at level 0). 
+Notation "{ a --> x ; b --> y ; c --> z ; d --> t }" := 
+    (t_update ({ a --> x ; b --> y ; c --> z }) d t) (at level 0).
+Notation "{ a --> x ; b --> y ; c --> z ; d --> t ; e --> u }" :=
+  (t_update ({ a --> x ; b --> y ; c --> z ; d --> t }) e u) (at level 0).
+Notation "{ a --> x ; b --> y ; c --> z ; d --> t ; e --> u ; f --> v }" :=
+  (t_update ({ a --> x ; b --> y ; c --> z ; d --> t ; e --> u }) f v) (at level 0).
+
 Example aexp1 :
-  aeval (t_update empty_state X 5)
-        (APlus (ANum 3) (AMult (AId X) (ANum 2)))
+  aeval { X --> 5 } (3 + (X * 2))
   = 13.
 Proof. reflexivity. Qed.
 
 Example bexp1 :
-  beval (t_update empty_state X 5)
-        (BAnd BTrue (BNot (BLe (AId X) (ANum 4))))
+  beval { X --> 5 } (true && !(X <= 4))
   = true.
 Proof. reflexivity. Qed.
 
@@ -1006,7 +1056,7 @@ Proof. reflexivity. Qed.
 
      Z ::= X;;
      Y ::= 1;;
-     WHILE not (Z = 0) DO
+     WHILE ! (Z = 0) DO
        Y ::= Y * Z;;
        Z ::= Z - 1
      END
@@ -1019,37 +1069,39 @@ Proof. reflexivity. Qed.
 
 Inductive com : Type :=
   | CSkip : com
-  | CAss : id -> aexp -> com
+  | CAss : string -> aexp -> com
   | CSeq : com -> com -> com
   | CIf : bexp -> com -> com -> com
   | CWhile : bexp -> com -> com.
 
-(** As usual, we can use a few [Notation] declarations to make things
-    more readable.  To avoid conflicts with Coq's built-in notations,
-    we keep this light -- in particular, we don't introduce any
-    notations for [aexps] and [bexps] to avoid confusion with the
-    numeric and boolean operators we've already defined. *)
+(** As for expressions, we can use a few [Notation] declarations to make 
+    reading and writing Imp programs more convenient. *)
 
+Bind Scope com_scope with com.
 Notation "'SKIP'" :=
-  CSkip.
+   CSkip : com_scope.
 Notation "x '::=' a" :=
-  (CAss x a) (at level 60).
+  (CAss x a) (at level 60) : com_scope.
 Notation "c1 ;; c2" :=
-  (CSeq c1 c2) (at level 80, right associativity).
+  (CSeq c1 c2) (at level 80, right associativity) : com_scope.
 Notation "'WHILE' b 'DO' c 'END'" :=
-  (CWhile b c) (at level 80, right associativity).
+  (CWhile b c) (at level 80, right associativity) : com_scope.
 Notation "'IFB' c1 'THEN' c2 'ELSE' c3 'FI'" :=
-  (CIf c1 c2 c3) (at level 80, right associativity).
+  (CIf c1 c2 c3) (at level 80, right associativity) : com_scope.
+
+(** The following declaration is needed to be able to use the
+    notations in match patterns. *)
+Open Scope com_scope.
 
 (** For example, here is the factorial function again, written as a
     formal definition to Coq: *)
 
 Definition fact_in_coq : com :=
-  Z ::= AId X;;
-  Y ::= ANum 1;;
-  WHILE BNot (BEq (AId Z) (ANum 0)) DO
-    Y ::= AMult (AId Y) (AId Z);;
-    Z ::= AMinus (AId Z) (ANum 1)
+  Z ::= X;;
+  Y ::= 1;;
+  WHILE ! (Z = 0) DO
+    Y ::= Y * Z;;
+    Z ::= Z - 1 
   END.
 
 (* ================================================================= *)
@@ -1058,33 +1110,33 @@ Definition fact_in_coq : com :=
 (** Assignment: *)
 
 Definition plus2 : com :=
-  X ::= (APlus (AId X) (ANum 2)).
+  X ::= X + 2.
 
 Definition XtimesYinZ : com :=
-  Z ::= (AMult (AId X) (AId Y)).
+  Z ::= X * Y.
 
 Definition subtract_slowly_body : com :=
-  Z ::= AMinus (AId Z) (ANum 1) ;;
-  X ::= AMinus (AId X) (ANum 1).
+  Z ::= Z - 1 ;;
+  X ::= X - 1.
 
 (* ----------------------------------------------------------------- *)
 (** *** Loops *)
 
 Definition subtract_slowly : com :=
-  WHILE BNot (BEq (AId X) (ANum 0)) DO
+  WHILE ! (X = 0) DO
     subtract_slowly_body
   END.
 
 Definition subtract_3_from_5_slowly : com :=
-  X ::= ANum 3 ;;
-  Z ::= ANum 5 ;;
+  X ::= 3 ;;
+  Z ::= 5 ;;
   subtract_slowly.
 
 (* ----------------------------------------------------------------- *)
 (** *** An infinite loop: *)
 
 Definition loop : com :=
-  WHILE BTrue DO
+  WHILE true DO
     SKIP
   END.
 
@@ -1092,8 +1144,8 @@ Definition loop : com :=
 (** * Evaluating Commands *)
 
 (** Next we need to define what it means to evaluate an Imp command.
-    The fact that [WHILE] loops don't necessarily terminate makes defining
-    an evaluation function tricky... *)
+    The fact that [WHILE] loops don't necessarily terminate makes
+    defining an evaluation function tricky... *)
 
 (* ================================================================= *)
 (** ** Evaluation as a Function (Failed Attempt) *)
@@ -1107,7 +1159,7 @@ Fixpoint ceval_fun_no_while (st : state) (c : com)
     | SKIP =>
         st
     | x ::= a1 =>
-        t_update st x (aeval st a1)
+        st & { x --> (aeval st a1) }
     | c1 ;; c2 =>
         let st' := ceval_fun_no_while st c1 in
         ceval_fun_no_while st' c2
@@ -1122,14 +1174,14 @@ Fixpoint ceval_fun_no_while (st : state) (c : com)
 (** In a traditional functional programming language like OCaml or
     Haskell we could add the [WHILE] case as follows:
 
-  Fixpoint ceval_fun (st : state) (c : com) : state :=
-    match c with
-      ...
-      | WHILE b DO c END =>
-          if (beval st b)
-            then ceval_fun st (c; WHILE b DO c END)
-            else st
-    end.
+        Fixpoint ceval_fun (st : state) (c : com) : state :=
+          match c with
+            ...
+            | WHILE b DO c END =>
+                if (beval st b)
+                  then ceval_fun st (c; WHILE b DO c END)
+                  else st
+          end.
 
     Coq doesn't accept such a definition ("Error: Cannot guess
     decreasing argument of fix") because the function we want to
@@ -1183,7 +1235,7 @@ Fixpoint ceval_fun_no_while (st : state) (c : com)
 
                            aeval st a1 = n
                    --------------------------------                     (E_Ass)
-                   x := a1 / st \\ (t_update st x n)
+                   x := a1 / st \\ st & { x --> n }
 
                            c1 / st \\ st'
                           c2 / st' \\ st''
@@ -1222,7 +1274,7 @@ Inductive ceval : com -> state -> state -> Prop :=
       SKIP / st \\ st
   | E_Ass  : forall st a1 n x,
       aeval st a1 = n ->
-      (x ::= a1) / st \\ (t_update st x n)
+      (x ::= a1) / st \\ st & { x --> n }
   | E_Seq : forall c1 c2 st st' st'',
       c1 / st  \\ st' ->
       c2 / st' \\ st'' ->
@@ -1252,16 +1304,15 @@ Inductive ceval : com -> state -> state -> Prop :=
     Coq's computation mechanism do it for us. *)
 
 Example ceval_example1:
-    (X ::= ANum 2;;
-     IFB BLe (AId X) (ANum 1)
-       THEN Y ::= ANum 3
-       ELSE Z ::= ANum 4
+    (X ::= 2;;
+     IFB X <= 1
+       THEN Y ::= 3
+       ELSE Z ::= 4
      FI)
-   / empty_state
-   \\ (t_update (t_update empty_state X 2) Z 4).
+   / { --> 0 } \\ { X --> 2 ; Z --> 4 }.
 Proof.
   (* We must supply the intermediate state *)
-  apply E_Seq with (t_update empty_state X 2).
+  apply E_Seq with { X --> 2 }. 
   - (* assignment command *)
     apply E_Ass. reflexivity.
   - (* if command *)
@@ -1271,13 +1322,13 @@ Proof.
 
 (** **** Exercise: 2 stars (ceval_example2)  *)
 Example ceval_example2:
-    (X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2) / empty_state \\
-    (t_update (t_update (t_update empty_state X 0) Y 1) Z 2).
+  (X ::= 0;; Y ::= 1;; Z ::= 2) / { --> 0 } \\
+  { X --> 0 ; Y --> 1 ; Z --> 2 }.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, advanced (pup_to_n)  *)
+(** **** Exercise: 3 stars, optional (pup_to_n)  *)
 (** Write an Imp program that sums the numbers from [1] to
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].
    Prove that this program executes as intended for [X] = [2]
@@ -1287,9 +1338,8 @@ Definition pup_to_n : com
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
 Theorem pup_to_2_ceval :
-  pup_to_n / (t_update empty_state X 2) \\
-    t_update (t_update (t_update (t_update (t_update (t_update empty_state
-      X 2) Y 0) Y 2) X 1) Y 3) X 0.
+  pup_to_n / { X --> 2 }
+     \\ { X --> 2 ; Y --> 0 ; Y --> 2 ; X --> 1 ; Y --> 3 ; X --> 0 }.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
@@ -1348,14 +1398,14 @@ Proof.
 (** * Reasoning About Imp Programs *)
 
 (** We'll get deeper into systematic techniques for reasoning about
-    Imp programs in the following chapters, but we can do quite a bit
-    just working with the bare definitions.  This section explores
-    some examples. *)
+    Imp programs in _Programming Language Foundations_, but we can do
+    quite a bit just working with the bare definitions.  This section
+    explores some examples. *)
 
 Theorem plus2_spec : forall st n st',
   st X = n ->
   plus2 / st \\ st' ->
-  st' X = n + 2.
+  st' X = (n + 2).
 Proof.
   intros st n st' HX Heval.
 
@@ -1367,7 +1417,7 @@ Proof.
   inversion Heval. subst. clear Heval. simpl.
   apply t_update_eq.  Qed.
 
-(** **** Exercise: 3 stars, recommendedM (XtimesYinZ_spec)  *)
+(** **** Exercise: 3 stars, recommended (XtimesYinZ_spec)  *)
 (** State and prove a specification of [XtimesYinZ]. *)
 
 (* FILL IN HERE *)
@@ -1378,7 +1428,7 @@ Theorem loop_never_stops : forall st st',
   ~(loop / st \\ st').
 Proof.
   intros st st' contra. unfold loop in contra.
-  remember (WHILE BTrue DO SKIP END) as loopdef
+  remember (WHILE true DO SKIP END) as loopdef
            eqn:Heqloopdef.
 
   (** Proceed by induction on the assumed derivation showing that
@@ -1389,7 +1439,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (no_whilesR)  *)
+(** **** Exercise: 3 stars (no_whiles_eqv)  *)
 (** Consider the following function: *)
 
 Fixpoint no_whiles (c : com) : bool :=
@@ -1421,7 +1471,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 starsM (no_whiles_terminating)  *)
+(** **** Exercise: 4 stars (no_whiles_terminating)  *)
 (** Imp programs that don't involve while loops always terminate.
     State and prove a theorem [no_whiles_terminating] that says this. *)
 (** Use either [no_whiles] or [no_whilesR], as you prefer. *)
@@ -1433,13 +1483,13 @@ Proof.
 (** * Additional Exercises *)
 
 (** **** Exercise: 3 stars (stack_compiler)  *)
-(** HP Calculators, programming languages like Forth and Postscript
+(** Old HP Calculators, programming languages like Forth and Postscript,
     and abstract machines like the Java Virtual Machine all evaluate
-    arithmetic expressions using a stack. For instance, the expression
+    arithmetic expressions using a _stack_. For instance, the expression
 
       (2*3)+(3*(4-2))
 
-   would be entered as
+   would be written as
 
       2 3 * 3 4 2 - * +
 
@@ -1457,7 +1507,7 @@ Proof.
       [6, 6]        |    +
       [12]          |
 
-  The task of this exercise is to write a small compiler that
+  The goal of this exercise is to write a small compiler that
   translates [aexp]s into stack machine instructions.
 
   The instruction set for our stack language will consist of the
@@ -1472,7 +1522,7 @@ Proof.
 
 Inductive sinstr : Type :=
 | SPush : nat -> sinstr
-| SLoad : id -> sinstr
+| SLoad : string -> sinstr
 | SPlus : sinstr
 | SMinus : sinstr
 | SMult : sinstr.
@@ -1496,16 +1546,18 @@ Fixpoint s_execute (st : state) (stack : list nat)
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
 Example s_execute1 :
-     s_execute empty_state []
+     s_execute { --> 0 } []
        [SPush 5; SPush 3; SPush 1; SMinus]
    = [2; 5].
 (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: s_execute1 *)
 
 Example s_execute2 :
-     s_execute (t_update empty_state X 3) [3;4]
+     s_execute { X --> 3 } [3;4]
        [SPush 4; SLoad X; SMult; SPlus]
    = [15; 4].
 (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: s_execute2 *)
 
 (** Next, write a function that compiles an [aexp] into a stack
     machine program. The effect of running the program should be the
@@ -1518,7 +1570,7 @@ Fixpoint s_compile (e : aexp) : list sinstr
     that it works. *)
 
 Example s_compile1 :
-    s_compile (AMinus (AId X) (AMult (ANum 2) (AId Y)))
+  s_compile (X - (2 * Y))
   = [SLoad X; SPush 2; SLoad Y; SMult; SMinus].
 (* FILL IN HERE *) Admitted.
 (** [] *)
@@ -1534,7 +1586,6 @@ Example s_compile1 :
     Prove the following theorem.  You will need to start by stating a
     more general lemma to get a usable induction hypothesis; the main
     theorem will then be a simple corollary of this lemma. *)
-
 
 Theorem s_compile_correct : forall (st : state) (e : aexp),
   s_execute st [] (s_compile e) = [ aeval st e ].
@@ -1559,7 +1610,6 @@ Proof.
 
 Module BreakImp.
 (** **** Exercise: 4 stars, advanced (break_imp)  *)
-
 (** Imperative languages like C and Java often include a [break] or
     similar statement for interrupting the execution of loops. In this
     exercise we consider how to add [break] to Imp.  First, we need to
@@ -1568,7 +1618,7 @@ Module BreakImp.
 Inductive com : Type :=
   | CSkip : com
   | CBreak : com               (* <-- new *)
-  | CAss : id -> aexp -> com
+  | CAss : string -> aexp -> com
   | CSeq : com -> com -> com
   | CIf : bexp -> com -> com -> com
   | CWhile : bexp -> com -> com.
@@ -1721,8 +1771,8 @@ End BreakImp.
 (** **** Exercise: 4 stars, optional (add_for_loop)  *)
 (** Add C-style [for] loops to the language of commands, update the
     [ceval] definition to define the semantics of [for] loops, and add
-    cases for [for] loops as needed so that all the proofs in this file
-    are accepted by Coq.
+    cases for [for] loops as needed so that all the proofs in this
+    file are accepted by Coq.
 
     A [for] loop should be parameterized by (a) a statement executed
     initially, (b) a test that is run on each iteration of the loop to
@@ -1735,5 +1785,4 @@ End BreakImp.
 (* FILL IN HERE *)
 (** [] *)
 
-(* $Date: 2017-07-15 12:37:05 -0400 (Sat, 15 Jul 2017) $ *)
 

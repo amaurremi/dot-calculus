@@ -36,13 +36,13 @@
 (* ################################################################# *)
 (** * Overview *)
 
-(** Building reliable software is hard.  The scale and complexity of
-    modern systems, the number of people involved in building them,
-    and the range of demands placed on them make it extremely
-    difficult to build software that is even more-or-less correct,
-    much less 100%% correct.  At the same time, the increasing degree
-    to which information processing is woven into every aspect of
-    society greatly amplifies the cost of bugs and insecurities.
+(** Building reliable software is really hard.  The scale and
+    complexity of modern systems, the number of people involved, and
+    the range of demands placed on them make it extremely difficult to
+    build software that is even more-or-less correct, much less 100%%
+    correct.  At the same time, the increasing degree to which
+    information processing is woven into every aspect of society
+    greatly amplifies the cost of bugs and insecurities.
 
     Computer scientists and software engineers have responded to these
     challenges by developing a whole host of techniques for improving
@@ -91,8 +91,8 @@
     In particular, the fundamental tools of _inductive proof_ are
     ubiquitous in all of computer science.  You have surely seen them
     before, perhaps in a course on discrete math or analysis of
-    algorithms, but in this course we will examine them much more
-    deeply than you have probably done so far. *)
+    algorithms, but in this course we will examine them more deeply
+    than you have probably done so far. *)
 
 (* ================================================================= *)
 (** ** Proof Assistants *)
@@ -267,7 +267,7 @@
 (** Coq runs on Windows, Linux, and OS X.  You will need:
 
        - A current installation of Coq, available from the Coq home
-         page.  Everything should work with version 8.6.
+         page.  These files have been tested with Coq 8.7.1.
 
        - An IDE for interacting with Coq.  Currently, there are two
          choices:
@@ -332,6 +332,15 @@
     give you access to a locally modified version of the files, which
     you should use instead of the release version.) *)
 
+(* ================================================================= *)
+(** ** Lecture Videos *)
+
+(** Lectures for an intensive summer course based on _Logical
+    Foundations_ (part of the DeepSpec summer school in 2017) can be
+    found at https://deepspec.org/event/dsss17/coq_intensive.html.
+    The video quality is poor at the beginning but gets better in the
+    later lectures. *)
+
 (* ################################################################# *)
 (** * Note for Instructors *)
 
@@ -385,4 +394,3 @@
     NSF Expeditions grant 1521523, _The Science of Deep
     Specification_. *)
 
-(** $Date: 2017-05-23 13:45:44 -0400 (Tue, 23 May 2017) $ *)

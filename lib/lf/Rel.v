@@ -13,6 +13,9 @@
 Set Warnings "-notation-overridden,-parsing".
 Require Export IndProp.
 
+(* ################################################################# *)
+(** * Relations *)
+
 (** A binary _relation_ on a set [X] is a family of propositions
     parameterized by two elements of [X] -- i.e., a proposition about
     pairs of elements of [X].  *)
@@ -95,14 +98,14 @@ Proof.
     - apply le_S. apply le_n. }
   inversion Nonsense.   Qed.
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (total_relation_not_partial)  *)
 (** Show that the [total_relation] defined in earlier is not a partial
     function. *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (empty_relation_partial)  *)
 (** Show that the [empty_relation] that we defined earlier is a
     partial function. *)
 
@@ -150,7 +153,7 @@ Proof.
   apply Hnm.
   apply Hmo. Qed.
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (le_trans_hard_way)  *)
 (** We can also prove [lt_trans] more laboriously by induction,
     without using [le_trans].  Do this.*)
 
@@ -164,7 +167,7 @@ Proof.
     (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (lt_trans'')  *)
 (** Prove the same thing again by induction on [o]. *)
 
 Theorem lt_trans'' :
@@ -187,7 +190,7 @@ Proof.
   - apply H.
 Qed.
 
-(** **** Exercise: 1 star, optional  *)
+(** **** Exercise: 1 star, optional (le_S_n)  *)
 Theorem le_S_n : forall n m,
   (S n <= S m) -> (n <= m).
 Proof.
@@ -204,10 +207,10 @@ Proof.
 
     Proof:
     (* FILL IN HERE *)
-    []
- *)
+*)
+(** [] *)
 
-(** **** Exercise: 1 star, optional  *)
+(** **** Exercise: 1 star, optional (le_Sn_n)  *)
 Theorem le_Sn_n : forall n,
   ~ (S n <= n).
 Proof.
@@ -226,7 +229,7 @@ Proof.
 Definition symmetric {X: Type} (R: relation X) :=
   forall a b : X, (R a b) -> (R b a).
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (le_not_symmetric)  *)
 Theorem le_not_symmetric :
   ~ (symmetric le).
 Proof.
@@ -240,14 +243,14 @@ Proof.
 Definition antisymmetric {X: Type} (R: relation X) :=
   forall a b : X, (R a b) -> (R b a) -> a = b.
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (le_antisymmetric)  *)
 Theorem le_antisymmetric :
   antisymmetric le.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional  *)
+(** **** Exercise: 2 stars, optional (le_step)  *)
 Theorem le_step : forall n m p,
   n < m ->
   m <= S p ->
@@ -384,4 +387,3 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** $Date: 2017-05-24 13:40:13 -0400 (Wed, 24 May 2017) $ *)

@@ -19,27 +19,24 @@
 <div id="header">
 <a href='https://www.cis.upenn.edu/~bcpierce/sf/current/index.html'>
 <img src='common/media/image/sf_logo_sm.png'></a>
+</br><a href='index.html'>  <span class='booktitleinheader'>Volume 1: Logical Foundations</span><br></br>
 <ul id='menu'>
-   <a href='index.html'><li class='section_name'>Logical Foundations</li></a>
-   <a href='toc.html'><li>Table of Contents</li></a>
-   <a href='coqindex.html'><li>Index</li></a>
-   <a href='deps.html'><li>Roadmap</li></a>
+   <a href='toc.html'><li class='section_name'>Table of Contents</li></a>
+   <a href='coqindex.html'><li class='section_name'>Index</li></a>
+   <a href='deps.html'><li class='section_name'>Roadmap</li></a>
 </ul>
-</div>
+</a></div>
 
 <div id="main">
 
 <h1 class="libtitle">Extraction<span class="subtitle">Extracting ML from Coq</span></h1>
 
 
-<div class="code code-tight">
-
-<br/>
-<span class="comment">(*&nbsp;DROP&nbsp;*)</span><br/>
-</div>
-
 <div class="doc">
-<a name="lab360"></a><h1 class="section">Basic Extraction</h1>
+
+<div class="paragraph"> </div>
+
+<a name="lab367"></a><h1 class="section">Basic Extraction</h1>
 
 <div class="paragraph"> </div>
 
@@ -54,7 +51,7 @@
 </div>
 <div class="code code-tight">
 
-<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="var">Coq.extraction.Extraction</span>.<br/>
 <span class="id" type="var">Extraction</span> <span class="id" type="var">Language</span> <span class="id" type="var">Ocaml</span>.<br/>
 </div>
 
@@ -64,7 +61,6 @@ Now we load up the Coq environment with some definitions, either
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Coq.Arith.Arith</span>.<br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Coq.Arith.EqNat</span>.<br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">ImpCEvalFun</span>.<br/>
@@ -76,7 +72,6 @@ Finally, we tell Coq the name of a definition to extract and the
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extraction</span> "imp1.ml" <span class="id" type="var">ceval_step</span>.<br/>
 </div>
 
@@ -88,7 +83,7 @@ When Coq processes this command, it generates a file <span class="inlinecode"><s
 </div>
 
 <div class="doc">
-<a name="lab361"></a><h1 class="section">Controlling Extraction of Specific Types</h1>
+<a name="lab368"></a><h1 class="section">Controlling Extraction of Specific Types</h1>
 
 <div class="paragraph"> </div>
 
@@ -108,7 +103,6 @@ When Coq processes this command, it generates a file <span class="inlinecode"><s
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="keyword">Inductive</span> <span class="id" type="var">bool</span> ⇒ "bool" [ "true" "false" ].<br/>
 </div>
 
@@ -119,7 +113,6 @@ Also, for non-enumeration types (where the constructors take
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="keyword">Inductive</span> <span class="id" type="var">nat</span> ⇒ "int"<br/>
 &nbsp;&nbsp;[ "0" "(fun x → x + 1)" ]<br/>
 &nbsp;&nbsp;"(fun zero succ n →<br/>
@@ -132,7 +125,6 @@ We can also extract defined constants to specific OCaml terms or
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">plus</span> ⇒ "( + )".<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">mult</span> ⇒ "( * )".<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">beq_nat</span> ⇒ "( = )".<br/>
@@ -155,7 +147,6 @@ Important: It is entirely <i>your responsibility</i> to make sure that
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extraction</span> "imp2.ml" <span class="id" type="var">ceval_step</span>.<br/>
 </div>
 
@@ -165,7 +156,7 @@ Have a look at the file <span class="inlinecode"><span class="id" type="var">imp
 </div>
 
 <div class="doc">
-<a name="lab362"></a><h1 class="section">A Complete Example</h1>
+<a name="lab369"></a><h1 class="section">A Complete Example</h1>
 
 <div class="paragraph"> </div>
 
@@ -181,24 +172,14 @@ Have a look at the file <span class="inlinecode"><span class="id" type="var">imp
 <div class="paragraph"> </div>
 
     Also, to make it easier to type in examples, let's extract a
-    parser from the <span class="inlinecode"><span class="id" type="var">ImpParser</span></span> Coq module.  To do this, we need a few
-    magic declarations to set up the right correspondence between Coq
-    strings and lists of OCaml characters. 
+    parser from the <span class="inlinecode"><span class="id" type="var">ImpParser</span></span> Coq module.  To do this, we first need
+    to set up the right correspondence between Coq strings and lists
+    of OCaml characters. 
 </div>
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Ascii</span> <span class="id" type="var">String</span>.<br/>
-<span class="id" type="var">Extract</span> <span class="id" type="keyword">Inductive</span> <span class="id" type="var">ascii</span> ⇒ <span class="id" type="var">char</span><br/>
-[<br/>
-"(* If this appears, you're using Ascii internals. Please don't *) (fun (b<sub>0</sub>,b<sub>1</sub>,b<sub>2</sub>,b<sub>3</sub>,b<sub>4</sub>,b<sub>5</sub>,b<sub>6</sub>,b<sub>7</sub>) → let f b i = if b then 1 lsl i else 0 in Char.chr (f b<sub>0</sub> 0 + f b<sub>1</sub> 1 + f b<sub>2</sub> 2 + f b<sub>3</sub> 3 + f b<sub>4</sub> 4 + f b<sub>5</sub> 5 + f b<sub>6</sub> 6 + f b<sub>7</sub> 7))"<br/>
-]<br/>
-"(* If this appears, you're using Ascii internals. Please don't *) (fun f c → let n = Char.code c in let h i = (n land (1 lsl i)) ≠ 0 in f (h 0) (h 1) (h 2) (h 3) (h 4) (h 5) (h 6) (h 7))".<br/>
-<span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">zero</span> ⇒ "'\000'".<br/>
-<span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">one</span> ⇒ "'\001'".<br/>
-<span class="id" type="var">Extract</span> <span class="id" type="var">Constant</span> <span class="id" type="var">shift</span> ⇒<br/>
-&nbsp;"fun b c → Char.chr (((Char.code c) lsl 1) land 255 + if b then 1 else 0)".<br/>
-<span class="id" type="var">Extract</span> <span class="id" type="var">Inlined</span> <span class="id" type="var">Constant</span> <span class="id" type="var">ascii_dec</span> ⇒ "(=)".<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">ExtrOcamlBasic</span>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">ExtrOcamlString</span>.<br/>
 </div>
 
 <div class="doc">
@@ -206,7 +187,6 @@ We also need one more variant of booleans.
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="var">Extract</span> <span class="id" type="keyword">Inductive</span> <span class="id" type="var">sumbool</span> ⇒ "bool" ["true" "false"].<br/>
 </div>
 
@@ -215,9 +195,10 @@ The extraction is the same as always.
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Imp</span>.<br/>
-<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">ImpParser</span>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">ImpParser</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Maps</span>.<br/>
+<span class="id" type="keyword">Definition</span> <span class="id" type="var">empty_state</span> := { <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> 0 }.<br/>
 <span class="id" type="var">Extraction</span> "imp.ml" <span class="id" type="var">empty_state</span> <span class="id" type="var">ceval_step</span> <span class="id" type="var">parse</span>.<br/>
 </div>
 
@@ -238,7 +219,7 @@ Now let's run our generated Imp evaluator.  First, have a look at
 </div>
 
 <div class="doc">
-<a name="lab363"></a><h1 class="section">Discussion</h1>
+<a name="lab370"></a><h1 class="section">Discussion</h1>
 
 <div class="paragraph"> </div>
 
@@ -250,7 +231,7 @@ Now let's run our generated Imp evaluator.  First, have a look at
 </div>
 
 <div class="doc">
-<a name="lab364"></a><h1 class="section">Going Further</h1>
+<a name="lab371"></a><h1 class="section">Going Further</h1>
 
 <div class="paragraph"> </div>
 
@@ -258,16 +239,9 @@ Now let's run our generated Imp evaluator.  First, have a look at
     chapter in <i>Verified Functional Algorithms</i> (<i>Software
     Foundations</i> volume 3). 
 </div>
-<div class="code code-tight">
-
-<br/>
-<span class="comment">(*&nbsp;/DROP&nbsp;*)</span><br/>
 </div>
 
-</div>
 
-<div id="footer">
-<hr/><a href="coqindex.html">Index</a></div>
 
 </div>
 

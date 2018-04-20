@@ -9,7 +9,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
-Require Import LibLN.
 Require Import Definitions PreciseTyping.
 
 (** * Tight typing [G |-# t: T] *)

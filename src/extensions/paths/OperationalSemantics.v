@@ -1,7 +1,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
-Require Import LibLN.
 Require Import Definitions Binding Lookup.
 
 (** * Stack-Based Operational Semantics *)

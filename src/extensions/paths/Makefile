@@ -1,14 +1,9 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-TLCDIR=../../../lib/tlc/src
 LEROYDIR=../../../lib/leroy
 LFDIR=../../../lib/lf
 DOCDIR=doc
-
-TLCSRC=$(TLCDIR)
-LIBLN=$(TLCSRC)/LibLN.vo
-TLCNAME=TLC
 
 LEROYSRC=$(LEROYDIR)
 LEROYNAME=compiler
@@ -16,7 +11,7 @@ LEROYNAME=compiler
 LFSRC=$(LFDIR)
 LFNAME=LF
 
-COQINCLUDE=-R $(TLCSRC) $(TLCNAME) -R $(LFSRC) $(LFNAME) -R $(LEROYSRC) $(LEROYNAME) -R . \"\"
+COQINCLUDE=-R $(LFSRC) $(LFNAME) -R $(LEROYSRC) $(LEROYNAME) -R . \"\"
 COQMAKEFILE=$(COQBIN)coq_makefile
 
 PROOFMAKEFILE=Makefile.coq
@@ -51,10 +46,17 @@ doc: $(DOCDIR)/toc.html
 all doc clean: $(PROOFMAKEFILE)
 %vo: $(PROOFMAKEFILE)
 
-all: $(LIBLN)
-doc: $(LIBLN)
-proofs: $(LIBLN)
-%vo: $(LIBLN)
+#################
+# Leroy Library #
+#################
+
+all: $(LEROYNAME)
+doc: $(LEROYNAME)
+proofs: $(LEROYNAME)
+%vo: $(LEROYNAME)
+	  
+$(LEROYNAME): $(wildcard $(LEROYSRC)/*.v)
+	       $(MAKE) -C $(LEROYDIR)
 
 #############
 # IDE Setup #
@@ -69,9 +71,6 @@ _CoqProject:
 ########################
 # Library Dependencies #
 ########################
-
-$(LIBLN): $(wildcard $(TLCSRC)/*.v)
-	$(MAKE) -C $(TLCDIR)
 
 ###################
 # Forced Rebuilds #
@@ -128,13 +127,13 @@ DPDDOT=$(DPDFILENAME:=.dot)
 DPDEXCLUDE ?=
 DPDMODULES=$(filter-out $(DPDEXCLUDE), $(DPDMODALL))
 
-DPDTEXT=Require dpdgraph.dpdgraph. Require LibLN. Require Coq.Program.Equality.
+DPDTEXT=Require dpdgraph.dpdgraph. Require TLC.LibLN. Require Coq.Program.Equality.
 DPDTEXT+=Require $(DPDMODULES).
 DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
 DPDTEXT+=Print FileDependGraph $(DPDMODULES).
 
 $(DPDFILENAME): $(shell coqdep -sort $(FILES))
-	echo $(DPDTEXT) | coqtop -R $(TLCSRC) $(TLCNAME) -notop
+	echo $(DPDTEXT) | coqtop 
 
 $(DPDDOT): $(DPDFILENAME)
 	dpd2dot -without-defs $<

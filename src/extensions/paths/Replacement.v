@@ -10,7 +10,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
-Require Import LibLN.
 Require Import Sequences.
 Require Import Definitions Binding.
 

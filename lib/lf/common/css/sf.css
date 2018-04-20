@@ -31,6 +31,8 @@ body {
 /* Menu */
 ul#menu { 
     padding: 0;
+    display: block;
+    margin: auto;
 }
 
 ul#menu li, div.button {
@@ -39,7 +41,7 @@ ul#menu li, div.button {
     padding: 5px;
     font-size: .70em;
     text-transform: uppercase;
-    width: 23.25%;
+    width: 30%;
     text-align: center;
     font-weight: 600;
 }
@@ -77,7 +79,10 @@ ul#menu a.hover li  {
 }
 
 #main  h1 {
-    line-height: 80%;
+    /* line-height: 80%; */
+    line-height: normal;
+    padding-top: 3px;
+    padding-bottom: 4px;
     /* Demitri: font-size: 22pt; */
     font-size: 200%; /* BCP */
 }
@@ -108,6 +113,17 @@ ul#menu a.hover li  {
     color: #ffffff;
 }
 
+/* Book title in header */
+.booktitleinheader {
+    color: #000000;
+    text-transform: uppercase;
+    margin: 5px auto; 
+    font-weight: 300;
+    letter-spacing: 1px;
+    font-size: 125%;
+    margin-left: 0px;
+ }
+
 /* Chapter titles */
 .libtitle {
     max-width: 860px;
@@ -116,14 +132,15 @@ ul#menu a.hover li  {
     font-weight: 500;
     padding-bottom: 2px; 
     font-size: 120%;
-    letter-spacing: 1px;
     letter-spacing: 3px;
  }
 
 .subtitle {
     display: block; 
     padding-top: 10px; 
-    font-size: 70%; }
+    font-size: 70%;
+    line-height: normal;
+}
 
 h2.section {
     color: #2a2c71;
@@ -135,11 +152,16 @@ h2.section {
     font-size : 135%; }
 
 h3.section {
-    background-color: rgb(90%,90%,100%);
-    padding-left: 8px; 
-    padding-top: 7px; 
-    padding-bottom: 7px; 
-    margin-top: 9px;
+    /* background-color: rgb(90%,90%,100%); */
+    background-color: white; 
+    /* padding-left: 8px; */
+    padding-left: 0px;
+    /* padding-top: 7px;  */
+    padding-top: 0px; 
+    /* padding-bottom: 0px; */
+    padding-bottom: 0.5em; 
+    /* margin-top: 9px; */
+    margin-top: 4px;
     font-size : 115%;
     color:black;
 }
@@ -182,6 +204,11 @@ h4.section {
 
 .loud {
     color: darkred;
+}
+
+pre {
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 .inlinecode { 
@@ -241,9 +268,26 @@ h1 .inlinecode .id, h1.section span.inlinecode {
     color: rgb(50%,50%,80%); 
 } 
 
+.show::before {
+    /* content: "more"; */
+    content: "+";
+}
+
+.show { 
+    background-color: rgb(93%,93%,93%);
+    display: inline;
+    font-family: monospace;
+    font-size: 60%; 
+    padding-top: 1px; 
+    padding-bottom: 2px; 
+    padding-left: 4px;
+    padding-right: 4px;
+    color: rgb(60%,60%,60%); 
+} 
+
+/*
 .show { 
     display: inline;
-    /* background-color: rgb(95%,95%,95%); */
     font-family: monospace;
     font-size: 60%; 
     padding-top: 0px; 
@@ -253,9 +297,10 @@ h1 .inlinecode .id, h1.section span.inlinecode {
     border-style: solid;
     color: rgb(75%,75%,85%); 
 } 
+*/
 
 .proofbox {
-    font-size: 70%;
+    font-size: 90%;
     color: rgb(75%,75%,75%); 
 }
 
@@ -309,7 +354,7 @@ h1 .inlinecode .id, h1.section span.inlinecode {
     padding-left: 20px;
     font-size: 14px;
     font-family: monospace;
-    line-height: 18px;
+    line-height: 17px;
 } 
 
 /* Working:
@@ -324,17 +369,23 @@ h1 .inlinecode .id, h1.section span.inlinecode {
 .code-space {
     max-width: 50em;
     margin-top: 0em;
-    margin-bottom: -.5em;
+    /* margin-bottom: -.5em; */
     margin-left: auto;
     margin-right: auto;
 }
 
 .code-tight {
     max-width: 50em;
-    margin-top: -0.5em;
-    margin-bottom: -.3em;
+    margin-top: .6em;
+    /* margin-bottom: -.7em; */
     margin-left: auto;
     margin-right: auto;
+}
+
+hr.doublespaceincode {
+    height: 1pt;
+    visibility: hidden;
+    font-size: 10px;                   
 }
 
 /*
@@ -351,8 +402,8 @@ code.br {
 table.infrule {
     border: 0px;
     margin-left: 50px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: .5em;
+    margin-bottom: 1.2em;
 }
 
 td.infrule {
@@ -534,13 +585,9 @@ html .ui-button.ui-state-disabled:active {
     border-bottom-right-radius: 0px!important;
 }
 
-
-
-
 html .ui-button.ui-state-disabled:focus {
 	color: red!important;
 }
-
 
 /*  Remove Icon  */
 .ui-icon { display: none!important; }
@@ -553,16 +600,13 @@ html .ui-button.ui-state-disabled:focus {
 
 .ui-state-active {
     background: silver !important;
-
 }
-
 
 .ui-widget-content {
     border: none!important;
     background: #ffffff;
     color: #333333;
     border-bottom: 1px solid #b2b2b2!important;
-    
 }
 
 .ui-accordion .ui-accordion-content {
@@ -570,8 +614,6 @@ html .ui-button.ui-state-disabled:focus {
 	border-top: 0;
     overflow: auto;
 }
-
-
 
 
 /* Index */

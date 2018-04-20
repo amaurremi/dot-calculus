@@ -9,7 +9,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
-Require Import LibLN.
 Require Import Sequences.
 Require Import Definitions Binding.
 
@@ -148,7 +147,7 @@ Lemma lookup_step_func: forall s t t1 t2,
       t1 = t2.
 Proof.
   introv Hl1. gen t2. dependent induction Hl1; introv Hl2.
-  - inversions Hl2; try simpl_dot. apply (binds_func H) in H2. f_equal*.
+  - inversions Hl2; try simpl_dot. apply (binds_functional H) in H2. f_equal*.
   - dependent induction Hl2; try simpl_dot;
     specialize (IHHl1 _ eq_refl _ Hl2); inversions IHHl1; eauto.
   - dependent induction Hl2; try simpl_dot;

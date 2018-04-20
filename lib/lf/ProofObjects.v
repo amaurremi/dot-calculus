@@ -1,10 +1,9 @@
 (** * ProofObjects: The Curry-Howard Correspondence *)
 
-
-(** "_Algorithms are the computational content of proofs_."  --Robert Harper *)
-
 Set Warnings "-notation-overridden,-parsing".
 Require Export IndProp.
+
+(** "_Algorithms are the computational content of proofs_."  --Robert Harper *)
 
 (** We have seen that Coq has mechanisms both for _programming_,
     using inductive data types like [nat] or [list] and functions over
@@ -33,9 +32,9 @@ Require Export IndProp.
 
 (** Question: If evidence is data, what are propositions themselves?
 
-    Answer: They are types!
+    Answer: They are types! *)
 
-    Look again at the formal definition of the [ev] property.  *)
+(** Look again at the formal definition of the [ev] property.  *)
 
 Print ev.
 (* ==>
@@ -58,9 +57,9 @@ Print ev.
                  propositions  ~  types
                  proofs        ~  data values
 
-    See [Wadler 2015] for a brief history and an up-to-date exposition.
+    See [Wadler 2015] for a brief history and an up-to-date exposition. *)
 
-    Many useful insights follow from this connection.  To begin with,
+(** Many useful insights follow from this connection.  To begin with,
     it gives us a natural interpretation of the type of the [ev_SS]
     constructor: *)
 
@@ -153,8 +152,8 @@ Qed.
 (** Tactic proofs are useful and convenient, but they are not
     essential: in principle, we can always construct the required
     evidence by hand, as shown above. Then we can use [Definition]
-    (rather than [Theorem]) to give a global name directly to a
-    piece of evidence. *)
+    (rather than [Theorem]) to give a global name directly to this
+    evidence. *)
 
 Definition ev_4''' : ev 4 :=
   ev_SS 2 (ev_SS 0 ev_0).
@@ -171,7 +170,7 @@ Print ev_4''.
 Print ev_4'''.
 (* ===> ev_4''' =   ev_SS 2 (ev_SS 0 ev_0) : ev 4 *)
 
-(** **** Exercise: 1 star (eight_is_even)  *)
+(** **** Exercise: 2 stars (eight_is_even)  *)
 (** Give a tactic proof and a proof object showing that [ev 8]. *)
 
 Theorem ev_8 : ev 8.
@@ -187,15 +186,15 @@ Definition ev_8' : ev 8
 
 (** In Coq's computational universe (where data structures and
     programs live), there are two sorts of values with arrows in their
-    types: _constructors_ introduced by [Inductive]-ly defined data
+    types: _constructors_ introduced by [Inductive]ly defined data
     types, and _functions_.
 
     Similarly, in Coq's logical universe (where we carry out proofs),
     there are two ways of giving evidence for an implication:
-    constructors introduced by [Inductive]-ly defined propositions,
-    and... functions!
+    constructors introduced by [Inductive]ly defined propositions,
+    and... functions! *)
 
-    For example, consider this statement: *)
+(** For example, consider this statement: *)
 
 Theorem ev_plus4 : forall n, ev n -> ev (4 + n).
 Proof.
@@ -210,6 +209,7 @@ Qed.
     We're looking for an expression whose _type_ is [forall n, ev n ->
     ev (4 + n)] -- that is, a _function_ that takes two arguments (one
     number and a piece of evidence) and returns a piece of evidence!
+
     Here it is: *)
 
 Definition ev_plus4' : forall n, ev n -> ev (4 + n) :=
@@ -220,25 +220,34 @@ Definition ev_plus4' : forall n, ev n -> ev (4 + n) :=
     yields [blah]," and that Coq treats [4 + n] and [S (S (S (S n)))]
     as synonyms. Another equivalent way to write this definition is: *)
 
-Definition ev_plus4'' (n : nat) (H : ev n) : ev (4 + n) :=
+Definition ev_plus4'' (n : nat) (H : ev n)
+                    : ev (4 + n) :=
   ev_SS (S (S n)) (ev_SS n H).
 
 Check ev_plus4''.
-(* ===> ev_plus4'' : forall n : nat, ev n -> ev (4 + n) *)
+(* ===> 
+     : forall n : nat, ev n -> ev (4 + n) *)
 
 (** When we view the proposition being proved by [ev_plus4] as a
     function type, one interesting point becomes apparent: The second
     argument's type, [ev n], mentions the _value_ of the first
-    argument, [n].  While such _dependent types_ are not found in
-    conventional programming languages, they can be useful in
-    programming too, as the recent flurry of activity in the
-    functional programming community demonstrates.
+    argument, [n].
 
-    Notice that both implication ([->]) and quantification ([forall])
+    While such _dependent types_ are not found in conventional
+    programming languages, they can be useful in programming too, as
+    the recent flurry of activity in the functional programming
+    community demonstrates. *)
+
+(** Notice that both implication ([->]) and quantification ([forall])
     correspond to functions on evidence.  In fact, they are really the
     same thing: [->] is just a shorthand for a degenerate use of
     [forall] where there is no dependency, i.e., no need to give a
-    name to the type on the left-hand side of the arrow. *)
+    name to the type on the left-hand side of the arrow:
+
+           forall (x:nat), nat  
+        =  forall (_:nat), nat  
+        =  nat -> nat
+*)
 
 
 (** For example, consider this proposition: *)
@@ -300,6 +309,7 @@ Compute add1 2.
     types, which we won't explore much further in this book.  But it
     does illustrate the uniformity and orthogonality of the basic
     ideas in Coq. *)
+
 
 (* ################################################################# *)
 (** * Logical Connectives as Inductive Types *)
@@ -371,6 +381,8 @@ Definition and_comm' P Q : P /\ Q <-> Q /\ P :=
 Definition conj_fact : forall P Q R, P /\ Q -> Q /\ R -> P /\ R 
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 (** [] *)
+
+
 
 (** ** Disjunction
 
@@ -484,23 +496,13 @@ Notation "x = y" := (eq x y)
     applying the constructor [eq_refl] to a type [X] and a value [x :
     X] yields evidence that [x] is equal to [x]. *)
 
-(** **** Exercise: 2 stars (leibniz_equality)  *)
-(** The inductive definition of equality corresponds to _Leibniz
-    equality_: what we mean when we say "[x] and [y] are equal" is
-    that every property on [P] that is true of [x] is also true of
-    [y].  *)
-
-Lemma leibniz_equality : forall (X : Type) (x y: X),
-  x = y -> forall P:X->Prop, P x -> P y.
-Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
-
 (** We can use [eq_refl] to construct evidence that, for example, [2 =
     2].  Can we also use it to construct evidence that [1 + 1 = 2]?
-    Yes, we can.  Indeed, it is the very same piece of evidence!  The
-    reason is that Coq treats as "the same" any two terms that are
+    Yes, we can.  Indeed, it is the very same piece of evidence!
+
+    The reason is that Coq treats as "the same" any two terms that are
     _convertible_ according to a simple set of computation rules.
+
     These rules, which are similar to those used by [Compute], include
     evaluation of function application, inlining of definitions, and
     simplification of [match]es.  *)
@@ -511,20 +513,44 @@ Proof.
 Qed.
 
 (** The [reflexivity] tactic that we have used to prove equalities up
-    to now is essentially just short-hand for [apply refl_equal].
+    to now is essentially just short-hand for [apply eq_refl].
 
     In tactic-based proofs of equality, the conversion rules are
     normally hidden in uses of [simpl] (either explicit or implicit in
-    other tactics such as [reflexivity]).  But you can see them
-    directly at work in the following explicit proof objects: *)
+    other tactics such as [reflexivity]).
+
+    But you can see them directly at work in the following explicit
+    proof objects: *)
 
 Definition four' : 2 + 2 = 1 + 3 :=
   eq_refl 4.
 
-Definition singleton : forall (X:Set) (x:X), []++[x] = x::[]  :=
-  fun (X:Set) (x:X) => eq_refl [x].
+Definition singleton : forall (X:Type) (x:X), []++[x] = x::[]  :=
+  fun (X:Type) (x:X) => eq_refl [x].
 
 End MyEquality.
+
+
+(** **** Exercise: 2 stars (equality__leibniz_equality)  *)
+(** The inductive definition of equality implies _Leibniz equality_:
+    what we mean when we say "[x] and [y] are equal" is that every
+    property on [P] that is true of [x] is also true of [y].  *)
+
+Lemma equality__leibniz_equality : forall (X : Type) (x y: X),
+  x = y -> forall P:X->Prop, P x -> P y.
+Proof.
+(* FILL IN HERE *) Admitted.
+(** [] *)
+
+(** **** Exercise: 5 stars, optional (leibniz_equality__equality)  *)
+(** Show that, in fact, the inductive definition of equality is
+    _equivalent_ to Leibniz equality: *)
+
+Lemma leibniz_equality__equality : forall (X : Type) (x y: X),
+  (forall P:X->Prop, P x -> P y) -> x = y.
+Proof.
+(* FILL IN HERE *) Admitted.
+(** [] *)
 
 (* ================================================================= *)
 (** ** Inversion, Again *)
@@ -578,5 +604,4 @@ End MyEquality.
     must be the same!  The [inversion] tactic adds this fact to the
     context. *)
 
-(** $Date: 2017-07-15 16:03:20 -0400 (Sat, 15 Jul 2017) $ *)
 

@@ -26,7 +26,7 @@ Check forall n m : nat, n + m = m + n.
 (* ===> Prop *)
 
 (** Note that _all_ syntactically well-formed propositions have type
-    [Prop] in Coq, regardless of whether they are true or not. *)
+    [Prop] in Coq, regardless of whether they are true. *)
 
 (** Simply _being_ a proposition is one thing; being _provable_ is
     something else! *)
@@ -96,8 +96,8 @@ Qed.
 (** The equality operator [=] is also a function that returns a
     [Prop].
 
-    The expression [n = m] is syntactic sugar for [eq n m], defined
-    using Coq's [Notation] mechanism. Because [eq] can be used with
+    The expression [n = m] is syntactic sugar for [eq n m] (defined
+    using Coq's [Notation] mechanism). Because [eq] can be used with
     elements of any type, it is also polymorphic: *)
 
 Check @eq.
@@ -209,6 +209,7 @@ Qed.
 Lemma and_example3 :
   forall n m : nat, n + m = 0 -> n * m = 0.
 Proof.
+  (* WORKED IN CLASS *)
   intros n m H.
   assert (H' : n = 0 /\ m = 0).
   { apply and_exercise. apply H. }
@@ -241,12 +242,11 @@ Proof.
 Theorem and_commut : forall P Q : Prop,
   P /\ Q -> Q /\ P.
 Proof.
-  (* WORKED IN CLASS *)
   intros P Q [HP HQ].
   split.
     - (* left *) apply HQ.
     - (* right *) apply HP.  Qed.
-  
+
 (** **** Exercise: 2 stars (and_assoc)  *)
 (** (In the following proof of associativity, notice how the _nested_
     intro pattern breaks the hypothesis [H : P /\ (Q /\ R)] down into
@@ -311,6 +311,7 @@ Qed.
 Lemma zero_or_succ :
   forall n : nat, n = 0 \/ n = S (pred n).
 Proof.
+  (* WORKED IN CLASS *)
   intros [|n].
   - left. reflexivity.
   - right. reflexivity.
@@ -332,7 +333,6 @@ Proof.
 
 (* ================================================================= *)
 (** ** Falsehood and Negation *)
-
 (** So far, we have mostly been concerned with proving that certain
     things are _true_ -- addition is commutative, appending lists is
     associative, etc.  Of course, we may also be interested in
@@ -341,12 +341,12 @@ Proof.
     negation operator [~]. *)
 
 (** To see how negation works, recall the discussion of the _principle
-    of explosion_ from the [Tactics] chapter; it asserts that, if we
-    assume a contradiction, then any other proposition can be derived.
-    Following this intuition, we could define [~ P] ("not [P]") as
-    [forall Q, P -> Q].  Coq actually makes a slightly different
-    choice, defining [~ P] as [P -> False], where [False] is a
-    particular contradictory proposition defined in the standard
+    of explosion_ from the [Tactics] chapter; it asserts that, if
+    we assume a contradiction, then any other proposition can be
+    derived.  Following this intuition, we could define [~ P] ("not
+    [P]") as [forall Q, P -> Q].  Coq actually makes a slightly
+    different choice, defining [~ P] as [P -> False], where [False] is
+    a specific contradictory proposition defined in the standard
     library. *)
 
 Module MyNot.
@@ -430,7 +430,7 @@ Proof.
   (* WORKED IN CLASS *)
   intros P H. unfold not. intros G. apply G. apply H.  Qed.
 
-(** **** Exercise: 2 stars, advanced, recommendedM (double_neg_inf)  *)
+(** **** Exercise: 2 stars, advanced, recommended (double_neg_inf)  *)
 (** Write an informal proof of [double_neg]:
 
    _Theorem_: [P] implies [~~P], for any proposition [P]. *)
@@ -452,7 +452,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, advancedM (informal_not_PNP)  *)
+(** **** Exercise: 1 star, advanced (informal_not_PNP)  *)
+Definition informal_not_PNP_TODO := 0.
 (** Write an informal proof (in English) of the proposition [forall P
     : Prop, ~(P /\ ~P)]. *)
 
@@ -574,8 +575,7 @@ Proof.
     the need for some low-level proof-state manipulation.  In
     particular, [rewrite] and [reflexivity] can be used with [iff]
     statements, not just equalities.  To enable this behavior, we need
-    to import a special Coq library that allows rewriting with other
-    formulas besides equality: *)
+    to import a Coq library that supports it: *)
 
 Require Import Coq.Setoids.Setoid.
 
@@ -660,9 +660,10 @@ Proof.
   exists (2 + m).
   apply Hm.  Qed.
 
-(** **** Exercise: 1 star (dist_not_exists)  *)
+(** **** Exercise: 1 star, recommended (dist_not_exists)  *)
 (** Prove that "[P] holds for all [x]" implies "there is no [x] for
-    which [P] does not hold." *)
+    which [P] does not hold."  (Hint: [destruct H as [x E]] works on
+    existential assumptions!)  *)
 
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
@@ -695,8 +696,7 @@ Proof.
          [l']. *)
 
 (** We can translate this directly into a straightforward recursive
-    function from taking an element and a list and returning a
-    proposition: *)
+    function taking an element and a list and returning a proposition: *)
 
 Fixpoint In {A : Type} (x : A) (l : list A) : Prop :=
   match l with
@@ -763,8 +763,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (in_app_iff)  *)
-Lemma in_app_iff : forall A l l' (a:A),
+(** **** Exercise: 2 stars (In_app_iff)  *)
+Lemma In_app_iff : forall A l l' (a:A),
   In a (l++l') <-> In a l \/ In a l'.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -873,7 +873,7 @@ Check plus_comm.
     the following result: *)
 
 Lemma plus_comm3 :
-  forall n m p, n + (m + p) = (p + m) + n.
+  forall x y z, x + (y + z) = (z + y) + x.
 
 (** It appears at first sight that we ought to be able to prove this
     by rewriting with [plus_comm] twice to make the two sides match.
@@ -881,7 +881,7 @@ Lemma plus_comm3 :
     effect of the first. *)
 
 Proof.
-  intros n m p.
+  intros x y z.
   rewrite plus_comm.
   rewrite plus_comm.
   (* We are back where we started... *)
@@ -893,11 +893,11 @@ Abort.
     want. *)
 
 Lemma plus_comm3_take2 :
-  forall n m p, n + (m + p) = (p + m) + n.
+  forall x y z, x + (y + z) = (z + y) + x.
 Proof.
-  intros n m p.
+  intros x y z.
   rewrite plus_comm.
-  assert (H : m + p = p + m).
+  assert (H : y + z = z + y).
   { rewrite plus_comm. reflexivity. }
   rewrite H.
   reflexivity.
@@ -908,11 +908,11 @@ Qed.
     we apply a polymorphic function to a type argument. *)
 
 Lemma plus_comm3_take3 :
-  forall n m p, n + (m + p) = (p + m) + n.
+  forall x y z, x + (y + z) = (z + y) + x.
 Proof.
-  intros n m p.
+  intros x y z.
   rewrite plus_comm.
-  rewrite (plus_comm m).
+  rewrite (plus_comm y z).
   reflexivity.
 Qed.
 
@@ -1026,7 +1026,7 @@ Qed.
     is safe to add: hard work is generally required to establish the
     consistency of any particular combination of axioms.
 
-    However, it is known that adding functional extensionality, in
+    Fortunately, it is known that adding functional extensionality, in
     particular, _is_ consistent. *)
 
 (** To check whether a particular proof relies on any additional
@@ -1039,7 +1039,7 @@ Print Assumptions function_equality_ex2.
          forall (X Y : Type) (f g : X -> Y),
                 (forall x : X, f x = g x) -> f = g *)
 
-(** **** Exercise: 4 stars (tr_rev)  *)
+(** **** Exercise: 4 stars (tr_rev_correct)  *)
 (** One problem with the definition of the list-reversing function
     [rev] that we have is that it performs a call to [app] on each
     step; running [app] takes time asymptotically linear in the size
@@ -1079,9 +1079,11 @@ Lemma tr_rev_correct : forall X, @tr_rev X = @rev X.
              Indeed, these two notions of evenness are equivalent, as
              can easily be shown with a couple of auxiliary lemmas.
 
-    We often say that the boolean [evenb n] _reflects_ the proposition
-    [exists k, n = double k].  *)
+    Of course, it would be very strange if these two characterizations
+    of evenness did not describe the same set of natural numbers!
+    Fortunately, we can prove that they do... *)
 
+(** We first need two helper lemmas. *)
 Theorem evenb_double : forall k, evenb (double k) = true.
 Proof.
   intros k. induction k as [|k' IHk'].
@@ -1107,9 +1109,13 @@ Proof.
   - intros [k Hk]. rewrite Hk. apply evenb_double.
 Qed.
 
+(** In view of this theorem, we say that the boolean
+    computation [evenb n] _reflects_ the logical proposition 
+    [exists k, n = double k]. *)
+
 (** Similarly, to state that two numbers [n] and [m] are equal, we can
     say either (1) that [beq_nat n m] returns [true] or (2) that [n =
-    m].  These two notions are equivalent. *)
+    m].  Again, these two notions are equivalent. *)
 
 Theorem beq_nat_true_iff : forall n1 n2 : nat,
   beq_nat n1 n2 = true <-> n1 = n2.
@@ -1121,21 +1127,22 @@ Qed.
 
 (** However, even when the boolean and propositional formulations of a
     claim are equivalent from a purely logical perspective, they need
-    not be equivalent _operationally_.  Equality provides an extreme
-    example: knowing that [beq_nat n m = true] is generally of little
-    direct help in the middle of a proof involving [n] and [m];
-    however, if we convert the statement to the equivalent form [n =
-    m], we can rewrite with it.
+    not be equivalent _operationally_.
 
-    The case of even numbers is also interesting.  Recall that,
+    Equality provides an extreme example: knowing that [beq_nat n m =
+    true] is generally of little direct help in the middle of a proof
+    involving [n] and [m]; however, if we convert the statement to the
+    equivalent form [n = m], we can rewrite with it. *)
+
+(** The case of even numbers is also interesting.  Recall that,
     when proving the backwards direction of [even_bool_prop] (i.e.,
     [evenb_double], going from the propositional to the boolean
     claim), we used a simple induction on [k].  On the other hand, the
     converse (the [evenb_double_conv] exercise) required a clever
     generalization, since we can't directly prove [(exists k, n =
-    double k) -> evenb n = true].
+    double k) -> evenb n = true]. *)
 
-    For these examples, the propositional claims are more useful than
+(** For these examples, the propositional claims are more useful than
     their boolean counterparts, but this is not always the case.  For
     instance, we cannot test whether a general proposition is true or
     not in a function definition; as a consequence, the following code
@@ -1384,15 +1391,18 @@ Qed.
     additional axioms. *)
 
 (** **** Exercise: 3 stars (excluded_middle_irrefutable)  *)
-(** The consistency of Coq with the general excluded middle axiom
-    requires complicated reasoning that cannot be carried out within
-    Coq itself.  However, the following theorem implies that it is
-    always safe to assume a decidability axiom (i.e., an instance of
-    excluded middle) for any _particular_ Prop [P].  Why? Because we
-    cannot prove the negation of such an axiom; if we could, we would
-    have both [~ (P \/ ~P)] and [~ ~ (P \/ ~P)], a contradiction. *)
+(** Proving the consistency of Coq with the general excluded middle
+    axiom requires complicated reasoning that cannot be carried out
+    within Coq itself.  However, the following theorem implies that it
+    is always safe to assume a decidability axiom (i.e., an instance
+    of excluded middle) for any _particular_ Prop [P].  Why?  Because
+    we cannot prove the negation of such an axiom.  If we could, we
+    would have both [~ (P \/ ~P)] and [~ ~ (P \/ ~P)] (since [P]
+    implies [~ ~ P], by the exercise below), which would be a
+    contradiction.  But since we can't, it is safe to add [P \/ ~P] as
+    an axiom. *)
 
-Theorem excluded_middle_irrefutable:  forall (P:Prop),
+Theorem excluded_middle_irrefutable: forall (P:Prop),
   ~ ~ (P \/ ~ P).
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -1444,4 +1454,3 @@ Definition implies_to_or := forall P Q:Prop,
 (* FILL IN HERE *)
 (** [] *)
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)

@@ -49,10 +49,6 @@ Proof.
   intros n m o p eq1 eq2.
   apply eq2. apply eq1.  Qed.
 
-(** You may find it instructive to experiment with this proof
-    and see if there is a way to complete it using just [rewrite]
-    instead of [apply]. *)
-
 (** Typically, when we use [apply H], the statement [H] will
     begin with a [forall] that binds some _universal variables_.  When
     Coq matches the current goal against the conclusion of [H], it
@@ -90,7 +86,6 @@ Theorem silly3_firsttry : forall (n : nat),
      beq_nat (S (S n)) 7 = true.
 Proof.
   intros n H.
-  simpl.
 
 (** Here we cannot use [apply] directly, but we can use the [symmetry]
     tactic, which switches the left and right sides of an equality in
@@ -113,7 +108,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optionalM (apply_rewrite)  *)
+(** **** Exercise: 1 star, optional (apply_rewrite)  *)
 (** Briefly explain the difference between the tactics [apply] and
     [rewrite].  What are the situations where both can usefully be
     applied?
@@ -343,7 +338,7 @@ Proof.
 (** The injectivity of constructors allows us to reason that
     [forall (n m : nat), S n = S m -> n = m].  The converse of this
     implication is an instance of a more general fact about both
-    constructors and functions, which we will find useful in a few
+    constructors and functions, which we will find convenient in a few
     places below: *)
 
 Theorem f_equal : forall (A B : Type) (f: A -> B) (x y: A),
@@ -402,7 +397,7 @@ Proof.
     about.  *)
 
 (** **** Exercise: 3 stars, recommended (plus_n_n_injective)  *)
-(** Practice using "in" variants in this exercise.  (Hint: use
+(** Practice using "in" variants in this proof.  (Hint: use
     [plus_n_Sm].) *)
 
 Theorem plus_n_n_injective : forall n m,
@@ -410,7 +405,7 @@ Theorem plus_n_n_injective : forall n m,
      n = m.
 Proof.
   intros n. induction n as [| n'].
-    (* FILL IN HERE *) Admitted.
+  (* FILL IN HERE *) Admitted.
 (** [] *)
 
 (* ################################################################# *)
@@ -569,7 +564,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advancedM (beq_nat_true_informal)  *)
+(** **** Exercise: 2 stars, advanced (beq_nat_true_informal)  *)
 (** Give a careful informal proof of [beq_nat_true], being as explicit
     as possible about quantifiers. *)
 
@@ -693,7 +688,6 @@ Theorem nth_error_after_last: forall (n : nat) (X : Type) (l : list X),
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
-
 
 (* ################################################################# *)
 (** * Unfolding Definitions *)
@@ -855,6 +849,22 @@ Proof.
     are replaced by [c]. *)
 
 (** **** Exercise: 3 stars, optional (combine_split)  *)
+(** Here is an implementation of the [split] function mentioned in
+    chapter [Poly]: *)
+
+Fixpoint split {X Y : Type} (l : list (X*Y))
+               : (list X) * (list Y) :=
+  match l with
+  | [] => ([], [])
+  | (x, y) :: t =>
+      match split t with
+      | (lx, ly) => (x :: lx, y :: ly)
+      end
+  end.
+
+(** Prove that [split] and [combine] are inverses in the following
+    sense: *)
+
 Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
@@ -1006,7 +1016,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, advancedM? (beq_nat_sym_informal)  *)
+(** **** Exercise: 3 stars, advanced, optional (beq_nat_sym_informal)  *)
 (** Give an informal proof of this lemma that corresponds to your
     formal proof above:
 
@@ -1014,8 +1024,8 @@ Proof.
 
    Proof:
    (* FILL IN HERE *)
-[]
 *)
+(** [] *)
 
 (** **** Exercise: 3 stars, optional (beq_nat_trans)  *)
 Theorem beq_nat_trans : forall n m p,
@@ -1026,7 +1036,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, advancedM (split_combine)  *)
+(** **** Exercise: 3 stars, advanced (split_combine)  *)
 (** We proved, in an exercise above, that for all lists of pairs,
     [combine] is the inverse of [split].  How would you formalize the
     statement that [split] is the inverse of [combine]?  When is this
@@ -1048,7 +1058,6 @@ Theorem split_combine : split_combine_statement.
 Proof.
 (* FILL IN HERE *) Admitted.
 
-
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (filter_exercise)  *)
@@ -1063,7 +1072,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, recommended (forall_exists_challenge)  *)
+(** **** Exercise: 4 stars, advanced, recommended (forall_exists_challenge)  *) 
 (** Define two recursive [Fixpoints], [forallb] and [existsb].  The
     first checks whether every element in a list satisfies a given
     predicate:
@@ -1096,6 +1105,5 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)
 
 

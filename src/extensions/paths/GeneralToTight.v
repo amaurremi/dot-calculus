@@ -6,7 +6,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Sequences.
 Require Import Coq.Program.Equality.
 Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping Replacement.

@@ -5,7 +5,6 @@
 (** remove printing ~ *)
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Definitions.
 
 (** * Local Closure

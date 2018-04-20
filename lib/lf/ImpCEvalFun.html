@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <link href="common/css/sf.css" rel="stylesheet" type="text/css"/>
-<title>ImpCEvalFun: Evaluation Function for Imp</title>
+<title>ImpCEvalFun: An Evaluation Function for Imp</title>
 </head>
 <link href="common/jquery-ui/jquery-ui.css" rel="stylesheet">
 <script src="common/jquery-ui/external/jquery/jquery.js"></script>
@@ -19,17 +19,17 @@
 <div id="header">
 <a href='https://www.cis.upenn.edu/~bcpierce/sf/current/index.html'>
 <img src='common/media/image/sf_logo_sm.png'></a>
+</br><a href='index.html'>  <span class='booktitleinheader'>Volume 1: Logical Foundations</span><br></br>
 <ul id='menu'>
-   <a href='index.html'><li class='section_name'>Logical Foundations</li></a>
-   <a href='toc.html'><li>Table of Contents</li></a>
-   <a href='coqindex.html'><li>Index</li></a>
-   <a href='deps.html'><li>Roadmap</li></a>
+   <a href='toc.html'><li class='section_name'>Table of Contents</li></a>
+   <a href='coqindex.html'><li class='section_name'>Index</li></a>
+   <a href='deps.html'><li class='section_name'>Roadmap</li></a>
 </ul>
-</div>
+</a></div>
 
 <div id="main">
 
-<h1 class="libtitle">ImpCEvalFun<span class="subtitle">Evaluation Function for Imp</span></h1>
+<h1 class="libtitle">ImpCEvalFun<span class="subtitle">An Evaluation Function for Imp</span></h1>
 
 
 <div class="doc">
@@ -45,18 +45,15 @@
 </div>
 
 <div class="doc">
-<a name="lab352"></a><h1 class="section">A Broken Evaluator</h1>
+<a name="lab359"></a><h1 class="section">A Broken Evaluator</h1>
 
 </div>
 <div class="code code-space">
 
 <br/>
-<span class="comment">(*&nbsp;IMPORTS&nbsp;*)</span><br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Coq.omega.Omega</span>.<br/>
 <span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Coq.Arith.Arith</span>.<br/>
-<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Imp</span>.<br/>
-<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Maps</span>.<br/>
-<span class="comment">(*&nbsp;/IMPORTS&nbsp;*)</span><br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <span class="id" type="var">Imp</span> <span class="id" type="var">Maps</span>.<br/>
 </div>
 
 <div class="doc">
@@ -65,13 +62,12 @@ Here was our first try at an evaluation function for commands,
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">ceval_step1</span> (<span class="id" type="var">st</span> : <span class="id" type="var">state</span>) (<span class="id" type="var">c</span> : <span class="id" type="var">com</span>) : <span class="id" type="var">state</span> :=<br/>
 &nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">c</span> <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">SKIP</span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">st</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> ::= <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">t_update</span> <span class="id" type="var">st</span> <span class="id" type="var">l</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">st</span> &amp; { <span class="id" type="var">l</span> <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>)}<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">c<sub>1</sub></span> ;; <span class="id" type="var">c<sub>2</sub></span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">st'</span> := <span class="id" type="var">ceval_step1</span> <span class="id" type="var">st</span> <span class="id" type="var">c<sub>1</sub></span> <span class="id" type="keyword">in</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">ceval_step1</span> <span class="id" type="var">st'</span> <span class="id" type="var">c<sub>2</sub></span><br/>
@@ -116,7 +112,7 @@ As we remarked in chapter <a href="Imp.html"><span class="inlineref">Imp</span><
 </div>
 
 <div class="doc">
-<a name="lab353"></a><h1 class="section">A Step-Indexed Evaluator</h1>
+<a name="lab360"></a><h1 class="section">A Step-Indexed Evaluator</h1>
 
 <div class="paragraph"> </div>
 
@@ -127,21 +123,20 @@ As we remarked in chapter <a href="Imp.html"><span class="inlineref">Imp</span><
     <i>or</i> it runs out of gas, at which point we simply stop evaluating
     and say that the final result is the empty memory.  (We could also
     say that the result is the current state at the point where the
-    evaluator runs out fo gas &mdash; it doesn't really matter because the
+    evaluator runs out of gas &mdash; it doesn't really matter because the
     result is going to be wrong in either case!) 
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">ceval_step2</span> (<span class="id" type="var">st</span> : <span class="id" type="var">state</span>) (<span class="id" type="var">c</span> : <span class="id" type="var">com</span>) (<span class="id" type="var">i</span> : <span class="id" type="var">nat</span>) : <span class="id" type="var">state</span> :=<br/>
 &nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">i</span> <span class="id" type="keyword">with</span><br/>
-&nbsp;&nbsp;| <span class="id" type="var">O</span> ⇒ <span class="id" type="var">empty_state</span><br/>
+&nbsp;&nbsp;| <span class="id" type="var">O</span> ⇒ { <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> 0 }<br/>
 &nbsp;&nbsp;| <span class="id" type="var">S</span> <span class="id" type="var">i'</span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">c</span> <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">SKIP</span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">st</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> ::= <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">t_update</span> <span class="id" type="var">st</span> <span class="id" type="var">l</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">st</span> &amp; { <span class="id" type="var">l</span> <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>) }<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">c<sub>1</sub></span> ;; <span class="id" type="var">c<sub>2</sub></span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">st'</span> := <span class="id" type="var">ceval_step2</span> <span class="id" type="var">st</span> <span class="id" type="var">c<sub>1</sub></span> <span class="id" type="var">i'</span> <span class="id" type="keyword">in</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">ceval_step2</span> <span class="id" type="var">st'</span> <span class="id" type="var">c<sub>2</sub></span> <span class="id" type="var">i'</span><br/>
@@ -178,7 +173,6 @@ As we remarked in chapter <a href="Imp.html"><span class="inlineref">Imp</span><
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">ceval_step3</span> (<span class="id" type="var">st</span> : <span class="id" type="var">state</span>) (<span class="id" type="var">c</span> : <span class="id" type="var">com</span>) (<span class="id" type="var">i</span> : <span class="id" type="var">nat</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" type="var">option</span> <span class="id" type="var">state</span> :=<br/>
 &nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">i</span> <span class="id" type="keyword">with</span><br/>
@@ -187,8 +181,8 @@ As we remarked in chapter <a href="Imp.html"><span class="inlineref">Imp</span><
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">c</span> <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">SKIP</span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> <span class="id" type="var">st</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> ::= <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> (<span class="id" type="var">t_update</span> <span class="id" type="var">st</span> <span class="id" type="var">l</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> (<span class="id" type="var">st</span> &amp; { <span class="id" type="var">l</span> <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>) })<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">c<sub>1</sub></span> ;; <span class="id" type="var">c<sub>2</sub></span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> (<span class="id" type="var">ceval_step3</span> <span class="id" type="var">st</span> <span class="id" type="var">c<sub>1</sub></span> <span class="id" type="var">i'</span>) <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Some</span> <span class="id" type="var">st'</span> ⇒ <span class="id" type="var">ceval_step3</span> <span class="id" type="var">st'</span> <span class="id" type="var">c<sub>2</sub></span> <span class="id" type="var">i'</span><br/>
@@ -216,15 +210,12 @@ We can improve the readability of this version by introducing a
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Notation</span> "'LETOPT' x &lt;== e<sub>1</sub> 'IN' e<sub>2</sub>"<br/>
 &nbsp;&nbsp;&nbsp;:= (<span class="id" type="keyword">match</span> <span class="id" type="var">e<sub>1</sub></span> <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Some</span> <span class="id" type="var">x</span> ⇒ <span class="id" type="var">e<sub>2</sub></span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">None</span> ⇒ <span class="id" type="var">None</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span>)<br/>
-&nbsp;&nbsp;&nbsp;(<span class="id" type="var">right</span> <span class="id" type="var">associativity</span>, <span class="id" type="tactic">at</span> <span class="id" type="var">level</span> 60).<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" type="var">right</span> <span class="id" type="var">associativity</span>, <span class="id" type="tactic">at</span> <span class="id" type="var">level</span> 60).<br/><hr class='doublespaceincode'/>
 <span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">ceval_step</span> (<span class="id" type="var">st</span> : <span class="id" type="var">state</span>) (<span class="id" type="var">c</span> : <span class="id" type="var">com</span>) (<span class="id" type="var">i</span> : <span class="id" type="var">nat</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" type="var">option</span> <span class="id" type="var">state</span> :=<br/>
 &nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">i</span> <span class="id" type="keyword">with</span><br/>
@@ -233,8 +224,8 @@ We can improve the readability of this version by introducing a
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">c</span> <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">SKIP</span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> <span class="id" type="var">st</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> ::= <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> (<span class="id" type="var">t_update</span> <span class="id" type="var">st</span> <span class="id" type="var">l</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" type="var">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">Some</span> (<span class="id" type="var">st</span> &amp; { <span class="id" type="var">l</span> <span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span> (<span class="id" type="var">aeval</span> <span class="id" type="var">st</span> <span class="id" type="var">a<sub>1</sub></span>)})<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">c<sub>1</sub></span> ;; <span class="id" type="var">c<sub>2</sub></span> ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">LETOPT</span> <span class="id" type="var">st'</span> &lt;== <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c<sub>1</sub></span> <span class="id" type="var">i'</span> <span class="id" type="var">IN</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">ceval_step</span> <span class="id" type="var">st'</span> <span class="id" type="var">c<sub>2</sub></span> <span class="id" type="var">i'</span><br/>
@@ -248,43 +239,37 @@ We can improve the readability of this version by introducing a
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">ceval_step</span> <span class="id" type="var">st'</span> <span class="id" type="var">c</span> <span class="id" type="var">i'</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">else</span> <span class="id" type="var">Some</span> <span class="id" type="var">st</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
-&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/><hr class='doublespaceincode'/>
 <span class="id" type="keyword">Definition</span> <span class="id" type="var">test_ceval</span> (<span class="id" type="var">st</span>:<span class="id" type="var">state</span>) (<span class="id" type="var">c</span>:<span class="id" type="var">com</span>) :=<br/>
 &nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> 500 <span class="id" type="keyword">with</span><br/>
 &nbsp;&nbsp;| <span class="id" type="var">None</span>    ⇒ <span class="id" type="var">None</span><br/>
 &nbsp;&nbsp;| <span class="id" type="var">Some</span> <span class="id" type="var">st</span> ⇒ <span class="id" type="var">Some</span> (<span class="id" type="var">st</span> <span class="id" type="var">X</span>, <span class="id" type="var">st</span> <span class="id" type="var">Y</span>, <span class="id" type="var">st</span> <span class="id" type="var">Z</span>)<br/>
-&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/><hr class='doublespaceincode'/>
 <span class="comment">(*&nbsp;Compute<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(test_ceval&nbsp;empty_state<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(X&nbsp;::=&nbsp;ANum&nbsp;2;;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IFB&nbsp;BLe&nbsp;(AId&nbsp;X)&nbsp;(ANum&nbsp;1)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;THEN&nbsp;Y&nbsp;::=&nbsp;ANum&nbsp;3<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ELSE&nbsp;Z&nbsp;::=&nbsp;ANum&nbsp;4<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(test_ceval&nbsp;{&nbsp;<span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span>&nbsp;0&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(X&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;2;;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IFB&nbsp;(X&nbsp;&lt;=&nbsp;1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;THEN&nbsp;Y&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;3<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ELSE&nbsp;Z&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;4<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FI)).<br/>
 &nbsp;&nbsp;&nbsp;====&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Some&nbsp;(2,&nbsp;0,&nbsp;4)&nbsp;&nbsp;&nbsp;*)</span><br/>
 </div>
 
 <div class="doc">
-<a name="lab354"></a><h4 class="section">Exercise: 2 stars, recommended (pup_to_n)</h4>
+<a name="lab361"></a><h4 class="section">Exercise: 2 stars, recommended (pup_to_n)</h4>
  Write an Imp program that sums the numbers from <span class="inlinecode">1</span> to
    <span class="inlinecode"><span class="id" type="var">X</span></span> (inclusive: <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">2</span> <span class="inlinecode">+</span> <span class="inlinecode">...</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" type="var">X</span></span>) in the variable <span class="inlinecode"><span class="id" type="var">Y</span></span>.  Make sure
    your solution satisfies the test that follows. 
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="id" type="keyword">Definition</span> <span class="id" type="var">pup_to_n</span> : <span class="id" type="var">com</span><br/>
-&nbsp;&nbsp;<span class="comment">(*&nbsp;REPLACE&nbsp;THIS&nbsp;LINE&nbsp;WITH&nbsp;":=&nbsp;_your_definition_&nbsp;."&nbsp;*)</span>. <span class="id" type="var">Admitted</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;REPLACE&nbsp;THIS&nbsp;LINE&nbsp;WITH&nbsp;":=&nbsp;_your_definition_&nbsp;."&nbsp;*)</span>. <span class="id" type="var">Admitted</span>.<br/><hr class='doublespaceincode'/>
 <span class="comment">(*&nbsp;<br/>
+<br/>
 Example&nbsp;pup_to_n_1&nbsp;:<br/>
-&nbsp;&nbsp;test_ceval&nbsp;(t_update&nbsp;empty_state&nbsp;X&nbsp;5)&nbsp;pup_to_n<br/>
+&nbsp;&nbsp;test_ceval&nbsp;{X&nbsp;<span style="font-size: 80%;"><span style="letter-spacing:-.1em;">-</span><span style="letter-spacing:-.1em;">-</span>&gt;</span>&nbsp;5}&nbsp;pup_to_n<br/>
 &nbsp;&nbsp;=&nbsp;Some&nbsp;(0,&nbsp;15,&nbsp;0).<br/>
 Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 *)</span><br/>
@@ -294,21 +279,20 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 <div class="doc less-space">
 <div class="paragraph"> </div>
 
-<a name="lab355"></a><h4 class="section">Exercise: 2 stars, optional (peven)</h4>
+<a name="lab362"></a><h4 class="section">Exercise: 2 stars, optional (peven)</h4>
  Write a <span class="inlinecode"><span class="id" type="var">While</span></span> program that sets <span class="inlinecode"><span class="id" type="var">Z</span></span> to <span class="inlinecode">0</span> if <span class="inlinecode"><span class="id" type="var">X</span></span> is even and
     sets <span class="inlinecode"><span class="id" type="var">Z</span></span> to <span class="inlinecode">1</span> otherwise.  Use <span class="inlinecode"><span class="id" type="var">ceval_test</span></span> to test your
     program. 
 </div>
 <div class="code code-tight">
 
-<br/>
 <span class="comment">(*&nbsp;FILL&nbsp;IN&nbsp;HERE&nbsp;*)</span><br/>
 </div>
 
 <span class="proofbox">&#9744;</span> 
 
 <div class="doc">
-<a name="lab356"></a><h1 class="section">Relational vs. Step-Indexed Evaluation</h1>
+<a name="lab363"></a><h1 class="section">Relational vs. Step-Indexed Evaluation</h1>
 
 <div class="paragraph"> </div>
 
@@ -319,10 +303,11 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 </div>
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_step__ceval</span>: ∀ <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>) →<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_step__ceval</span>: <span style='font-size:120%;'>&forall;</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span style='font-size:120%;'>&exist;</span> <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>) →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">c</span> / <span class="id" type="var">st</span> \\ <span class="id" type="var">st'</span>.<br/>
+<div class="togglescript" id="proofcontrol1" onclick="toggleDisplay('proof1');toggleDisplay('proofcontrol1')"><span class="show"></span></div>
+<div class="proofscript" id="proof1" onclick="toggleDisplay('proof1');toggleDisplay('proofcontrol1')">
 <span class="id" type="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">H</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">inversion</span> <span class="id" type="var">H</span> <span class="id" type="keyword">as</span> [<span class="id" type="var">i</span> <span class="id" type="var">E</span>].<br/>
@@ -330,21 +315,15 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">generalize</span> <span class="id" type="tactic">dependent</span> <span class="id" type="var">st'</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">generalize</span> <span class="id" type="tactic">dependent</span> <span class="id" type="var">st</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">generalize</span> <span class="id" type="tactic">dependent</span> <span class="id" type="var">c</span>.<br/>
-&nbsp;&nbsp;<span class="id" type="tactic">induction</span> <span class="id" type="var">i</span> <span class="id" type="keyword">as</span> [| <span class="id" type="var">i'</span> ].<br/>
-
-<br/>
+&nbsp;&nbsp;<span class="id" type="tactic">induction</span> <span class="id" type="var">i</span> <span class="id" type="keyword">as</span> [| <span class="id" type="var">i'</span> ].<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;- <span class="comment">(*&nbsp;i&nbsp;=&nbsp;0&nbsp;--&nbsp;contradictory&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">H</span>. <span class="id" type="tactic">inversion</span> <span class="id" type="var">H</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">H</span>. <span class="id" type="tactic">inversion</span> <span class="id" type="var">H</span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;- <span class="comment">(*&nbsp;i&nbsp;=&nbsp;S&nbsp;i'&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">H</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> <span class="id" type="var">c</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">H</span>; <span class="id" type="tactic">inversion</span> <span class="id" type="var">H</span>; <span class="id" type="tactic">subst</span>; <span class="id" type="tactic">clear</span> <span class="id" type="var">H</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;SKIP&nbsp;*)</span> <span class="id" type="tactic">apply</span> <span class="id" type="var">E_Skip</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;::=&nbsp;*)</span> <span class="id" type="tactic">apply</span> <span class="id" type="var">E_Ass</span>. <span class="id" type="tactic">reflexivity</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;*)</span> <span class="id" type="tactic">apply</span> <span class="id" type="var">E_Ass</span>. <span class="id" type="tactic">reflexivity</span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;;;&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> (<span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c<sub>1</sub></span> <span class="id" type="var">i'</span>) <span class="id" type="var">eqn</span>:<span class="id" type="var">Heqr1</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;Evaluation&nbsp;of&nbsp;r<sub>1</sub>&nbsp;terminates&nbsp;normally&nbsp;*)</span><br/>
@@ -352,9 +331,7 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">IHi'</span>. <span class="id" type="tactic">rewrite</span> <span class="id" type="var">Heqr1</span>. <span class="id" type="tactic">reflexivity</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">IHi'</span>. <span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">H<sub>1</sub></span>. <span class="id" type="tactic">assumption</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;Otherwise&nbsp;--&nbsp;contradiction&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">inversion</span> <span class="id" type="var">H<sub>1</sub></span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">inversion</span> <span class="id" type="var">H<sub>1</sub></span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;IFB&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> (<span class="id" type="var">beval</span> <span class="id" type="var">st</span> <span class="id" type="var">b</span>) <span class="id" type="var">eqn</span>:<span class="id" type="var">Heqr</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;true&nbsp;*)</span><br/>
@@ -362,9 +339,7 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">IHi'</span>. <span class="id" type="tactic">assumption</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;false&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">E_IfFalse</span>. <span class="id" type="tactic">rewrite</span> <span class="id" type="var">Heqr</span>. <span class="id" type="tactic">reflexivity</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">IHi'</span>. <span class="id" type="tactic">assumption</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">IHi'</span>. <span class="id" type="tactic">assumption</span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;WHILE&nbsp;*)</span> <span class="id" type="tactic">destruct</span> (<span class="id" type="var">beval</span> <span class="id" type="var">st</span> <span class="id" type="var">b</span>) <span class="id" type="var">eqn</span> :<span class="id" type="var">Heqr</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;true&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> (<span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i'</span>) <span class="id" type="var">eqn</span>:<span class="id" type="var">Heqr1</span>.<br/>
@@ -379,9 +354,10 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">E_WhileFalse</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">rewrite</span> &lt;- <span class="id" type="var">Heqr</span>. <span class="id" type="tactic">subst</span>. <span class="id" type="tactic">reflexivity</span>. <span class="id" type="keyword">Qed</span>.<br/>
 </div>
+</div>
 
 <div class="doc">
-<a name="lab357"></a><h4 class="section">Exercise: 4 stars (ceval_step__ceval_inf)</h4>
+<a name="lab364"></a><h4 class="section">Exercise: 4 stars (ceval_step__ceval_inf)</h4>
  Write an informal proof of <span class="inlinecode"><span class="id" type="var">ceval_step__ceval</span></span>, following the
     usual template.  (The template for case analysis on an inductively
     defined value should look the same as for induction, except that
@@ -392,13 +368,11 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 <div class="paragraph"> </div>
 
 <span class="comment">(*&nbsp;FILL&nbsp;IN&nbsp;HERE&nbsp;*)</span><br/>
-<span class="proofbox">&#9744;</span>
-
+ <span class="proofbox">&#9744;</span> 
 </div>
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_step_more</span>: ∀ <span class="id" type="var">i<sub>1</sub></span> <span class="id" type="var">i<sub>2</sub></span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">c</span>,<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_step_more</span>: <span style='font-size:120%;'>&forall;</span> <span class="id" type="var">i<sub>1</sub></span> <span class="id" type="var">i<sub>2</sub></span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">c</span>,<br/>
 &nbsp;&nbsp;<span class="id" type="var">i<sub>1</sub></span> ≤ <span class="id" type="var">i<sub>2</sub></span> →<br/>
 &nbsp;&nbsp;<span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i<sub>1</sub></span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span> →<br/>
 &nbsp;&nbsp;<span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i<sub>2</sub></span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>.<br/>
@@ -413,7 +387,7 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;SKIP&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>. <span class="id" type="tactic">inversion</span> <span class="id" type="var">Hceval</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">reflexivity</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;::=&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>. <span class="id" type="tactic">inversion</span> <span class="id" type="var">Hceval</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">reflexivity</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;;;&nbsp;*)</span><br/>
@@ -424,15 +398,11 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">rewrite</span> <span class="id" type="var">Heqst1'o</span>. <span class="id" type="tactic">simpl</span>. <span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">apply</span> (<span class="id" type="var">IHi1'</span> <span class="id" type="var">i<sub>2</sub>'</span>) <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>; <span class="id" type="tactic">try</span> <span class="id" type="tactic">assumption</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;st<sub>1</sub>'o&nbsp;=&nbsp;None&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">inversion</span> <span class="id" type="var">Hceval</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">inversion</span> <span class="id" type="var">Hceval</span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;IFB&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>. <span class="id" type="tactic">simpl</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> (<span class="id" type="var">beval</span> <span class="id" type="var">st</span> <span class="id" type="var">b</span>); <span class="id" type="tactic">apply</span> (<span class="id" type="var">IHi1'</span> <span class="id" type="var">i<sub>2</sub>'</span>) <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">assumption</span>.<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">assumption</span>.<br/><hr class='doublespaceincode'/>
 &nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;WHILE&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">simpl</span> <span class="id" type="keyword">in</span> <span class="id" type="var">Hceval</span>. <span class="id" type="tactic">simpl</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="tactic">destruct</span> (<span class="id" type="var">beval</span> <span class="id" type="var">st</span> <span class="id" type="var">b</span>); <span class="id" type="tactic">try</span> <span class="id" type="tactic">assumption</span>.<br/>
@@ -446,16 +416,15 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 </div>
 
 <div class="doc">
-<a name="lab358"></a><h4 class="section">Exercise: 3 stars, recommended (ceval__ceval_step)</h4>
+<a name="lab365"></a><h4 class="section">Exercise: 3 stars, recommended (ceval__ceval_step)</h4>
  Finish the following proof.  You'll need <span class="inlinecode"><span class="id" type="var">ceval_step_more</span></span> in a
     few places, as well as some basic facts about <span class="inlinecode">≤</span> and <span class="inlinecode"><span class="id" type="var">plus</span></span>. 
 </div>
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval__ceval_step</span>: ∀ <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval__ceval_step</span>: <span style='font-size:120%;'>&forall;</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">c</span> / <span class="id" type="var">st</span> \\ <span class="id" type="var">st'</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:120%;'>&exist;</span> <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>.<br/>
 <span class="id" type="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span> <span class="id" type="var">Hce</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">induction</span> <span class="id" type="var">Hce</span>.<br/>
@@ -465,10 +434,9 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 <span class="proofbox">&#9744;</span> 
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_and_ceval_step_coincide</span>: ∀ <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_and_ceval_step_coincide</span>: <span style='font-size:120%;'>&forall;</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">c</span> / <span class="id" type="var">st</span> \\ <span class="id" type="var">st'</span><br/>
-&nbsp;&nbsp;↔ ∃ <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>.<br/>
+&nbsp;&nbsp;↔ <span style='font-size:120%;'>&exist;</span> <span class="id" type="var">i</span>, <span class="id" type="var">ceval_step</span> <span class="id" type="var">st</span> <span class="id" type="var">c</span> <span class="id" type="var">i</span> = <span class="id" type="var">Some</span> <span class="id" type="var">st'</span>.<br/>
 <span class="id" type="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st'</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">split</span>. <span class="id" type="tactic">apply</span> <span class="id" type="var">ceval__ceval_step</span>. <span class="id" type="tactic">apply</span> <span class="id" type="var">ceval_step__ceval</span>.<br/>
@@ -476,7 +444,7 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 </div>
 
 <div class="doc">
-<a name="lab359"></a><h1 class="section">Determinism of Evaluation Again</h1>
+<a name="lab366"></a><h1 class="section">Determinism of Evaluation Again</h1>
 
 <div class="paragraph"> </div>
 
@@ -486,11 +454,12 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 </div>
 <div class="code code-tight">
 
-<br/>
-<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_deterministic'</span> : ∀ <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st<sub>1</sub></span> <span class="id" type="var">st<sub>2</sub></span>,<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">ceval_deterministic'</span> : <span style='font-size:120%;'>&forall;</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st<sub>1</sub></span> <span class="id" type="var">st<sub>2</sub></span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">c</span> / <span class="id" type="var">st</span> \\ <span class="id" type="var">st<sub>1</sub></span>  →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">c</span> / <span class="id" type="var">st</span> \\ <span class="id" type="var">st<sub>2</sub></span> →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">st<sub>1</sub></span> = <span class="id" type="var">st<sub>2</sub></span>.<br/>
+<div class="togglescript" id="proofcontrol2" onclick="toggleDisplay('proof2');toggleDisplay('proofcontrol2')"><span class="show"></span></div>
+<div class="proofscript" id="proof2" onclick="toggleDisplay('proof2');toggleDisplay('proofcontrol2')">
 <span class="id" type="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">intros</span> <span class="id" type="var">c</span> <span class="id" type="var">st</span> <span class="id" type="var">st<sub>1</sub></span> <span class="id" type="var">st<sub>2</sub></span> <span class="id" type="var">He<sub>1</sub></span> <span class="id" type="var">He<sub>2</sub></span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">apply</span> <span class="id" type="var">ceval__ceval_step</span> <span class="id" type="keyword">in</span> <span class="id" type="var">He<sub>1</sub></span>.<br/>
@@ -502,11 +471,10 @@ Proof.&nbsp;reflexivity.&nbsp;Qed.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">rewrite</span> <span class="id" type="var">E<sub>1</sub></span> <span class="id" type="keyword">in</span> <span class="id" type="var">E<sub>2</sub></span>. <span class="id" type="tactic">inversion</span> <span class="id" type="var">E<sub>2</sub></span>. <span class="id" type="tactic">reflexivity</span>.<br/>
 &nbsp;&nbsp;<span class="id" type="tactic">omega</span>. <span class="id" type="tactic">omega</span>. <span class="id" type="keyword">Qed</span>.<br/>
 </div>
-
+</div>
 </div>
 
-<div id="footer">
-<hr/><a href="coqindex.html">Index</a></div>
+
 
 </div>
 

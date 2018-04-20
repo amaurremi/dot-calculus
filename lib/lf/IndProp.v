@@ -101,7 +101,7 @@ Fail Inductive wrong_ev (n : nat) : Prop :=
     arguments on the right of the colon.) *)
 
 (** We can think of the definition of [ev] as defining a Coq property
-    [ev : nat -> Prop], together with theorems [ev_0 : ev 0] and
+    [ev : nat -> Prop], together with primitive theorems [ev_0 : ev 0] and
     [ev_SS : forall n, ev n -> ev (S (S n))]. *)
 
 (** Such "constructor theorems" have the same status as proven
@@ -268,13 +268,17 @@ Theorem one_not_even : ~ ev 1.
 Proof.
   intros H. inversion H. Qed.
 
-(** **** Exercise: 1 star (inversion_practice)  *)
-(** Prove the following results using [inversion]. *)
+(** **** Exercise: 1 star (SSSSev__even)  *)
+(** Prove the following result using [inversion]. *)
 
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
   (* FILL IN HERE *) Admitted.
+(** [] *)
+
+(** **** Exercise: 1 star (even5_nonsense)  *)
+(** Prove the following result using [inversion]. *)
 
 Theorem even5_nonsense :
   ev 5 -> 2 + 2 = 9.
@@ -408,7 +412,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (ev_alternate)  *)
+(** **** Exercise: 4 stars, advanced, optional (ev'_ev)  *)
 (** In general, there may be multiple ways of defining a
     property inductively.  For example, here's a (slightly contrived)
     alternative definition for [ev]: *)
@@ -604,6 +608,7 @@ Theorem leb_true_trans : forall n m o,
   leb n m = true -> leb m o = true -> leb n o = true.
 Proof.
   (* FILL IN HERE *) Admitted.
+(** [] *)
 
 (** **** Exercise: 2 stars, optional (leb_iff)  *)
 Theorem leb_iff : forall n m,
@@ -614,7 +619,7 @@ Proof.
 
 Module R.
 
-(** **** Exercise: 3 stars, recommendedM (R_provability)  *)
+(** **** Exercise: 3 stars, recommended (R_provability)  *)
 (** We can define three-place relations, four-place relations,
     etc., in just the same way as binary relations.  For example,
     consider the following three-place relation on numbers: *)
@@ -639,8 +644,8 @@ Inductive R : nat -> nat -> nat -> Prop :=
       sentence) explain your answer.
 
 (* FILL IN HERE *)
-[]
 *)
+(** [] *)
 
 (** **** Exercise: 3 stars, optional (R_fact)  *)
 (** The relation [R] above actually encodes a familiar function.
@@ -696,7 +701,7 @@ End R.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optionalM (R_provability2)  *)
+(** **** Exercise: 2 stars, optional (R_provability2)  *)
 (** Suppose we give Coq the following definition:
 
     Inductive R : nat -> list nat -> Prop :=
@@ -719,11 +724,11 @@ End R.
 (** The [ev] property provides a simple example for illustrating
     inductive definitions and the basic techniques for reasoning about
     them, but it is not terribly exciting -- after all, it is
-    equivalent to the two non-inductive of evenness that we had
-    already seen, and does not seem to offer any concrete benefit over
-    them.  To give a better sense of the power of inductive
-    definitions, we now show how to use them to model a classic
-    concept in computer science: _regular expressions_. *)
+    equivalent to the two non-inductive definitions of evenness that
+    we had already seen, and does not seem to offer any concrete
+    benefit over them.  To give a better sense of the power of
+    inductive definitions, we now show how to use them to model a
+    classic concept in computer science: _regular expressions_. *)
 
 (** Regular expressions are a simple language for describing strings,
     defined as follows: *)
@@ -872,7 +877,7 @@ Proof.
   intros H. inversion H.
 Qed.
 
-(** We can define helper functions to help write down regular
+(** We can define helper functions for writing down regular
     expressions. The [reg_exp_of_list] function constructs a regular
     expression that matches exactly the list that it receives as an
     argument: *)
@@ -941,7 +946,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars (reg_exp_of_list)  *)
+(** **** Exercise: 4 stars, optional (reg_exp_of_list_spec)  *)
 (** Prove that [reg_exp_of_list] satisfies the following
     specification: *)
 
@@ -959,8 +964,10 @@ Proof.
 
 (** For example, suppose that we wanted to prove the following
     intuitive result: If a regular expression [re] matches some string
-    [s], then all elements of [s] must occur somewhere in [re].  To
-    state this theorem, we first define a function [re_chars] that
+    [s], then all elements of [s] must occur as character literals
+    somewhere in [re].
+
+    To state this theorem, we first define a function [re_chars] that
     lists all characters that occur in a regular expression: *)
 
 Fixpoint re_chars {T} (re : reg_exp) : list T :=
@@ -982,27 +989,26 @@ Theorem in_re_match : forall T (s : list T) (re : reg_exp) (x : T),
 Proof.
   intros T s re x Hmatch Hin.
   induction Hmatch
-    as [
-        |x'
-        |s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
-        |s1 re1 re2 Hmatch IH|re1 s2 re2 Hmatch IH
-        |re|s1 s2 re Hmatch1 IH1 Hmatch2 IH2].
+    as [| x'
+        | s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
+        | s1 re1 re2 Hmatch IH | re1 s2 re2 Hmatch IH
+        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2].
   (* WORKED IN CLASS *)
   - (* MEmpty *)
     apply Hin.
   - (* MChar *)
     apply Hin.
-  - simpl. rewrite in_app_iff in *.
+  - simpl. rewrite In_app_iff in *.
     destruct Hin as [Hin | Hin].
     + (* In x s1 *)
       left. apply (IH1 Hin).
     + (* In x s2 *)
       right. apply (IH2 Hin).
   - (* MUnionL *)
-    simpl. rewrite in_app_iff.
+    simpl. rewrite In_app_iff.
     left. apply (IH Hin).
   - (* MUnionR *)
-    simpl. rewrite in_app_iff.
+    simpl. rewrite In_app_iff.
     right. apply (IH Hin).
   - (* MStar0 *)
     destruct Hin.
@@ -1017,7 +1023,7 @@ Proof.
     to reason about the case [In x s2]. *)
 
   - (* MStarApp *)
-    simpl. rewrite in_app_iff in Hin.
+    simpl. rewrite In_app_iff in Hin.
     destruct Hin as [Hin | Hin].
     + (* In x s1 *)
       apply (IH1 Hin).
@@ -1055,9 +1061,9 @@ Lemma star_app: forall T (s1 s2 : list T) (re : @reg_exp T),
 Proof.
   intros T s1 s2 re H1.
 
-(** Just doing an [inversion] on [H1] won't get us very far in the
-    recursive cases. (Try it!). So we need induction. Here is a naive
-    first attempt: *)
+(** Just doing an [inversion] on [H1] won't get us very far in
+    the recursive cases. (Try it!). So we need induction (on
+    evidence!). Here is a naive first attempt: *)
 
   induction H1
     as [|x'|s1 re1 s2' re2 Hmatch1 IH1 Hmatch2 IH2
@@ -1114,7 +1120,6 @@ Lemma star_app: forall T (s1 s2 : list T) (re re' : reg_exp),
 
 Abort.
 
-
 (** Invoking the tactic [remember e as x] causes Coq to (1) replace
     all occurrences of the expression [e] by the variable [x], and (2)
     add an equation [x = e] to the context.  Here's how we can use it
@@ -1163,7 +1168,7 @@ Proof.
       * apply H1.
 Qed.
 
-(** **** Exercise: 4 stars (exp_match_ex2)  *)
+(** **** Exercise: 4 stars, optional (exp_match_ex2)  *)
 
 (** The [MStar''] lemma below (combined with its converse, the
     [MStar'] exercise above), shows that our definition of [exp_match]
@@ -1300,23 +1305,6 @@ Qed.
     which is generally not directly useful, this principle gives us
     right away the assumption we really need: [n = m]. *)
 
-(** We'll actually define something a bit more general, which can be
-    used with arbitrary properties (and not just equalities): *)
-
-Module FirstTry.
-
-Inductive reflect : Prop -> bool -> Prop :=
-| ReflectT : forall (P:Prop), P -> reflect P true
-| ReflectF : forall (P:Prop), ~ P -> reflect P false.
-
-End FirstTry.
-
-(** Before explaining this, let's rearrange it a little: Since the
-    types of both [ReflectT] and [ReflectF] begin with
-    [forall (P:Prop)], we can make the definition a bit more readable
-    and easier to work with by making [P] a parameter of the whole
-    Inductive declaration. *)
-
 Inductive reflect (P : Prop) : bool -> Prop :=
 | ReflectT : P -> reflect P true
 | ReflectF : ~ P -> reflect P false.
@@ -1401,11 +1389,12 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Here, this technique gives us a fairly small gain in convenience
-    for the proofs we've seen, but using [reflect] consistently often
-    leads to noticeably shorter and clearer scripts as proofs get
-    larger.  We'll see many more examples in later chapters and in
-    _Programming Language Foundations_.
+(** In this small example, this technique gives us only a rather small
+    gain in convenience for the proofs we've seen; however, using
+    [reflect] consistently often leads to noticeably shorter and
+    clearer scripts as proofs get larger.  We'll see many more
+    examples in later chapters and in _Programming Language
+    Foundations_.
 
     The use of the [reflect] property was popularized by _SSReflect_,
     a Coq library that has been used to formalize important results in
@@ -1417,17 +1406,17 @@ Proof.
 (* ################################################################# *)
 (** * Additional Exercises *)
 
-(** **** Exercise: 3 stars, recommended (nostutter)  *)
+(** **** Exercise: 3 stars, recommended (nostutter_defn)  *)
 (** Formulating inductive definitions of properties is an important
     skill you'll need in this course.  Try to solve this exercise
     without any help at all.
 
     We say that a list "stutters" if it repeats the same element
-    consecutively.  The property "[nostutter mylist]" means that
+    consecutively.  (This is different from the [NoDup] property in 
+    the exercise above: the sequence [1;4;1] repeats but does not
+    stutter.)  The property "[nostutter mylist]" means that
     [mylist] does not stutter.  Formulate an inductive definition for
-    [nostutter].  (This is different from the [NoDup] property in the
-    exercise above; the sequence [1;4;1] repeats but does not
-    stutter.) *)
+    [nostutter]. *)
 
 Inductive nostutter {X:Type} : list X -> Prop :=
  (* FILL IN HERE *)
@@ -1584,12 +1573,12 @@ Example test_nostutter_4:      not (nostutter [3;1;1;4]).
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (pigeonhole principle)  *)
+(** **** Exercise: 4 stars, advanced, optional (pigeonhole_principle)  *)
 (** The _pigeonhole principle_ states a basic fact about counting: if
-   we distribute more than [n] items into [n] pigeonholes, some
-   pigeonhole must contain at least two items.  As often happens, this
-   apparently trivial fact about numbers requires non-trivial
-   machinery to prove, but we now have enough... *)
+    we distribute more than [n] items into [n] pigeonholes, some
+    pigeonhole must contain at least two items.  As often happens, this
+    apparently trivial fact about numbers requires non-trivial
+    machinery to prove, but we now have enough... *)
 
 (** First prove an easy useful lemma. *)
 
@@ -1630,4 +1619,3 @@ Proof.
 (** [] *)
 
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)

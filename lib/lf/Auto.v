@@ -40,7 +40,7 @@ Proof.
   - (* E_Ass *) reflexivity.
   - (* E_Seq *)
     assert (st' = st'0) as EQ1.
-    { (* Proof of assertion *) apply IHE1_1; assumption. }
+    { (* Proof of assertion *) apply IHE1_1; apply H1. }
     subst st'0.
     apply IHE1_2. assumption.
   (* E_IfTrue *)
@@ -196,19 +196,20 @@ Qed.
 
 Definition is_fortytwo x := (x = 42).
 
-Example auto_example_7: forall x, (x <= 42 /\ 42 <= x) -> is_fortytwo x.
+Example auto_example_7: forall x,
+  (x <= 42 /\ 42 <= x) -> is_fortytwo x.
 Proof.
   auto.  (* does nothing *)
 Abort.
 
 Hint Unfold is_fortytwo.
 
-Example auto_example_7' : forall x, (x <= 42 /\ 42 <= x) -> is_fortytwo x.
+Example auto_example_7' : forall x,
+  (x <= 42 /\ 42 <= x) -> is_fortytwo x.
 Proof. auto. Qed.
 
-(** Now let's take a first pass over [ceval_deterministic] to simplify
-    the proof script.
- *)
+(** Let's take a first pass over [ceval_deterministic] to simplify the
+    proof script. *)
 
 Theorem ceval_deterministic': forall c st st1 st2,
      c / st \\ st1  ->
@@ -300,8 +301,7 @@ Qed.
     tactics by hand.)
 
     As a first step, we can abstract out the piece of script in
-    question by writing a little function in Coq's tactic programming
-    language, Ltac. *)
+    question by writing a little function in Ltac. *)
 
 Ltac rwinv H1 H2 := rewrite H1 in H2; inv H2.
 
@@ -335,9 +335,9 @@ Proof.
     subst st'0.
     auto. Qed.
 
-(** That was is a bit better, but not much.  We really want Coq to
-    discover the relevant hypotheses for us.  We can do this by using
-    the [match goal] facility of Ltac. *)
+(** That was is a bit better, but we really want Coq to discover the
+    relevant hypotheses for us.  We can do this by using the [match
+    goal] facility of Ltac. *)
 
 Ltac find_rwinv :=
   match goal with
@@ -346,7 +346,7 @@ Ltac find_rwinv :=
     |- _ => rwinv H1 H2
   end.
 
-(** The [match goal] tactic looks for two distinct hypotheses that
+(** This [match goal] looks for two distinct hypotheses that
     have the form of equalities, with the same arbitrary expression
     [E] on the left and with conflicting boolean values on the right.
     If such hypotheses are found, it binds [H1] and [H2] to their
@@ -439,15 +439,16 @@ Proof.
     repeat find_eqn; auto.
 Qed.
 
-(** The big payoff in this approach is that our proof script
-    should be robust in the face of modest changes to our language.
-    For example, we can add a [REPEAT] command to the language. *)
+(** The big payoff in this approach is that our proof script should be
+    more robust in the face of modest changes to our language.  To
+    test whether it really is, let's try adding a [REPEAT] command to
+    the language. *)
 
 Module Repeat.
 
 Inductive com : Type :=
   | CSkip : com
-  | CAsgn : id -> aexp -> com
+  | CAsgn : string -> aexp -> com
   | CSeq : com -> com -> com
   | CIf : bexp -> com -> com -> com
   | CWhile : bexp -> com -> com
@@ -510,8 +511,8 @@ Inductive ceval : state -> com -> state -> Prop :=
 Notation "c1 '/' st '\\' st'" := (ceval st c1 st')
                                  (at level 40, st at level 39).
 
-(** Our first attempt at the determinacy proof is disappointing: the
-    [E_RepeatEnd] and [E_RepeatLoop] cases are not handled by our
+(** Our first attempt at the determinacy proof does not quite succeed:
+    the [E_RepeatEnd] and [E_RepeatLoop] cases are not handled by our
     previous automation. *)
 
 Theorem ceval_deterministic: forall c st st1 st2,
@@ -549,14 +550,14 @@ Qed.
 
 End Repeat.
 
-(** These examples just give a flavor of what "hyper-automation" can
-    achieve in Coq.  The details of [match goal] are a bit tricky, and
-    debugging scripts using it is, frankly, not very pleasant.  But it
-    is well worth adding at least simple uses to your proofs, both to
-    avoid tedium and to "future proof" them. *)
+(** These examples just give a flavor of what "hyper-automation"
+    can achieve in Coq.  The details of [match goal] are a bit
+    tricky (and debugging scripts using it is, frankly, not very
+    pleasant).  But it is well worth adding at least simple uses to
+    your proofs, both to avoid tedium and to "future proof" them. *)
 
-(* ----------------------------------------------------------------- *)
-(** *** [eapply] and [eauto] *)
+(* ================================================================= *)
+(** ** The [eapply] and [eauto] variants *)
 
 (** To close the chapter, we'll introduce one more convenient feature
     of Coq: its ability to delay instantiation of quantifiers.  To
@@ -564,16 +565,16 @@ End Repeat.
     chapter: *)
 
 Example ceval_example1:
-    (X ::= ANum 2;;
-     IFB BLe (AId X) (ANum 1)
-       THEN Y ::= ANum 3
-       ELSE Z ::= ANum 4
+    (X ::= 2;;
+     IFB X <= 1
+       THEN Y ::= 3
+       ELSE Z ::= 4
      FI)
-   / empty_state
-   \\ (t_update (t_update empty_state X 2) Z 4).
+   / { --> 0 }
+   \\ { X --> 2 ; Z --> 4 }.
 Proof.
   (* We supply the intermediate state [st']... *)
-  apply E_Seq with (t_update empty_state X 2).
+  apply E_Seq with { X --> 2 }.
   - apply E_Ass. reflexivity.
   - apply E_IfFalse. reflexivity. apply E_Ass. reflexivity.
 Qed.
@@ -602,13 +603,13 @@ Qed.
    the [eapply] tactic gives us: *)
 
 Example ceval'_example1:
-    (X ::= ANum 2;;
-     IFB BLe (AId X) (ANum 1)
-       THEN Y ::= ANum 3
-       ELSE Z ::= ANum 4
+    (X ::= 2;;
+     IFB X <= 1
+       THEN Y ::= 3
+       ELSE Z ::= 4
      FI)
-   / empty_state
-   \\ (t_update (t_update empty_state X 2) Z 4).
+   / { --> 0 }
+   \\ { X --> 2 ; Z --> 4 }.
 Proof.
   eapply E_Seq. (* 1 *)
   - apply E_Ass. (* 2 *)
@@ -641,17 +642,24 @@ Hint Constructors ceval.
 Hint Transparent state.
 Hint Transparent total_map.
 
-Definition st12 := t_update (t_update empty_state X 1) Y 2.
-Definition st21 := t_update (t_update empty_state X 2) Y 1.
+Definition st12 := { X --> 1 ; Y --> 2 }.
+Definition st21 := { X --> 2 ; Y --> 1 }.
 
-Example auto_example_8 : exists s',
-  (IFB (BLe (AId X) (AId Y))
-    THEN (Z ::= AMinus (AId Y) (AId X))
-    ELSE (Y ::= APlus (AId X) (AId Z))
+Example eauto_example : exists s',
+  (IFB X <= Y
+    THEN Z ::= Y - X
+    ELSE Y ::= X + Z
   FI) / st21 \\ s'.
 Proof. eauto. Qed.
 
 (** The [eauto] tactic works just like [auto], except that it uses
-    [eapply] instead of [apply]. *)
+    [eapply] instead of [apply].
 
-(** $Date: 2017-07-15 16:03:20 -0400 (Sat, 15 Jul 2017) $ *)
+    Pro tip: One might think that, since [eapply] and [eauto] are more
+    powerful than [apply] and [auto], it would be a good idea to use
+    them all the time.  Unfortunately, they are also significantly
+    slower -- especially [eauto].  Coq experts tend to use [apply] and
+    [auto] most of the time, only switching to the [e] variants when
+    the ordinary variants don't do the job. *)
+
+

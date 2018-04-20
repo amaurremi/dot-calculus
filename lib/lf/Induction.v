@@ -3,7 +3,7 @@
 (** Before getting started, we need to import all of our
     definitions from the previous chapter: *)
 
-Require Export LF.Basics.
+Require Export Basics.
 
 (** For the [Require Export] to work, you first need to use
     [coqc] to compile [Basics.v] into [Basics.vo].  This is like
@@ -15,19 +15,41 @@ Require Export LF.Basics.
          Open [Basics.v].  In the "Compile" menu, click on "Compile
          Buffer".
 
-         (N.b.: These instructions need to be updated to take the "-R
-         LF ." into account.  Can a CoqIDE expert tell me how this is
-         done, please?)
-
-     - From the command line:
+     - From the command line: Either
 
          [make Basics.vo]
+
+       (assuming you've downloaded the whole LF directory and have a
+       working 'make' command) or
+
+         [coqc Basics.v]
+
+       (which should work from any terminal window).
 
    If you have trouble (e.g., if you get complaints about missing
    identifiers later in the file), it may be because the "load path"
    for Coq is not set up correctly.  The [Print LoadPath.] command may
-   be helpful in sorting out such issues. *)
+   be helpful in sorting out such issues.
 
+   In particular, if you see a message like
+
+      [Compiled library Foo makes inconsistent assumptions over
+      library Coq.Init.Bar]
+
+   you should check whether you have multiple installations of Coq on
+   your machine.  If so, it may be that commands (like [coqc]) that
+   you execute in a terminal window are getting a different version of
+   Coq than commands executed by Proof General or CoqIDE.
+
+   One more tip for CoqIDE users: If you see messages like "Error:
+   Unable to locate library Basics," a likely reason is
+   inconsistencies between compiling things _within CoqIDE_ vs _using
+   coqc_ from the command line.  This typically happens when there are
+   two incompatible versions of coqc installed on your system (one
+   associated with coqide, and one associated with coqc from the
+   terminal).  The workaround for this situation is compiling using
+   coqIDE only (i.e. choosing "make" from the menu), and avoiding
+   using coqc directly at all. *)
 (* ################################################################# *)
 (** * Proof by Induction *)
 
@@ -103,14 +125,15 @@ Proof.
 
     In the first subgoal, [n] is replaced by [0].  No new variables
     are introduced (so the first part of the [as...] is empty), and
-    the goal becomes [0 + 0 = 0], which follows by simplification.
+    the goal becomes [0 = 0 + 0], which follows by simplification.
 
     In the second subgoal, [n] is replaced by [S n'], and the
     assumption [n' + 0 = n'] is added to the context with the name
     [IHn'] (i.e., the Induction Hypothesis for [n']).  These two names
     are specified in the second part of the [as...] clause.  The goal
-    in this case becomes [(S n') + 0 = S n'], which simplifies to
-    [S (n' + 0) = S n'], which in turn follows from [IHn']. *)
+    in this case becomes [S n' = (S n') + 0], which simplifies to
+    [S n' = S (n' + 0)], which in turn follows from [IHn']. *)
+
 
 Theorem minus_diag : forall n,
   minus n n = 0.
@@ -135,21 +158,26 @@ Theorem mult_0_r : forall n:nat,
   n * 0 = 0.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: mult_0_r *)
 
 Theorem plus_n_Sm : forall n m : nat,
   S (n + m) = n + (S m).
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: plus_n_Sm *)
+
 
 Theorem plus_comm : forall n m : nat,
   n + m = m + n.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: plus_comm *)
 
 Theorem plus_assoc : forall n m p : nat,
   n + (m + p) = (n + m) + p.
 Proof.
   (* FILL IN HERE *) Admitted.
+(* GRADE_THEOREM 0.5: plus_assoc *)
 (** [] *)
 
 (** **** Exercise: 2 stars (double_plus)  *)
@@ -182,7 +210,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 starM (destruct_induction)  *)
+(** **** Exercise: 1 star (destruct_induction)  *)
 (** Briefly explain the difference between the tactics [destruct]
     and [induction].
 
@@ -380,7 +408,7 @@ Proof.
     whereas the informal proof reminds the reader several times where
     things stand). *)
 
-(** **** Exercise: 2 stars, advanced, recommendedM (plus_comm_informal)  *)
+(** **** Exercise: 2 stars, advanced, recommended (plus_comm_informal)  *)
 (** Translate your solution for [plus_comm] into an informal proof:
 
     Theorem: Addition is commutative.
@@ -389,7 +417,7 @@ Proof.
 *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optionalM (beq_nat_refl_informal)  *)
+(** **** Exercise: 2 stars, optional (beq_nat_refl_informal)  *)
 (** Write an informal proof of the following theorem, using the
     informal proof of [plus_assoc] as a model.  Don't just
     paraphrase the Coq tactics into English!
@@ -397,7 +425,8 @@ Proof.
     Theorem: [true = beq_nat n n] for any [n].
 
     Proof: (* FILL IN HERE *)
-[] *)
+*)
+(** [] *)
 
 (* ################################################################# *)
 (** * More Exercises *)
@@ -511,7 +540,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, recommendedM (binary_commute)  *)
+(** **** Exercise: 3 stars, recommended (binary_commute)  *)
 (** Recall the [incr] and [bin_to_nat] functions that you
     wrote for the [binary] exercise in the [Basics] chapter.  Prove
     that the following diagram commutes:
@@ -539,7 +568,7 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 5 stars, advancedM (binary_inverse)  *)
+(** **** Exercise: 5 stars, advanced (binary_inverse)  *)
 (** This exercise is a continuation of the previous exercise about
     binary numbers.  You will need your definitions and theorems from
     there to complete this one; please copy them to this file to make
@@ -568,4 +597,4 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** $Date: 2017-07-14 19:07:15 -0400 (Fri, 14 Jul 2017) $ *)
+

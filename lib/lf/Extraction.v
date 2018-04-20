@@ -1,7 +1,5 @@
 (** * Extraction: Extracting ML from Coq *)
 
-(* DROP *)
-
 (* ################################################################# *)
 (** * Basic Extraction *)
 
@@ -12,6 +10,7 @@
     OCaml (the most mature), Haskell (mostly works), and Scheme (a bit
     out of date). *)
 
+Require Coq.extraction.Extraction.
 Extraction Language Ocaml.
 
 (** Now we load up the Coq environment with some definitions, either
@@ -82,21 +81,12 @@ Extraction "imp2.ml" ceval_step.
     memory locations in the final state.
 
     Also, to make it easier to type in examples, let's extract a
-    parser from the [ImpParser] Coq module.  To do this, we need a few
-    magic declarations to set up the right correspondence between Coq
-    strings and lists of OCaml characters. *)
+    parser from the [ImpParser] Coq module.  To do this, we first need
+    to set up the right correspondence between Coq strings and lists
+    of OCaml characters. *)
 
-Require Import Ascii String.
-Extract Inductive ascii => char
-[
-"(* If this appears, you're using Ascii internals. Please don't *) (fun (b0,b1,b2,b3,b4,b5,b6,b7) -> let f b i = if b then 1 lsl i else 0 in Char.chr (f b0 0 + f b1 1 + f b2 2 + f b3 3 + f b4 4 + f b5 5 + f b6 6 + f b7 7))"
-]
-"(* If this appears, you're using Ascii internals. Please don't *) (fun f c -> let n = Char.code c in let h i = (n land (1 lsl i)) <> 0 in f (h 0) (h 1) (h 2) (h 3) (h 4) (h 5) (h 6) (h 7))".
-Extract Constant zero => "'\000'".
-Extract Constant one => "'\001'".
-Extract Constant shift =>
- "fun b c -> Char.chr (((Char.code c) lsl 1) land 255 + if b then 1 else 0)".
-Extract Inlined Constant ascii_dec => "(=)".
+Require Import ExtrOcamlBasic.
+Require Import ExtrOcamlString.
 
 (** We also need one more variant of booleans. *)
 
@@ -106,6 +96,9 @@ Extract Inductive sumbool => "bool" ["true" "false"].
 
 Require Import Imp.
 Require Import ImpParser.
+
+Require Import Maps.
+Definition empty_state := { --> 0 }.
 Extraction "imp.ml" empty_state ceval_step parse.
 
 (** Now let's run our generated Imp evaluator.  First, have a look at
@@ -136,6 +129,3 @@ Extraction "imp.ml" empty_state ceval_step parse.
     chapter in _Verified Functional Algorithms_ (_Software
     Foundations_ volume 3). *)
 
-(* /DROP *)
-
-(** $Date: 2017-05-22 11:43:34 -0400 (Mon, 22 May 2017) $ *)

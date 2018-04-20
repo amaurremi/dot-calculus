@@ -699,4 +699,3 @@ Check le_ind.
 
              But then, by [le_S], [n <= S o'].  [] *)
 
-(** $Date: 2017-04-26 17:33:43 -0400 (Wed, 26 Apr 2017) $ *)

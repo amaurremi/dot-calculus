@@ -10,7 +10,6 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
-Require Import LibLN.
 Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrowing PreciseTyping
         RecordAndInertTypes Substitution Subenvironments TightTyping Weakening.
 Require Import Sequences.

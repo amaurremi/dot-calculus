@@ -6,7 +6,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Definitions.
 
 (** * Weakening Lemma *)

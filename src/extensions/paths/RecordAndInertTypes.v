@@ -6,7 +6,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions Binding.
 
@@ -197,7 +196,7 @@ Proof.
   - apply open_fresh_typ_dec_injective in H4; auto. subst. constructor.
   - destruct t0; inversions H3. eauto.
   - constructor*. rewrite* <- open_dec_preserves_label.
-  - invert_open. simpls. constructor*. rewrite* <- open_dec_preserves_label.
+  - invert_open. simpls. destruct_notin. constructor*. eauto. rewrite* <- open_dec_preserves_label.
 Qed.
 
 (** If [T] is a record type with labels [ls], and [T = ... /\ D /\ ...],

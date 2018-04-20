@@ -1,4 +1,4 @@
-(** * ImpCEvalFun: Evaluation Function for Imp *)
+(** * ImpCEvalFun: An Evaluation Function for Imp *)
 
 (** We saw in the [Imp] chapter how a naive approach to defining a
     function representing evaluation for Imp runs into difficulties.
@@ -10,12 +10,9 @@
 (* ################################################################# *)
 (** * A Broken Evaluator *)
 
-(* IMPORTS *)
 Require Import Coq.omega.Omega.
 Require Import Coq.Arith.Arith.
-Require Import Imp.
-Require Import Maps.
-(* /IMPORTS *)
+Require Import Imp Maps.
 
 (** Here was our first try at an evaluation function for commands,
     omitting [WHILE]. *)
@@ -25,7 +22,7 @@ Fixpoint ceval_step1 (st : state) (c : com) : state :=
     | SKIP =>
         st
     | l ::= a1 =>
-        t_update st l (aeval st a1)
+        st & { l --> (aeval st a1)}
     | c1 ;; c2 =>
         let st' := ceval_step1 st c1 in
         ceval_step1 st' c2
@@ -74,18 +71,18 @@ Fixpoint ceval_step1 (st : state) (c : com) : state :=
     _or_ it runs out of gas, at which point we simply stop evaluating
     and say that the final result is the empty memory.  (We could also
     say that the result is the current state at the point where the
-    evaluator runs out fo gas -- it doesn't really matter because the
+    evaluator runs out of gas -- it doesn't really matter because the
     result is going to be wrong in either case!) *)
 
 Fixpoint ceval_step2 (st : state) (c : com) (i : nat) : state :=
   match i with
-  | O => empty_state
+  | O => { --> 0 }
   | S i' =>
     match c with
       | SKIP =>
           st
       | l ::= a1 =>
-          t_update st l (aeval st a1)
+          st & { l --> (aeval st a1) }
       | c1 ;; c2 =>
           let st' := ceval_step2 st c1 i' in
           ceval_step2 st' c2 i'
@@ -125,7 +122,7 @@ Fixpoint ceval_step3 (st : state) (c : com) (i : nat)
       | SKIP =>
           Some st
       | l ::= a1 =>
-          Some (t_update st l (aeval st a1))
+          Some (st & { l --> (aeval st a1) })
       | c1 ;; c2 =>
           match (ceval_step3 st c1 i') with
           | Some st' => ceval_step3 st' c2 i'
@@ -165,7 +162,7 @@ Fixpoint ceval_step (st : state) (c : com) (i : nat)
       | SKIP =>
           Some st
       | l ::= a1 =>
-          Some (t_update st l (aeval st a1))
+          Some (st & { l --> (aeval st a1)})
       | c1 ;; c2 =>
           LETOPT st' <== ceval_step st c1 i' IN
           ceval_step st' c2 i'
@@ -188,11 +185,11 @@ Definition test_ceval (st:state) (c:com) :=
   end.
 
 (* Compute
-     (test_ceval empty_state
-         (X ::= ANum 2;;
-          IFB BLe (AId X) (ANum 1)
-            THEN Y ::= ANum 3
-            ELSE Z ::= ANum 4
+     (test_ceval { --> 0 }
+         (X ::= 2;;
+          IFB (X <= 1)
+            THEN Y ::= 3
+            ELSE Z ::= 4
           FI)).
    ====>
       Some (2, 0, 4)   *)
@@ -206,8 +203,9 @@ Definition pup_to_n : com
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
 (* 
+
 Example pup_to_n_1 :
-  test_ceval (t_update empty_state X 5) pup_to_n
+  test_ceval {X --> 5} pup_to_n
   = Some (0, 15, 0).
 Proof. reflexivity. Qed.
 *)
@@ -292,8 +290,8 @@ Proof.
     steps of the formal proof.
 
 (* FILL IN HERE *)
-[]
 *)
+(** [] *)
 
 Theorem ceval_step_more: forall i1 i2 st st' c,
   i1 <= i2 ->
@@ -382,4 +380,3 @@ Proof.
   rewrite E1 in E2. inversion E2. reflexivity.
   omega. omega.  Qed.
 
-(** $Date: 2017-05-24 10:56:51 -0400 (Wed, 24 May 2017) $ *)

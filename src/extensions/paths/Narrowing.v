@@ -6,7 +6,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions Subenvironments Weakening.
 
