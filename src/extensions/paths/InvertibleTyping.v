@@ -706,6 +706,47 @@ Proof.
     lets Hc: (replacement_repl_closure_pq2 Hi Hp H Hr1). apply* IHHq.
 Qed.
 
+Lemma path_sel_pt2: forall G p A T q,
+    inert G ->
+    G ⊢!! p : typ_rcd {A >: T <: T} ->
+    G ⊢## q : T ->
+    G ⊢## q : typ_path p A.
+Proof.
+  introv Hi Hp Hq. dependent induction Hp; eauto.
+Qed.
+
+Lemma path_sel_repl1: forall G p A T q S,
+    inert G ->
+    G ⊢! p : S ⪼ typ_rcd {A >: T <: T} ->
+    G ⊢// q : T ->
+    G ⊢// q : typ_path p A.
+Proof.
+  introv Hi Hp Hq. dependent induction Hq.
+  - eauto.
+  - clear IHHq1 IHHq2. destruct (repl_to_invertible Hi Hq1) as [T' [Hrt Hri]].
+    destruct (repl_to_invertible Hi Hq2) as [U' [Hru Hri']].
+    lets Ha: (ty_and_inv Hri Hri').
+    (* lets Hinv: (ty_sel_inv Ha Hp). *) Admitted.
+
+Lemma path_sel_repl: forall G p A T q,
+    inert G ->
+    G ⊢!!! p : typ_rcd {A >: T <: T} ->
+    G ⊢//  q : T ->
+    G ⊢// q : typ_path p A.
+Proof.
+  introv Hi Hp Hq. gen p A. dependent induction Hq; introv Hp.
+  - dependent induction Hp.
+    * constructor. apply* path_sel_pt2.
+    * specialize (IHHp Hi _ H _ eq_refl).
+      assert (repl_typ 0 q p0 (typ_path q A) (typ_path p0 A)) as Hr. {
+        destruct p0, q. econstructor. rewrite app_nil_l. eauto. auto.
+        eauto. eauto.
+      }
+      apply* replacement_repl_closure_qp2.
+  - Admitted.
+
+
+
 Lemma replacement_subtyping_closure : forall G T U p,
     inert G ->
     G ⊢# T <: U ->
@@ -725,10 +766,10 @@ Proof.
     dependent induction Hp; eauto.
   - Case "subtyp_typ".
     dependent induction Hp; eauto.
-  - Case "subtyp_sngl_pq". admit.
-    (*apply* replacement_repl_closure_pq.*)
-  - Case "subtyp_sngl_qp". admit.
-    (*apply* replacement_repl_closure_qp.*)
+  - Case "subtyp_sngl_pq".
+    apply* replacement_repl_closure_pq3.
+  - Case "subtyp_sngl_qp".
+    apply* replacement_repl_closure_qp3.
   - Case "subtyp_sel2".
   (* use repeated-replacement closure, not induction on the // typing *)
     admit.
