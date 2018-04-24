@@ -729,7 +729,19 @@ Lemma proj_rewrite_mult: forall x bs cs,
     p_sel x (bs ++ cs) = (p_sel x cs) •• bs.
 Proof. auto. Qed.
 
-Hint Rewrite proj_rewrite proj_rewrite_mult.
+Lemma proj_rewrite': forall p a bs,
+    p •• (a :: bs) = (p •• bs) • a.
+Proof.
+  introv. unfolds sel_fields. destruct p. simpls. auto.
+Qed.
+
+Lemma field_sel_nil: forall p,
+    p •• nil = p.
+Proof.
+  introv. unfold sel_fields. destruct p. auto.
+Qed.
+
+Hint Rewrite proj_rewrite proj_rewrite_mult proj_rewrite' field_sel_nil.
 
 Lemma typing_empty_false: forall p T,
     empty ⊢ trm_path p: T -> False.

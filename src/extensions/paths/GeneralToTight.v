@@ -8,7 +8,8 @@ Set Implicit Arguments.
 
 Require Import Sequences.
 Require Import Coq.Program.Equality.
-Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping Replacement.
+Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping
+        Replacement ReplacementTyping.
 
 Lemma pt2_dec_typ_tight: forall G p A S U,
     inert G ->
@@ -94,8 +95,8 @@ Lemma sngl_replacement: forall G p q n T U,
 Proof.
   introv Hi Hp Hr.
   lets Hc: (replacement_closure Hi Hp).
-  lets Hri: (repl_to_invertible Hi Hc). destruct Hri as [V [Hrc Hpt]].
-  destruct (repl_comp_sngl_inv Hrc) as [r Heq]. subst.
+  lets Hri: (repl_to_invertible_sngl Hi Hc). destruct Hri as [V [Hrc Hpt]].
+  destruct (repl_comp_sngl_inv Hrc) as [r Heq]. inversions Heq.
   destruct (inv_to_precise_sngl Hpt) as [r' [Ht Hrc']].
   destruct (sngl_typed3 Hi Ht) as [V Hst].
   destruct (repl_composition_sngl Hi Hrc' Hst) as [Heq | Hpq].
