@@ -368,7 +368,8 @@ Proof.
       inversions H0. eexists. split*.
     }
     subst. assert (record_type (typ_rcd {A >: T <: T})) as Hrt by eauto.
-    Admitted. (*lets Hqbs: (pf_pt3_trans_inv_mult _ Hi H Hp (or_intror Hrt)). apply* IHHq. *)
+    lets Hqbs: (pf_pt3_trans_inv_mult' _ Hi H Hp (or_intror Hrt)). apply* IHHq.
+Qed.
 
 Lemma replacement_subtyping_closure : forall G T U p,
     inert G ->
@@ -416,29 +417,6 @@ Proof.
   - specialize (IHty_path_inv _ _ eq_refl Hi). apply ty_inv_r in H.
     eapply replacement_subtyping_closure. auto. apply H0. auto.
 Qed.
-
-(*Lemma inv_trans: forall G p q T,
-    inert G ->
-    G ⊢!!! p: typ_sngl q ->
-    G ⊢## q: T ->
-    G ⊢## p: T.
-Proof.
-  introv Hi Hp Hq. dependent induction Hq; eauto.
-  - constructor. gen T. dependent induction Hp; introv Hp0; eauto.
-  - specialize (IHHq Hi Hp).
-    lets Hr: (repl_comp_open p0 p T). apply ty_bnd_inv.
-    apply* invertible_repl_closure_comp.
-Qed.*)
-
-(*Lemma repl_trans: forall G p q T,
-    inert G ->
-    G ⊢!!! p: typ_sngl q ->
-    G ⊢// q: T ->
-    G ⊢// p: T.
-Proof.
-  introv Hi Hp Hq. gen p. induction Hq; introv Hp; eauto. constructor.
-  apply* inv_trans.
-Qed.*)
 
 Lemma inv_to_precise_sngl: forall G p q,
     G ⊢## p: typ_sngl q ->
@@ -522,9 +500,9 @@ Proof.
     gen T. dependent induction IHHp1; introv Hq.
     * SCase "ty_inv_r".
       gen p. induction Hq; introv Hp; eauto.
-      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]]. clear Hp.
-      constructor.
-      admit.
+      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]]. clear Hp. admit.
+
+
     * SCase "ty_sngl_pq_inv".
       specialize (IHIHHp1 _ eq_refl Hi).
       admit.

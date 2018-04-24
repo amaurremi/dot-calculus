@@ -889,14 +889,13 @@ Lemma pt2_unique: forall G p T1 T2,
     G ⊢!! p: T1 ->
     G ⊢!! p: T2 ->
     inert_sngl T1 ->
-    inert_sngl T2 ->
     T1 = T2.
 Proof.
-  introv Hi Hp1 Hp2 His1 His2. gen T2. dependent induction Hp1; introv Hp2 His2.
+  introv Hi Hp1 Hp2 His1. gen T2. dependent induction Hp1; introv Hp2.
   - dependent induction Hp2.
     * lets HU: (pf_T_unique Hi H H0). subst.
       admit. (*easy*)
-    * clear His2. lets Hp: (pt2_sngl_trans _ Hp2_1 Hp2_2).
+    * lets Hp: (pt2_sngl_trans _ Hp2_1 Hp2_2).
       lets Heq: (pf_pt2_sngl Hi H Hp). subst.
       apply* pf_sngl_U.
   - assert (inert_sngl (typ_sngl q)) as His. { right. eexists. auto. }
@@ -907,7 +906,7 @@ Proof.
     * simpl_dot.
       assert (inert_sngl (typ_sngl q0)) as His. { right. eexists. auto. }
       assert (inert_sngl (typ_sngl q)) as His'. { right. eexists. auto. }
-      specialize (IH1 Hi His _ Hp2_1 His'). inversion* IH1.
+      specialize (IH1 Hi His _ Hp2_1). inversion* IH1.
 Qed.
 
 Lemma field_elim_q: forall G p q a T,
@@ -929,7 +928,7 @@ Proof.
       assert (inert_sngl (typ_sngl q0•a)) as His'. {
         right. eexists. eauto.
       }
-      lets Hu: (pt2_unique Hi Hpa1 Hxbs His His').
+      lets Hu: (pt2_unique Hi Hpa1 Hxbs His).
       inversions Hu. eauto.
 Qed.
 
@@ -1110,15 +1109,8 @@ Proof.
   - specialize (IHHp _ Hi eq_refl). destruct IHHp as [Hq | [r [Hr1 Hr2]]]; right*.
 Qed.
 
-Lemma pf_pt3_unique : forall G p S A T U,
-    inert G ->
-    G ⊢! p: S ⪼ typ_rcd {A >: T <: T} ->
-    G ⊢!!! p: typ_rcd {A >: U <: U} ->
-    T = U.
-Proof.
-  introv Hi Hp1 Hp3. Admitted.
 
-Lemma field_elim_rcd1: forall G p a T T',
+(*Lemma field_elim_rcd1: forall G p a T T',
     inert G ->
     G ⊢! p • a : T' ⪼ T ->
     (inert_typ T \/ record_type T) ->
@@ -1148,35 +1140,83 @@ Proof.
   introv Hi Hp Hr. dependent induction Hp.
   - destruct (field_elim_rcd1 _ _ Hi H Hr) as [S [Hf Hir]]. eexists. eauto.
   - destruct Hr. inversion H. inversion H. inversion H0.
+Qed.*)
+
+Lemma pt2_exists: forall G p T,
+    G ⊢!!! p: T ->
+    exists U, G ⊢!! p: U.
+Proof.
+  induction 1; eauto.
 Qed.
 
-Lemma pf_pt2_trans_inv_mult : forall G p q T bs,
+Lemma pf_pt2_trans_inv_mult : forall G p q bs T,
     inert G ->
     G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
     G ⊢!! p •• bs : T ->
-    inert_typ T \/ record_type T ->
-    G ⊢!! q •• bs : T.
+    T = typ_sngl q •• bs.
 Proof.
-  introv Hi Hp Hpbs Hr. gen T. induction bs; introv Hp' Hr.
-  - rewrite field_sel_nil in *.
-    dependent induction Hp'. lets Heq: (pf_T_unique Hi Hp H). subst.
-    apply pf_sngl_U in H. subst. inversions Hr. inversion H. inversion H. inversion H0.
-    inversion Hr; inversion H. inversion H0.
-  - rewrite proj_rewrite' in *.
-    destruct (field_elim_rcd2 _ _ Hi Hp' Hr) as [U [H Hir]].
-    specialize (IHbs _ H Hir).  admit. (* this is some work but should be true *)
+  introv Hi Hp Hpbs. gen T. induction bs; introv Hpbs.
+  - repeat rewrite field_sel_nil in *. apply pt2 in Hp. apply eq_sym.
+    apply* pt2_unique. right. eexists. eauto.
+  - rewrite proj_rewrite' in *. destruct (pt2_backtrack _ _ Hpbs) as [U Hb].
+    apply pt2 in Hp. specialize (IHbs _ Hb). subst.
+    destruct (field_elim_q _ Hi Hb Hpbs) as [U Hf].
+    lets Hp2: (pt2_sngl_trans _ Hb Hf). apply eq_sym. apply (pt2_unique Hi Hp2 Hpbs).
+    right. eexists. eauto.
 Qed.
 
-Lemma pf_pt3_trans_inv_mult : forall G p q T bs,
+Lemma pf_pt3_trans_inv_mult : forall G p q T,
+    inert G ->
+    G ⊢!! p: typ_sngl q ->
+    G ⊢!!! p : T ->
+    inert_typ T \/ record_type T ->
+    G ⊢!!! q : T.
+Proof.
+  introv Hi Hpq Hp Hr. gen q. induction Hp; introv Hpq.
+  - constructor.
+    assert (inert_sngl (typ_sngl q)) as His. {
+      right. eexists. eauto.
+    }
+    lets Hu: (pt2_unique Hi Hpq H His). subst. destruct Hr.
+    inversion His. inversion H1. inversion H0. inversion H0. inversion H1.
+  - specialize (IHHp Hi Hr).
+    assert (inert_sngl (typ_sngl q)) as His1. {
+      right. eexists. eauto.
+    }
+    assert (inert_sngl (typ_sngl q0)) as His2. {
+      right. eexists. eauto.
+    }
+    lets Hu: (pt2_unique Hi Hpq H His2). inversions Hu. eauto.
+Qed.
+
+Lemma pf_pt3_trans_inv_mult' : forall G p q T bs,
     inert G ->
     G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
     G ⊢!!! p •• bs : T ->
     inert_typ T \/ record_type T ->
     G ⊢!!! q •• bs : T.
 Proof.
-  introv Hi Hp Hpbs Hr. gen T. induction bs; introv Hp' Hr.
-  - rewrite field_sel_nil in *. admit.
-  - rewrite proj_rewrite' in *. Abort.
+  introv Hi Hp Hpbs Hr.
+  assert (exists U, G ⊢!! p •• bs : U) as [U Hu] by apply* pt2_exists.
+  apply* pf_pt3_trans_inv_mult. lets Hpf: (pf_pt2_trans_inv_mult _ Hi Hp Hu). subst*.
+Qed.
+
+Lemma pf_pt3_unique : forall G p S A T U,
+    inert G ->
+    G ⊢! p: S ⪼ typ_rcd {A >: T <: T} ->
+    G ⊢!!! p: typ_rcd {A >: U <: U} ->
+    T = U.
+Proof.
+  introv Hi Hp1 Hp3. dependent induction Hp3.
+  - apply pt2 in Hp1. dependent induction H. dependent induction Hp1.
+    lets Hu: (pf_T_unique Hi H0 H). subst.
+    destruct (pf_bnd_T2 Hi H0) as [V Heq]. subst.
+    apply* pf_dec_typ_unique.
+  - clear IHHp3. apply pt2 in Hp1. assert (inert_sngl (typ_sngl q)) as His. {
+      right. eexists. eauto.
+    }
+    lets Hu: (pt2_unique Hi H Hp1 His). inversion Hu.
+Qed.
 
 (** Lemmas about replacement composition *)
 
