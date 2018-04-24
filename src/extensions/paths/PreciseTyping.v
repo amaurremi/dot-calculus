@@ -1077,6 +1077,25 @@ Proof.
   rewrite proj_rewrite in *. false* pf_sngl_fld_elim.
 Qed.
 
+Lemma pt2_bnd : forall G p T,
+    inert G ->
+    G ⊢!! p: typ_bnd T ->
+    G ⊢!! p: open_typ_p p T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+Qed.
+
+Lemma pt3_bnd : forall G p T,
+    inert G ->
+    G ⊢!!! p: typ_bnd T ->
+    G ⊢!!! p: open_typ_p p T \/
+              (exists q, G ⊢!!! p: typ_sngl q /\ G ⊢!!! p: open_typ_p q T).
+Proof.
+  introv Hi Hp. dependent induction Hp.
+  - left. constructor. apply* pt2_bnd.
+  - specialize (IHHp _ Hi eq_refl). destruct IHHp as [Hq | [r [Hr1 Hr2]]]; right*.
+Qed.
+
 (** Lemmas about replacement composition *)
 
 Definition typed_repl_comp_qp G T1 T2 :=

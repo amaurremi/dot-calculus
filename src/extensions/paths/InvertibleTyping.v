@@ -369,21 +369,14 @@ Lemma invertible_bnd : forall G p T,
     G ⊢## p: open_typ_p p T \/
              (exists q, G ⊢!!! p: typ_sngl q /\ G ⊢## p: open_typ_p q T).
 Proof.
-  introv Hi Hp. dependent induction Hp; auto. Admitted. (*
-  - apply pf_open in H. eauto.
-    destruct (original_path_exists H) as [q Hor]. unfolds original_path.
-    destruct Hor as [_ [Hq Hand]].
-    lets Hb: (pf_bnd_T Hi H). subst. apply pf_open in Hq. destruct Hand as [Heq | Hp'].
-    * subst. eauto.
-    * lets Ht: (pf_sngl_trans Hp' Hq).
-      apply ty_precise_inv in Ht.
-      lets Hop: (repl_comp_open p q T). right. repeat eexists. apply Hp'. apply Ht.
+  introv Hi Hp. dependent induction Hp; auto.
+  - destruct (pt3_bnd Hi H) as [Hp | [q [Hp1 Hp2]]]. left*. right*.
   - destruct (IHHp _ Hi eq_refl) as [Hr | [q' [Hr Hr']]].
     * left. apply* invertible_repl_closure. apply* repl_open; solve_names.
     * right. repeat eexists. eauto. eapply repl_open in H0.
       eapply invertible_repl_closure. auto. apply Hr'. apply H. apply H0.
       all: solve_names.
-Qed.*)
+Qed.
 
 (** * Replacement typing
     Whereas invertible typing does replacment for singleton types in one direction,
@@ -575,13 +568,13 @@ Proof.
   introv Hi Hp. dependent induction Hp; auto.
   - Case "ty_inv_r".
     destruct* (invertible_bnd Hi H) as [Hr | [q [Hr Hr']]].
-    eapply replacement_repl_closure_qp_comp. auto. apply* ty_inv_r. Admitted. (*
+    eapply replacement_repl_closure_qp_comp. auto. apply* ty_inv_r.
     apply Hr.
     apply* repl_comp_open.
   - Case "ty_rec_pq_r".
     specialize (IHHp _ Hi eq_refl).
     apply repl_open with (r:= r) in H0; try solve_names. apply* replacement_repl_closure_qp.
-Qed.*)
+Qed.
 
 Lemma repl_to_invertible: forall G p U,
     inert G ->
