@@ -509,8 +509,6 @@ Proof.
                eapply subtyp_fld_t. apply H0. auto.
            *** eapply (replacement_subtyping_closure Hi).
                eapply subtyp_typ_t. apply H0. apply H1. auto.
-           *** lets Hr: (repl_comp_open p p0 T).
-               lets Hrc: (replacement_repl_closure_qp_comp Hi IHty_path_inv Hpr Hr). auto.
            *** eapply (replacement_subtyping_closure Hi).
                eapply subtyp_all_t. apply H0. apply H1. auto.
            *** eapply (replacement_subtyping_closure Hi).

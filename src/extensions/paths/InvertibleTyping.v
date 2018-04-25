@@ -59,13 +59,6 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢# S1 <: S2 ->
   G ⊢## p : typ_rcd {A >: T2 <: S2}
 
-(** [G ⊢## p: T^p]   #<br>#
-    [―――――――――――――――] #<br>#
-    [G ⊢## p: mu(T)] *)
-| ty_bnd_inv : forall G p T,
-  G ⊢## p : open_typ_p p T ->
-  G ⊢## p : typ_bnd T
-
 (** [G ⊢## p: forall(S1)T1]          #<br>#
     [G ⊢# S2 <: S1]            #<br>#
     [G, y: S2 ⊢ T1^y <: T2^y]   #<br>#
@@ -280,8 +273,6 @@ Proof.
     * apply Hp.
     * auto.
     * eapply subtyp_trans_t. apply H0. eauto.
-  - Case "ty_bnd_inv".
-    invert_repl. eauto.
   - Case "ty_all_inv".
     invert_repl.
     + eapply ty_all_inv with (L:=L \u dom G).
