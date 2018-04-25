@@ -250,22 +250,18 @@ Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
     G ⊢// r: T2.
 Proof.
   introv Hi Hr Hp1 Hp2 Hr1 Hr2.
-  assert (exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs) as [bs [Heq | Heq]] by admit.
+  destruct (repl_prefixes Hr1 Hr2) as [bs [Heq | Heq]].
   - subst. assert (bs = nil) as Heq by apply* pf_sngl_flds_elim. subst.
-    assert (p2 •• nil = p2) as Heq. {
-      unfolds sel_fields. destruct p2. simpls*.
-    }
-    rewrite Heq in *. clear Heq.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. admit. (* simple repl thing *)
+    rewrite field_sel_nil in *.
+    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. apply repl_swap in Hr1.
+    lets Heq: (repl_unique Hr1 Hr2). subst*.
   - subst. assert (bs = nil) as Heq. {
       eapply pf_sngl_flds_elim. apply Hi. apply Hp1. apply Hp2.
     }
-    subst.
-    assert (p1 •• nil = p1) as Heq. {
-      unfolds sel_fields. destruct p1. simpls*.
-    }
-    rewrite Heq in *. clear Heq.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. admit. (* simple repl thing *)
+    subst. rewrite field_sel_nil in *.
+    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu.
+    apply repl_swap in Hr1.
+    lets Heq: (repl_unique Hr1 Hr2). subst*.
 Qed.
 
 Lemma replacement_repl_closure_pq : forall G p q r n T T',
@@ -282,9 +278,8 @@ Proof.
    - Case "ty_and_r".
      invert_repl; eauto.
    - Case "ty_sel_r".
-     clear IHHp.
-     assert (exists bs, q = q0 •• bs) as [bs Heq] by admit. subst.
-     assert (bs = nil) as Heq by admit. subst. rewrite field_sel_nil in *.
+     clear IHHp. invert_repl. lets Heq: (pf_sngl_flds_elim _ Hi Hq H). subst.
+     rewrite field_sel_nil in *.
      lets Heq: (pf_T_unique Hi H Hq). subst.
      apply pf_sngl_U in H. inversion H.
   - Case "ty_rec_qp_r".
@@ -348,8 +343,13 @@ Lemma path_sel_repl: forall G p A T q,
 Proof.
   introv Hi Hp Hq. dependent induction Hp; eauto.
   apply* path_sel_repl2.
-  specialize (IHHp _ _ Hi eq_refl Hq). eapply replacement_repl_closure_qp2. auto.
-  apply H. apply IHHp. destruct q0, p. econstructor. rewrite app_nil_l. all: eauto.
+  specialize (IHHp _ _ Hi eq_refl Hq).
+  assert (forall q, q = q •• nil) as Hnil. {
+    intro. rewrite* field_sel_nil.
+  }
+  lets He1: (Hnil q0). lets He2: (Hnil p).
+  eapply (replacement_repl_closure_qp2 Hi H IHHp).
+  rewrite He1 at 2. rewrite He2 at 2. apply rpath.
 Qed.
 
 Lemma path_sel_repl_inv: forall G p A T q,
@@ -470,7 +470,7 @@ Lemma path_elim_repl: forall G p q a T,
 Proof.
   introv Hi Hp Hq.
   destruct (repl_to_invertible_sngl Hi Hp) as [p' [Hc Hpi]].
-  destruct (repl_comp_sngl_inv Hc) as [r Heq]. inversions Heq.
+  destruct (repl_comp_sngl_inv1 Hc) as [r Heq]. inversions Heq.
   destruct (inv_to_precise_sngl Hpi) as [r' [Hp' Hrc]].
   destruct (repl_prec_exists Hq) as [U Hq']. clear Hq.
   destruct (field_typing_comp1 _ Hi Hc Hq') as [T1 Hra].
@@ -500,11 +500,15 @@ Proof.
     gen T. dependent induction IHHp1; introv Hq.
     * SCase "ty_inv_r".
       gen p. induction Hq; introv Hp; eauto.
-      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]]. clear Hp. admit.
-
-
+      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]].
+      destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+      destruct (repl_comp_to_prec Hi Hr Hru') as [Heq | Hrt].
+      ** admit.
+      ** admit.
     * SCase "ty_sngl_pq_inv".
       specialize (IHIHHp1 _ eq_refl Hi).
+      destruct (repl_prefixes_sngl H0) as [bs [He1 He2]]. subst.
+      clear H0.
       admit.
   - Case "ty_path_elim_t".
     apply* path_elim_repl.

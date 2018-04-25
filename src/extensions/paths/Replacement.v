@@ -302,3 +302,16 @@ Lemma repl_prefixes_sel: forall n p q p' q' A,
 Proof.
   introv Hr. inversions Hr. eauto.
 Qed.
+
+Lemma repl_prefixes: forall n q1 p1 q2 p2 T T1 T2,
+ repl_typ n q1 p1 T T1 ->
+ repl_typ n p2 q2 T1 T2 ->
+ exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs.
+Proof.
+  Admitted.
+
+Lemma repl_unique: forall n p q T T1 T2,
+    repl_typ n p q T T1 ->
+    repl_typ n p q T T2 ->
+    T1 = T2.
+Proof. Admitted.

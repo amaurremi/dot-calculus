@@ -660,3 +660,24 @@ Proof.
     * invert_repl. apply* IHHr. clear IHHr. rewrite <- proj_rewrite' in *.
       apply* pt3_field_trans'.
 Qed.
+
+Lemma repl_comp_to_prec: forall G p q T,
+    inert G ->
+    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!! p: T ->
+    p = q \/ G ⊢!!! p: typ_sngl q.
+Proof.
+  introv Hi Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
+  assert (exists r, b = typ_sngl r) as [r Heq] by admit. subst.
+  specialize (IHHr _ _ Hi eq_refl eq_refl). destruct (IHHr _ Hp). subst.
+  - destruct H as [p1 [p2 [n [H1 H2]]]]. right. inversions H2.
+    repeat rewrite proj_rewrite_mult in *. lets Hpf: (pf_pt2_trans_inv_mult _ Hi H1 Hp). subst*.
+  - specialize (IHHr _ Hp). destruct H as [p1 [p2 [n [H1 H2]]]].
+    assert (exists bs, q = p2 •• bs /\ r = p1 •• bs) as [bs [He1 He2]] by admit. subst. clear H2 Hr.
+    destruct IHHr as [Heq | IH].
+    * subst. right. lets Hs: (sngl_typed3 Hi (pt3 (pt2 H1))). destruct Hs.
+      apply* pt3_trans_trans.
+    * right*. apply* pt3_sngl_trans3.
+      lets Hs: (sngl_typed3 Hi IH). destruct Hs.
+      apply* pt3_trans_trans.
+ Qed. (* todo: rewrite above lemmas using this lemma *)
