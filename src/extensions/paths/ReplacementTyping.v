@@ -335,7 +335,7 @@ Qed.
 Lemma path_sel_repl2: forall G p A T q,
     inert G ->
     G ⊢!! p : typ_rcd {A >: T <: T} ->
-    G ⊢//  q : T ->
+    G ⊢// q : T ->
     G ⊢// q : typ_path p A.
 Proof.
   introv Hi Hp Hq. dependent induction Hp; eauto.
@@ -344,7 +344,7 @@ Qed.
 Lemma path_sel_repl: forall G p A T q,
     inert G ->
     G ⊢!!! p : typ_rcd {A >: T <: T} ->
-    G ⊢//  q : T ->
+    G ⊢// q : T ->
     G ⊢// q : typ_path p A.
 Proof.
   introv Hi Hp Hq. dependent induction Hp; eauto.
@@ -491,6 +491,20 @@ Proof.
   apply* replacement_repl_closure_comp_typed.
 Qed.
 
+Lemma inv_sngl_trans: forall G p q T,
+    inert G ->
+    G ⊢## p : typ_sngl q ->
+    G ⊢## q : T ->
+    G ⊢## p : T.
+Proof.
+  introv Hi Hpq Hq. gen p. induction Hq; introv Hpq; eauto.
+  destruct (inv_to_precise_sngl Hpq) as [r [Hpr Hr]].
+  destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+  destruct (repl_comp_to_prec Hi Hr Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hpq.
+  - subst. constructor. apply* pt3_sngl_trans3.
+  - constructor. eapply pt3_sngl_trans3. apply Hpr. apply* pt3_sngl_trans3.
+Qed.
+
 Lemma repl_sngl_trans: forall G p q T,
     inert G ->
     G ⊢// p : typ_sngl q ->
@@ -498,42 +512,26 @@ Lemma repl_sngl_trans: forall G p q T,
     G ⊢// p : T.
 Proof.
   introv Hi Hpq Hq. gen T. dependent induction Hpq; introv Hq.
-    + SCase "ty_inv_r".
-      gen p. induction Hq; introv Hp; eauto.
-      * destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]].
-        destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
-        destruct (repl_comp_to_prec Hi Hr Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hp.
-        ** subst. induction H; try specialize (IHty_path_inv Hi Hpr); eauto.
-           *** constructor. constructor. apply* pt3_sngl_trans3.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply subtyp_fld_t. apply H0. auto.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply subtyp_typ_t. apply H0. apply H1. auto.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply subtyp_all_t. apply H0. apply H1. auto.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply subtyp_sngl_pq_t. constructor. econstructor. apply H. constructor. apply H1. auto.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply (subtyp_sngl_pq_t (pt3 (pt2 H)) H1). eauto.
-           *** eapply (replacement_subtyping_closure Hi).
-               eapply (subtyp_sngl_pq_t (pt3 (pt2 H)) H1). eauto.
-        ** admit.
-      * specialize (IHHq Hi _ Hp). lets Hr: (repl_comp_open p p0 T).
-        destruct (inv_to_precise_sngl Hp) as [r [Hpr Hc]].
-        destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
-        destruct (repl_comp_to_prec Hi Hc Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hp.
-        ** subst. clear Hc.
-           lets Hr: (repl_comp_open p p0 T).
-           lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hpr Hr). eauto.
-        ** lets Hr: (repl_comp_open p r T).
-           lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hrt Hr).
-           lets Hr': (repl_comp_open r p0 T).
-           lets Hrc': (replacement_repl_closure_qp_comp Hi Hrc Hpr Hr'). eauto.
-    + SCase "ty_sngl_pq_inv".
-      specialize (IHHpq _ Hi eq_refl).
-      destruct (repl_prefixes_sngl H0) as [bs [He1 He2]]. subst.
-      clear H0.
-      admit.
+  + SCase "ty_inv_r".
+    gen p. induction Hq; introv Hp; eauto.
+    * constructor. apply* inv_sngl_trans.
+    * specialize (IHHq Hi _ Hp). lets Hr: (repl_comp_open p p0 T).
+      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hc]].
+      destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+      destruct (repl_comp_to_prec Hi Hc Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hp.
+      ** subst. clear Hc.
+         lets Hr: (repl_comp_open p p0 T).
+         lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hpr Hr). eauto.
+      ** lets Hr: (repl_comp_open p r T).
+         lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hrt Hr).
+         lets Hr': (repl_comp_open r p0 T).
+         lets Hrc': (replacement_repl_closure_qp_comp Hi Hrc Hpr Hr'). eauto.
+  + SCase "ty_sngl_pq_inv".
+    lets Hc: (replacement_repl_closure_qp Hi H Hpq H0).
+    specialize (IHHpq _ Hi eq_refl).
+    destruct (repl_prefixes_sngl H0) as [bs [He1 He2]]. subst.
+    clear H0.
+    admit.
 Qed.
 
 Lemma replacement_closure : forall G p T,
