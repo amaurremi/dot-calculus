@@ -42,6 +42,10 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     G ⊢// p: U ->
     G ⊢// p: typ_and T U
 
+| ty_bnd_r : forall G p T,
+    G ⊢// p: open_typ_p p T ->
+    G ⊢// p: typ_bnd T
+
 | ty_sel_r : forall G p T q S A,
     G ⊢// p: T ->
     G ⊢! q: S ⪼ typ_rcd {A >: T <: T} ->
@@ -277,6 +281,8 @@ Proof.
      constructor. apply* invertible_repl_closure.
    - Case "ty_and_r".
      invert_repl; eauto.
+   - Case "ty_bnd_r".
+     invert_repl. apply (repl_open p) in H3; try solve_names. eauto.
    - Case "ty_sel_r".
      clear IHHp. invert_repl. lets Heq: (pf_sngl_flds_elim _ Hi Hq H). subst.
      rewrite field_sel_nil in *.
@@ -485,6 +491,53 @@ Proof.
   apply* replacement_repl_closure_comp_typed.
 Qed.
 
+Lemma repl_sngl_trans: forall G p q T,
+    inert G ->
+    G ⊢// p : typ_sngl q ->
+    G ⊢// q : T ->
+    G ⊢// p : T.
+Proof.
+  introv Hi Hpq Hq. gen T. dependent induction Hpq; introv Hq.
+    + SCase "ty_inv_r".
+      gen p. induction Hq; introv Hp; eauto.
+      * destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]].
+        destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+        destruct (repl_comp_to_prec Hi Hr Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hp.
+        ** subst. induction H; try specialize (IHty_path_inv Hi Hpr); eauto.
+           *** constructor. constructor. apply* pt3_sngl_trans3.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply subtyp_fld_t. apply H0. auto.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply subtyp_typ_t. apply H0. apply H1. auto.
+           *** lets Hr: (repl_comp_open p p0 T).
+               lets Hrc: (replacement_repl_closure_qp_comp Hi IHty_path_inv Hpr Hr). auto.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply subtyp_all_t. apply H0. apply H1. auto.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply subtyp_sngl_pq_t. constructor. econstructor. apply H. constructor. apply H1. auto.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply (subtyp_sngl_pq_t (pt3 (pt2 H)) H1). eauto.
+           *** eapply (replacement_subtyping_closure Hi).
+               eapply (subtyp_sngl_pq_t (pt3 (pt2 H)) H1). eauto.
+        ** admit.
+      * specialize (IHHq Hi _ Hp). lets Hr: (repl_comp_open p p0 T).
+        destruct (inv_to_precise_sngl Hp) as [r [Hpr Hc]].
+        destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+        destruct (repl_comp_to_prec Hi Hc Hru') as [Heq | Hrt]; clear Hru Hru' Hr U U' Hp.
+        ** subst. clear Hc.
+           lets Hr: (repl_comp_open p p0 T).
+           lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hpr Hr). eauto.
+        ** lets Hr: (repl_comp_open p r T).
+           lets Hrc: (replacement_repl_closure_qp_comp Hi IHHq Hrt Hr).
+           lets Hr': (repl_comp_open r p0 T).
+           lets Hrc': (replacement_repl_closure_qp_comp Hi Hrc Hpr Hr'). eauto.
+    + SCase "ty_sngl_pq_inv".
+      specialize (IHHpq _ Hi eq_refl).
+      destruct (repl_prefixes_sngl H0) as [bs [He1 He2]]. subst.
+      clear H0.
+      admit.
+Qed.
+
 Lemma replacement_closure : forall G p T,
   inert G ->
   G ⊢# trm_path p : T ->
@@ -496,24 +549,9 @@ Proof.
   - Case "ty_new_elim_t".
     apply* repl_fld.
   - Case "ty_sngl_t".
-    specialize (IHHp1 _ Hi eq_refl). specialize (IHHp2 _ Hi eq_refl). clear Hp1 Hp2.
-    gen T. dependent induction IHHp1; introv Hq.
-    * SCase "ty_inv_r".
-      gen p. induction Hq; introv Hp; eauto.
-      destruct (inv_to_precise_sngl Hp) as [r [Hpr Hr]].
-      destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
-      destruct (repl_comp_to_prec Hi Hr Hru') as [Heq | Hrt].
-      ** admit.
-      ** admit.
-    * SCase "ty_sngl_pq_inv".
-      specialize (IHIHHp1 _ eq_refl Hi).
-      destruct (repl_prefixes_sngl H0) as [bs [He1 He2]]. subst.
-      clear H0.
-      admit.
+    apply* repl_sngl_trans.
   - Case "ty_path_elim_t".
     apply* path_elim_repl.
-  - Case "ty_rec_intro_t".
-    specialize (IHHp _ Hi eq_refl). admit.
   - Case "ty_rec_elim_t".
     specialize (IHHp _ Hi eq_refl). apply* repl_rec_intro.
   - Case "ty_sub_t".
