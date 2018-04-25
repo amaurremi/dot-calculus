@@ -88,15 +88,6 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢## p : S2 ->
   G ⊢## p : typ_and S1 S2
 
-(** [G ⊢## p: S]        #<br>#
-    [G ⊢! q: {A: S..S}] #<br>#
-    [――――――――――――――――――] #<br>#
-    [G ⊢## p: q.A           *)
-| ty_sel_inv : forall G p q A S T,
-  G ⊢## p : S ->
-  G ⊢! q : T ⪼ typ_rcd {A >: S <: S} ->
-  G ⊢## p : typ_path q A
-
 (** [G ⊢## p: T]   #<br>#
     [―――――――――――――] #<br>#
     [G ⊢## p: top]     *)
@@ -387,8 +378,6 @@ Proof.
   introv Hi Hp Hq. dependent induction Hq.
   - Case "ty_precise_inv".
     false* pt3_psel.
-  - Case "ty_sel_inv".
-    lets Heq: (pf_pt3_unique Hi H Hp). subst*.
   - Case "ty_sel_pq_inv".
     assert (exists bs, p = q •• bs /\ r' = p0 •• bs) as [bs [Heq1 Heq2]]. {
       inversions H0. eexists. split*.
