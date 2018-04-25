@@ -353,12 +353,8 @@ Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
 | rand2: forall p q T1 T2 U n,
     repl_typ n p q T1 T2 ->
     repl_typ (numpaths U + n) p q (typ_and U T1) (typ_and U T2)
-| rpath: forall p px bs pbs psub q qx qbs p' A,
-    p = p_sel px (bs ++ pbs) ->
-    psub = p_sel px pbs ->
-    q = p_sel qx qbs ->
-    p' = p_sel qx (bs ++ qbs) ->
-    repl_typ 0 psub q (typ_path p A) (typ_path p' A)
+| rpath: forall p q bs A,
+    repl_typ 0 p q (typ_path p••bs A) (typ_path q••bs A)
 | rbnd: forall p q T1 T2 n,
     repl_typ n p q T1 T2 ->
     repl_typ n p q (typ_bnd T1) (typ_bnd T2)
@@ -368,13 +364,8 @@ Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
 | rall2: forall p q T1 T2 U n,
     repl_typ n p q T1 T2 ->
     repl_typ (numpaths U + n) p q (typ_all U T1) (typ_all U T2)
-| rsngl: forall p px bs pbs psub q qx qbs p',
-    p = p_sel px (bs ++ pbs) ->
-    psub = p_sel px pbs ->
-    q = p_sel qx qbs ->
-    p' = p_sel qx (bs ++ qbs) ->
-    repl_typ 0 psub q (typ_sngl p) (typ_sngl p')
-
+| rsngl: forall p q bs,
+    repl_typ 0 p q (typ_sngl p••bs) (typ_sngl q••bs)
 with repl_dec : nat -> path -> path -> dec -> dec -> Prop :=
 | rdtyp1: forall p q T1 T2 A U n,
     repl_typ n p q T1 T2 ->

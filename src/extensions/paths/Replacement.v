@@ -53,13 +53,9 @@ Proof.
                  as Hn by apply* numpaths_open;
                rewrite* Hn].
   - Case "rpath".
-    subst. inversions H. destruct H1 as [bs' Heq]. inversions Heq.
-    inversions H0. destruct H as [bs'' Heq]. inversions Heq. simpl. destruct r.
-    apply* rpath.
+    simpl. repeat rewrite field_sel_open. repeat rewrite open_named_path; auto.
   - Case "rsngl".
-    subst. inversions H. destruct H1 as [bs' Heq]. inversions Heq.
-    inversions H0. destruct H as [bs'' Heq]. inversions Heq. simpl. destruct r.
-    apply* rsngl.
+    simpl. repeat rewrite field_sel_open. repeat rewrite open_named_path; auto.
 Qed.
 
 Lemma repl_open: forall p q T T' r n,
@@ -198,13 +194,15 @@ Proof.
     apply* repl_star_and1. apply* H.
     apply* repl_star_and2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists. eauto.
+    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists.
+    repeat rewrite proj_rewrite_mult. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - apply* repl_star_bnd. unfolds repl_repeat_typ. eauto.
   - eapply star_trans. apply repl_star_all1. apply* H. apply repl_star_all2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists. eauto.
+    case_if; destruct q as [qx qbs]; subst. apply star_one. eexists.
+    repeat rewrite proj_rewrite_mult. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - eapply star_trans. apply repl_star_typ1. apply* H. apply repl_star_typ2. apply* H0.
@@ -290,3 +288,17 @@ Lemma repl_preserved2 : forall n p q T U1 U2 m r s,
         exists V, repl_typ m r s U1 V.
 Proof.
   Admitted.
+
+Lemma repl_prefixes_sngl: forall n p q p' q',
+    repl_typ n p q (typ_sngl p') (typ_sngl q') ->
+    exists bs, p' = p •• bs /\ q' = q •• bs.
+Proof.
+  introv Hr. inversions Hr. eauto.
+Qed.
+
+Lemma repl_prefixes_sel: forall n p q p' q' A,
+    repl_typ n p q (typ_path p' A) (typ_path q' A) ->
+    exists bs, p' = p •• bs /\ q' = q •• bs.
+Proof.
+  introv Hr. inversions Hr. eauto.
+Qed.

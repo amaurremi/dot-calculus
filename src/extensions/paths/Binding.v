@@ -741,7 +741,21 @@ Proof.
   introv. unfold sel_fields. destruct p. auto.
 Qed.
 
-Hint Rewrite proj_rewrite proj_rewrite_mult proj_rewrite' field_sel_nil.
+Lemma field_sel_open: forall p q bs n,
+    open_rec_path_p n p (q •• bs) = (open_rec_path_p n p q) •• bs.
+Proof.
+  introv. unfold sel_fields. destruct p, q, a, a0; simpl; try case_if; auto;
+                               rewrite* app_assoc.
+Qed.
+
+Lemma open_named_path : forall p q n,
+    named_path p ->
+    open_rec_path_p n q p = p.
+Proof.
+  introv Hn. inversions Hn. destruct_all. subst. simpl. destruct q. auto.
+Qed.
+
+Hint Rewrite proj_rewrite proj_rewrite_mult proj_rewrite' field_sel_nil field_sel_open.
 
 Lemma typing_empty_false: forall p T,
     empty ⊢ trm_path p: T -> False.

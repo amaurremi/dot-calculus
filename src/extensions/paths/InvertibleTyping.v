@@ -262,7 +262,7 @@ Lemma invertible_repl_closure : forall G p q r T T' n,
     G ⊢## p : T'.
 Proof.
   introv Hi Hp Hqr Hrep. gen q r T' n.
-  induction Hp; introv Hq Hrep; invert_repl; eauto 4.
+  induction Hp; introv Hq Hrep.
   - Case "ty_precise_inv".
     destruct (pf3_inertsngl Hi H) as [[Hin | Hs] | Hr].
     * inversions Hin.
@@ -271,29 +271,50 @@ Proof.
     * inversions Hs. invert_repl. eauto.
     * inversions Hr. eapply (proj32 invertible_repl_closure_helper); eauto.
   - Case "ty_dec_trm_inv".
-    eapply ty_dec_trm_inv. eauto. eapply subtyp_trans_t. apply H. eauto.
-  - Case "ty_dec_typ_inv 1".
-    eapply ty_dec_typ_inv.
-    apply Hp; eapply subtyp_trans_t. apply repl_swap in H9. eauto. auto.
-  - Case "ty_dec_typ_inv 2".
-    eapply ty_dec_typ_inv.
-    eapply Hp. auto. eauto.
-  - Case "ty_all_inv".
-    eapply ty_all_inv with (L:=L \u dom G).
-    * apply Hp.
-    * apply repl_swap in H7. eauto.
-    * introv Hy. eapply narrow_subtyping. apply H0. auto. constructor; auto.
-      apply tight_to_general. solve_repl_sub.
-  - eapply ty_all_inv with (L:=L \u dom G).
+    invert_repl. eapply ty_dec_trm_inv. eauto. eapply subtyp_trans_t. apply H. eauto.
+  - Case "ty_dec_typ_inv".
+    invert_repl; eapply ty_dec_typ_inv.
+    * apply Hp; eapply subtyp_trans_t.
+    * apply repl_swap in H9. eapply subtyp_trans_t. apply* subtyp_sngl_qp_t. eauto.
+    * auto.
     * apply Hp.
     * auto.
-    * introv Hy. eapply subtyp_trans. apply* H0.
-      eapply repl_open_var in H7; try solve_names. eapply subtyp_sngl_pq.
-      apply* weaken_ty_trm. eapply precise_to_general. apply Hq. apply H7.
-  - Case "ty_sel_inv".
-    eauto 5.
+    * eapply subtyp_trans_t. apply H0. eauto.
+  - Case "ty_bnd_inv".
+    invert_repl. eauto.
+  - Case "ty_all_inv".
+    invert_repl.
+    + eapply ty_all_inv with (L:=L \u dom G).
+      * apply Hp.
+      * apply repl_swap in H7. eauto.
+      * introv Hy. eapply narrow_subtyping. apply H0. auto. constructor; auto.
+        apply tight_to_general. solve_repl_sub.
+    + eapply ty_all_inv with (L:=L \u dom G).
+      * apply Hp.
+      * auto.
+      * introv Hy. eapply subtyp_trans. apply* H0.
+        eapply repl_open_var in H7; try solve_names. eapply subtyp_sngl_pq.
+        apply* weaken_ty_trm. eapply precise_to_general. apply Hq. apply H7.
+  - Case "ty_and_inv".
+    invert_repl; eauto.
+  - Case "ty_top_inv".
+    invert_repl.
+  - Case "ty_rec_pq_inv".
+    invert_repl. eauto.
+  - Case "ty_sel_pq_inv".
+    assert (exists r''', T' = typ_path r''' A) as [r''' Heq]. {
+      invert_repl. eauto.
+    } subst.
+    destruct (repl_prefixes_sel Hrep) as [bs [He1 He2]]. subst.
+    destruct (repl_prefixes_sel H0) as [cs [He1 He2]]. subst.
+    specialize (IHHp Hi _ _ H _ _ H0). eauto.
   - Case "ty_sngl_qp_inv".
-    eauto.
+    assert (exists r''', T' = typ_sngl r''') as [r''' Heq]. {
+      invert_repl. eauto.
+    } subst.
+    destruct (repl_prefixes_sngl Hrep) as [bs [He1 He2]]. subst.
+    destruct (repl_prefixes_sngl H0) as [cs [He1 He2]]. subst.
+    specialize (IHHp Hi _ _ H _ _ H0). eauto.
 Qed.
 
 Lemma invertible_repl_closure2 : forall G p q r T T' n,
@@ -379,9 +400,7 @@ Proof.
   - Case "ty_precise_inv".
     false* pt3_psel.
   - Case "ty_sel_pq_inv".
-    assert (exists bs, p = q •• bs /\ r' = p0 •• bs) as [bs [Heq1 Heq2]]. {
-      inversions H0. eexists. split*.
-    }
+    destruct (repl_prefixes_sel H0) as [bs [Heq1 Heq2]].
     subst.
     lets Hh: (pt3_field_trans' _ Hi (pt3 (pt2 H)) Hp).
     specialize (IHHq _ _ Hi Hh eq_refl). eauto.
