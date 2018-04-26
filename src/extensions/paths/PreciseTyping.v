@@ -10,7 +10,7 @@ Set Implicit Arguments.
 
 Require Import Sequences.
 Require Import Coq.Program.Equality List.
-Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
+Require Import Definitions Binding RecordAndInertTypes Replacement Subenvironments Narrowing.
 Require Export PreciseFlow.
 
 Inductive precise_typing2: ctx -> path -> typ -> Prop :=
@@ -664,16 +664,18 @@ Qed.
 Lemma repl_comp_to_prec: forall G p q T,
     inert G ->
     repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
-    G ⊢!! p: T ->
+    G ⊢!!! p: T ->
     p = q \/ G ⊢!!! p: typ_sngl q.
 Proof.
   introv Hi Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
   assert (exists r, b = typ_sngl r) as [r Heq] by admit. subst.
   specialize (IHHr _ _ Hi eq_refl eq_refl). destruct (IHHr _ Hp). subst.
   - destruct H as [p1 [p2 [n [H1 H2]]]]. right. inversions H2.
-    repeat rewrite proj_rewrite_mult in *. lets Hpf: (pf_pt2_trans_inv_mult _ Hi H1 Hp). subst*.
+    repeat rewrite proj_rewrite_mult in *.
+    destruct (pt2_exists Hp) as [U Hu].
+    lets Hpf: (pf_pt2_trans_inv_mult _ Hi H1 Hu). subst*.
   - specialize (IHHr _ Hp). destruct H as [p1 [p2 [n [H1 H2]]]].
-    assert (exists bs, q = p2 •• bs /\ r = p1 •• bs) as [bs [He1 He2]] by admit. subst. clear H2 Hr.
+    destruct (repl_prefixes_sngl H2) as [bs [He1 He2]]. subst.
     destruct IHHr as [Heq | IH].
     * subst. right. lets Hs: (sngl_typed3 Hi (pt3 (pt2 H1))). destruct Hs.
       apply* pt3_trans_trans.

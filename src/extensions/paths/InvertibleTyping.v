@@ -407,3 +407,38 @@ Proof.
   destruct H as [p' [q' [n [Hpq Hr']]]].
   apply* invertible_repl_closure. apply* repl_swap.
 Qed.
+
+Lemma inv_to_precise_sngl_repl_comp: forall G p q,
+    G ⊢## p: typ_sngl q ->
+    exists r, G ⊢!!! p: typ_sngl r /\ repl_composition_qp G (typ_sngl q) (typ_sngl r).
+Proof.
+  introv Hp.
+  dependent induction Hp.
+  - exists q. split*. apply star_refl.
+  - specialize (IHHp _ eq_refl). destruct IHHp as [r'' [Hr' Hc']].
+    exists r''. split*. eapply star_trans.
+    apply star_one. unfold typed_repl_comp_qp.
+    repeat eexists. apply H. apply repl_swap. eauto. eauto.
+Qed.
+
+Lemma inv_to_precise_sngl: forall G p q,
+    inert G ->
+    G ⊢## p: typ_sngl q ->
+    exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
+Proof.
+  introv Hi Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
+  destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+  exists r. split*. apply* repl_comp_to_prec.
+Qed.
+
+Lemma inv_sngl_trans: forall G p q T,
+    inert G ->
+    G ⊢## p : typ_sngl q ->
+    G ⊢## q : T ->
+    G ⊢## p : T.
+Proof.
+  introv Hi Hpq Hq. gen p. induction Hq; introv Hpq; eauto.
+  destruct (inv_to_precise_sngl Hi Hpq) as [r [Hpr [Heq | Hr]]].
+  - subst. constructor. apply* pt3_sngl_trans3.
+  - constructor. eapply pt3_sngl_trans3. apply Hpr. apply* pt3_sngl_trans3.
+Qed.
