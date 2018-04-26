@@ -531,7 +531,7 @@ Proof.
   - destruct (pt23_invert Hi H Hpq) as [q' [Heq [Heq' | Hq']]]; inversions Heq; eauto.
 Qed.
 
-(*Lemma inv_sngl_trans_helper: forall G p q T,
+Lemma inv_sngl_trans_helper: forall G p q T,
     inert G ->
     G ⊢!!! p : typ_sngl q ->
     G ⊢## p: T ->
@@ -548,7 +548,7 @@ Proof.
   - destruct (IHHp2 Hi _ Hpq); destruct (IHHp1 Hi _ Hpq).
     * left. eauto.
     * destruct H0 as [q' [Heq [Heq' | Hq']]]; subst.
-      ** *)
+      ** Abort.
 
 
 
@@ -561,7 +561,7 @@ Lemma repl_sngl_trans_helper: forall G p q T,
                  G ⊢!!! q : typ_sngl r /\
                  G ⊢!!! rt : typ_sngl r)
              \/ G ⊢// q : T.
-Proof. Admitted.
+Proof. Abort.
 
 
 Lemma repl_sngl_trans: forall G p q T,
