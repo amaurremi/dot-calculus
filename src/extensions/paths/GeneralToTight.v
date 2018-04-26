@@ -95,9 +95,9 @@ Lemma sngl_replacement: forall G p q n T U,
 Proof.
   introv Hi Hp Hr.
   lets Hc: (replacement_closure Hi Hp).
-  lets Hri: (repl_to_invertible_sngl Hi Hc). destruct Hri as [V [Hrc Hpt]].
+  lets Hri: (repl_to_invertible_sngl_repl_comp Hi Hc). destruct Hri as [V [Hrc Hpt]].
   destruct (repl_comp_sngl_inv1 Hrc) as [r Heq]. inversions Heq.
-  destruct (inv_to_precise_sngl Hpt) as [r' [Ht Hrc']].
+  destruct (inv_to_precise_sngl_repl_comp Hpt) as [r' [Ht Hrc']].
   destruct (sngl_typed3 Hi Ht) as [V Hst].
   destruct (repl_composition_sngl Hi Hrc' Hst) as [Heq | Hpq].
   - subst. destruct (repl_composition_sngl2 Hi Hrc Hst).

@@ -683,3 +683,38 @@ Proof.
       lets Hs: (sngl_typed3 Hi IH). destruct Hs.
       apply* pt3_trans_trans.
  Qed. (* todo: rewrite above lemmas using this lemma *)
+
+Lemma repl_comp_typed : forall G p q T,
+    inert G ->
+    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢!!! q: T ->
+    exists U, G ⊢!!! p: U.
+Proof.
+  introv Hi Hr Hq. gen T. dependent induction Hr; introv Hq; eauto.
+  assert (exists q', b = typ_sngl q') as [q' Heq] by admit. subst.
+  destruct H as [r [r' [n [H2 H3]]]].
+  destruct (repl_prefixes_sngl H3) as [bs [He1 He2]]. subst.
+  apply* IHHr. apply* pt3_field_trans'.
+Qed.
+
+Lemma pt23_invert : forall G p q T,
+    inert G ->
+    G ⊢!! p : T ->
+    G ⊢!!! p : typ_sngl q ->
+    exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  introv Hi Hp Hpq. gen T. dependent induction Hpq; introv Hp.
+  - exists q. split*. apply* pt2_unique. apply* sngl_inert_sngl.
+  - lets Hu: (pt2_unique Hi H Hp (sngl_inert_sngl q0)). subst*.
+Qed.
+
+Lemma pt3_invert : forall G p q T,
+    inert G ->
+    G ⊢!!! p : T ->
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! q: T \/ exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  introv Hi Hp Hpq. gen q. dependent induction Hp; introv Hpq.
+  - right. apply* pt23_invert.
+  - destruct (pt23_invert Hi H Hpq) as [q' [Heq [Heq' | Hq']]]; inversions Heq; eauto.
+Qed.

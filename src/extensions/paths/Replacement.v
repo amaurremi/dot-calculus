@@ -315,3 +315,7 @@ Lemma repl_unique: forall n p q T T1 T2,
     repl_typ n p q T T2 ->
     T1 = T2.
 Proof. Admitted.
+
+Lemma repl_intro_sngl: forall p q,
+    repl_typ 0 p q (typ_sngl p) (typ_sngl q).
+Proof. Admitted.

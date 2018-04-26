@@ -15,6 +15,11 @@ Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing
 Definition is_sngl T := exists p, T = typ_sngl p.
 Definition inert_sngl T := inert_typ T \/ is_sngl T.
 
+Lemma sngl_inert_sngl: forall q, inert_sngl (typ_sngl q).
+Proof.
+  introv. right. eexists. eauto.
+Qed.
+
 Ltac invert_repl :=
   repeat match goal with
          | [H: repl_dec _ _ _ {_ ⦂ _} _ |- _ ] =>
