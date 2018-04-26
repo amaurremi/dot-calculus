@@ -504,17 +504,55 @@ Proof.
   apply* replacement_repl_closure_comp_typed.
 Qed.
 
-Lemma repl_sngl_trans_helper1: forall G p q T,
+Lemma sngl_inert_sngl: forall q, inert_sngl (typ_sngl q).
+Proof.
+  introv. right. eexists. eauto.
+Qed.
+
+Lemma pt23_invert : forall G p q T,
+    inert G ->
+    G ⊢!! p : T ->
+    G ⊢!!! p : typ_sngl q ->
+    exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  introv Hi Hp Hpq. gen T. dependent induction Hpq; introv Hp.
+  - exists q. split*. apply* pt2_unique. apply* sngl_inert_sngl.
+  - lets Hu: (pt2_unique Hi H Hp (sngl_inert_sngl q0)). subst*.
+Qed.
+
+Lemma pt3_invert : forall G p q T,
+    inert G ->
+    G ⊢!!! p : T ->
+    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! q: T \/ exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  introv Hi Hp Hpq. gen q. dependent induction Hp; introv Hpq.
+  - right. apply* pt23_invert.
+  - destruct (pt23_invert Hi H Hpq) as [q' [Heq [Heq' | Hq']]]; inversions Heq; eauto.
+Qed.
+
+(*Lemma inv_sngl_trans_helper: forall G p q T,
     inert G ->
     G ⊢!!! p : typ_sngl q ->
-    G ⊢// p: T ->
-             (exists r, repl_composition_qp G (typ_sngl r) (typ_sngl q) /\
-                   repl_composition_qp G (typ_sngl r) T)
-             \/ G ⊢// q : T.
-Admitted.
+    G ⊢## p: T ->
+    G ⊢## q: T \/ exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  introv Hi Hpq Hp. gen q. dependent induction Hp; introv Hpq.
+  - destruct* (pt3_invert Hi H Hpq).
+  - destruct (IHHp Hi _ Hpq); eauto.
+    right. destruct_all; subst; inversion H0.
+  - destruct (IHHp Hi _ Hpq); eauto.
+    right. destruct_all; subst; inversion H1.
+  - destruct (IHHp Hi _ Hpq); eauto.
+    right. destruct_all; subst; inversion H1.
+  - destruct (IHHp2 Hi _ Hpq); destruct (IHHp1 Hi _ Hpq).
+    * left. eauto.
+    * destruct H0 as [q' [Heq [Heq' | Hq']]]; subst.
+      ** *)
 
 
-Lemma repl_sngl_trans_helper2: forall G p q T,
+
+Lemma repl_sngl_trans_helper: forall G p q T,
     inert G ->
     G ⊢!!! p : typ_sngl q ->
     G ⊢// p: T ->
@@ -523,7 +561,8 @@ Lemma repl_sngl_trans_helper2: forall G p q T,
                  G ⊢!!! q : typ_sngl r /\
                  G ⊢!!! rt : typ_sngl r)
              \/ G ⊢// q : T.
-Admitted.
+Proof. Admitted.
+
 
 Lemma repl_sngl_trans: forall G p q T,
     inert G ->
@@ -554,7 +593,11 @@ Proof.
     lets Htr: (pt3_trans_trans _ Hi (pt3 (pt2 H)) Hex).
     destruct (repl_sngl_trans_helper2 Hi Htr Hq) as [[q [rt [Heq [Hr1 Hr2]]]] | Hqt].
     * subst.
-      lets Hr: (replacement_repl_closure_pq3). Hi Htr
+      assert (repl_typ n (q0 •• bs) q (typ_sngl (q0 •• bs)) (typ_sngl q)) as Hr by admit.
+      lets Hrc: (replacement_repl_closure_pq3 Hi Hpq Hr1 Hr).
+      assert (repl_typ n q rt (typ_sngl q) (typ_sngl rt)) as Hr' by admit.
+      apply* replacement_repl_closure_qp3.
+    * eauto.
 Qed.
 
 Lemma replacement_closure : forall G p T,
