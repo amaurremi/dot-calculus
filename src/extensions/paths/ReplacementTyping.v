@@ -586,3 +586,88 @@ Proof.
     specialize (IHHp _ Hi eq_refl).
     eapply replacement_subtyping_closure. auto. apply H. auto.
 Qed.
+
+(** Replacement typing for values *)
+
+Reserved Notation "G '⊢//v' v ':' T" (at level 40, v at level 59).
+
+Inductive ty_replv : ctx -> val -> typ -> Prop :=
+
+| ty_inv_rv : forall G v T,
+    G ⊢##v v: T ->
+    G ⊢//v v: T
+
+| ty_and_rv : forall G v T U,
+    G ⊢//v v: T ->
+    G ⊢//v v: U ->
+    G ⊢//v v: typ_and T U
+
+| ty_sel_rv : forall G v T q S A,
+    G ⊢//v v: T ->
+    G ⊢! q: S ⪼ typ_rcd {A >: T <: T} ->
+    G ⊢//v v: typ_path q A
+
+| ty_rec_qp_rv : forall G p q v T T' n,
+    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢//v v : typ_bnd T ->
+    repl_typ n q p T T' ->
+    G ⊢//v v : typ_bnd T'
+
+| ty_sel_qp_rv : forall G p q v r' r'' A n,
+    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢//v v : typ_path r' A ->
+    repl_typ n q p (typ_path r' A) (typ_path r'' A) ->
+    G ⊢//v v : typ_path r'' A
+
+where "G '⊢//v' v ':' T" := (ty_replv G v T).
+
+Hint Constructors ty_replv.
+
+Lemma invertible_andv: forall G v T U,
+    inert G ->
+    G ⊢##v v: typ_and T U ->
+    G ⊢##v v: T /\ G ⊢##v v: U.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. inversion H.
+Qed.
+
+Lemma repl_andv: forall G v T U,
+    inert G ->
+    G ⊢//v v: typ_and T U ->
+    G ⊢//v v: T /\ G ⊢//v v: U.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+  destruct (invertible_andv Hi H). split*.
+Qed.
+
+Lemma invertible_typing_closure_tight_v: forall G v T U,
+  inert G ->
+  G ⊢//v v : T ->
+  G ⊢# T <: U ->
+  G ⊢//v v : U.
+Proof.
+  introv Hi HT Hsub.
+  induction Hsub; auto.
+  - dependent induction HT; eauto.
+  - dependent induction HT. dependent induction H. inversion H.
+  - destruct* (repl_andv Hi HT).
+  - destruct* (repl_andv Hi HT).
+  - dependent induction HT. dependent induction H. dependent induction H.
+  - dependent induction HT. dependent induction H. dependent induction H.
+  - admit. (* repl closure for vals *)
+  - admit. (* repl closure for vals *)
+  - admit.
+  - admit.
+  - dependent induction HT. constructor*.
+Qed.
+
+Lemma tight_to_repl_v : forall G v T,
+    inert G ->
+    G ⊢# trm_val v : T ->
+    G ⊢//v v : T.
+Proof.
+  introv Hgd Hty.
+  dependent induction Hty; eauto.
+  specialize (IHHty v Hgd eq_refl).
+  apply* invertible_typing_closure_tight_v.
+Qed.

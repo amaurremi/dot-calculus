@@ -442,3 +442,51 @@ Proof.
   - subst. constructor. apply* pt3_sngl_trans3.
   - constructor. eapply pt3_sngl_trans3. apply Hpr. apply* pt3_sngl_trans3.
 Qed.
+
+(** Invertible typing for values *)
+
+Reserved Notation "G '⊢##v' v ':' T" (at level 40, v at level 59).
+
+Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
+
+(** [G ⊢• p: qs ⪼ T]  #<br>#
+    [―――――――――――――――] #<br>#
+    [G ⊢## p: T]     *)
+| ty_precise_invv : forall G v T,
+  G ⊢!v v : T ->
+  G ⊢##v v : T
+
+| ty_all_invv : forall G T1 T2 S1 S2 L v,
+  G ⊢##v v : typ_all S1 T1 ->
+  G ⊢# S2 <: S1 ->
+  (forall y, y \notin L ->
+   G & y ~ S2 ⊢ open_typ y T1 <: open_typ y T2) ->
+  G ⊢##v v : typ_all S2 T2
+
+(** [G ⊢## p : T]     #<br>#
+    [G ⊢## p : U]     #<br>#
+    [――――――――――――――――] #<br>#
+    [G ⊢## p : T /\ U]      *)
+| ty_and_invv : forall G v S1 S2,
+  G ⊢##v v : S1 ->
+  G ⊢##v v : S2 ->
+  G ⊢##v v : typ_and S1 S2
+
+(** [G ⊢## p: T]   #<br>#
+    [―――――――――――――] #<br>#
+    [G ⊢## p: top]     *)
+| ty_top_invv : forall G v T,
+  G ⊢##v v : T ->
+  G ⊢##v v : typ_top
+
+(* replacement rules: recursive types, selection types, singleton types *)
+
+| ty_rec_pq_invv : forall G p q v T T' n,
+    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢##v v : typ_bnd T ->
+    repl_typ n p q T T' ->
+    G ⊢##v v : typ_bnd T'
+
+where "G '⊢##v' v ':' T" := (ty_val_inv G v T).
+
+Hint Constructors ty_val_inv.

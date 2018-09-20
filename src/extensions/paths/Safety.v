@@ -78,7 +78,7 @@ Proof.
     lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ; eauto.
+    eapply renaming_typ; eauto. eauto. eauto.
   - Case "ty_let".
     destruct t; try solve [solve_let].
      + SCase "[t = (let x = v in u)] where v is a value".
@@ -89,7 +89,7 @@ Proof.
       end.
       pose proof (val_typing Ht) as [V [Hv Hs]].
       exists (x ~ V). repeat split.
-      ** rewrite <- concat_empty_l. constructor~. apply (precise_inert_typ Hv).
+      ** rewrite <- concat_empty_l. constructor~. eapply pfv_inert; eauto.
       ** constructor~. apply (precise_to_general_v Hv).
       ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. constructor*. apply* weaken_subtyp.

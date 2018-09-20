@@ -291,7 +291,8 @@ Lemma open_fresh_path_injective : forall p q k z,
     p = q.
 Proof.
   intros. destruct p, q. inversions* H1. simpl in *; f_equal.
-  Admitted.
+  eapply open_fresh_avar_injective; eauto.
+Qed.
 
  Ltac invert_open :=
     match goal with
