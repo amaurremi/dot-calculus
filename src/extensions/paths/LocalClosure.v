@@ -51,7 +51,7 @@ with lc_dec : dec -> Prop :=
     lc_dec { A >: T <: U }
 | lc_dec_trm : forall a T,
     lc_typ T ->
-    lc_dec {a ⦂ T}
+    lc_dec {a ⦂ T}.
 
 Hint Constructors lc_var lc_path lc_typ lc_dec.
 

@@ -195,7 +195,12 @@ Qed.
 
 Lemma sngl_path_named: forall G t p,
     G ⊢ t: typ_sngl p ->
-    named_path p. Proof. Admitted.
+    named_path p. 
+Proof. 
+  intros. dependent induction H; eauto.
+  - destruct p eqn:Hp. destruct H0.
+    + inversions H. unfold named_path.
+Admitted.
 
 (** * Opening Lemmas *)
 
@@ -371,7 +376,9 @@ Proof.
       destruct drhs; inversions H; f_equal; simpl in *; destruct_notin; eauto
     end.
 
-  apply trm_mutind; intros; try solve [injective_solver]. Admitted.
+  apply trm_mutind; intros. try solve [injective_solver].
+  - inversions H1.
+Admitted.
 
 (** * Variable Substitution Lemmas *)
 
@@ -523,10 +530,11 @@ Proof.
   destruct z; simpl; destruct a; repeat case_if*;
     unfold subst_var_p; repeat case_if;
       destruct q; simpl; try (rewrite app_assoc || rewrite app_nil_r);
-        inversion* Hl; subst; destruct_all; inversions H. (*inversions H0. eauto. inversions H.
+        inversion* Hl; subst; destruct_all; inversions H;
+  unfold sel_fields; reflexivity.
+  (*inversions H0. eauto. inversions H.
         try solve [inversion Hl; inversion* H0].*)
-
-Admitted.
+Qed.
 
 Lemma subst_open_commut_typ_dec_p: forall x y u,
   named_path y ->
