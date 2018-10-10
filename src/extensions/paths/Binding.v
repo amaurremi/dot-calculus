@@ -198,8 +198,9 @@ Lemma sngl_path_named: forall G t p,
     named_path p. 
 Proof. 
   intros. dependent induction H; eauto.
-  - destruct p eqn:Hp. destruct H0.
-    + inversions H. unfold named_path.
+  - unfold named_path. inversions H. destruct p eqn:Hp.
+    admit.
+  - inversions H0. 
 Admitted.
 
 (** * Opening Lemmas *)
@@ -357,28 +358,32 @@ Proof.
     | [ H: _ = open_rec_trm _ _ ?t |- _ ] =>
       destruct t; inversions H;
       try (f_equal; simpl in *);
-           try (apply* open_fresh_avar_injective || apply* open_fresh_path_injective);
-           match goal with
-           | [ Ho: open_rec_avar _ _ _ = open_rec_avar _ _ _ |- _ ] =>
-             apply open_fresh_avar_injective in Ho; subst*
-           | [ Heq: forall _ _ _, _ -> _ -> _ -> ?u = _ |- ?u = _ ] =>
-             apply* Heq
-           end
+      try (apply* open_fresh_avar_injective 
+        || apply* open_fresh_path_injective);
+      eauto;
+      match goal with
+      | [ Heq: forall _ _ _, _ -> _ -> _ -> ?u = _ |- ?u = _ ] =>
+        apply* Heq; eauto
+      end
     | [ H: _ = open_rec_val _ _ ?v |- _ ] =>
       destruct v; inversions H; f_equal; simpl in *;
-      try apply* open_fresh_typ_dec_injective; destruct_notin; eauto
+      try apply* open_fresh_typ_dec_injective; 
+      destruct_notin; eauto
     | [ H: _ = open_rec_def _ _ ?d |- _ ] =>
       destruct d; inversions H; f_equal;
-      try apply* open_fresh_typ_dec_injective; destruct_notin; eauto
+      try apply* open_fresh_typ_dec_injective; 
+      destruct_notin; eauto
     | [ H: _ = open_rec_defs _ _ ?ds |- _ ] =>
-      destruct ds; inversions H; f_equal; simpl in *; destruct_notin; eauto
+      destruct ds; inversions H; f_equal; 
+      simpl in *; destruct_notin; eauto
     | [ H: _ = open_rec_defrhs _ _ ?drhs |- _ ] =>
-      destruct drhs; inversions H; f_equal; simpl in *; destruct_notin; eauto
+      destruct drhs; inversions H; f_equal; 
+      simpl in *; destruct_notin; 
+      try apply* open_fresh_path_injective; eauto
     end.
 
-  apply trm_mutind; intros. try solve [injective_solver].
-  - inversions H1.
-Admitted.
+  apply trm_mutind; intros; try solve [injective_solver].
+Qed.
 
 (** * Variable Substitution Lemmas *)
 
