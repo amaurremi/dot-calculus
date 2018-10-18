@@ -9,7 +9,7 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
-Require Import Definitions.
+Require Import Definitions LocalClosure.
 
 Ltac simpl_dot :=
   match goal with
@@ -194,13 +194,9 @@ Proof.
 Qed.
 
 Lemma sngl_path_named: forall G t p,
-    G ⊢ t: typ_sngl p ->
-    named_path p. 
-Proof. 
-  intros. dependent induction H; eauto.
-  - unfold named_path. inversions H. destruct p eqn:Hp.
-    admit.
-  - inversions H0. 
+  G ⊢ t: typ_sngl p ->
+  named_path p. 
+Proof.
 Admitted.
 
 (** * Opening Lemmas *)

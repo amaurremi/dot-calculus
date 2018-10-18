@@ -52,8 +52,15 @@ with lc_dec : dec -> Prop :=
 | lc_dec_trm : forall a T,
     lc_typ T ->
     lc_dec {a ⦂ T}.
+    
+Inductive lc_ctx : ctx -> Prop :=
+| lc_ctx_empty : lc_ctx empty
+| lc_ctx_push : forall G x T,
+  lc_ctx G -> lc_typ T -> lc_ctx (G & x ~ T).
 
-Hint Constructors lc_var lc_path lc_typ lc_dec.
+Definition lc_ctx' G := forall x T, binds x T G -> lc_typ T.
+
+Hint Constructors lc_var lc_path lc_typ lc_dec lc_ctx.
 
 (*
 Scheme lc_trm_mut  := Induction for lc_trm Sort Prop

@@ -106,7 +106,7 @@ Lemma subst_rules: forall p S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
-    sbs = (If z = x then p_bs else bs) ->
+    sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
   (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x p_x p_bs sbs,
     G = G1 & x ~ S & G2 ->
@@ -114,7 +114,7 @@ Lemma subst_rules: forall p S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
-    sbs = (If z = x then p_bs else bs) ->
+    sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
@@ -252,7 +252,7 @@ Lemma subst_ty_defs: forall z bs P G x S ds T p p_x p_bs sbs,
     ok (G & x ~ S) ->
     x \notin fv_ctx_types G ->
     G ⊢ trm_path p : subst_typ x p S ->
-    sbs = (If z = x then p_bs else bs) ->
+    sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G ⊢ subst_defs x p ds :: subst_typ x p T.
 Proof.
   introv Hds Heq Hok Hx Hp Hsbs.
@@ -285,6 +285,7 @@ Proof.
   assert (x = subst_var y x y) as Hx by (unfold subst_var; case_if*). rewrite Hx.
   eapply subst_ty_defs. eapply Heq. all: auto. apply Hy.
   rewrite* <- subst_intro_typ. case_if*.
+  rewrite app_nil_r. reflexivity.
 Qed.
 
 Lemma renaming_def_weaken: forall x bs P G ds U y T,
