@@ -715,6 +715,20 @@ Proof.
   simpl in Eq. case_if~.
 Qed.
 
+Lemma subst_defs_hasnt_label:
+  forall ds d, defs_hasnt ds (label_of_def d) -> 
+  forall (x : var) (y : path),
+  defs_hasnt (subst_defs x y ds) (label_of_def (subst_def x y d)).
+Proof.
+  intros ds. unfold defs_hasnt. 
+  induction ds; intros; eauto.
+  unfold get_def. simpl. 
+  rewrite <- subst_label_of_def.
+  rewrite <- subst_label_of_def.
+  simpl in H. case_if*; eauto.
+  fold get_def. eapply subst_defs_hasnt. eauto. 
+Qed.
+
 (** [ds = ... /\ {a = t} /\ ...]  #<br>#
     [ds = ... /\ {a = t'} /\ ...] #<br>#
     [―――――――――――――――――――――――――] #<br>#

@@ -202,7 +202,10 @@ Proof.
               auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
   - Case "ty_path_elim".
-    admit.
+    destruct p0, q.
+    rewrite sel_fields_subst.
+    rewrite sel_fields_subst. 
+    eapply ty_path_elim; try (rewrite <- sel_fields_subst); eauto.
   - Case "ty_rec_intro".
     constructor. rewrite* <- subst_open_commut_typ_p.
   - Case "ty_def_all".
@@ -218,17 +221,62 @@ Proof.
     * subst. admit. (*  subst_tydef_solver. *)
     * admit.
   - Case "ty_def_path".
-    subst_tydef_solver. admit.
+    subst_tydef_solver. 
+    apply* ty_def_path.
+    * apply* inert_subst.
+    * case_if*. simpl. admit.
+    * case_if*; intros.
+      + admit.
+      + admit.
     (*apply* ty_def_path. intro. case_if; case_if*. *)
   - Case "ty_defs_one".
-    admit.
+    apply ty_defs_one.
+    eapply H; eauto.
   - Case "ty_defs_cons".
+    apply ty_defs_cons.
+    * eapply H; eauto.
+    * eapply H0; eauto.
+    * eapply subst_defs_hasnt_label. apply d0.
+  - subst_tydef_solver.
+    (* eapply subtyp_sngl_pq; eauto. *)
     admit.
+  - subst_tydef_solver.
+    (* eapply subtyp_sngl_qp; eauto. *) 
+    admit. 
   - Case "subtyp_all".
-    admit.
-  - admit.
-  - admit.
+    apply (@subtyp_all L (G1 & subst_ctx x p G2)
+      (subst_typ x p S1) (subst_typ x p T1)
+      (subst_typ x p S2) (subst_typ x p T2)).
+    * eauto.
+    * intros. eauto. admit.
+      (* open_typ x0 (subst_typ x p T1) = 
+         subst_typ x p (open_typ x0 T1) ??*)
 Qed.
+
+(*
+Search open_typ _ (subst_typ _ _ _).
+*)
+
+Lemma repl_typ_subst_mulind: 
+  (forall n p q T U,
+    repl_typ n p q T U ->
+    forall x y,
+    repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U)) /\
+  (forall n p q T U,
+    repl_dec n p q T U ->
+    forall x y,
+    repl_dec n (subst_path x y p) (subst_path x y q) (subst_dec x y T) (subst_dec x y U)).
+Proof.
+  apply repl_mutind; intros.
+Admitted.
+
+Lemma repl_typ_subst: forall n p q T U,
+  repl_typ n p q T U ->
+  forall x y,
+  repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U).
+Proof.
+  destruct repl_typ_subst_mulind; eauto.
+Qed. 
 
 (** The substitution lemma for term typing.
     This lemma corresponds to Lemma 3.14 in the paper. *)
