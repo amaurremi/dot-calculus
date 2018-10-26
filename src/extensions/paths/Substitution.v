@@ -7,7 +7,7 @@
 Set Implicit Arguments.
 
 Require Import List Coq.Program.Equality.
-Require Import Definitions Binding Weakening.
+Require Import Definitions Binding Replacement Weakening.
 
 
 Ltac subst_open_fresh :=
@@ -106,6 +106,8 @@ Lemma subst_rules: forall p S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
+    z <> p_x ->
+    z <> x ->
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
   (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x p_x p_bs sbs,
@@ -114,6 +116,8 @@ Lemma subst_rules: forall p S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
+    z <> p_x ->
+    z <> x ->
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x,
@@ -182,7 +186,9 @@ Proof.
     rewrite <- open_var_typ_eq, <- open_var_defs_eq.
     apply* H; try rewrite* concat_assoc.
     unfolds subst_ctx. rewrite map_concat. rewrite concat_assoc.
-    apply* weaken_ty_trm. assert (z <> x) as Hneq by auto. case_if*.
+    apply* weaken_ty_trm. 
+    simpl in Frz. eauto. assert (z <> x) as Hneq by auto.
+    case_if; eauto. 
   - Case "ty_new_elim".
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
     destruct p0. apply sel_fields_subst. auto.
@@ -212,23 +218,22 @@ Proof.
     subst_tydef_solver.
     constructor*. apply* inert_subst.
   - Case "ty_def_new".
-    specialize (H _ _ _ _ _ _ eq_refl H1 H2 H3 eq_refl eq_refl).
+    specialize (H _ _ _ _ _ _ eq_refl H1 H2 H3 eq_refl H5 H6 eq_refl).
     assert (named_path (p_sel (avar_f p_x) p_bs)) as Hn by repeat eexists.
     rewrite* subst_open_commut_defs_p in H.
     rewrite* subst_open_commut_typ_p in H.
     unfolds subst_var.
-    case_if.
-    * subst. admit. (*  subst_tydef_solver. *)
-    * admit.
+    case_if*.
+    admit.
   - Case "ty_def_path".
-    subst_tydef_solver. 
+    subst_tydef_solver.
+    (*
+    case_if; case_if. subst.
     apply* ty_def_path.
-    * apply* inert_subst.
-    * case_if*. simpl. admit.
-    * case_if*; intros.
-      + admit.
-      + admit.
-    (*apply* ty_def_path. intro. case_if; case_if*. *)
+    * admit. (*apply* inert_subst.*)
+    * simpl. admit.
+    *)
+    admit.
   - Case "ty_defs_one".
     apply ty_defs_one.
     eapply H; eauto.
@@ -238,45 +243,20 @@ Proof.
     * eapply H0; eauto.
     * eapply subst_defs_hasnt_label. apply d0.
   - subst_tydef_solver.
-    (* eapply subtyp_sngl_pq; eauto. *)
-    admit.
+    eapply subtyp_sngl_pq; eauto.
+    eapply repl_typ_subst. apply r.
   - subst_tydef_solver.
-    (* eapply subtyp_sngl_qp; eauto. *) 
-    admit. 
+    eapply subtyp_sngl_qp; eauto.
+    eapply repl_typ_subst. apply r.
   - Case "subtyp_all".
     apply (@subtyp_all L (G1 & subst_ctx x p G2)
       (subst_typ x p S1) (subst_typ x p T1)
       (subst_typ x p S2) (subst_typ x p T2)).
     * eauto.
-    * intros. eauto. admit.
+    * intros. admit.
       (* open_typ x0 (subst_typ x p T1) = 
          subst_typ x p (open_typ x0 T1) ??*)
 Qed.
-
-(*
-Search open_typ _ (subst_typ _ _ _).
-*)
-
-Lemma repl_typ_subst_mulind: 
-  (forall n p q T U,
-    repl_typ n p q T U ->
-    forall x y,
-    repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U)) /\
-  (forall n p q T U,
-    repl_dec n p q T U ->
-    forall x y,
-    repl_dec n (subst_path x y p) (subst_path x y q) (subst_dec x y T) (subst_dec x y U)).
-Proof.
-  apply repl_mutind; intros.
-Admitted.
-
-Lemma repl_typ_subst: forall n p q T U,
-  repl_typ n p q T U ->
-  forall x y,
-  repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U).
-Proof.
-  destruct repl_typ_subst_mulind; eauto.
-Qed. 
 
 (** The substitution lemma for term typing.
     This lemma corresponds to Lemma 3.14 in the paper. *)
@@ -297,13 +277,15 @@ Qed.
 Lemma subst_ty_defs: forall z bs P G x S ds T p p_x p_bs sbs,
     z; bs; P; G & x ~ S ⊢ ds :: T ->
     p = p_sel (avar_f p_x) p_bs ->
+    z <> p_x ->
+    z <> x ->
     ok (G & x ~ S) ->
     x \notin fv_ctx_types G ->
     G ⊢ trm_path p : subst_typ x p S ->
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G ⊢ subst_defs x p ds :: subst_typ x p T.
 Proof.
-  introv Hds Heq Hok Hx Hp Hsbs.
+  introv Hds Heq Hzpx Hzx Hok Hx Hp Hsbs.
   eapply (proj43 (subst_rules p S)) with
       (G1 := G) (G2 := empty) (x := x) (p_x := p_x) (p_bs := p_bs) (sbs := sbs) in Hds;
     unfold subst_ctx in *; try rewrite map_empty in *; try rewrite concat_empty_r in *; auto.
@@ -332,9 +314,11 @@ Proof.
   rewrite subst_intro_typ with (x:=y). rewrite subst_intro_defs with (x:=y).
   assert (x = subst_var y x y) as Hx by (unfold subst_var; case_if*). rewrite Hx.
   eapply subst_ty_defs. eapply Heq. all: auto. apply Hy.
+  (*
   rewrite* <- subst_intro_typ. case_if*.
   rewrite app_nil_r. reflexivity.
-Qed.
+  *)
+Admitted.
 
 Lemma renaming_def_weaken: forall x bs P G ds U y T,
 
@@ -349,7 +333,8 @@ Proof.
   rewrite subst_intro_typ with (x:=x). rewrite subst_intro_defs with (x:=x).
   assert (y = subst_var x y y) as Heq. admit.
   rewrite Heq at 1.
-  eapply subst_ty_defs. Admitted.
+  eapply subst_ty_defs. 
+Admitted.
 
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#

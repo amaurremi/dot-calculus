@@ -651,3 +651,68 @@ Proof.
   - destruct q. reflexivity.
   - destruct p. reflexivity.
 Qed.
+
+Lemma subst_typ_and : forall x y T U,
+  subst_typ x y (typ_and T U) = 
+  typ_and (subst_typ x y T) (subst_typ x y U).
+Proof.
+  intros. eauto.
+Qed.
+
+Lemma numpaths_subst_typ_mutind: 
+  (forall T x y,
+    numpaths T = numpaths (subst_typ x y T)) /\
+  (forall T x y,
+    numpathsD T = numpathsD (subst_dec x y T)).
+Proof.
+  apply typ_mutind; intros; simpl; eauto.
+Qed.
+
+Lemma numpaths_subst_typ: forall x y T,
+  numpaths (subst_typ x y T) = numpaths T.
+Proof.
+  destruct numpaths_subst_typ_mutind.
+  eauto.
+Qed.
+
+Lemma app_sel_fields: forall p xs ys,
+  (p •• xs) •• ys = p •• (ys ++ xs).
+Proof.
+  intros. destruct p. simpl. rewrite app_assoc. 
+  reflexivity.
+Qed.
+
+Lemma sel_fieldss_subst: forall x y p ds,
+  subst_path x y p •• ds = (subst_path x y p) •• ds.
+Proof.
+  intros. destruct p. simpl.
+  rewrite app_sel_fields. reflexivity.
+Qed.
+
+Lemma repl_typ_subst_mulind: 
+  (forall n p q T U,
+    repl_typ n p q T U ->
+    forall x y,
+    repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U)) /\
+  (forall n p q T U,
+    repl_dec n p q T U ->
+    forall x y,
+    repl_dec n (subst_path x y p) (subst_path x y q) (subst_dec x y T) (subst_dec x y U)).
+Proof.
+  apply repl_mutind; intros; simpl; try (constructor); eauto.
+  - erewrite <- numpaths_subst_typ. eapply rand2. eauto.
+  - rewrite* sel_fieldss_subst. 
+    rewrite* sel_fieldss_subst.
+  - erewrite <- numpaths_subst_typ. eauto.
+  - rewrite* sel_fieldss_subst. 
+    rewrite* sel_fieldss_subst.
+  - erewrite <- numpaths_subst_typ. eauto.
+Qed.
+
+Lemma repl_typ_subst: forall n p q T U,
+  repl_typ n p q T U ->
+  forall x y,
+  repl_typ n (subst_path x y p) (subst_path x y q) (subst_typ x y T) (subst_typ x y U).
+Proof.
+  destruct repl_typ_subst_mulind; eauto.
+Qed.

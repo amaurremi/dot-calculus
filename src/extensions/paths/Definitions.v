@@ -882,7 +882,9 @@ Ltac gather_vars :=
   let I := gather_vars_with (fun x : defs      => fv_defs  x) in
   let J := gather_vars_with (fun x : typ       => fv_typ   x) in
   let K := gather_vars_with (fun x : def_rhs   => fv_defrhs x) in
-  constr:(A \u B \u C \u D \u E \u F \u G \u H \u I \u J \u K).
+  let L := gather_vars_with (fun x : path     => fv_path x)
+in
+  constr:(A \u B \u C \u D \u E \u F \u G \u H \u I \u J \u K \u L).
 
 Ltac pick_fresh x :=
   let L := gather_vars in (pick_fresh_gen L x).
