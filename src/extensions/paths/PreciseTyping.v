@@ -575,7 +575,10 @@ Lemma repl_composition_sngl: forall G p q T,
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
   introv Hi Hc Hq. dependent induction Hc; eauto.
-  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
+  assert (exists r, b = typ_sngl r) as [p3 Heq].
+  { inversion* H. destruct* H0. destruct* H0.  
+    destruct* H0. inversion* H1. }
+  subst.
   specialize (IHHc _ _ Hi eq_refl eq_refl Hq).
   destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
   lets H': (pt3 (pt2 H)).
@@ -594,7 +597,8 @@ Lemma repl_composition_sngl2: forall G p q T,
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
   introv Hi Hc Hq. gen T. dependent induction Hc; introv Hq; eauto.
-  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit. subst.
+  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit.
+  subst.
   specialize (IHHc _ _ Hi eq_refl eq_refl).
   destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
   lets H': (pt3 (pt2 H)).
