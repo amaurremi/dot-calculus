@@ -576,8 +576,7 @@ Lemma repl_composition_sngl: forall G p q T,
 Proof.
   introv Hi Hc Hq. dependent induction Hc; eauto.
   assert (exists r, b = typ_sngl r) as [p3 Heq].
-  { inversion* H. destruct* H0. destruct* H0.  
-    destruct* H0. inversion* H1. }
+  { inversion H as [x [y [n [_ H0]]]]. inversion* H0. }
   subst.
   specialize (IHHc _ _ Hi eq_refl eq_refl Hq).
   destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.

@@ -140,12 +140,25 @@ Proof.
           auto. introv Hy. eapply repl_open_var in H6; try solve_names.
           eapply subtyp_sngl_qp. apply* weaken_ty_trm. eapply precise_to_general. apply Hq.
           apply H6.
-       ++ apply* ty_rec_qp_r.
+       ++ apply* ty_rec_qp_r. 
      + inversions Hs. invert_repl. eauto.
-     +  admit. (* inverstion on record type and usual stuff *)
+     + inversion Hst as [x Hx]. (* inversions Hx; subst; invert_repl.
+       ++ apply ty_inv_r. eapply ty_dec_typ_inv. constructor.
+          eapply invertible_repl_closure; eauto.
+         Locate invertible_repl_closure3. 
+           eapply invertible_repl_closure3. 
+          +++ apply Hi. 
+          +++ constructor. apply H.
+          +++ constructor. eapply pt2. apply Hq.
+          +++ constructor.
+       ++ invert_repl. constructor. eauto. admit.
+       ++ 
+       *)
+       admit. 
+       (* inverstion on record type and usual stuff *)
   - Case "ty_dec_trm_inv".
-    invert_repl. eapply ty_inv_r. eapply ty_dec_trm_inv. apply H.
-    eauto.
+    invert_repl. eapply ty_inv_r. eapply ty_dec_trm_inv. 
+    apply H. eauto.
   - Case "ty_dec_typ_inv".
     invert_repl.
     * eapply ty_inv_r. eapply ty_dec_typ_inv. apply H.
@@ -154,11 +167,22 @@ Proof.
     * eapply ty_inv_r. eapply ty_dec_typ_inv. apply H.
       eauto. eapply subtyp_trans_t. apply H1. eauto.
   - Case "ty_all_inv".
-    invert_repl; apply ty_inv_r; eapply ty_all_inv. apply H.
-    admit. (* simple *)
-    introv Hy. admit. (* narrowing *)
-    apply H. auto. introv Hy. eapply subtyp_trans. apply* H1.
-    eapply repl_open_var in H8; admit. (* simple *)
+    invert_repl; apply ty_inv_r. 
+    + eapply ty_all_inv.
+      apply H.
+      assert (Hts : G ⊢# T3 <: S2). 
+      { apply repl_swap in H8. eauto. }
+      eauto.
+      instantiate (1 := L \u (dom G)).
+      introv Hy. eapply narrow_subtyping. 
+      apply H1. eauto. (* apply Hy. *) 
+      assert (Hts : G ⊢ T3 <: S2). 
+      { apply tight_to_general. apply repl_swap in H8. eauto. }
+      constructor; eauto. (* narrowing *)
+    + eapply ty_all_inv. 
+      apply H. auto. introv Hy. eapply subtyp_trans. 
+      apply* H1. eapply repl_open_var in H8; admit.
+      (* simple *)
   - Case "ty_sel_qp_inv".
     inversions Hr. eauto.
   - Case "ty_sngl_qp_inv".
