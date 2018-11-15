@@ -9,7 +9,6 @@ Set Implicit Arguments.
 Require Import List Coq.Program.Equality.
 Require Import Definitions Binding Replacement Weakening.
 
-
 Ltac subst_open_fresh :=
   match goal with
   | [ |- context [ open_typ ?z (subst_typ ?x ?p ?T) ] ] =>
@@ -55,7 +54,22 @@ Ltac subst_tydef_solver :=
       specialize (H _ _ _ eq_refl Hok Hx);
       try solve [rewrite subst_open_commut_defs_p in H;
                  rewrite subst_open_commut_typ_p in H; eauto]
-    end.
+    end. 
+
+
+Lemma open_typ_subst: forall x y p T,
+  named_path p ->
+  x <> y ->
+  open_typ x (subst_typ y p T) =
+  subst_typ y p (open_typ x T).
+Proof.
+  intros.
+  rewrite open_var_typ_eq.
+  unfold open_typ.
+  rewrite subst_open_commut_typ.
+  - f_equal. unfold subst_var_p. case_if*.
+  - apply H. 
+Qed.
 
 (** * Substitution Lemma *)
 (** [G1, x: S, G2 ⊢ t: T]            #<br>#
@@ -107,7 +121,7 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
     z <> p_x ->
-    z <> x ->
+    z <> x -> 
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
   (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x p_x p_bs sbs,
@@ -117,7 +131,7 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
     z <> p_x ->
-    z <> x ->
+    z <> x -> 
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x,
@@ -127,11 +141,12 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     G1 & (subst_ctx x p G2) ⊢ subst_typ x p T <: subst_typ x p U).
 Proof.
-  introv. apply rules_mutind; intros; subst; simpl;
-            try (subst_fresh_solver || rewrite subst_open_commut_typ_p);
-            simpl in *; autounfold;
-              try assert (named_path p) as Hn by apply* typed_paths_named;
-              eauto 4.
+  intros p S. 
+  apply rules_mutind; intros; subst; simpl;
+  try (subst_fresh_solver || rewrite subst_open_commut_typ_p);
+  simpl in *; autounfold;
+  try assert (named_path p) as Hn by apply* typed_paths_named;
+  eauto 4.
   - Case "ty_var".
     cases_if.
     + apply binds_middle_eq_inv in b; subst*. destruct* p.
@@ -139,7 +154,8 @@ Proof.
       apply binds_subst in b; auto.
       constructor. rewrite <- H1.
       unfold subst_ctx. rewrite <- map_concat.
-      apply binds_map; auto. apply ok_concat_map. apply* ok_remove.
+      apply binds_map; auto. apply ok_concat_map. 
+      apply* ok_remove.
   - Case "ty_all_intro".
     fresh_constructor.
     subst_open_fresh.
@@ -162,17 +178,17 @@ Proof.
     fresh_constructor.
     subst_open_fresh.
     match goal with
-            | [ |- _; _; _; _ ⊢ _ _ _ :: _ ] =>
-              assert (pvar z = subst_var_p x p z) as Hxyz by (unfold subst_var_p; rewrite~ If_r);
-                rewrite Hxyz at 1
+    | [ |- _; _; _; _ ⊢ _ _ _ :: _ ] =>
+      assert (pvar z = subst_var_p x p z) as Hxyz by (unfold subst_var_p; rewrite~ If_r);
+      rewrite Hxyz at 1
     end.
     rewrite <- Hxyz.
     subst_open_fresh.
     rewrite* <- subst_open_commut_typ_p.
     rewrite* <- subst_open_commut_defs_p.
     assert (subst_ctx x p G2 & z ~ subst_typ x p (open_typ_p (pvar z) T) =
-                               subst_ctx x p (G2 & z ~ open_typ_p (pvar z) T)) as Heq by
-          (unfold subst_ctx; rewrite map_concat, map_single; reflexivity).
+    subst_ctx x p (G2 & z ~ open_typ_p (pvar z) T)) as Heq 
+    by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity).
     rewrite <- concat_assoc. rewrite Heq.
     destruct p as [p_x p_bs].
     assert (exists p_x0, p_x = avar_f p_x0) as Heq'. {
@@ -187,7 +203,8 @@ Proof.
     apply* H; try rewrite* concat_assoc.
     unfolds subst_ctx. rewrite map_concat. rewrite concat_assoc.
     apply* weaken_ty_trm. 
-    simpl in Frz. eauto. assert (z <> x) as Hneq by auto.
+    simpl in Frz. eauto. 
+    assert (z <> x) as Hneq0 by eauto.
     case_if; eauto. 
   - Case "ty_new_elim".
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
@@ -197,21 +214,21 @@ Proof.
     subst_open_fresh.
     match goal with
     | [ H: forall z, z \notin ?L -> forall G, _
-        |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
+      |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
       assert (subst_ctx x p G2 & z ~ subst_typ x p V = subst_ctx x p (G2 & z ~ V)) as B
-          by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
-        rewrite <- concat_assoc; rewrite B;
-          rewrite* <- subst_open_commut_trm_p;
-        rewrite <- open_var_trm_eq;
-          apply* H; try rewrite* concat_assoc;
-            rewrite <- B, concat_assoc; unfold subst_ctx;
-              auto using weaken_ty_trm, ok_push, ok_concat_map
+      by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
+      rewrite <- concat_assoc; rewrite B;
+        rewrite* <- subst_open_commut_trm_p;
+      rewrite <- open_var_trm_eq;
+        apply* H; try rewrite* concat_assoc;
+          rewrite <- B, concat_assoc; unfold subst_ctx;
+          auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
   - Case "ty_path_elim".
     destruct p0, q.
     rewrite sel_fields_subst.
     rewrite sel_fields_subst. 
-    eapply ty_path_elim; try (rewrite <- sel_fields_subst); eauto.
+    eapply ty_path_elim; try (rewrite <- sel_fields_subst); auto.
   - Case "ty_rec_intro".
     constructor. rewrite* <- subst_open_commut_typ_p.
   - Case "ty_def_all".
@@ -223,17 +240,32 @@ Proof.
     rewrite* subst_open_commut_defs_p in H.
     rewrite* subst_open_commut_typ_p in H.
     unfolds subst_var.
-    case_if*.
-    admit.
+    remember (p_sel (avar_f p_x) p_bs) as p.
+    eapply ty_def_new; eauto.
+    * replace (typ_bnd (subst_typ x0 p T)) with (subst_typ x0 p (typ_bnd T)) by reflexivity.
+      apply inert_subst. apply i.
+    * simpl. case_if*. 
+      replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
+      simpl. unfold subst_var_p.
+      case_if*. simpl. rewrite app_nil_r. reflexivity.
   - Case "ty_def_path".
-    subst_tydef_solver.
-    (*
-    case_if; case_if. subst.
-    apply* ty_def_path.
-    * admit. (*apply* inert_subst.*)
-    * simpl. admit.
-    *)
-    admit.
+    remember (p_sel (avar_f p_x) p_bs) as p in *.
+    subst_tydef_solver. 
+    case_if; case_if.
+    * eapply ty_def_path.
+      3: { rewrite Heqp. simpl. eauto. }
+      + replace (trm_path p •• cs)
+        with (trm_path (subst_var_p x0 p y) •• cs).
+        eapply H; eauto. 
+        f_equal. unfold subst_var_p. case_if. reflexivity.
+      + apply inert_subst. apply i.
+      + intro. destruct (H5 H0).
+    * eapply ty_def_path. 
+      3: { simpl. eauto. }
+      + replace (p_sel (avar_f y) nil) with (subst_var_p x0 p y).
+        eapply H; eauto. unfold subst_var_p. case_if. reflexivity. 
+      + apply inert_subst. apply i.
+      + rewrite app_nil_r. apply p0.
   - Case "ty_defs_one".
     apply ty_defs_one.
     eapply H; eauto.
@@ -242,20 +274,37 @@ Proof.
     * eapply H; eauto.
     * eapply H0; eauto.
     * eapply subst_defs_hasnt_label. apply d0.
-  - subst_tydef_solver.
+  - Case "subtyp_sngl_pq".
+    subst_tydef_solver.
     eapply subtyp_sngl_pq; eauto.
     eapply repl_typ_subst. apply r.
-  - subst_tydef_solver.
+  - Case "subtyp_sngl_qp".
+    subst_tydef_solver.
     eapply subtyp_sngl_qp; eauto.
     eapply repl_typ_subst. apply r.
   - Case "subtyp_all".
-    apply (@subtyp_all L (G1 & subst_ctx x p G2)
-      (subst_typ x p S1) (subst_typ x p T1)
-      (subst_typ x p S2) (subst_typ x p T2)).
-    * eauto.
-    * intros. admit.
-      (* open_typ x0 (subst_typ x p T1) = 
-         subst_typ x p (open_typ x0 T1) ??*)
+    subst_tydef_solver.
+    eapply (@subtyp_all (L \u \{ x } \u (dom (G1 & (subst_ctx x p G2)) \u (dom (G1 & x ~ S & G2))))). eauto.
+    intros x0 Hx0. 
+    assert (Hx0inL: x0 \notin L) by auto.
+    assert (Hxx0: x0 <> x) by auto.
+    assert (Hx0inG: x0 # (G1 & (subst_ctx x p G2))) by auto.
+    rewrite open_typ_subst; try assumption.
+    rewrite open_typ_subst; try assumption.
+    specialize (H0 x0 Hx0inL G1 (G2 & x0 ~ S2) x).
+    replace (G1 & subst_ctx x p G2 & x0 ~ subst_typ x p S2)
+    with (G1 & subst_ctx x p (G2 & x0 ~ S2)).
+    * eapply H0. 
+      + rewrite concat_assoc. reflexivity.
+      + rewrite concat_assoc. constructor. 
+        apply H2. auto.
+      + apply H3.
+      + unfold subst_ctx. rewrite map_push.
+        rewrite concat_assoc. fold subst_ctx.
+        apply weaken_ty_trm.
+        apply H4. constructor; auto.
+    * unfold subst_ctx. rewrite map_push.
+      rewrite concat_assoc. reflexivity. 
 Qed.
 
 (** The substitution lemma for term typing.
@@ -307,21 +356,22 @@ Lemma renaming_def_strengthen: forall G y T ds x bs P p,
     y \notin (fv_ctx_types G \u fv_defs ds \u fv_typ T) ->
     y; nil; P; G & y ~ open_typ y T ⊢ open_defs y ds :: open_typ y T ->
     p = p_sel (avar_f x) bs ->
+    x <> y ->
     G ⊢ trm_path p : open_typ_p p T ->
     x; bs; P; G ⊢ open_defs_p p ds :: open_typ_p p T.
 Proof.
-  introv Hok Hny Hny' Heq Hy Hp. lets Hn: (typed_paths_named Hp).
-  rewrite subst_intro_typ with (x:=y). rewrite subst_intro_defs with (x:=y).
+  introv Hok Hny Hny' Hy Heq Hxy Hp. lets Hn: (typed_paths_named Hp).
+  rewrite subst_intro_typ with (x:=y). 
+  rewrite subst_intro_defs with (x:=y).
   assert (x = subst_var y x y) as Hx by (unfold subst_var; case_if*). rewrite Hx.
-  eapply subst_ty_defs. eapply Heq. all: auto. apply Hy.
-  (*
-  rewrite* <- subst_intro_typ. case_if*.
-  rewrite app_nil_r. reflexivity.
-  *)
+  eapply subst_ty_defs. eapply Hy. all: auto. 
+  - apply Heq.
+  - admit.
+  - rewrite* <- subst_intro_typ.
+  - case_if. rewrite app_nil_r. reflexivity.
 Admitted.
 
 Lemma renaming_def_weaken: forall x bs P G ds U y T,
-
   ok (G & x ~ T) ->
   y # G ->
   x; bs; P; G & x ~ T ⊢ open_defs_p (p_sel (avar_f x) bs) ds :: open_typ_p (p_sel (avar_f x) bs) U ->
