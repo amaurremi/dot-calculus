@@ -128,7 +128,11 @@ Lemma replacement_repl_closure_qp : forall G p q r T T' n,
     repl_typ n r q T T' ->
     G ⊢// p : T'.
 Proof.
-  introv Hi Hq Hp. gen q r T' n. induction Hp; introv Hq; introv Hr; invert_repl; eauto 5.
+  introv Hi Hq Hp. gen q r T' n. induction Hp; introv Hq; introv Hr; invert_repl; eauto 5. 
+  (*
+  Focus 2.
+  eapply ty_sel_qp_r. apply H. apply Hp.
+  *)
   gen q r T' n. induction H; introv Hq; introv Hr; try solve [invert_repl; eauto 5].
   -  Case "ty_precise_inv".
      destruct (pf3_inertsngl Hi H) as [[Hit | Hs] | Hst].
@@ -142,19 +146,16 @@ Proof.
           apply H6.
        ++ apply* ty_rec_qp_r. 
      + inversions Hs. invert_repl. eauto.
-     + inversion Hst as [x Hx]. (* inversions Hx; subst; invert_repl.
-       ++ apply ty_inv_r. eapply ty_dec_typ_inv. constructor.
-          eapply invertible_repl_closure; eauto.
-         Locate invertible_repl_closure3. 
-           eapply invertible_repl_closure3. 
-          +++ apply Hi. 
-          +++ constructor. apply H.
-          +++ constructor. eapply pt2. apply Hq.
-          +++ constructor.
-       ++ invert_repl. constructor. eauto. admit.
-       ++ 
-       *)
-       admit. 
+     + inversion Hst as [x Hx]. inversions Hx; subst; invert_repl.
+       ++ apply ty_inv_r. destruct D2 eqn:Hd2.
+        * invert_repl. 
+          ** apply ty_precise_inv in H. 
+            eapply ty_dec_typ_inv.
+            apply H. admit. auto.
+          ** admit. 
+        * invert_repl. admit. 
+       ++ constructor. admit.
+       ++ admit.
        (* inverstion on record type and usual stuff *)
   - Case "ty_dec_trm_inv".
     invert_repl. eapply ty_inv_r. eapply ty_dec_trm_inv. 
@@ -168,25 +169,35 @@ Proof.
       eauto. eapply subtyp_trans_t. apply H1. eauto.
   - Case "ty_all_inv".
     invert_repl; apply ty_inv_r. 
-    + eapply ty_all_inv.
-      apply H.
-      assert (Hts : G ⊢# T3 <: S2). 
-      { apply repl_swap in H8. eauto. }
-      eauto.
-      instantiate (1 := L \u (dom G)).
-      introv Hy. eapply narrow_subtyping. 
-      apply H1. eauto. (* apply Hy. *) 
-      assert (Hts : G ⊢ T3 <: S2). 
-      { apply tight_to_general. apply repl_swap in H8. eauto. }
-      constructor; eauto. (* narrowing *)
+    + eapply ty_all_inv with (L := L \u (dom G)).
+      * apply H.
+      * assert (Hts : G ⊢# T3 <: S2). 
+        { apply repl_swap in H8. eauto. }
+        eauto.
+      * 
+        introv Hy. eapply narrow_subtyping. 
+        apply H1. eauto. (* apply Hy. *) 
+        assert (Hts : G ⊢ T3 <: S2). 
+        { apply tight_to_general. 
+          apply repl_swap in H8. eauto. }
+        constructor; eauto. (* narrowing *)
     + eapply ty_all_inv. 
-      apply H. auto. introv Hy. eapply subtyp_trans. 
-      apply* H1. eapply repl_open_var in H8; admit.
-      (* simple *)
+      * apply H. 
+      * assumption. 
+      * instantiate (1 := L \u (dom G)).
+        introv Hy. eapply subtyp_trans. 
+        apply* H1. eapply repl_open_var in H8. 
+        ** eapply subtyp_sngl_qp; eauto.
+          apply precise_to_general in Hq. 
+          apply weaken_ty_trm; eauto.
+        ** SearchAbout (named_path). admit.
+        ** admit.
+        (* simple *)
   - Case "ty_sel_qp_inv".
     inversions Hr. eauto.
   - Case "ty_sngl_qp_inv".
     inversions Hr. eauto.
+  -
 Admitted. (* shelved stuff *)
 
 Lemma replacement_repl_closure_qp2 : forall G p q r T T' n,
