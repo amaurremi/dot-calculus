@@ -274,31 +274,6 @@ Proof.
   eauto using pt2_sngl_unique.
 Qed.
 
-  (*Lemma pt2_unique: forall G p T1 T2,
-    inert G ->
-    G ⊢!! p: T1 ->
-    G ⊢!! p: T2 ->
-    inert_sngl T1 ->
-    T1 = T2.
-Proof.
-  introv Hi Hp1 Hp2 His1. gen T2. dependent induction Hp1; introv Hp2.
-  - dependent induction Hp2.
-    * lets HU: (pf_T_unique Hi H H0). subst.
-      admit. (*easy*)
-    * lets Hp: (pt2_sngl_trans _ Hp2_1 Hp2_2).
-      lets Heq: (pf_pt2_sngl Hi H Hp). subst.
-      apply* pf_sngl_U.
-  - assert (inert_sngl (typ_sngl q)) as His. { right. eexists. auto. }
-    clear His1 His.
-    gen q U. dependent induction Hp2; introv Hp1 IH1 Hqa IH2; eauto.
-    * lets Hp: (pt2_sngl_trans _ Hp1 Hqa).
-      lets Heq: (pf_pt2_sngl Hi H Hp). subst. lets Heq: (pf_sngl_U H). auto.
-    * simpl_dot.
-      assert (inert_sngl (typ_sngl q0)) as His. { right. eexists. auto. }
-      assert (inert_sngl (typ_sngl q)) as His'. { right. eexists. auto. }
-      specialize (IH1 Hi His _ Hp2_1). inversion* IH1.
-Qed.*)
-
 Lemma field_elim_q: forall G p q a T,
     inert G ->
     G ⊢!! p: typ_sngl q ->
