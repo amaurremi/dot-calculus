@@ -143,17 +143,24 @@ Proof.
             apply H6.
          ++ apply* ty_rec_qp_r. 
        + inversions Hs. invert_repl. eauto.
-       + inversion Hst as [x Hx]. inversions Hx; subst; invert_repl.
-        ++ apply ty_inv_r. destruct D2 eqn:Hd2.
-          * invert_repl. 
-            ** apply ty_precise_inv in H. 
-              eapply ty_dec_typ_inv.
-              apply H. admit. auto.
-            ** admit. 
-          * invert_repl. admit. 
-        ++ constructor. admit.
-        ++ admit.
-        (* inverstion on record type and usual stuff *)
+       + inversion Hst as [x Hx]. 
+         inversions Hx; subst; invert_repl.
+        ++ apply ty_inv_r. destruct D2.
+          * invert_repl; apply ty_precise_inv in H;
+            eapply ty_dec_typ_inv; eauto.
+            assert (Hts : G ⊢# t0 <: T1). 
+            { apply repl_swap in H7. eauto. }
+            eauto.
+          * invert_repl. eapply ty_precise_inv in H. 
+            eapply ty_dec_trm_inv; eauto.
+        ++ apply ty_inv_r. destruct D.
+          * apply ty_precise_inv in H. 
+            eapply ty_and_inv.
+            ** admit.
+            ** admit.
+          * admit.
+(* (*         ++ admit.
+        (* inverstion on record type and usual stuff *) *) *)
     -- SCase "ty_dec_trm_inv".
        invert_repl. eapply ty_inv_r. eapply ty_dec_trm_inv. 
        apply H. eauto.
