@@ -114,7 +114,7 @@ Proof.
    * apply pf_strengthen in Hp; auto.
      assert (inert G) as Hi' by apply* inert_prefix.
      lets Hn: (lookup_strengthen Hs n). apply* weaken_ty_trm.
-Qed.
+Admitted.
 
 (** [G ~ s]                 #<br>#
     [G ⊢ p: T]              #<br>#
@@ -208,7 +208,7 @@ Proof.
                     { p = r } and { r = ν{a = v} }
                     then we can say p.a *)
         ++ admit.*)
-Qed.
+Admitted.
 
 (** * Lemmas to Prove Canonical Forms for Functions *)
 
@@ -226,7 +226,7 @@ Proof.
   lets Heq: (pf_inert_lambda_U Hi Hpr). subst.
   apply ty_sub with (U:=typ_all S T) in Hlp. apply* IHHl.
   fresh_constructor. apply* tight_to_general.*) admit.
-Qed.
+Admitted.
 
 Lemma corresponding_types_fun: forall G s p S T T',
     inert G ->
@@ -292,7 +292,7 @@ Proof.
   admit. (*
   exists L V T' U'. repeat split.
   lets Hv: (pf_inert_lambda_U Hin Htp). subst*. apply* tight_to_general. eauto.*)
-Qed.
+Admitted.
 
 (** [forall] to [lambda]                 #<br>#
     [inert G]                       #<br>#

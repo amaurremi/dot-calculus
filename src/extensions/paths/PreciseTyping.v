@@ -398,7 +398,7 @@ Proof.
       
       admit.
       (* here we change the def of inertness and get what we want? *)
-Qed.
+Admitted.
 
 Lemma sngl_typed2 : forall G p q,
     inert G ->
@@ -636,7 +636,7 @@ Proof.
   - lets Htt: (pt3_trans_trans _ Hi H' Hqs). right*.
   - right. destruct (sngl_typed3 Hi Hp) as [S' Hqbs].
     lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
-Qed.
+Admitted.
 
 Lemma field_typing_comp1: forall G r q a U,
   inert G ->
@@ -715,7 +715,7 @@ Proof.
     * right*. apply* pt3_sngl_trans3.
       lets Hs: (sngl_typed3 Hi IH). destruct Hs.
       apply* pt3_trans_trans.
- Qed. (* todo: rewrite above lemmas using this lemma *)
+Admitted. (* todo: rewrite above lemmas using this lemma *)
 
 Lemma repl_comp_typed : forall G p q T,
     inert G ->
@@ -728,7 +728,7 @@ Proof.
   destruct H as [r [r' [n [H2 H3]]]].
   destruct (repl_prefixes_sngl H3) as [bs [He1 He2]]. subst.
   apply* IHHr. apply* pt3_field_trans'.
-Qed.
+Admitted.
 
 Lemma pt23_invert : forall G p q T,
     inert G ->

@@ -734,7 +734,7 @@ Proof.
   - admit.
   - admit.
   - dependent induction HT. constructor*.
-Qed.
+Admitted.
 
 Lemma tight_to_repl_v : forall G v T,
     inert G ->
