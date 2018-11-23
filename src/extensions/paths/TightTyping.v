@@ -31,7 +31,6 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     [G ⊢# x: T]  *)
 | ty_var_t : forall G x T,
     binds x T G ->
-    ok G ->
     G ⊢# tvar x : T
 
 (** [G, x: T ⊢ t^x: U^x]       #<br>#

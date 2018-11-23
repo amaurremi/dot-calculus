@@ -54,7 +54,7 @@ Ltac subst_tydef_solver :=
       specialize (H _ _ _ eq_refl Hok Hx);
       try solve [rewrite subst_open_commut_defs_p in H;
                  rewrite subst_open_commut_typ_p in H; eauto]
-    end. 
+    end.
 
 
 Lemma open_typ_subst: forall x y p T,
@@ -68,7 +68,7 @@ Proof.
   unfold open_typ.
   rewrite subst_open_commut_typ.
   - f_equal. unfold subst_var_p. case_if*.
-  - apply H. 
+  - apply H.
 Qed.
 
 (** * Substitution Lemma *)
@@ -121,7 +121,7 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
     z <> p_x ->
-    z <> x -> 
+    z <> x ->
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
   (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x p_x p_bs sbs,
@@ -131,7 +131,7 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     p = p_sel (avar_f p_x) p_bs ->
     z <> p_x ->
-    z <> x -> 
+    z <> x ->
     sbs = (If z = x then p_bs ++ bs else bs) ->
     subst_var x p_x z; sbs; P; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x,
@@ -141,7 +141,7 @@ Lemma subst_rules: forall p S,
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     G1 & (subst_ctx x p G2) ⊢ subst_typ x p T <: subst_typ x p U).
 Proof.
-  intros p S. 
+  intros p S.
   apply rules_mutind; intros; subst; simpl;
   try (subst_fresh_solver || rewrite subst_open_commut_typ_p);
   simpl in *; autounfold;
@@ -154,8 +154,7 @@ Proof.
       apply binds_subst in b; auto.
       constructor. rewrite <- H1.
       unfold subst_ctx. rewrite <- map_concat.
-      apply binds_map; auto. apply ok_concat_map. 
-      apply* ok_remove.
+      apply binds_map; auto.
   - Case "ty_all_intro".
     fresh_constructor.
     subst_open_fresh.
@@ -187,7 +186,7 @@ Proof.
     rewrite* <- subst_open_commut_typ_p.
     rewrite* <- subst_open_commut_defs_p.
     assert (subst_ctx x p G2 & z ~ subst_typ x p (open_typ_p (pvar z) T) =
-    subst_ctx x p (G2 & z ~ open_typ_p (pvar z) T)) as Heq 
+    subst_ctx x p (G2 & z ~ open_typ_p (pvar z) T)) as Heq
     by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity).
     rewrite <- concat_assoc. rewrite Heq.
     destruct p as [p_x p_bs].
@@ -202,10 +201,10 @@ Proof.
     rewrite <- open_var_typ_eq, <- open_var_defs_eq.
     apply* H; try rewrite* concat_assoc.
     unfolds subst_ctx. rewrite map_concat. rewrite concat_assoc.
-    apply* weaken_ty_trm. 
-    simpl in Frz. eauto. 
+    apply* weaken_ty_trm.
+    simpl in Frz. eauto.
     assert (z <> x) as Hneq0 by eauto.
-    case_if; eauto. 
+    case_if; eauto.
   - Case "ty_new_elim".
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
     destruct p0. apply sel_fields_subst. auto.
@@ -227,7 +226,7 @@ Proof.
   - Case "ty_path_elim".
     destruct p0, q.
     rewrite sel_fields_subst.
-    rewrite sel_fields_subst. 
+    rewrite sel_fields_subst.
     eapply ty_path_elim; try (rewrite <- sel_fields_subst); auto.
   - Case "ty_rec_intro".
     constructor. rewrite* <- subst_open_commut_typ_p.
@@ -244,26 +243,26 @@ Proof.
     eapply ty_def_new; eauto.
     * replace (typ_bnd (subst_typ x0 p T)) with (subst_typ x0 p (typ_bnd T)) by reflexivity.
       apply inert_subst. apply i.
-    * simpl. case_if*. 
+    * simpl. case_if*.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
       case_if*. simpl. rewrite app_nil_r. reflexivity.
   - Case "ty_def_path".
     remember (p_sel (avar_f p_x) p_bs) as p in *.
-    subst_tydef_solver. 
+    subst_tydef_solver.
     case_if; case_if.
     * eapply ty_def_path.
       3: { rewrite Heqp. simpl. eauto. }
       + replace (trm_path p •• cs)
         with (trm_path (subst_var_p x0 p y) •• cs).
-        eapply H; eauto. 
+        eapply H; eauto.
         f_equal. unfold subst_var_p. case_if. reflexivity.
       + apply inert_subst. apply i.
       + intro. destruct (H5 H0).
-    * eapply ty_def_path. 
+    * eapply ty_def_path.
       3: { simpl. eauto. }
       + replace (p_sel (avar_f y) nil) with (subst_var_p x0 p y).
-        eapply H; eauto. unfold subst_var_p. case_if. reflexivity. 
+        eapply H; eauto. unfold subst_var_p. case_if. reflexivity.
       + apply inert_subst. apply i.
       + rewrite app_nil_r. apply p0.
   - Case "ty_defs_one".
@@ -285,7 +284,7 @@ Proof.
   - Case "subtyp_all".
     subst_tydef_solver.
     eapply (@subtyp_all (L \u \{ x } \u (dom (G1 & (subst_ctx x p G2)) \u (dom (G1 & x ~ S & G2))))). eauto.
-    intros x0 Hx0. 
+    intros x0 Hx0.
     assert (Hx0inL: x0 \notin L) by auto.
     assert (Hxx0: x0 <> x) by auto.
     assert (Hx0inG: x0 # (G1 & (subst_ctx x p G2))) by auto.
@@ -294,9 +293,9 @@ Proof.
     specialize (H0 x0 Hx0inL G1 (G2 & x0 ~ S2) x).
     replace (G1 & subst_ctx x p G2 & x0 ~ subst_typ x p S2)
     with (G1 & subst_ctx x p (G2 & x0 ~ S2)).
-    * eapply H0. 
+    * eapply H0.
       + rewrite concat_assoc. reflexivity.
-      + rewrite concat_assoc. constructor. 
+      + rewrite concat_assoc. constructor.
         apply H2. auto.
       + apply H3.
       + unfold subst_ctx. rewrite map_push.
@@ -304,7 +303,7 @@ Proof.
         apply weaken_ty_trm.
         apply H4. constructor; auto.
     * unfold subst_ctx. rewrite map_push.
-      rewrite concat_assoc. reflexivity. 
+      rewrite concat_assoc. reflexivity.
 Qed.
 
 (** The substitution lemma for term typing.
@@ -361,10 +360,10 @@ Lemma renaming_def_strengthen: forall G y T ds x bs P p,
     x; bs; P; G ⊢ open_defs_p p ds :: open_typ_p p T.
 Proof.
   introv Hok Hny Hny' Hy Heq Hxy Hp. lets Hn: (typed_paths_named Hp).
-  rewrite subst_intro_typ with (x:=y). 
+  rewrite subst_intro_typ with (x:=y).
   rewrite subst_intro_defs with (x:=y).
   assert (x = subst_var y x y) as Hx by (unfold subst_var; case_if*). rewrite Hx.
-  eapply subst_ty_defs. eapply Hy. all: auto. 
+  eapply subst_ty_defs. eapply Hy. all: auto.
   - apply Heq.
   - admit.
   - rewrite* <- subst_intro_typ.
@@ -383,7 +382,7 @@ Proof.
   rewrite subst_intro_typ with (x:=x). rewrite subst_intro_defs with (x:=x).
   assert (y = subst_var x y y) as Heq. admit.
   rewrite Heq at 1.
-  eapply subst_ty_defs. 
+  eapply subst_ty_defs.
 Admitted.
 
 (** Renaming the name of the opening variable for term typing. #<br>#

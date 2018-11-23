@@ -12,7 +12,7 @@ Set Implicit Arguments.
 Require Import Coq.Program.Equality List.
 Require Import Sequences.
 Require Import Definitions Binding Narrowing PreciseTyping RecordAndInertTypes Replacement
-               Subenvironments TightTyping Weakening.
+               Subenvironments Substitution TightTyping Weakening.
 
 (** ** Invertible typing *)
 
@@ -183,10 +183,14 @@ Lemma invertible_to_precise_typ_all: forall G p S T,
 Proof.
   introv Hi Hinv.
   dependent induction Hinv.
-  - repeat eexists; eauto.
+  - do 2 eexists. exists (dom G). eauto.
   - specialize (IHHinv _ _ Hi eq_refl). destruct IHHinv as [S' [T' [L' [Hp [Hs1 Hs]]]]].
-    exists  S' T' (L \u L'). repeat split; auto. eauto. (* renaming *)
-Admitted.
+    exists  S' T' (L \u L' \u dom G). repeat split; auto. eauto.
+    introv Hy. eapply subtyp_trans.
+    + eapply narrow_subtyping. apply* Hs. apply subenv_last. apply* tight_to_general.
+      apply* ok_push.
+    + eauto.
+Qed.
 
 (** ** Invertible Replacement Closure *)
 

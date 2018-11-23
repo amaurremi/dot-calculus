@@ -195,7 +195,7 @@ Qed.
 
 Lemma sngl_path_named: forall G t p,
   G ⊢ t: typ_sngl p ->
-  named_path p. 
+  named_path p.
 Proof.
 Admitted.
 
@@ -354,7 +354,7 @@ Proof.
     | [ H: _ = open_rec_trm _ _ ?t |- _ ] =>
       destruct t; inversions H;
       try (f_equal; simpl in *);
-      try (apply* open_fresh_avar_injective 
+      try (apply* open_fresh_avar_injective
         || apply* open_fresh_path_injective);
       eauto;
       match goal with
@@ -363,18 +363,18 @@ Proof.
       end
     | [ H: _ = open_rec_val _ _ ?v |- _ ] =>
       destruct v; inversions H; f_equal; simpl in *;
-      try apply* open_fresh_typ_dec_injective; 
+      try apply* open_fresh_typ_dec_injective;
       destruct_notin; eauto
     | [ H: _ = open_rec_def _ _ ?d |- _ ] =>
       destruct d; inversions H; f_equal;
-      try apply* open_fresh_typ_dec_injective; 
+      try apply* open_fresh_typ_dec_injective;
       destruct_notin; eauto
     | [ H: _ = open_rec_defs _ _ ?ds |- _ ] =>
-      destruct ds; inversions H; f_equal; 
+      destruct ds; inversions H; f_equal;
       simpl in *; destruct_notin; eauto
     | [ H: _ = open_rec_defrhs _ _ ?drhs |- _ ] =>
-      destruct drhs; inversions H; f_equal; 
-      simpl in *; destruct_notin; 
+      destruct drhs; inversions H; f_equal;
+      simpl in *; destruct_notin;
       try apply* open_fresh_path_injective; eauto
     end.
 
@@ -716,11 +716,11 @@ Proof.
 Qed.
 
 Lemma subst_defs_hasnt_label:
-  forall ds d (x : var) (y : path), 
-  defs_hasnt ds (label_of_def d) -> 
+  forall ds d (x : var) (y : path),
+  defs_hasnt ds (label_of_def d) ->
   defs_hasnt (subst_defs x y ds) (label_of_def (subst_def x y d)).
 Proof.
-  intros. rewrite <- subst_label_of_def. 
+  intros. rewrite <- subst_label_of_def.
   apply subst_defs_hasnt. apply H.
 Qed.
 
