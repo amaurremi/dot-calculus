@@ -51,21 +51,110 @@ Definition deftrm t : trm :=
   | defv v => trm_val v
   end.
 
-Lemma lookup_step_preservation_prec: forall G s p T T' t,
+Lemma lookup_step_preservation_prec1: forall G s p T U t,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
-    G ⊢! p : T ⪼ T' ->
-    G ⊢ deftrm t: T.
+    ((exists v, t = defv v) -> inert_sngl U) ->
+    G ⊢! p : T ⪼ U->
+    G ⊢ deftrm t: U.
 Proof.
-  introv Hi Hwt Hs Hp. gen T' T p t. induction Hwt; introv Hp Hs.
-  - false* lookup_empty.
-  - destruct p as [y bs].
+  introv Hi Hwt Hs Hv Hp. gen T U p t.
+  (**********************************)
+  (** induction on well-formedness **)
+  (**********************************)
+  induction Hwt; introv Hp Hs Hv.
+  - Case "G is empty".
+    false* lookup_empty.
+  - Case "G is not empty".
+    destruct p as [y bs].
     (* showing that y is named *)
     lets Hg: (precise_to_general Hp). apply typed_paths_named in Hg. inversions Hg.
     destruct_all. inversions H2.
     destruct (classicT (x = x0)).
-    * subst. rename x1 into bs. gen t v. dependent induction Hp; introv Hv Hs.
+    (************************)
+    (** Γ, x: T ⊢ x.bs ... **)
+    (************************)
+    * SCase "x = x0".
+      subst. rename x1 into bs.
+      (*********************)
+      (** induction on ⊢! **)
+      (*********************)
+      dependent induction Hp.
+      + SSCase "pf_bind".
+        apply binds_push_eq_inv in H3 as ->.
+        assert (t = defv v) as -> by admit.
+        simpl. apply* weaken_ty_trm.
+      + SSCase "pf_fld".
+        simpl_dot.
+        specialize (IHHp _ _ H0 _ _ Hi Hwt H H1 IHHwt JMeq_refl eq_refl).
+Admitted.
+
+
+Lemma lookup_step_preservation_prec2: forall G s p T t,
+    inert G ->
+    well_typed G s ->
+    s ⟦ p ⟼ t ⟧ ->
+    ((exists v, t = defv v) -> inert_sngl T) ->
+    G ⊢!!! p : T ->
+    G ⊢ deftrm t: T.
+Admitted.
+
+Lemma lookup_step_preservation_prec: forall G s p T t,
+    inert G ->
+    well_typed G s ->
+    s ⟦ p ⟼ t ⟧ ->
+    ((exists v, t = defv v) -> inert_sngl T) ->
+    G ⊢!!! p : T ->
+    G ⊢ deftrm t: T.
+Proof.
+  introv Hi Hwt Hs Hv Hp. gen T p t.
+  (**********************************)
+  (** induction on well-formedness **)
+  (**********************************)
+  induction Hwt; introv Hp Hs Hv.
+  - Case "G is empty".
+    false* lookup_empty.
+  - Case "G is not empty".
+    destruct p as [y bs].
+    (* showing that y is named *)
+    lets Hg: (precise_to_general3 Hp). apply typed_paths_named in Hg. inversions Hg.
+    destruct_all. inversions H2.
+    destruct (classicT (x = x0)).
+    (************************)
+    (** Γ, x: T ⊢ x.bs ... **)
+    (************************)
+    * SCase "x = x0".
+      subst. rename x1 into bs.
+      (***********************)
+      (** induction on ⊢!!! **)
+      (***********************)
+      dependent induction Hp.
+      + SSCase "pt3".
+        (**********************)
+        (** induction on ⊢!! **)
+        (**********************)
+        dependent induction H2.
+        ++ SSSCase "pt2".
+           (**************************)
+           (** induction on ⟦ ⟼ ⟧ **)
+           (**************************)
+           dependent induction Hs.
+           +++ SSSSCase "lookup_var".
+               apply binds_push_eq_inv in H3 as ->.
+               lets Hb: (pf_binds Hi H). apply binds_push_eq_inv in Hb as ->.
+               assert (exists w, defv v = defv w) as Hex by eauto. specialize (Hv Hex) as His.
+               assert (T = U) as -> by admit.
+               simpl. apply weaken_ty_trm; eauto.
+           +++ SSSSCase "lookup_sel_p".
+               simpl_dot. rewrite proj_rewrite in H.
+               apply pf_path_sel in H as [V [W Hp]].
+               clear Hv. simpl in *.
+
+
+Admitted. (*
+
+
       + Case "pf_bind".
         apply binds_push_eq_inv in H1. subst.
         assert (p_sel (avar_f x0) nil = pvar x0) as Heq by auto. rewrite Heq in Hs.
@@ -114,7 +203,7 @@ Proof.
    * apply pf_strengthen in Hp; auto.
      assert (inert G) as Hi' by apply* inert_prefix.
      lets Hn: (lookup_strengthen Hs n). apply* weaken_ty_trm.
-Admitted.
+Admitted.*)
 
 (** [G ~ s]                 #<br>#
     [G ⊢ p: T]              #<br>#
@@ -220,24 +309,26 @@ Lemma lookup_preservation_typ_all : forall G s t u T S,
     G ⊢ deftrm u: typ_all S T.
 Proof.
   introv Hi Hwt Hl Hp. dependent induction Hl; auto.
-  (*destruct (lookup_inv_path_t H) as [p Heq]. subst.
+  assert (exists q, a = defp q) as [q ->] by (inversions H; eauto).
   proof_recipe.
-  lets Hlp: (lookup_step_preservation_prec Hi Hwt H Hpr).
-  lets Heq: (pf_inert_lambda_U Hi Hpr). subst.
+  apply repl_to_precise_typ_all in Hp as [S' [T' [L [Hpr [Hs1 Hs2]]]]]; auto.
+  assert ((exists v, b = defv v) -> inert_sngl (typ_all S' T')) as Hex. {
+    intros _. left. auto.
+  }
+  lets Hlp: (lookup_step_preservation_prec Hi Hwt H Hex Hpr).
   apply ty_sub with (U:=typ_all S T) in Hlp. apply* IHHl.
-  fresh_constructor. apply* tight_to_general.*) admit.
-Admitted.
+  fresh_constructor. apply* tight_to_general.
+Qed.
 
-Lemma corresponding_types_fun: forall G s p S T T',
+Lemma corresponding_types_fun: forall G s p S T,
     inert G ->
     well_typed G s ->
-    G ⊢! p: typ_all S T ⪼ T' ->
+    G ⊢!!! p: typ_all S T ->
     (exists v, s ∋ (p, v) /\
             G ⊢ trm_val v : typ_all S T).
 Proof.
   introv Hi Hwt Hp.
-  pose proof (pf_forall_U Hp) as ->.
-  lets Hg: (precise_to_general Hp).
+  lets Hg: (precise_to_general3 Hp).
   destruct (typed_path_lookup Hi Hwt Hg) as [v Hs].
   inversions Hs.
   lets Ht: (lookup_preservation_typ_all Hi Hwt H1 Hg). eauto.
@@ -277,22 +368,21 @@ Qed.
     [G ∋ (p, forall(T')U')]   #<br>#
     [G ⊢ T <: T']        #<br>#
     [forall fresh y, G, y: T ⊢ U'^y <: U^y] *)
-Lemma var_typ_all_to_binds: forall G p T U,
+Lemma path_typ_all_to_binds: forall G p T U,
     inert G ->
     G ⊢ trm_path p : typ_all T U ->
-    (exists L V T' U',
-        G ⊢! p : typ_all T' U' ⪼ V /\
+    (exists L T' U',
+        G ⊢!!! p : typ_all T' U' /\
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_typ y U') <: (open_typ y U))).
 Proof.
   introv Hin Ht.
   lets Htt: (general_to_tight_typing Hin Ht).
   lets Hrepl: (replacement_closure Hin Htt).
-  destruct (repl_to_precise_typ_all Hin Hrepl) as [T' [U' [V [L [Hs1 Hs2]]]]].
-  admit. (*
-  exists L V T' U'. repeat split.
-  lets Hv: (pf_inert_lambda_U Hin Htp). subst*. apply* tight_to_general. eauto.*)
-Admitted.
+  destruct (repl_to_precise_typ_all Hin Hrepl) as [T' [U' [L [Hs1 [Hs2 Hs3]]]]].
+  exists L T' U'. repeat split; auto.
+  apply* tight_to_general.
+Qed.
 
 (** [forall] to [lambda]                 #<br>#
     [inert G]                       #<br>#
@@ -340,7 +430,7 @@ Lemma canonical_forms_fun: forall G s p T U,
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.
   introv Hin Hwt Hty.
-  destruct (var_typ_all_to_binds Hin Hty) as [L [V [S [T' [Hp [Hs1 Hs2]]]]]].
+  destruct (path_typ_all_to_binds Hin Hty) as [L [S [T' [Hp [Hs1 Hs2]]]]].
   destruct (corresponding_types_fun Hin Hwt Hp) as [v [P Hv]].
   destruct (val_typ_all_to_lambda Hin Hv) as [L' [S' [t [Heq [Hs1' Hs2']]]]].
   subst.
