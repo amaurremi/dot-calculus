@@ -494,3 +494,13 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
 where "G '⊢##v' v ':' T" := (ty_val_inv G v T).
 
 Hint Constructors ty_val_inv.
+
+Lemma path_sel_inv_v: forall G p A T q,
+    inert G ->
+    G ⊢!!! p : typ_rcd {A >: T <: T} ->
+    G ⊢##v q : typ_path p A ->
+    G ⊢##v q : T.
+Proof.
+  introv Hi Hp Hq. inversions Hq.
+  inversions H.
+Qed.
