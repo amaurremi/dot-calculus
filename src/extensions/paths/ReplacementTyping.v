@@ -708,10 +708,46 @@ Proof.
   - Case "ty_inv_rv".
     gen p q T' n. induction H; introv Hpq; introv Hr;
     try solve [invert_repl; eauto].
-    -- admit. 
-    -- invert_repl. 
-      + constructor. admit.
-      + admit. 
+    -- destruct (pfv_inert H).
+      + invert_repl. 
+        ++ eapply ty_inv_rv. 
+           eapply ty_all_invv with (L := \{}).
+           eapply ty_precise_invv. apply H.
+           apply repl_swap in H6. eauto.
+           introv Hy. auto.
+        ++ eapply ty_inv_rv.
+           eapply ty_all_invv with (L := dom G).
+           eapply ty_precise_invv. apply H.
+           auto.
+           introv Hy. 
+           eapply repl_open_var in H6; try solve_names.
+           eapply subtyp_sngl_qp. apply* weaken_ty_trm. 
+           eapply precise_to_general. apply Hpq. apply H6.
+      + invert_repl; eauto. 
+    -- invert_repl; apply ty_inv_rv. 
+       + eapply ty_all_invv with (L := L \u (dom G)).
+         * apply H.
+         * assert (Hts : G ⊢# T3 <: S2). 
+           { apply repl_swap in H8. eauto. }
+           eauto.
+         * introv Hy. eapply narrow_subtyping. 
+           apply H1. eauto.
+           assert (Hts : G ⊢ T3 <: S2). 
+           { apply tight_to_general. 
+           apply repl_swap in H8. eauto. }
+           constructor; eauto. (* narrowing *)
+       + eapply ty_all_invv with (L := L \u (dom G)).
+         * eauto.
+         * assumption. 
+         * introv Hy. eapply subtyp_trans. 
+           apply* H1. eapply repl_open_var in H8. 
+           ** eapply subtyp_sngl_qp; eauto.
+              apply precise_to_general in Hpq. 
+              apply weaken_ty_trm; eauto.
+           ** apply precise_to_general_h in Hpq as [Hq].
+              eapply sngl_path_named. apply Hq.
+           ** apply precise_to_general_h in Hpq as [Hq].
+              eapply typed_paths_named. apply Hq.
   - Case "ty_and_rv".
     invert_repl; eauto.
   - Case "ty_sel_rv".
@@ -721,7 +757,7 @@ Proof.
   - Case "ty_sel_qp_rv".
     lets ?: (ty_sel_qp_rv H Hv H0).
     invert_repl; eauto. 
-Admitted.
+Qed.
 
 Lemma replacement_repl_closure_qp2_v : forall G p q r T T' n,
     inert G ->
@@ -813,7 +849,7 @@ Proof.
   introv Hi Hp Hqr.
   gen q r n T'. induction Hp; introv Hq; introv Hr; eauto.
    - Case "ty_inv_r".
-     constructor. admit. (* apply* invertible_repl_closure_v. *)
+     constructor. apply* invertible_repl_closure_v.
    - Case "ty_and_r".
      invert_repl; eauto.
    - Case "ty_sel_r".
@@ -833,7 +869,7 @@ Proof.
     specialize (IHHp Hi _ _ Hq 0).
     assert (n0 = 0) as Heq by inversion* Hr. assert (n = 0) as Heq' by inversion* H0. subst.
     eapply (replacement_repl_closure_pq_v_helper Hi Hp H Hq); eauto.
-Admitted.
+Qed.
 
 Lemma replacement_repl_closure_pq2_v : forall G p q r T T' n,
     inert G ->
@@ -939,7 +975,7 @@ Proof.
   - apply* path_sel_repl_v.
   - apply* path_sel_repl_inv_v.
   - dependent induction HT. constructor*.
-Admitted.
+Qed.
 
 Lemma tight_to_repl_v : forall G v T,
     inert G ->
