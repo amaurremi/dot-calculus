@@ -67,7 +67,7 @@ Lemma defs_has_open ds d p :
   defs_has ds d ->
   defs_has (open_defs_p p ds) (open_def_p p d).
 Proof.
-Admitted.
+Admitted. (* by induction on ds *)
 
 Lemma defs_invert_trm x bs P G d a T :
   x; bs; P; G ⊢ d : {a ⦂ T} ->
@@ -85,10 +85,18 @@ Qed.
 
 Lemma val_field_typing x bs P G a v T :
   x; bs; P; G ⊢ {a :=v v} : {a ⦂ T} ->
+  G ⊢ trm_path (p_sel (avar_f x) bs) • a : T ->
   G ⊢ trm_val v : T.
 Proof.
-  intros Hd. dependent induction Hd. eauto.
-  admit. Admitted.
+  intros Hd Hp. dependent induction Hd. eauto.
+  fresh_constructor.
+  Admitted. (* tricky *)
+
+Lemma typ_bnd_record_has_typing G p T D :
+  G ⊢ trm_path p : T ->
+  record_has T D ->
+  G ⊢ trm_path p : typ_rcd D.
+Proof. Admitted. (* by induction on record_has *)
 
 Lemma object_typing G ds a t p T V :
   inert G ->
@@ -104,13 +112,14 @@ Proof.
   pick_fresh x. assert (x \notin L) as Hx by auto.
   specialize (H1 x Hx).
   destruct (typed_paths_named Hp) as [px [pbs Heq]].
-  assert (px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p T) as Hds_p by admit.
+  assert (px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p T) as Hds_p by admit. (* renaming *)
   destruct (record_has_ty_defs Hds_p Hr) as [d [Hdh Hdt]].
   apply (defs_has_open p) in Hds. destruct (defs_invert_trm Hdt) as [t' ->].
   unfold open_def_p in Hds. simpl in *.
   pose proof (defs_has_inv Hds Hdh) as <-. destruct t as [q | v]; simpl in *.
   - inversion* Hdt.
   - left. eexists; split; eauto. apply* val_field_typing.
+    constructor. apply ty_rec_elim in Hp. eapply typ_bnd_record_has_typing; subst*.
 Qed.
 
 Lemma object_typing' G ds a t p T U V :
@@ -142,102 +151,91 @@ Proof.
     apply repl_composition_sub in Hrc'. apply repl_composition_sub in Hrc. destruct_all. eauto.
 Qed.
 
-Lemma def_singleton_typing G ds a p q T U V :
-  inert G ->
-  G ⊢ trm_val (val_new T ds) : typ_bnd U ->
-  defs_has ds {a := defp p} ->
-  record_has (open_typ_p q U) {a ⦂ V} ->
-  is_sngl V.
-Proof. Admitted.
-
 Lemma lookup_step_preservation_prec1: forall G s p t T U,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
     G ⊢! p : T ⪼ U ->
+    (exists v, t = defv v /\ G ⊢ trm_val v : T) \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
                repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl (open_path_p p q))) \/
-    (exists v, t = defv v /\ G ⊢ trm_val v : T).
+               repl_composition_qp G (typ_sngl r') (typ_sngl (open_path_p p q))).
 Proof.
   introv Hi Hwt. gen p t T U.
-  (**********************************)
   (** induction on well-formedness **)
-  (**********************************)
   induction Hwt; introv Hs Hp.
   - Case "G is empty".
     false* lookup_empty.
   - Case "G is not empty".
     destruct p as [y bs].
     (* showing that y is named *)
-    assert (exists x0, y = avar_f x0) as [x0 ->] by admit.
+    assert (exists x0, y = avar_f x0) as [x0 ->] by admit. (* later when we figure out how to make env closed *)
     destruct (classicT (x = x0)).
-    (************************)
-    (** Γ, x: T ⊢ x.bs ... **)
-    (************************)
     * SCase "x = x0".
       subst.
-      (*********************)
       (** induction on ⟦→⟧ **)
-      (*********************)
       gen T U T0.
       dependent induction Hs; introv Hi Hv; introv Hp; try simpl_dot; try rewrite proj_rewrite in *.
       + SSCase "lookup_var".
         apply binds_push_eq_inv in H as ->.
-        right. exists v.
+        left. exists v.
         lets Hb: (pf_binds Hi Hp). pose proof (binds_push_eq_inv Hb) as ->.
         apply binds_inert in Hb; auto. repeat split*. apply* weaken_ty_trm.
       + SSCase "lookup_sel_p".
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ _ JMeq_refl eq_refl Hwt H0 H IHHwt _ Hi Hv _ _ Hp')
-          as [[? [? [? [[= ->] [-> [? ?]]]]]] | [_ [[=] _]]].
+          as [[_ [[=] _]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
         apply pf_sngl_U in Hp'. inversion Hp'.
       + SSCase "lookup_sel_v".
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ _ JMeq_refl eq_refl Hwt H0 H1 IHHwt _ Hi Hv _ _ Hp')
-          as [[? [? [? [[= ->] [-> [? [? ?]]]]]]] | [v' [[= <-] Hv']]].
+          as [[v' [[= <-] Hv']] | [? [? [? [[= ->] [-> [? [? ?]]]]]]]].
         pose proof (pf_bnd_T2 Hi Hp') as [T' ->].
         destruct (object_typing' Hi Hv' H Hp') as [[w [-> Hvt]] | [q1 [r1 [r1' [S' [-> [-> [Hrc1 [Hrc1' Hst]]]]]]]]].
-        ++ right. eexists. split*.
-        ++ left. exists (open_path_p (p_sel (avar_f x0) f) q1) r1 r1'. repeat split*.
+        ++ left. eexists. split*.
+        ++ right. exists (open_path_p (p_sel (avar_f x0) f) q1) r1 r1'. repeat split*.
            rewrite* open_idempotent.
-    * apply pf_strengthen in Hp; auto. apply lookup_strengthen in Hs; auto.
+    * SCase "x <> x0".
+      apply pf_strengthen in Hp; auto. apply lookup_strengthen in Hs; auto.
       specialize (IHHwt (inert_prefix Hi) _ _ _ _ Hs Hp)
-        as [[? [? [? [[= ->] [-> [? ?]]]]]] | [? [? ?]]].
-      + left. exists x1 x2 x3. repeat split*; apply* repl_composition_weaken.
-      + right. eexists; split*. apply* weaken_ty_trm.
+        as [[w [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
+      + left. eexists; split*. apply* weaken_ty_trm.
+      + right. exists x1 x2 x3. repeat split*; apply* repl_composition_weaken.
 Qed.
-
-(*Lemma lookup_step_preservation_prec1': forall G s p T U t,
-    inert G ->
-    well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
-    ((exists v, t = defv v) -> inert_typ U) ->
-    G ⊢! p : T ⪼ U->
-    G ⊢ deftrm t: U.
-Proof.
-  introv Hi Hwt Hs Hv Hp.
-  destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp) as [[q [-> [[? ->] Hq]]] | [w [-> Hw]]].
-  - pose proof (pf_sngl_U Hp) as ->. auto.
-  - simpl. assert (exists v0, defv w = defv v0) as Hex by eauto. specialize (Hv Hex). inversions Hv.
-      + apply (pf_forall_T Hi) in Hp as [= ->]. auto.
-      + apply (pf_bnd_T Hi) in Hp as [= ->]. auto.
-Qed.*)
 
 Lemma lookup_step_preservation_prec2: forall G s p t T,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
     G ⊢!! p : T ->
+    ((exists v, t = defv v) -> inert_typ T) ->
+    (exists v, t = defv v /\ G ⊢ trm_val v : T) \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
                repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl (open_path_p p q))) \/
-    (exists v, t = defv v /\ G ⊢ trm_val v : T).
+               repl_composition_qp G (typ_sngl r') (typ_sngl (open_path_p p q))).
 Proof.
-  introv Hi Hwt Hs Hp. gen s t. induction Hp; introv Hwt; introv Hs.
-  - Admitted.
+  introv Hi Hwt Hs Hp Hv. gen s t. induction Hp; introv Hwt; introv Hs Hv.
+  - destruct (lookup_step_preservation_prec1 Hi Hwt Hs H)
+      as [[v' [-> Hv']] | [? [? [? [[= ->] [-> [? ?]]]]]]].
+     * left. assert (exists v, defv v' = defv v) as Hex by eauto. apply Hv in Hex.
+       assert (T = U) as ->. {
+         inversions Hex. apply* pf_forall_T. apply* pf_bnd_T.
+       }
+       eauto.
+    * pose proof (pf_sngl_U H) as ->. right. repeat eexists; eauto.
+  - clear IHHp2.
+    inversions Hs; simpl_dot.
+    * assert ((exists v, defp q0 = defv v) -> inert_typ (typ_sngl q)) as Hex by intros [? [= ->]].
+      specialize (IHHp1 Hi _ Hwt _ H1 Hex) as [[? [[=] ?]] | [q' [r [r' [[= <-] [<- [Hrc1 Hrc2]]]]]]].
+      clear Hex. left.
+      exists (q0 • a) (q • a) (r' • a). repeat split*.
+      { apply* repl_composition_fld_elim. admit. (* for that we need to fix named-var problem *) }
+
+
+
+Admitted. (* TODO (MR) *)
 (*
 Lemma lookup_step_preservation_prec2: forall G s p T t,
     inert G ->
