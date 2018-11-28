@@ -1,6 +1,7 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
+Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
             OperationalSemantics PreciseTyping RecordAndInertTypes Substitution Weakening.
 
@@ -156,4 +157,31 @@ Proof.
   - Case "ty_let".
     right. destruct t; try solve [solve_let_prog].
     pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
+Qed.
+
+
+(** * Safety *)
+
+Theorem safety_helper G t1 t2 s1 s2 T :
+  G ⊢ t1 : T ->
+  inert G ->
+  well_typed G s1 ->
+  star red (s1, t1) (s2, t2) ->
+  (exists s3 t3, (s2, t2) |-> (s3, t3)) \/ norm_form t2.
+Proof.
+  intros Ht Hi Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwt; introv Ht.
+  - assert (⊢ (s2, t2) : T) as Ht' by eauto.
+    destruct (progress Ht'); eauto.
+  - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
+    assert (⊢ (s1, t1) : T) as Ht1 by eauto.
+    lets Hpr: (preservation Ht1 H). inversions Hpr.
+    dependent induction H; eauto.
+Qed.
+
+Theorem safety t u s T :
+  empty ⊢ t : T ->
+  star red (empty, t) (s, u) ->
+  (exists s' u', (s, u) |-> (s', u')) \/ norm_form u.
+Proof.
+  intros Ht Hr. apply* safety_helper. constructor.
 Qed.

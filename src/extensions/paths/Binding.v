@@ -862,3 +862,9 @@ Proof.
   repeat eexists. rewrite* concat_empty_r.
   specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
 Qed.
+
+Lemma open_idempotent p q x bs :
+  open_path_p p (open_path_p (p_sel (avar_f x) bs) q) = open_path_p (p_sel (avar_f x) bs) q.
+Proof.
+  destruct q. destruct a; simpl; destruct p; eauto. case_if; subst; simpl; eauto. case_if*.
+Qed.

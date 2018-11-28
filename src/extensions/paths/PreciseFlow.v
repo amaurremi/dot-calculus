@@ -672,3 +672,21 @@ Proof.
   introv Hi Hp. dependent induction Hp; try simpl_dot; eauto.
   destruct (pf_bnd_T2 Hi Hp) as [V Heq]. subst. eauto.
 Qed.
+
+Lemma pf_invert_fld G p a T U :
+  G ⊢! p • a : T ⪼ U ->
+  exists V, G ⊢! p : V ⪼ typ_rcd { a ⦂ T }.
+Proof.
+  intros Hp. dependent induction Hp; try simpl_dot; eauto.
+Qed.
+
+Lemma pf_weaken G p T U x V :
+  ok G ->
+  x # G ->
+  G ⊢! p : T ⪼ U ->
+  G & x ~ V ⊢! p : T ⪼ U.
+Proof.
+  introv Hok Hx Hp. dependent induction Hp; eauto. apply pf_bind.
+  - apply* ok_push.
+  - apply* binds_push_neq. intros ->. eapply binds_fresh_inv; eauto.
+Qed.

@@ -177,13 +177,17 @@ Ltac proof_recipe :=
   | [ Hg: ?G ⊢ _ : _,
       Hi: inert ?G |- _ ] =>
     apply (general_to_tight_typing Hi) in Hg;
-    apply (replacement_closure Hi) in Hg;
+    ((apply (replacement_closure Hi) in Hg) || (apply (replacement_closure_v Hi) in Hg));
     try lets Hok: (inert_ok Hi);
     try match goal with
-        | [ Hinv: ?G ⊢// _ : typ_all _ _,
+        | [ Hr: ?G ⊢// _ : typ_all _ _,
             Hok: ok ?G |- _ ] =>
-          destruct (repl_to_precise_typ_all Hok Hinv) as [Spr [Tpr [Upr [Lpr [Hpr [Hspr1 Hspr2]]]]]]
-        | [ Hinv: ?G ⊢// _ : typ_rcd { _ ⦂ _ } |- _ ] =>
-          destruct (repl_to_precise_trm_dec Hinv) as [Tpr [Upr [Hpr Hspr]]]
+          destruct (repl_to_precise_typ_all Hok Hr) as [Spr [Tpr [Upr [Lpr [Hpr [Hspr1 Hspr2]]]]]]
+        | [ Hr: ?G ⊢// _ : typ_rcd { _ ⦂ _ } |- _ ] =>
+          destruct (repl_to_precise_trm_dec Hr) as [Tpr [Upr [Hpr Hspr]]]
+        | [ Hrv: ?G ⊢//v _ : typ_bnd _,
+            Hok: ok ?G |- _ ] =>
+          apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
+          apply (invertible_to_precise_obj Hi) in Hrv as [Hrv Hrc']
         end
   end.

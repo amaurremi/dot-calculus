@@ -232,7 +232,7 @@ Proof.
   lets ->: (pf_pt2_sngl Hi Hpvs Hp). clear Hp.
   dependent induction Hpf; try simpl_dot; eauto.
   lets Heq: (pf_T_unique Hi Hpvs Hpf). subst. apply pf_sngl_U in Hpf as[=].
-Qed.  
+Qed.
 
 Lemma pt2_sngl_exists: forall G p q T,
     inert G ->
@@ -257,11 +257,11 @@ Proof.
   - lets ->: (pf_sngl_T Hi H). dependent induction Ht; eauto.
     * lets Heq: (pf_T_unique Hi H H0). subst.
       apply pf_sngl_U in H0 as [=]. auto.
-    * lets Contra: (pf_pt2_sngl_invert _ Hi Ht1 H). inversion Contra.      
+    * lets Contra: (pf_pt2_sngl_invert _ Hi Ht1 H). inversion Contra.
   - specialize (IHHp1 _ Hi eq_refl). gen q U.
     dependent induction Ht; introv Hpq IH1; introv Hqa IH2.
     * lets Contra: (pf_pt2_sngl_invert _ Hi Hpq H). inversion Contra.
-    * simpl_dot. f_equal. eauto.      
+    * simpl_dot. f_equal. eauto.
 Qed.
 
 Lemma pt2_sngl_unique' G p q T :
@@ -395,7 +395,7 @@ Proof.
   - destruct (pf_bnd_T2 Hi Hp) as [U Heq]. subst. destruct (pf_rec_rcd_U Hi Hp).
     * inversion H.
     * inversions H. inversions H0. clear IHHp.
-      
+
       admit.
       (* here we change the def of inertness and get what we want? *)
 Admitted.
@@ -508,7 +508,7 @@ Proof.
   - constructor.
     assert (inert_sngl (typ_sngl q)) as His. {
       right. eexists. eauto.
-    }        
+    }
     lets ->: (pt2_sngl_unique' Hi Hpq H). destruct Hr.
     inversion His. inversion H1. inversion H0. inversion H0. inversion H1.
   - specialize (IHHp Hi Hr).
@@ -598,6 +598,34 @@ Proof.
     repeat eexists; eauto.
 Qed.
 
+Lemma repl_comp_bnd: forall G T T',
+    repl_composition_qp G T T' ->
+    repl_composition_qp G (typ_bnd T) (typ_bnd T').
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - apply star_trans with (b:=typ_bnd b); auto. apply star_one.
+    unfolds typed_repl_comp_qp. destruct_all.
+    repeat eexists; eauto.
+Qed.
+
+Lemma repl_comp_record_has1 G T U V a :
+  repl_composition_qp G T U ->
+  record_has T { a ⦂ V } ->
+  exists V', record_has U { a ⦂ V' } /\ repl_composition_qp G V V'.
+Proof. Admitted.
+
+Lemma repl_comp_record_has2 G T U V a :
+  repl_composition_qp G T U ->
+  record_has U { a ⦂ V } ->
+  exists V', record_has T { a ⦂ V' } /\ repl_composition_qp G V' V.
+Proof. Admitted.
+
+Lemma repl_composition_open G T U p :
+  repl_composition_qp G T U ->
+  repl_composition_qp G (open_typ_p p T) (open_typ_p p U).
+Proof. Admitted.
+
 Lemma repl_composition_sngl: forall G p q T,
     inert G ->
     repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
@@ -637,6 +665,19 @@ Proof.
   - right. destruct (sngl_typed3 Hi Hp) as [S' Hqbs].
     lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
 Admitted.
+
+Lemma repl_composition_weaken G p q x T :
+  ok G ->
+  x # G ->
+  repl_composition_qp G p q ->
+  repl_composition_qp (G & x ~ T) p q.
+Proof.
+  intros Hok Hn Hr. gen x T. dependent induction Hr; intros.
+  - constructor.
+  - destruct H as [r [q [n [Hrq Hr']]]].
+    eapply star_trans. apply star_one. econstructor. repeat eexists. apply* pf_weaken.
+    apply Hr'. apply* IHHr.
+Qed.
 
 Lemma field_typing_comp1: forall G r q a U,
   inert G ->

@@ -258,6 +258,26 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
+Lemma record_has_open T a U p :
+  record_has T { a ⦂ U } ->
+  exists V, record_has (open_typ_p p T) { a ⦂ V }.
+Proof.
+  intros Hr. dependent induction Hr.
+  - eexists. econstructor.
+  - specialize (IHHr _ _ eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
+  - specialize (IHHr _ _ eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
+Qed.
+
+Lemma record_has_close T a U p :
+  record_has (open_typ_p p T) { a ⦂ U } ->
+  exists V, record_has T { a ⦂ V }.
+Proof.
+  intros Hr. dependent induction Hr; destruct T; inversions x.
+  - destruct d; inversions H0. eexists. econstructor.
+  - specialize (IHHr _ _ _ _ eq_refl eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
+  - specialize (IHHr _ _ _ _ eq_refl eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
+Qed.
+
 Lemma record_has_sel_typ: forall G p T a U,
     G ⊢ trm_path p : T ->
     record_has T {a ⦂ U} ->
