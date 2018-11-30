@@ -120,7 +120,7 @@ Proof.
   - inversion* Hdt.
   - left. eexists; split; eauto. apply* val_field_typing.
     constructor. apply ty_rec_elim in Hp. eapply typ_bnd_record_has_typing; subst*.
-Qed.
+Admitted.
 
 Lemma object_typing' G ds a t p T U V :
   inert G ->
@@ -202,7 +202,7 @@ Proof.
         as [[w [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
       + left. eexists; split*. apply* weaken_ty_trm.
       + right. exists x1 x2 x3. repeat split*; apply* repl_composition_weaken.
-Qed.
+Admitted.
 
 Lemma lookup_step_preservation_prec2: forall G s p t T,
     inert G ->
@@ -230,8 +230,9 @@ Proof.
     * assert ((exists v, defp q0 = defv v) -> inert_typ (typ_sngl q)) as Hex by intros [? [= ->]].
       specialize (IHHp1 Hi _ Hwt _ H1 Hex) as [[? [[=] ?]] | [q' [r [r' [[= <-] [<- [Hrc1 Hrc2]]]]]]].
       clear Hex. left.
+      (*
       exists (q0 • a) (q • a) (r' • a). repeat split*.
-      { apply* repl_composition_fld_elim. admit. (* for that we need to fix named-var problem *) }
+      { apply* repl_composition_fld_elim. admit. (* for that we need to fix named-var problem *) } *)
 
 
 
