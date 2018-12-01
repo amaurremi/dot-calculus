@@ -126,7 +126,7 @@ Proof.
   - inversion* Hdt.
   - left. eexists; split; eauto. apply* val_field_typing.
     constructor. apply ty_rec_elim in Hp. eapply typ_bnd_record_has_typing; subst*.
-Qed.
+Admitted.
 
 Lemma object_typing' G ds a t p px pbs T U V :
   inert G ->
@@ -211,7 +211,7 @@ Proof.
         as [[w [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
       + left. eexists; split*. apply* weaken_ty_trm.
       + right. exists x1 x2 x3. repeat split*; apply* repl_composition_weaken.
-Qed.
+Admitted.
 
 Lemma lookup_step_preservation_prec2: forall G s p t T,
     inert G ->
@@ -315,7 +315,6 @@ Proof.
   introv Hi Hp. gen q. induction Hp; introv Hpq Hin.
   - false* pt2_inert_pt3_sngl_false.
   - apply* IHHp. Admitted.
-Qed.
 
 Lemma lookup_step_preservation_prec3: forall G s p T t U,
     inert G ->
@@ -551,7 +550,7 @@ Qed.
     [v = lambda(T')t]               #<br>#
     [G ⊢ T <: T']                   #<br>#
     [forall fresh y, G, y: T ⊢ t^y: U^y] *)
-qLemma val_typ_all_to_lambda: forall G v T U,
+Lemma val_typ_all_to_lambda: forall G v T U,
     inert G ->
     G ⊢ trm_val v : typ_all T U ->
     (exists L T' t,
