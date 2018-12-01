@@ -26,6 +26,19 @@ Lemma hasnt_notin : forall x bs P G ds ls l U,
     l \notin ls.
 Proof.
 
+Lemma defs_has_open ds d p :
+  defs_has ds d ->
+  defs_has (open_defs_p p ds) (open_def_p p d).
+Proof.
+  introv Hd. gen d p; induction ds; introv Hd; introv; inversions Hd.
+  case_if.
+  - inversions H0. unfold open_defs_p. simpl. unfold open_def_p. unfold defs_has. simpl.
+    case_if*.
+  - specialize (IHds _ H0). unfold defs_has. simpl. case_if.
+    * destruct d, d0; false* C.
+    * apply* IHds.
+Qed.
+
   Ltac inversion_def_typ :=
     match goal with
     | H: _; _; _; _ ⊢ _ : _ |- _ => inversions H
@@ -307,4 +320,11 @@ Lemma inert_prefix: forall G x T,
     inert G.
 Proof.
   introv Hi. inversions Hi. false* empty_push_inv. lets Heq: (eq_push_inv H); destruct_all; subst*.
+Qed.
+
+Lemma inert_last G x T :
+  inert (G & x ~ T) ->
+  inert_typ T.
+Proof.
+  intros Hi. inversions Hi. false* empty_push_inv. apply eq_push_inv in H as [-> [-> _]]. auto.
 Qed.

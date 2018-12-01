@@ -988,30 +988,37 @@ Proof.
   apply* invertible_typing_closure_tight_v.
 Qed.
 
-Lemma repl_to_invertible_obj G T U ds :
+Lemma repl_to_invertible_obj G U v :
   inert G ->
-  G ⊢//v val_new T ds : typ_bnd U ->
-  exists U', G ⊢##v val_new T ds : typ_bnd U' /\ repl_composition_qp G U' U.
+  G ⊢//v v : typ_bnd U ->
+  exists U', G ⊢##v v : typ_bnd U' /\ repl_composition_qp G U' U.
 Proof.
   intros Hi Hv. dependent induction Hv.
   - exists U. split*. constructor.
-  - specialize (IHHv _ _ _ Hi eq_refl eq_refl) as [U' [Hinv Hrc]].
+  - specialize (IHHv _ Hi eq_refl) as [U' [Hinv Hrc]].
     eexists. split.
     * eauto.
     * eapply star_trans. apply Hrc. apply star_one. econstructor. repeat eexists.
       apply H. eauto.
 Qed.
 
-Lemma invertible_to_precise_obj G T U ds :
+Lemma invertible_to_precise_obj G U v :
   inert G ->
-  G ⊢##v val_new T ds : typ_bnd U ->
-  G ⊢!v val_new T ds : typ_bnd T /\ repl_composition_qp G U T.
+  G ⊢##v v : typ_bnd U ->
+  exists T, G ⊢!v v : typ_bnd T /\ repl_composition_qp G U T.
 Proof.
   intros Hi Hv. dependent induction Hv.
-  - inversions H. split*. constructor.
-  - specialize (IHHv _ _ _ Hi eq_refl eq_refl) as [Hinv Hrc].
-    split.
+  - inversions H. eexists. split*. constructor.
+  - specialize (IHHv _ Hi eq_refl) as [T' [Hinv Hrc]].
+    eexists. split.
     * eauto.
     * eapply star_trans. apply star_one. econstructor. repeat eexists. apply H. apply* repl_swap.
       apply Hrc.
+Qed.
+
+Lemma repl_to_invertible_val_sngl G U v :
+  G ⊢//v v : typ_sngl U ->
+  False.
+Proof.
+  intros Hv. dependent induction Hv. dependent induction H. inversion H.
 Qed.

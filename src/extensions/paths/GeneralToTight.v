@@ -188,6 +188,10 @@ Ltac proof_recipe :=
         | [ Hrv: ?G ⊢//v _ : typ_bnd _,
             Hok: ok ?G |- _ ] =>
           apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
-          apply (invertible_to_precise_obj Hi) in Hrv as [Hrv Hrc']
+          apply (invertible_to_precise_obj Hi) in Hrv as [U'' [Hrv Hrc']];
+          try match goal with
+              | [ Hv: _ ⊢!v val_new ?T _ : typ_bnd ?U |- _ ] =>
+                assert (T = U) as <- by (inversion Hv; subst*)
+              end
         end
   end.
