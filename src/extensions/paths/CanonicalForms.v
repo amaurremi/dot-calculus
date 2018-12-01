@@ -239,94 +239,21 @@ Proof.
       proof_recipe. apply (pf_sngl_T Hi) in Hp' as ->. false* repl_to_invertible_val_sngl.
 Admitted.
 
-Lemma pt2_var_sngl G x p :
-  inert G ->
-  G ⊢!! pvar x : typ_sngl p ->
-  False.
-Proof.
-  intros Hi Hp. dependent induction Hp; try simpl_dot.
-  pose proof (pf_sngl_T Hi H) as ->. apply (pf_binds Hi) in H.
-  apply (binds_inert H) in Hi. inversion Hi.
-Qed.
-
-Lemma pt3_var_sngl G x p :
-  inert G ->
-  G ⊢!!! pvar x : typ_sngl p ->
-  False.
-Proof.
-  intros Hi Hp. dependent induction Hp; false* pt2_var_sngl.
-Qed.
-
-Lemma pt1_inert_pt2_sngl_false G p q T U :
-  inert G ->
-  G ⊢! p : T ⪼ U ->
-  G ⊢!! p : typ_sngl q ->
-  inert_typ T ->
-  False.
-Proof.
-  intros Hi Hp Hq Hin. gen q. dependent induction Hp; eauto; introv Hpq.
-  - false* pt3_var_sngl.
-  - lets Hp': (pf_fld Hp). pose proof (pf_pt2_sngl Hi Hp' Hpq) as ->. inversion Hin.
-Qed.
-
-Lemma pt1_inert_pt3_sngl_false G p q T U :
-  inert G ->
-  G ⊢! p : T ⪼ U ->
-  G ⊢!!! p : typ_sngl q ->
-  inert_typ T ->
-  False.
-Proof.
-  intros Hi Hp Hq Hin. gen T U. dependent induction Hq; introv Hin; introv Hp;
-  apply* pt1_inert_pt2_sngl_false.
-Qed.
-
-Lemma pt2_inert_pt3_sngl_false G p q T :
-  inert G ->
-  G ⊢!! p : T ->
-  G ⊢!!! p : typ_sngl q ->
-  inert_typ T ->
-  False.
-Proof.
-  intros Hi Hp Hpq Hin. gen q. induction Hp; introv Hpq.
-  - apply* pt1_inert_pt3_sngl_false. destruct Hin. apply pf_forall_T in H as ->; auto.
-    pose proof (pf_bnd_T Hi H) as ->. apply pf_inert in H; auto. inversions H; eauto.
-  - inversion Hin.
-Qed.
-
-Lemma pt3_inert_pt2_sngl_invert G p q T :
-  inert G ->
-  G ⊢!!! p : T ->
-  G ⊢!! p : typ_sngl q ->
-  inert_typ T ->
-  G ⊢!!! q : T.
-Proof.
-  intros Hi Hp Hpq Hin. gen q. induction Hp; introv Hpq.
-  - pose proof (pt2_sngl_unique' Hi Hpq H) as ->. inversion Hin.
-  - pose proof (pt2_sngl_unique Hi H Hpq) as ->. eauto.
-Qed.
-
-Lemma pt3_inert_sngl_invert G p q T :
-  inert G ->
-  G ⊢!!! p : T ->
-  G ⊢!!! p : typ_sngl q ->
-  inert_typ T ->
-  G ⊢!!! q : T.
-Proof.
-  introv Hi Hp. gen q. induction Hp; introv Hpq Hin.
-  - false* pt2_inert_pt3_sngl_false.
-  - apply* IHHp. Admitted.
-
-Lemma lookup_step_preservation_prec3: forall G s p T t U,
+Lemma lookup_step_preservation_prec3: forall G s p T t,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
-    G ⊢!!! p : typ_all T U ->
-    G ⊢ deftrm t : typ_all T U.
+    G ⊢!!! p : T ->
+    inert_typ T ->
+    G ⊢ deftrm t : T.
 Proof.
-  introv Hi Hwt Hs Hp. gen t. dependent induction Hp; introv Hs;
+  introv Hi Hwt Hs Hp. gen t. dependent induction Hp; introv Hs Hin;
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs H)
                                 as [[v' [U' [-> [Hv' Hp']]]] | [q' [r [r' [-> [[= ->] [Hrc1 Hrc2]]]]]]]; simpl.
-  - apply pf_forall_T in Hp' as ->; auto.
+  - inversions Hin.
+    * apply pf_forall_T in Hp' as ->; auto.
+    * apply pf_bnd_T in Hp' as ->; auto.
+  - inversion Hin.
   - apply pf_sngl_T in Hp' as ->; auto. proof_recipe. false* repl_to_invertible_val_sngl.
   - clear IHHp.
     assert (exists V, G ⊢!!! q' : V) as [V Hq'] by admit. (* naming stuff *)

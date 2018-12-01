@@ -1,14 +1,17 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-TLCDIR=../../../lib/tlc
-DOCDIR=../doc
+LEROYDIR=../../../lib/leroy
+LFDIR=../../../lib/lf
+DOCDIR=doc
 
-TLCSRC=$(TLCDIR)/src
-LIBLN=$(TLCSRC)/LibLN.vo
-TLCNAME=TLC
+LEROYSRC=$(LEROYDIR)
+LEROYNAME=compiler
 
-COQINCLUDE=-R $(TLCSRC) $(TLCNAME) -R . \"\"
+LFSRC=$(LFDIR)
+LFNAME=LF
+
+COQINCLUDE=-R $(LFSRC) $(LFNAME) -R $(LEROYSRC) $(LEROYNAME) -R . \"\"
 COQMAKEFILE=$(COQBIN)coq_makefile
 
 PROOFMAKEFILE=Makefile.coq
@@ -37,16 +40,23 @@ cleanall::
 
 doc: $(DOCDIR)/toc.html
 
-%.vo: %.v
+%.vo:
 	$(MAKE) -f $(PROOFMAKEFILE) $@
 
 all doc clean: $(PROOFMAKEFILE)
 %vo: $(PROOFMAKEFILE)
 
-all: $(LIBLN)
-doc: $(LIBLN)
-proofs: $(LIBLN)
-%vo: $(LIBLN)
+#################
+# Leroy Library #
+#################
+
+all: $(LEROYNAME)
+doc: $(LEROYNAME)
+proofs: $(LEROYNAME)
+%vo: $(LEROYNAME)
+	  
+$(LEROYNAME): $(wildcard $(LEROYSRC)/*.v)
+	       $(MAKE) -C $(LEROYDIR)
 
 #############
 # IDE Setup #
@@ -61,9 +71,6 @@ _CoqProject:
 ########################
 # Library Dependencies #
 ########################
-
-$(LIBLN): $(wildcard $(TLCSRC)/*.v)
-	$(MAKE) -C $(TLCDIR)
 
 ###################
 # Forced Rebuilds #
@@ -120,19 +127,19 @@ DPDDOT=$(DPDFILENAME:=.dot)
 DPDEXCLUDE ?=
 DPDMODULES=$(filter-out $(DPDEXCLUDE), $(DPDMODALL))
 
-DPDTEXT=Require dpdgraph.dpdgraph. Require LibLN. Require Coq.Program.Equality.
+DPDTEXT=Require dpdgraph.dpdgraph. Require TLC.LibLN. Require Coq.Program.Equality.
 DPDTEXT+=Require $(DPDMODULES).
 DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
 DPDTEXT+=Print FileDependGraph $(DPDMODULES).
 
-$(DPDFILENAME): $(shell coqdep -sort $(FILES)) all
-	echo $(DPDTEXT) | coqtop -R $(TLCSRC) $(TLCNAME) -notop
+$(DPDFILENAME): $(shell coqdep -sort $(FILES))
+	echo $(DPDTEXT) | coqtop 
 
 $(DPDDOT): $(DPDFILENAME)
 	dpd2dot -without-defs $<
 	dpdusage $<
 
-.PHONY: dpdraw $(DPDOT) $(DPDFILENAME)
+.PHONY: dpdraw
 dpdraw: $(DPDDOT)
 
 DPDFILTER=dpdgraph.dpd
@@ -143,7 +150,7 @@ $(DPDFILDOT): $(DPDFILTER)
 $(DPDFILTER): $(DPDFILENAME)
 	grep -P '(kind=construct|^N: [0-9]+ "[^"]*(_ind|mutind|_mut)")' $(DPDFILENAME) | sed -e "s|^N: \([0-9][0-9]*\) .*|\1|g" | paste -sd "|" | xargs -I {} grep -P -v "^((E: ({}) )|(E: [0-9]+ ({}) )|(N: ({}) ))" $(DPDFILENAME) > $(DPDFILTER)
 
-.PHONY: dpdgraph $(DPDFILDOT) $(DPDFILTER)
+.PHONY: dpdgraph
 dpdgraph: $(DPDFILDOT)
 
 cleanall::

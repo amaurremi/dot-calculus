@@ -10,7 +10,7 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
+Require Import TLC.LibLN.
 Require Import String.
 
 Parameter typ_label: Set.
