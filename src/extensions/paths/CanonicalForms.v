@@ -52,6 +52,8 @@ Definition deftrm t : trm :=
   | defv v => trm_val v
   end.
 
+(** * Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢! p: T] imply [Γ ⊢ t: T] *)
+
 Lemma repl_composition_sub G T U :
   repl_composition_qp G T U ->
   G ⊢ T <: U /\ G ⊢ U <: T.
@@ -264,6 +266,40 @@ Proof.
     * apply* pt3_sngl_trans3. apply* pt3_inert_sngl_invert.
 Qed.
 
+(** * Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
+
+Lemma path_lookup_inside_value_typing G x bs P ds T a t U :
+  inert G ->
+  x; bs; P; G ⊢ ds :: T ->
+  defs_has ds {a := t} ->
+  record_has T {a ⦂ U} ->
+  exists V, G ⊢ trm_path (p_sel (avar_f x) bs)•a : V /\ inert_typ V.
+Proof. Admitted.
+
+Lemma typed_path_lookup1 : forall G s p T U,
+    inert G ->
+    well_typed G s ->
+    G ⊢! p: T ⪼ U ->
+    exists v, s ∋ (p, v).
+Proof.
+  introv Hi Hwt. gen p T U. induction Hwt; introv Hp.
+  (*******************************)
+  (* induction on well-typedness *)
+  (*******************************)
+  - Case "G is empty".
+    apply precise_to_general in Hp. false* typing_empty_false.
+  - Case "G is not empty".
+    destruct p as [y bs].
+    (* showing that y is named *)
+    assert (exists x0, y = avar_f x0) as [x0 ->] by admit. (* later when we figure out how to make env closed *)
+    destruct (classicT (x = x0)) as [-> | Hn].
+    * SCase "x = x0".
+      clear IHHwt. dependent induction Hp; try simpl_dot.
+      + eexists. constructor. apply star_one. constructor. eauto.
+      + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w Hs].
+
+(* continue here *)
+
 Lemma typed_path_lookup1 : forall G s p T U,
     inert G ->
     well_typed G s ->
@@ -283,12 +319,34 @@ Proof.
     destruct (classicT (x = x0)) as [-> | Hn].
     * SCase "x = x0".
       clear IHHwt. dependent induction Hp; try simpl_dot.
-    + eexists. left. split. eapply binds_inert. apply H0. apply Hi. constructor*.
-    + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w [[Hit Hs] | Hs]].
-      ++ assert (well_typed (G & x0 ~ T) (s & x0 ~ v)) as Hwt' by constructor*.
-         destruct (lookup_step_preservation_prec1 Hi Hwt' Hs Hp)
-           as [[v' [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
-         pose proof (pf_bnd_T2 Hi Hp) as [V ->]. proof_recipe.
+      + eexists. left. split. eapply binds_inert. apply H0. apply Hi. constructor*.
+      + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w [[Hit Hs] | Hs]].
+        ++ assert (well_typed (G & x0 ~ T) (s & x0 ~ v)) as Hwt' by constructor*.
+           destruct (lookup_step_preservation_prec1 Hi Hwt' Hs Hp)
+             as [[v' [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
+           pose proof (pf_bnd_T2 Hi Hp) as [V ->]. proof_recipe.
+           inversions Hw. pick_fresh z. assert (z \notin L) as Hz by auto.
+           specialize (H5 z Hz).
+           pose proof (repl_composition_open (p_sel (avar_f x0) f) Hrc) as Hrc1.
+           pose proof (repl_composition_open (p_sel (avar_f x0) f) Hrc') as  Hrc1'.
+           pose proof (repl_composition_sub Hrc1) as [_ Hs1].
+           pose proof (repl_composition_sub Hrc1') as [Hs2 _].
+           pose proof (ty_rec_elim (precise_to_general (pf_TT Hp))) as Hp'.
+           pose proof (ty_sub Hp' Hs1) as Hp'1.
+           pose proof (ty_sub Hp'1 Hs2) as Hp'2.
+           assert (x0 \notin fv_defs ds) as Hx0 by admit. (* not sure that this is true *)
+           pose proof (rename_defs _ _ H5 Hp'2 Hx0) as Hdefs.
+           pose proof (pf_record_has_U Hi Hp) as Hr.
+           pose proof (repl_comp_record_has2 Hrc1 Hr) as [V' [Hrh Hrc2]].
+           pose proof (repl_comp_record_has1 Hrc1' Hrh) as [V'' [Hrh' Hrc2']].
+           pose proof (record_has_ty_defs Hdefs Hrh') as [d [Hdh Hd]].
+           pose proof (defs_invert_trm Hd) as [t ->].
+           pose proof (path_lookup_inside_value_typing Hi Hdefs Hdh Hrh')
+             as [S [Hpa Hins]].
+
+
+
+
 Admitted.
 
 (** [G ~ s]                 #<br>#
