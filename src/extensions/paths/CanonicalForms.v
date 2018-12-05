@@ -65,6 +65,15 @@ Proof.
   - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eauto.
 Qed.
 
+Lemma val_field_typing x bs P G a v T :
+  x; bs; P; G ⊢ {a :=v v} : {a ⦂ T} ->
+  G ⊢ trm_path (p_sel (avar_f x) bs) • a : T ->
+  G ⊢ trm_val v : T /\ inert_typ T.
+Proof.
+  intros Hd Hp. inversions Hd. eauto. split.
+  fresh_constructor. admit. auto.
+  Admitted. (* tricky *)
+
 Lemma defs_invert_trm x bs P G d a T :
   x; bs; P; G ⊢ d : {a ⦂ T} ->
   exists t, d = {a := t}.
@@ -79,14 +88,6 @@ Proof.
   inversion 1; subst; eauto.
 Qed.
 
-Lemma val_field_typing x bs P G a v T :
-  x; bs; P; G ⊢ {a :=v v} : {a ⦂ T} ->
-  G ⊢ trm_path (p_sel (avar_f x) bs) • a : T ->
-  G ⊢ trm_val v : T.
-Proof.
-  intros Hd Hp. inversions Hd. eauto.
-  fresh_constructor.
-  Admitted. (* tricky *)
 
 Lemma typ_bnd_record_has_typing G p T D :
   G ⊢ trm_path p : T ->
@@ -96,69 +97,80 @@ Proof.
   induction 2; eauto.
 Qed.
 
-Lemma rename_defs G x P T ds px pbs :
+(*L/emma rename_defs G x P T ds px pbs :
   x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
   G ⊢ trm_path (p_sel (avar_f px) pbs) : open_typ_p (p_sel (avar_f px) pbs) T ->
   px \notin fv_defs ds ->
   px; pbs; P; G ⊢ open_defs_p (p_sel (avar_f px) pbs) ds :: open_typ_p (p_sel (avar_f px) pbs) T.
 Proof.
-  Admitted.
+  Admitted.*)
 
 
-Lemma object_typing G ds a t p px pbs T V :
+Lemma object_typing G x bs P ds T a t V :
   inert G ->
-  G ⊢!v val_new T ds : typ_bnd T ->
+  x; bs; P; G ⊢ ds :: T ->
   defs_has ds {a := t} ->
-  G ⊢ trm_path p : typ_bnd T ->
-  p = p_sel (avar_f px) pbs ->
-  px \notin fv_defs ds ->
-  record_has (open_typ_p p T) {a ⦂ V} ->
-  (exists v, t = defv v /\ G ⊢ open_trm_p p (trm_val v) : V) \/
-  (exists q S, t = defp q /\ V = typ_sngl (open_path_p p q) /\ G ⊢ trm_path (open_path_p p q) : S).
+  record_has T {a ⦂ V} ->
+  (exists U u, t = defv (val_lambda U u) /\ G ⊢ deftrm t : V) \/
+  (exists U ds', t = defv (val_new U ds') /\
+            x; (a :: bs); P; G ⊢ open_defs_p (p_sel (avar_f x) (a :: bs)) ds' ::
+                                 open_typ_p (p_sel (avar_f x) (a :: bs)) U /\
+            V = typ_bnd U) \/
+  (exists q S, t = defp q /\ V = typ_sngl q /\ G ⊢ trm_path q : S).
 Proof.
-  intros Hi Hv Hds Hp Heq Hn Hr.
-  inversion Hv. subst G0 T0 ds0.
-  pick_fresh x. assert (x \notin L) as Hx by auto.
-  specialize (H1 x Hx).
-  assert (px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p T) as Hds_p by (subst; apply* rename_defs).
-  destruct (record_has_ty_defs Hds_p Hr) as [d [Hdh Hdt]].
-  apply (defs_has_open p) in Hds. destruct (defs_invert_trm Hdt) as [t' ->].
-  unfold open_def_p in Hds. simpl in *.
-  pose proof (defs_has_inv Hds Hdh) as <-. destruct t as [q | v]; simpl in *.
+  intros Hi Hds Hdh Hr.
+  destruct (record_has_ty_defs Hds Hr) as [d [Hdh' Hdt]].
+  remember (p_sel (avar_f x) bs) as p.
+  destruct (defs_invert_trm Hdt) as [t' ->].
+  pose proof (defs_has_inv Hdh Hdh') as <-. destruct t as [q | v]; simpl in *.
   - inversion* Hdt.
-  - left. eexists; split; eauto. apply* val_field_typing.
-    constructor. apply ty_rec_elim in Hp. eapply typ_bnd_record_has_typing; subst*.
+  - destruct v as [U ds' | U t].
+    * right. left. inversions Hdt.
+      simpl in *. repeat eexists; auto.
+    * left. inversions Hdt. eauto.
+Qed.
+
+Lemma rename_defs G x P T ds z :
+  x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
+  z # G ->
+  z; nil; P; G & z ~ open_typ z T ⊢ open_defs z ds :: open_typ z T.
+Proof.
 Admitted.
 
-Lemma object_typing' G ds a t p px pbs T U V :
-  inert G ->
-  G ⊢ trm_val (val_new T ds) : typ_bnd U ->
-  defs_has ds {a := t} ->
-  G ⊢! p : typ_bnd U ⪼ typ_rcd {a ⦂ V} ->
-  p = p_sel (avar_f px) pbs ->
-  px \notin fv_defs ds ->
-  (exists v, t = defv v /\ G ⊢ open_trm_p p (trm_val v) : V) \/
-  (exists q r r' S, t = defp q /\
-               V = typ_sngl r /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl (open_path_p p q)) /\
-               G ⊢ trm_path (open_path_p p q) : S).
+Lemma open_env_rules:
+  (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    G1 & x ~ typ_bnd S & G2 ⊢ t : T) /\
+  (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
+  (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
+  (forall G T U, G ⊢ T <: U -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    G1 & x ~ typ_bnd S & G2 ⊢ T <: U).
 Proof.
-  intros Hi Hv Hds Hp Heq Hn. proof_recipe.
-  lets Hr: (pf_record_has_U Hi Hp).
-  lets Hp': (precise_to_general (pf_TT Hp)). apply ty_sub with (U:=typ_bnd T) in Hp'.
-  - lets Hrc1: (repl_composition_open p Hrc). lets Hrc2: (repl_composition_open p Hrc').
-    destruct (repl_comp_record_has2 Hrc1 Hr) as [V1 [Hrv1 Hrcv1]].
-    destruct (repl_comp_record_has1 Hrc2 Hrv1) as [V2 [Hrv2 Hrcv2]].
-    destruct (object_typing Hi Hv Hds Hp' Heq Hn Hrv2) as [[w [-> Hw]] | [q [S [-> [-> Hq]]]]].
-    * left. eexists. split. eauto.
-      apply ty_sub with (T:=V1).
-      { apply ty_sub with (T:=V2); auto. apply* repl_composition_sub. }
-      apply repl_composition_sub in Hrcv1 as [? _]. auto.
-    * right. destruct (repl_comp_sngl_inv1 Hrcv2) as [q1 ->].
-      destruct (repl_comp_sngl_inv2 Hrcv1) as [q2 ->]. repeat eexists; eauto.
-  - apply repl_comp_bnd in Hrc'. apply repl_comp_bnd in Hrc.
-    apply repl_composition_sub in Hrc'. apply repl_composition_sub in Hrc. destruct_all. eauto.
+  apply rules_mutind; intros; subst; simpl; auto;
+    try (fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc); eauto.
+  - Case "ty_var".
+    destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
+    + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
+      apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.
+    + constructor. apply binds_subst in b; auto. admit. (*easy*)
+Qed.
+
+Lemma open_env_last_defs z bs P G x T ds U :
+  ok (G & x ~ open_typ x T) ->
+  z ; bs ; P ; G & x ~ open_typ x T ⊢ ds :: U ->
+  z ; bs ; P ; G & x ~ typ_bnd T ⊢ ds :: U.
+Proof.
+  intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
+  rewrite* concat_empty_r.
 Qed.
 
 Lemma lookup_step_preservation_prec1: forall G s p t T U,
@@ -166,7 +178,13 @@ Lemma lookup_step_preservation_prec1: forall G s p t T U,
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
     G ⊢! p : T ⪼ U ->
-    (exists v, t = defv v /\ G ⊢ trm_val v : T) \/
+    (exists S u, t = defv (val_lambda S u) /\ G ⊢ deftrm t : T) \/
+    (exists S ds px pbs W T' P, t = defv (val_new S ds) /\
+                           p = p_sel (avar_f px) pbs /\
+                           T = typ_bnd T' /\
+                           px ; pbs ; P ; G ⊢ open_defs_p p ds :: open_typ_p p S /\
+                           repl_composition_qp G W S /\
+                           repl_composition_qp G W T') \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
                repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
@@ -188,39 +206,88 @@ Proof.
       dependent induction Hs; introv Hi Hv; introv Hp; try simpl_dot; try rewrite proj_rewrite in *.
       + SSCase "lookup_var".
         apply binds_push_eq_inv in H as ->.
-        left. exists v.
         lets Hb: (pf_binds Hi Hp). pose proof (binds_push_eq_inv Hb) as ->.
-        apply binds_inert in Hb; auto. repeat split*. apply* weaken_ty_trm.
+        apply binds_inert in Hb; auto.
+        destruct v as [S ds | S u].
+        ++ right. left.
+           lets Hi': (inert_prefix Hi).
+           inversions Hb; proof_recipe. { inversion Hvpr. }
+                                        inversions Hv. pick_fresh z. assert (z \notin L) as Hz by auto.
+           apply H4 in Hz. do 6 eexists. exists P. repeat split*. apply open_env_last_defs; auto.
+           apply narrow_defs with (G:=G & x0 ~ open_typ x0 S).
+           assert (open_defs_p (p_sel (avar_f x0) nil) ds = open_defs x0 ds) as -> by rewrite* open_var_defs_eq.
+           assert (open_typ_p (p_sel (avar_f x0) nil) S = open_typ x0 S) as -> by rewrite* open_var_typ_eq.
+           apply* rename_defs. apply subenv_last; auto. apply (repl_composition_open (pvar x0)) in Hrc.
+           eapply (repl_composition_open (pvar x0)) in Hrc'.
+           apply subtyp_trans with (T:=open_typ x0 U');
+             apply repl_composition_sub in Hrc'; apply repl_composition_sub in Hrc; destruct_all;
+               repeat rewrite open_var_typ_eq in *; unfold pvar in *; auto. all: apply* repl_composition_weaken.
+        ++ left. repeat eexists. apply* weaken_ty_trm.
       + SSCase "lookup_sel_p".
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ _ JMeq_refl eq_refl Hwt H0 H IHHwt _ Hi Hv _ _ Hp')
-          as [[_ [[=] _]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
+          as [[? [? [[=]]]] |
+              [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
+               [? [? [? [[= ->] [-> [? ?]]]]]]]].
         apply pf_sngl_U in Hp'. inversion Hp'.
       + SSCase "lookup_sel_v".
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ _ JMeq_refl eq_refl Hwt H0 H1 IHHwt _ Hi Hv _ _ Hp')
-          as [[v' [[= <-] Hv']] | [? [? [? [[= ->] [-> [? [? ?]]]]]]]].
-        pose proof (pf_bnd_T2 Hi Hp') as [T' ->].
-        destruct (object_typing' Hi Hv' H Hp' eq_refl)
-          as [[w [-> Hvt]] | [q1 [r1 [r1' [S' [-> [-> [Hrc1 [Hrc1' Hst]]]]]]]]]. {
-          admit. (* adjust definition of well formedness *)
+          as [[? [? [[=]]]] |
+              [[S [ds' [x [pbs [W [T'' [P [[= -> ->] [[= -> ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+               [? [? [? [[= ->] [-> [? ?]]]]]]]]. clear IHHwt.
+        lets H': (defs_has_open (p_sel (avar_f x) pbs) H). simpl in *.
+        assert (exists V W, record_has (open_typ_p (p_sel (avar_f x) pbs) S) {a ⦂ V} /\
+                       repl_composition_qp (G & x ~ T0) W V /\
+                       repl_composition_qp (G & x ~ T0) W T1)
+          as [V [W' [Hrh [Hrc1' Hrc2']]]]. {
+          lets Hr: (pf_record_has_U Hi Hp').
+          apply (repl_composition_open (p_sel (avar_f x) pbs) ) in Hrc1.
+          apply (repl_composition_open (p_sel (avar_f x) pbs) ) in Hrc2.
+          destruct (repl_comp_record_has2 Hrc2 Hr) as [? [Hrh1 ?]].
+          destruct* (repl_comp_record_has1 Hrc1 Hrh1).
         }
-        ++ left. eexists. split*.
-        ++ right. exists (open_path_p (p_sel (avar_f x0) f) q1) r1 r1'. repeat split*.
+        assert (G & x ~ T0 ⊢ V <: T1 /\ G & x ~ T0 ⊢ T1 <: V) as [HVT HTV]. {
+          apply repl_composition_sub in Hrc2'. apply repl_composition_sub in Hrc1'.
+          destruct_all.
+          split; apply subtyp_trans with (T:=W'); eauto.
+        }
+        destruct (object_typing Hi Hds H' Hrh) as [[U' [u [Heq Ht']]] |
+                                                   [[U' [ds'' [Heq [Hds'' ->]]]] | [q [V' [Heq1 [-> Hq]]]]]].
+        ++ destruct t; inversions Heq. destruct v0; inversions H3.
+           left. repeat eexists. eauto.
+        ++ destruct t as [|]; inversions Heq. destruct v0 as [X ds |]; inversions H3. fold open_rec_defs_p in Hds''.
+           right. left.
+           pose proof (repl_comp_bnd_inv1 Hrc1') as [Y ->]. pose proof (repl_comp_bnd_inv2 Hrc2') as [Z ->].
+           repeat eexists; eauto.
+           +++ apply repl_comp_bnd' in Hrc1'. apply Hrc1'.
+           +++ apply repl_comp_bnd' in Hrc2'. auto.
+        ++ destruct t; inversions Heq1. right. right.
+           pose proof (repl_comp_sngl_inv1 Hrc1') as [r ->]. pose proof (repl_comp_sngl_inv2 Hrc2') as [r' ->].
+           repeat eexists; eauto.
     * SCase "x <> x0".
       apply pf_strengthen in Hp; auto. apply lookup_strengthen in Hs; auto.
       specialize (IHHwt (inert_prefix Hi) _ _ _ _ Hs Hp)
-        as [[w [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
-      + left. eexists; split*. apply* weaken_ty_trm.
-      + right. exists x1 x2 x3. repeat split*; apply* repl_composition_weaken.
-Admitted.
+        as [[? [? [[= ->]]]] |
+              [[? [? [? [? [? [? [? [[= ->] [[= -> ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+               [? [? [? [[= ->] [-> [? ?]]]]]]]].
+      + left. repeat eexists. apply* weaken_ty_trm.
+      + right. left. repeat eexists. apply* weaken_ty_defs. all: apply* repl_composition_weaken.
+      + right. right. repeat eexists; apply* repl_composition_weaken.
+Qed.
 
 Lemma lookup_step_preservation_prec2: forall G s p t T,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
     G ⊢!! p : T ->
-    (exists v U, t = defv v /\ G ⊢ trm_val v : U /\ G ⊢! p : U ⪼ T) \/
+    (exists S U u, t = defv (val_lambda S u) /\ G ⊢ deftrm t : U /\ G ⊢! p : U ⪼ T) \/
+    (exists S ds px pbs W U P, t = defv (val_new S ds) /\
+                           p = p_sel (avar_f px) pbs /\
+                           G ⊢! p : typ_bnd U ⪼ T /\
+                           px ; pbs ; P ; G ⊢ open_defs_p p ds :: open_typ_p p S /\
+                           repl_composition_qp G W S /\
+                           repl_composition_qp G W U) \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
                repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
@@ -228,35 +295,42 @@ Lemma lookup_step_preservation_prec2: forall G s p t T,
 Proof.
   introv Hi Hwt Hs Hp. gen s t. induction Hp; introv Hwt; introv Hs.
   - destruct (lookup_step_preservation_prec1 Hi Hwt Hs H)
-      as [[v' [-> Hv']] | [? [? [? [[= ->] [-> [? ?]]]]]]].
-     * left. eauto.
-    * pose proof (pf_sngl_U H) as ->. right. repeat eexists; eauto.
+      as [[? [? [[= ->]]]] |
+          [[S [ds' [z [pbs [W [T'' [P [[= ->] [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+           [? [? [? [[= ->] [-> [? ?]]]]]]]].
+    * left. repeat eexists; eauto.
+    * right. left. repeat eexists; eauto.
+    * pose proof (pf_sngl_U H) as ->. right. right. repeat eexists; eauto.
   - clear IHHp2. specialize (IHHp1 Hi _ Hwt).
     gen q U. dependent induction Hs; simpl_dot; introv Hp IHHp1 Hv.
-    * specialize (IHHp1 _ Hs) as [[? [? [[= ->] ?]]] | [q' [r [r' [[= <-] [<- [Hrc1 Hrc2]]]]]]].
-      right. exists (q • a) (q0 • a). eexists.
+    * specialize (IHHp1 _ Hs) as [[? [? [? [[=] ?]]]] |
+                                  [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
+                                   [q' [r [r' [[= <-] [<- [Hrc1 Hrc2]]]]]]]].
+      right. right. exists (q • a) (q0 • a) (r' • a).
       repeat split; apply* repl_composition_fld_elim; admit.
     (* for that we need to fix named-var problem *)
-    * specialize (IHHp1 _ Hs) as [[w [V [[= <-] [Hw Hp']]]] | [? [? [? [[= <-] ?]]]]].
-      proof_recipe. apply (pf_sngl_T Hi) in Hp' as ->. false* repl_to_invertible_val_sngl.
+    * specialize (IHHp1 _ Hs) as [[? [? [? [[= ->] ?]]]] |
+                                  [[? [? [? [? [? [? [? [[= -> ->] [[= -> ->] [[=]%pf_sngl_T ?]]]]]]]]]] |
+                                   [? [? [? [[=] ?]]]]]]; auto.
 Admitted.
 
-Lemma lookup_step_preservation_prec3: forall G s p T t,
+Lemma lookup_step_preservation_prec3: forall G s p T S t,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
-    G ⊢!!! p : T ->
-    inert_typ T ->
-    G ⊢ deftrm t : T.
+    G ⊢!!! p : typ_all T S ->
+    G ⊢ deftrm t : typ_all T S.
 Proof.
-  introv Hi Hwt Hs Hp. gen t. dependent induction Hp; introv Hs Hin;
+  introv Hi Hwt Hs Hp. gen t. dependent induction Hp; introv Hs;
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs H)
-                                as [[v' [U' [-> [Hv' Hp']]]] | [q' [r [r' [-> [[= ->] [Hrc1 Hrc2]]]]]]]; simpl.
-  - inversions Hin.
-    * apply pf_forall_T in Hp' as ->; auto.
-    * apply pf_bnd_T in Hp' as ->; auto.
-  - inversion Hin.
+                                as [[S' [U [u [[= ->] [Hv Hp']]]]] |
+                                    [[S' [ds [px [pbs [W [U [P [[= ->] [-> [Hp' [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+                                     [q' [r [r' [[= ->] [<- [Hrc1 Hrc2]]]]]]]]; simpl.
+  - apply (pf_forall_T Hi) in Hp' as ->. auto.
+  - apply (pf_forall_T Hi) in Hp' as [=].
+  - apply repl_comp_sngl_inv2 in Hrc1 as [? [=]].
   - apply pf_sngl_T in Hp' as ->; auto. proof_recipe. false* repl_to_invertible_val_sngl.
+  - apply (pf_sngl_T Hi) in Hp' as [=].
   - clear IHHp.
     assert (exists V, G ⊢!!! q' : V) as [V Hq'] by admit. (* naming stuff *)
     pose proof (repl_composition_sngl Hi Hrc1 Hp) as [-> | Ht1];
@@ -275,6 +349,15 @@ Lemma path_lookup_inside_value_typing G x bs P ds T a t U :
   record_has T {a ⦂ U} ->
   exists V, G ⊢ trm_path (p_sel (avar_f x) bs)•a : V /\ inert_typ V.
 Proof. Admitted.
+
+Lemma lookup_preservation_prec_val G s p v T U :
+    inert G ->
+    well_typed G s ->
+    s ∋ (p, v) ->
+    G ⊢! p : T ⪼ U ->
+    s ⟦ p ⟼ defv v ⟧ /\ G ⊢ trm_val v : T.
+Proof.
+  intros Hi Hwt Hs Hp. inversions Hs. inversions H1. Abort.
 
 Lemma typed_path_lookup1 : forall G s p T U,
     inert G ->
@@ -297,7 +380,10 @@ Proof.
       clear IHHwt. dependent induction Hp; try simpl_dot.
       + eexists. constructor. apply star_one. constructor. eauto.
       + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w Hs].
-
+        assert (s & x0 ~ v ⟦ p_sel (avar_f x0) f ⟼ defv w ⟧) as Hs'. {
+          inversions Hs. inversions H4. destruct b.
+          ++
+         Abort. (*   apply (lookup_step_preservation_prec1 Hi Hwt Hp) in H2. *)
 (* continue here *)
 
 Lemma typed_path_lookup1 : forall G s p T U,
@@ -321,7 +407,7 @@ Proof.
       clear IHHwt. dependent induction Hp; try simpl_dot.
       + eexists. left. split. eapply binds_inert. apply H0. apply Hi. constructor*.
       + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w [[Hit Hs] | Hs]].
-        ++ assert (well_typed (G & x0 ~ T) (s & x0 ~ v)) as Hwt' by constructor*.
+        ++ assert (well_typed (G & x0 ~ T) (s & x0 ~ v)) as Hwt' by constructor*. Abort. (*
            destruct (lookup_step_preservation_prec1 Hi Hwt' Hs Hp)
              as [[v' [[= ->] Hw]] | [? [? [? [[= ->] [-> [? ?]]]]]]].
            pose proof (pf_bnd_T2 Hi Hp) as [V ->]. proof_recipe.
@@ -347,7 +433,7 @@ Proof.
 
 
 
-Admitted.
+Admitted.*)
 
 (** [G ~ s]                 #<br>#
     [G ⊢ p: T]              #<br>#
@@ -477,32 +563,6 @@ Proof.
   lets Ht: (lookup_preservation_typ_all Hi Hwt H1 Hg). eauto.
 Qed.
 
-(** [G ⊢##v v: forall(S)T]                 #<br>#
-    [inert G]                          #<br>#
-    [――――――――――――――――――――――――――――――――] #<br>#
-    [exists S', T', G ⊢! v: forall(S')T']      #<br>#
-    [G ⊢ S <: S']                      #<br>#
-    [forall fresh y, G, y: S ⊢ T'^y <: T^y] *)
-Lemma invertible_val_to_precise_lambda: forall G v S T,
-    G ⊢##v v : typ_all S T ->
-    inert G ->
-    exists L S' T',
-      G ⊢!v v : typ_all S' T' /\
-      G ⊢ S <: S' /\
-      (forall y, y \notin L ->
-                 G & y ~ S ⊢ open_typ y T' <: open_typ y T).
-Proof.
-  introv Ht Hg. dependent induction Ht.
-  - exists (dom G) S T. split*.
-  - destruct (IHHt _ _ eq_refl Hg) as [L' [S' [T' [Hp [Hss Hst]]]]].
-    exists (L \u L' \u dom G) S' T'. split. assumption. split. apply subtyp_trans with (T:=S1).
-    apply* tight_to_general. assumption. intros.
-    assert (ok (G & y ~ S)) as Hok by apply* ok_push.
-    apply subtyp_trans with (T:=open_typ y T1).
-    * eapply narrow_subtyping. apply* Hst. apply subenv_last. apply* tight_to_general. auto.
-    * apply* H0.
-Qed.
-
 (** [forall] to [G(x)]        #<br>#
     [inert G]            #<br>#
     [G ⊢ p: forall(T)U]       #<br>#
@@ -543,14 +603,12 @@ Lemma val_typ_all_to_lambda: forall G v T U,
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_trm y t) : open_typ y U)).
 Proof.
-  introv Hin Ht. proof_recipe. inversions  Ht.
-  destruct (invertible_val_to_precise_lambda H Hin) as [L [T' [U' [Htp [Hs1 Hs2]]]]].
-  inversions Htp.
-  exists (L0 \u L \u (dom G)) T' t. repeat split~.
-  intros. assert (HL: y \notin L) by auto. assert (HL0: y \notin L0) by auto.
-  specialize (Hs2 y HL).
-  specialize (H3 y HL0).
-  eapply ty_sub; eauto. eapply narrow_typing in H3; eauto.
+  introv Hin Ht. proof_recipe. inversions Hvpr.
+  exists (L1 \u L \u (dom G)) S1 t. repeat split~.
+  intros. assert (HL: y \notin L) by auto. assert (HL0: y \notin L1) by auto.
+  specialize (HS2 y HL0).
+  specialize (H2 y HL).
+  eapply ty_sub; eauto. eapply narrow_typing in H2; eauto.
 Qed.
 
 (** ** Canonical Forms for Functions

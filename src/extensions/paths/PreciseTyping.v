@@ -576,6 +576,24 @@ Proof.
   specialize (IHHr _ eq_refl). destruct_all. eexists. eauto.
 Qed.
 
+Lemma repl_comp_bnd_inv1 G T U :
+  repl_composition_qp G T (typ_bnd U) ->
+  exists S, T = typ_bnd S.
+Proof.
+  introv Hr. dependent induction Hr; eauto.
+  specialize (IHHr _ eq_refl). destruct_all. subst.
+  inversions H. destruct_all. invert_repl. eexists; eauto.
+Qed.
+
+Lemma repl_comp_bnd_inv2 G T U :
+  repl_composition_qp G (typ_bnd U) T ->
+  exists S, T = typ_bnd S.
+Proof.
+  introv Hr. dependent induction Hr; eauto.
+  inversions H. destruct_all. invert_repl.
+  specialize (IHHr _ eq_refl). destruct_all. eexists. eauto.
+Qed.
+
 Lemma repl_comp_and1: forall G T T' U,
     repl_composition_qp G T T' ->
     repl_composition_qp G (typ_and T U) (typ_and T' U).
@@ -607,6 +625,20 @@ Proof.
   - apply star_trans with (b:=typ_bnd b); auto. apply star_one.
     unfolds typed_repl_comp_qp. destruct_all.
     repeat eexists; eauto.
+Qed.
+
+Lemma repl_comp_bnd': forall G T T',
+    repl_composition_qp G (typ_bnd T) (typ_bnd T') ->
+    repl_composition_qp G T T'.
+Proof.
+  introv Hr. dependent induction Hr.
+  - apply star_refl.
+  - destruct H as [?[?[?[? ?]]]].
+    assert (exists V, b = typ_bnd V) as [V ->]. {
+      inversions H0. eauto.
+    }
+    apply star_trans with (b:=V). apply star_one. econstructor. repeat eexists. apply H. inversion* H0.
+    apply* IHHr.
 Qed.
 
 Lemma repl_comp_record_has1 G T U V a :

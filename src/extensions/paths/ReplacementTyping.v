@@ -1000,6 +1000,32 @@ Proof.
       apply H. eauto.
 Qed.
 
+(** [G ⊢##v v: forall(S)T]                 #<br>#
+    [inert G]                          #<br>#
+    [――――――――――――――――――――――――――――――――] #<br>#
+    [exists S', T', G ⊢! v: forall(S')T']      #<br>#
+    [G ⊢ S <: S']                      #<br>#
+    [forall fresh y, G, y: S ⊢ T'^y <: T^y] *)
+Lemma invertible_val_to_precise_lambda: forall G v S T,
+    G ⊢##v v : typ_all S T ->
+    inert G ->
+    exists L S' T',
+      G ⊢!v v : typ_all S' T' /\
+      G ⊢ S <: S' /\
+      (forall y, y \notin L ->
+                 G & y ~ S ⊢ open_typ y T' <: open_typ y T).
+Proof.
+  introv Ht Hg. dependent induction Ht.
+  - exists (dom G) S T. split*.
+  - destruct (IHHt _ _ eq_refl Hg) as [L' [S' [T' [Hp [Hss Hst]]]]].
+    exists (L \u L' \u dom G) S' T'. split. assumption. split. apply subtyp_trans with (T:=S1).
+    apply* tight_to_general. assumption. intros.
+    assert (ok (G & y ~ S)) as Hok by apply* ok_push.
+    apply subtyp_trans with (T:=open_typ y T1).
+    * eapply narrow_subtyping. apply* Hst. apply subenv_last. apply* tight_to_general. auto.
+    * apply* H0.
+Qed.
+
 Lemma invertible_to_precise_obj G U v :
   inert G ->
   G ⊢##v v : typ_bnd U ->
