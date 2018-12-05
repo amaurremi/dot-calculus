@@ -469,16 +469,15 @@ Proof.
     assert (exists x0, y = avar_f x0) as [x0 ->] by admit. (* later when we figure out how to make env closed *)
     destruct (classicT (x = x0)) as [-> | Hn].
     * SCase "x = x0".
-      clear IHHwt. dependent induction Hp; try simpl_dot.
+      dependent induction Hp; try simpl_dot.
       + eexists. constructor. apply star_one. constructor. eauto.
-      + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1) as [w Hs].
+      + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1 IHHwt) as [w Hs].
         assert (s & x0 ~ v ⟦ p_sel (avar_f x0) f ⟼ defv w ⟧) as Hs' by admit.
-        assert (well_typed (G & x0 ~ T) (s & x0 ~ v)) as Hwt' by admit.
-        pose proof (lookup_step_preservation_prec1 Hi Hwt' Hs' Hp)
+        pose proof (lookup_step_preservation_prec1 Hi (well_typed_push Hwt H H0 H1) Hs' Hp)
           as [[S [t [[= ->]]]] |
-              [[S [ds' [z [pbs [W [T'' [P [[= ->] [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+              [[S [ds' [px [pbs [W [T'' [P [[= ->] [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
                [? [? [? [[= ->] [-> [? ?]]]]]]]].
-        ++ pose proof (pf_bnd_T2 Hi Hp) as [? ->]. proof_recipe. inversions H3.
+        ++ pose proof (pf_bnd_T2 Hi Hp) as [? ->]. proof_recipe. inversion H3.
         ++ subst. pose proof (pf_record_has_U Hi Hp) as Hr.
            assert (exists X, record_has S {a ⦂ X}) as [X Hr'] by admit.
            admit.
@@ -498,6 +497,10 @@ Proof.
   introv Hi Hwt Hp. induction Hp.
   - apply* typed_path_lookup1.
   - specialize (IHHp1 Hi Hwt) as [v1 Hs1]. specialize (IHHp2 Hi Hwt) as [v2 Hs2].
+    eexists. constructor. apply star_trans with (b:=defp q • a).
+    * pose proof (sngl_path_lookup2 Hi Hwt Hp1) as [r [r' [Hs [Hrc1 Hrc2]]]].
+      (* todo tricky but maybe similar to typed_path_lookup1 cycle case *) admit.
+    * inversion* Hs2.
 Admitted.
 
 Lemma typed_path_lookup3 G s p T :
