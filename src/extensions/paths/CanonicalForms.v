@@ -65,46 +65,12 @@ Proof.
   - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eauto.
 Qed.
 
-Lemma val_field_typing x bs P G a v T :
-  x; bs; P; G ⊢ {a :=v v} : {a ⦂ T} ->
-  G ⊢ trm_path (p_sel (avar_f x) bs) • a : T ->
-  G ⊢ trm_val v : T /\ inert_typ T.
-Proof.
-  intros Hd Hp. inversions Hd. eauto. split.
-  fresh_constructor. admit. auto.
-  Admitted. (* tricky *)
-
 Lemma defs_invert_trm x bs P G d a T :
   x; bs; P; G ⊢ d : {a ⦂ T} ->
   exists t, d = {a := t}.
 Proof.
   intros Hd. inversion Hd; eauto.
 Qed.
-
-Lemma path_field_typing x bs P G a p T :
-  x; bs; P; G ⊢ {a :=p p} : {a ⦂ T} ->
-  T = typ_sngl p.
-Proof.
-  inversion 1; subst; eauto.
-Qed.
-
-
-Lemma typ_bnd_record_has_typing G p T D :
-  G ⊢ trm_path p : T ->
-  record_has T D ->
-  G ⊢ trm_path p : typ_rcd D.
-Proof.
-  induction 2; eauto.
-Qed.
-
-(*L/emma rename_defs G x P T ds px pbs :
-  x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
-  G ⊢ trm_path (p_sel (avar_f px) pbs) : open_typ_p (p_sel (avar_f px) pbs) T ->
-  px \notin fv_defs ds ->
-  px; pbs; P; G ⊢ open_defs_p (p_sel (avar_f px) pbs) ds :: open_typ_p (p_sel (avar_f px) pbs) T.
-Proof.
-  Admitted.*)
-
 
 Lemma object_typing G x bs P ds T a t V :
   inert G ->
@@ -119,58 +85,14 @@ Lemma object_typing G x bs P ds T a t V :
   (exists q S, t = defp q /\ V = typ_sngl q /\ G ⊢ trm_path q : S).
 Proof.
   intros Hi Hds Hdh Hr.
-  destruct (record_has_ty_defs Hds Hr) as [d [Hdh' Hdt]].
-  remember (p_sel (avar_f x) bs) as p.
+  destruct (record_has_ty_defs Hds Hr) as [? [Hdh' Hdt]].
   destruct (defs_invert_trm Hdt) as [t' ->].
   pose proof (defs_has_inv Hdh Hdh') as <-. destruct t as [q | v]; simpl in *.
   - inversion* Hdt.
-  - destruct v as [U ds' | U t].
+  - destruct v.
     * right. left. inversions Hdt.
       simpl in *. repeat eexists; auto.
     * left. inversions Hdt. eauto.
-Qed.
-
-Lemma rename_defs G x P T ds z :
-  x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
-  z # G ->
-  z; nil; P; G & z ~ open_typ z T ⊢ open_defs z ds :: open_typ z T.
-Proof.
-Admitted.
-
-Lemma open_env_rules:
-  (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
-    G = G1 & x ~ open_typ x S & G2 ->
-    ok G ->
-    G1 & x ~ typ_bnd S & G2 ⊢ t : T) /\
-  (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G1 G2 x S,
-    G = G1 & x ~ open_typ x S & G2 ->
-    ok G ->
-    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
-  (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x S,
-    G = G1 & x ~ open_typ x S & G2 ->
-    ok G ->
-    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
-  (forall G T U, G ⊢ T <: U -> forall G1 G2 x S,
-    G = G1 & x ~ open_typ x S & G2 ->
-    ok G ->
-    G1 & x ~ typ_bnd S & G2 ⊢ T <: U).
-Proof.
-  apply rules_mutind; intros; subst; simpl; auto;
-    try (fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc); eauto.
-  - Case "ty_var".
-    destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
-    + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
-      apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.
-    + constructor. apply binds_subst in b; auto. admit. (*easy*)
-Qed.
-
-Lemma open_env_last_defs z bs P G x T ds U :
-  ok (G & x ~ open_typ x T) ->
-  z ; bs ; P ; G & x ~ open_typ x T ⊢ ds :: U ->
-  z ; bs ; P ; G & x ~ typ_bnd T ⊢ ds :: U.
-Proof.
-  intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
-  rewrite* concat_empty_r.
 Qed.
 
 Lemma lookup_step_preservation_prec1: forall G s p t T U,
@@ -212,7 +134,7 @@ Proof.
         ++ right. left.
            lets Hi': (inert_prefix Hi).
            inversions Hb; proof_recipe. { inversion Hvpr. }
-                                        inversions Hv. pick_fresh z. assert (z \notin L) as Hz by auto.
+           inversions Hv. pick_fresh z. assert (z \notin L) as Hz by auto.
            apply H4 in Hz. do 6 eexists. exists P. repeat split*. apply open_env_last_defs; auto.
            apply narrow_defs with (G:=G & x0 ~ open_typ x0 S).
            assert (open_defs_p (p_sel (avar_f x0) nil) ds = open_defs x0 ds) as -> by rewrite* open_var_defs_eq.

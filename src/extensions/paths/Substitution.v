@@ -423,3 +423,10 @@ Proof.
   eapply subst_ty_trm; eauto. rewrite~ subst_fresh_typ.
   apply* typed_paths_named.
 Qed.
+
+Lemma rename_defs G x P T ds z :
+  x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
+  z # G ->
+  z; nil; P; G & z ~ open_typ z T ⊢ open_defs z ds :: open_typ z T.
+Proof.
+Admitted.

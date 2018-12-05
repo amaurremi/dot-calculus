@@ -868,3 +868,39 @@ Lemma open_idempotent p q x bs :
 Proof.
   destruct q. destruct a; simpl; destruct p; eauto. case_if; subst; simpl; eauto. case_if*.
 Qed.
+
+Lemma open_env_rules:
+  (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    G1 & x ~ typ_bnd S & G2 ⊢ t : T) /\
+  (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
+  (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
+  (forall G T U, G ⊢ T <: U -> forall G1 G2 x S,
+    G = G1 & x ~ open_typ x S & G2 ->
+    ok G ->
+    G1 & x ~ typ_bnd S & G2 ⊢ T <: U).
+Proof.
+  apply rules_mutind; intros; subst; simpl; auto;
+    try (fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc); eauto.
+  - Case "ty_var".
+    destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
+    + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
+      apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.
+    + constructor. apply binds_subst in b; auto. admit. (*easy*)
+Qed.
+
+Lemma open_env_last_defs z bs P G x T ds U :
+  ok (G & x ~ open_typ x T) ->
+  z ; bs ; P ; G & x ~ open_typ x T ⊢ ds :: U ->
+  z ; bs ; P ; G & x ~ typ_bnd T ⊢ ds :: U.
+Proof.
+  intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
+  rewrite* concat_empty_r.
+Qed.
