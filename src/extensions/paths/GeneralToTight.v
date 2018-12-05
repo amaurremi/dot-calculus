@@ -182,7 +182,7 @@ Ltac proof_recipe :=
     try match goal with
         | [ Hr: ?G ⊢// _ : typ_all _ _,
             Hok: ok ?G |- _ ] =>
-          destruct (repl_to_precise_typ_all Hok Hr) as [Spr [Tpr [Upr [Lpr [Hpr [Hspr1 Hspr2]]]]]]
+          destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
         | [ Hr: ?G ⊢// _ : typ_rcd { _ ⦂ _ } |- _ ] =>
           destruct (repl_to_precise_trm_dec Hr) as [Tpr [Upr [Hpr Hspr]]]
         | [ Hrv: ?G ⊢//v _ : typ_bnd _,
