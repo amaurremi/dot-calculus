@@ -427,6 +427,25 @@ Proof.
   proof_recipe. inversions H. inversions H0. inversion H.
 Qed.
 
+Lemma object_lookup1 G s p T U :
+  inert G ->
+  well_typed G s ->
+  G ⊢! p : typ_bnd T ⪼ U ->
+  exists S ds W px pbs P, s ⟦ p ⟼ defv (val_new S ds) ⟧ /\
+                   p = p_sel (avar_f px) pbs /\
+                   px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p S /\
+                   repl_composition_qp G W S /\
+                   repl_composition_qp G W T.
+Proof.
+  intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
+  destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp)
+          as [[? [? [-> ?]]] |
+              [[? [? [? [? [? [? [? [-> [[= ->] [[= ->] [? [? ?]]]]]]]]]]]] |
+               [? [? [? [-> [[=] ?]]]]]]]; eauto.
+  - proof_recipe. inversion H.
+  - repeat eexists; eauto.
+Qed.
+
 Lemma lookup_step_fld_star s p q a :
   s ⟦ defp p ⟼* defp q ⟧ ->
   s ⟦ defp p • a ⟼* defp q • a ⟧.
@@ -454,6 +473,30 @@ Proof.
     all: apply* repl_composition_fld_elim; admit. (* named typing stuff *)
 Admitted.
 
+Definition defs_path_step G P p q :=
+  exists px bs b ds T, p = p_sel (avar_f px) (b :: bs) /\
+                  px; bs; P; G ⊢ ds : T /\
+
+
+Lemma lookup_path_order G s p px pbs qx qbs :
+  well_typed G s ->
+  p = p_sel (avar_f px) pbs ->
+  q = p_sel (avar_f qx) qbs ->
+  G ⊢!!! p: T ->
+
+
+Lemma defs_paths_precise G px pbs ds T P a q qx qbs :
+  inert G ->
+  px; pbs; P; G ⊢ ds :: T ->
+  q = p_sel (avar_f qx) qbs ->
+  defs_has ds {a := defp q} ->
+  record_has T {a ⦂ typ_sngl q} ->
+  exists U, G ⊢!! q : U.
+Proof. Admitted.
+
+Lemma
+
+
 Lemma typed_path_lookup1 G s p T U :
     inert G ->
     well_typed G s ->
@@ -470,20 +513,21 @@ Proof.
     destruct (classicT (x = x0)) as [-> | Hn].
     * SCase "x = x0".
       dependent induction Hp; try simpl_dot.
-      + eexists. constructor. apply star_one. constructor. eauto.
-      + specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1 IHHwt) as [w Hs].
-        assert (s & x0 ~ v ⟦ p_sel (avar_f x0) f ⟼ defv w ⟧) as Hs' by admit.
-        pose proof (lookup_step_preservation_prec1 Hi (well_typed_push Hwt H H0 H1) Hs' Hp)
-          as [[S [t [[= ->]]]] |
-              [[S [ds' [px [pbs [W [T'' [P [[= ->] [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
-               [? [? [? [[= ->] [-> [? ?]]]]]]]].
-        ++ pose proof (pf_bnd_T2 Hi Hp) as [? ->]. proof_recipe. inversion H3.
-        ++ subst. pose proof (pf_record_has_U Hi Hp) as Hr.
-           assert (exists X, record_has S {a ⦂ X}) as [X Hr'] by admit.
-           admit.
-      + eauto.
-      + eauto.
-      + eauto.
+      + SSCase "pf_bind".
+      eexists. constructor. apply star_one. constructor. eauto.
+      + SSCase "pf_fld".
+        specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1 IHHwt) as [w Hs].
+        lets Hwt': (well_typed_push Hwt H H0 H1). pose proof (pf_bnd_T2 Hi Hp) as [V ->].
+        pose proof (object_lookup1 Hi Hwt' Hp) as [X [ds [Y [px [pbs [P [Hl [[= -> ->] [Hds [Hrc1 Hrc2]]]]]]]]]].
+        pose proof (pf_record_has_U Hi Hp) as Hr.
+        assert (exists Z, record_has X {a ⦂ Z}) as [Z Hr'] by admit.
+
+      + SSCase "pf_open".
+        eauto.
+      + SSCase "pf_and1".
+        eauto.
+      + SSCase "pf_and2".
+        eauto.
     * apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) _ _ _ Hp) as [t Hs].
       eexists. constructor. apply* lookup_push_neq. inversion* Hs.
 Admitted.
