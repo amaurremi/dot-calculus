@@ -473,9 +473,21 @@ Proof.
     all: apply* repl_composition_fld_elim; admit. (* named typing stuff *)
 Admitted.
 
-Definition defs_path_step G P p q :=
-  exists px bs b ds T, p = p_sel (avar_f px) (b :: bs) /\
-                  px; bs; P; G ⊢ ds : T /\
+Lemma blah G s p T V :
+  well_typed G s ->
+  inert G ->
+  G ⊢! p : T ⪼ V ->
+  exists U, G ⊢!!! p : U /\ inert_typ U.
+Proof.
+  intros Hwt Hi Hp. gen p T V. induction Hwt; introv Hp.
+  - admit.
+  - assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
+    assert (x = px) as -> by admit.
+    dependent induction Hp; eauto.
+    * inversions Heq. assert (T = T0) as <- by admit.
+      admit.
+    * simpl_dot. clear IHHp.
+      pose proof (pf_bnd_T2 Hi Hp) as [S ->]. specialize (IHHwt (inert_prefix Hi)).
 
 
 Lemma lookup_path_order G s p px pbs qx qbs :
