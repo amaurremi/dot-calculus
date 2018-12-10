@@ -55,8 +55,8 @@ Definition deftrm t : trm :=
 (** * Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢! p: T] imply [Γ ⊢ t: T] *)
 
 Lemma repl_composition_sub G T U :
-  repl_composition_qp G T U ->
-  G ⊢ T <: U /\ G ⊢ U <: T.
+  G ⊢ T ⟿ U ->
+  G ⊢ U <: T /\ G ⊢ T <: U.
 Proof.
   intros Hr. dependent induction Hr; eauto.
   destruct H as [q [r [n [Hq%precise_to_general Hrt]]]]. destruct_all.
@@ -105,12 +105,10 @@ Lemma lookup_step_preservation_prec1: forall G s p t T U,
                            p = p_sel (avar_f px) pbs /\
                            T = typ_bnd T' /\
                            px ; pbs ; P ; G ⊢ open_defs_p p ds :: open_typ_p p S /\
-                           repl_composition_qp G W S /\
-                           repl_composition_qp G W T') \/
+                           G ⊩ S ⟿ W ⬳ T') \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl q)).
+               G ⊩ r ⟿' r' ⬳ q).
 Proof.
   introv Hi Hwt. gen p t T U.
   (** induction on well-formedness **)
@@ -156,19 +154,12 @@ Proof.
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ _ JMeq_refl eq_refl Hwt H0 H1 IHHwt _ Hi Hv _ _ Hp')
           as [[? [? [[=]]]] |
-              [[S [ds' [x [pbs [W [T'' [P [[= -> ->] [[= -> ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
+              [[S [ds' [x [pbs [W [T'' [P [[= -> ->] [[= -> ->] [-> [Hds Hrc]]]]]]]]]]] |
                [? [? [? [[= ->] [-> [? ?]]]]]]]]. clear IHHwt.
         lets H': (defs_has_open (p_sel (avar_f x) pbs) H). simpl in *.
-        assert (exists V W, record_has (open_typ_p (p_sel (avar_f x) pbs) S) {a ⦂ V} /\
-                       repl_composition_qp (G & x ~ T0) W V /\
-                       repl_composition_qp (G & x ~ T0) W T1)
-          as [V [W' [Hrh [Hrc1' Hrc2']]]]. {
-          lets Hr: (pf_record_has_U Hi Hp').
-          apply (repl_composition_open (p_sel (avar_f x) pbs) ) in Hrc1.
-          apply (repl_composition_open (p_sel (avar_f x) pbs) ) in Hrc2.
-          destruct (repl_comp_record_has2 Hrc2 Hr) as [? [Hrh1 ?]].
-          destruct* (repl_comp_record_has1 Hrc1 Hrh1).
-        }
+        lets Hr: (pf_record_has_U Hi Hp').
+        pose proof (repl_comp_trans_open (p_sel (avar_f x) pbs) Hrc) as Hrc_op.
+        pose proof (repl_comp_trans_record_has Hrc_op Hr) as [V [W' [Hrh [Hrc1' Hrc2']]]].
         assert (G & x ~ T0 ⊢ V <: T1 /\ G & x ~ T0 ⊢ T1 <: V) as [HVT HTV]. {
           apply repl_composition_sub in Hrc2'. apply repl_composition_sub in Hrc1'.
           destruct_all.
@@ -208,12 +199,10 @@ Lemma lookup_step_preservation_prec2: forall G s p t T,
                            p = p_sel (avar_f px) pbs /\
                            G ⊢! p : typ_bnd U ⪼ T /\
                            px ; pbs ; P ; G ⊢ open_defs_p p ds :: open_typ_p p S /\
-                           repl_composition_qp G W S /\
-                           repl_composition_qp G W U) \/
+                           G ⊩ S ⟿ W ⬳ U) \/
     (exists q r r', t = defp q /\
                T = typ_sngl r /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl r) /\
-               repl_composition_qp G (typ_sngl r') (typ_sngl q)).
+               G ⊩ r ⟿' r' ⬳ q).
 Proof.
   introv Hi Hwt Hs Hp. gen s t. induction Hp; introv Hwt; introv Hs.
   - destruct (lookup_step_preservation_prec1 Hi Hwt Hs H)
@@ -247,8 +236,7 @@ Lemma lookup_step_preservation_prec3: forall G s p T t,
           ((exists S ds px pbs W P, t = defv (val_new S ds) /\
                                p = p_sel (avar_f px) pbs /\
                                px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p S /\
-                               repl_composition_qp G W S /\
-                               repl_composition_qp G W U) \/
+                               G ⊩ S ⟿ W ⬳ U) \/
            (exists q, t = defp q /\ G ⊢!!! q : T))).
 Proof.
   introv Hi Hwt Hs Hp. gen t. dependent induction Hp; introv Hs Hit;
@@ -322,8 +310,7 @@ Lemma lookup_preservation G s p t T :
         ((exists S ds px pbs W P, t = defv (val_new S ds) /\
                              px; pbs; P; G ⊢ open_defs_p (p_sel (avar_f px) pbs) ds ::
                                              open_typ_p (p_sel (avar_f px) pbs) S /\
-                             repl_composition_qp G W S /\
-                             repl_composition_qp G W U) \/
+                             G ⊩ S ⟿ W ⬳ U) \/
          (exists q, t = defp q /\ G ⊢!!! q : T))).
 Proof.
   intros Hi Hwt Hs. gen T. dependent induction Hs; introv Hp Hit.
@@ -415,9 +402,7 @@ Lemma sngl_path_lookup1 G s p q U :
   inert G ->
   well_typed G s ->
   G ⊢! p : typ_sngl q ⪼ U ->
-  exists r r', s ⟦ p ⟼ defp r ⟧
-          /\ repl_composition_qp G (typ_sngl r') (typ_sngl r)
-          /\ repl_composition_qp G (typ_sngl r') (typ_sngl q).
+  exists r r', s ⟦ p ⟼ defp r ⟧ /\ G ⊩ r ⟿' r' ⬳ q.
 Proof.
   intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
   destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp)
@@ -434,8 +419,7 @@ Lemma object_lookup1 G s p T U :
   exists S ds W px pbs P, s ⟦ p ⟼ defv (val_new S ds) ⟧ /\
                    p = p_sel (avar_f px) pbs /\
                    px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p S /\
-                   repl_composition_qp G W S /\
-                   repl_composition_qp G W T.
+                   G ⊩ S ⟿ W ⬳ T.
 Proof.
   intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
   destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp)
@@ -460,9 +444,7 @@ Lemma sngl_path_lookup2 G s p q :
   inert G ->
   well_typed G s ->
   G ⊢!! p : typ_sngl q ->
-   exists r r', s ⟦ defp p ⟼* defp r ⟧
-          /\ repl_composition_qp G (typ_sngl r') (typ_sngl r)
-          /\ repl_composition_qp G (typ_sngl r') (typ_sngl q).
+   exists r r', s ⟦ defp p ⟼* defp r ⟧ /\ G ⊩ r ⟿' r' ⬳ q.
 Proof.
   intros Hi Hwt Hpq. dependent induction Hpq.
   - pose proof (pf_sngl_T Hi H) as ->.
@@ -472,42 +454,6 @@ Proof.
     repeat eexists. apply* lookup_step_fld_star.
     all: apply* repl_composition_fld_elim; admit. (* named typing stuff *)
 Admitted.
-
-Lemma blah G s p T V :
-  well_typed G s ->
-  inert G ->
-  G ⊢! p : T ⪼ V ->
-  exists U, G ⊢!!! p : U /\ inert_typ U.
-Proof.
-  intros Hwt Hi Hp. gen p T V. induction Hwt; introv Hp.
-  - admit.
-  - assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
-    assert (x = px) as -> by admit.
-    dependent induction Hp; eauto.
-    * inversions Heq. assert (T = T0) as <- by admit.
-      admit.
-    * simpl_dot. clear IHHp.
-      pose proof (pf_bnd_T2 Hi Hp) as [S ->]. specialize (IHHwt (inert_prefix Hi)).
-
-
-Lemma lookup_path_order G s p px pbs qx qbs :
-  well_typed G s ->
-  p = p_sel (avar_f px) pbs ->
-  q = p_sel (avar_f qx) qbs ->
-  G ⊢!!! p: T ->
-
-
-Lemma defs_paths_precise G px pbs ds T P a q qx qbs :
-  inert G ->
-  px; pbs; P; G ⊢ ds :: T ->
-  q = p_sel (avar_f qx) qbs ->
-  defs_has ds {a := defp q} ->
-  record_has T {a ⦂ typ_sngl q} ->
-  exists U, G ⊢!! q : U.
-Proof. Admitted.
-
-Lemma
-
 
 Lemma typed_path_lookup1 G s p T U :
     inert G ->
@@ -533,7 +479,6 @@ Proof.
         pose proof (object_lookup1 Hi Hwt' Hp) as [X [ds [Y [px [pbs [P [Hl [[= -> ->] [Hds [Hrc1 Hrc2]]]]]]]]]].
         pose proof (pf_record_has_U Hi Hp) as Hr.
         assert (exists Z, record_has X {a ⦂ Z}) as [Z Hr'] by admit.
-
       + SSCase "pf_open".
         eauto.
       + SSCase "pf_and1".

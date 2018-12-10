@@ -558,8 +558,13 @@ Definition typed_repl_comp_qp G T1 T2 :=
 
 Definition repl_composition_qp G := star (typed_repl_comp_qp G).
 
+Notation "G '⊢' T '⟿' U" := (repl_composition_qp G U T) (at level 40, T at level 59).
+(*Notation "G '⊢' T '⬳' U" := (repl_composition_qp G T U) (at level 40, T at level 59).*)
+Notation "G '⊢' p '⟿'' q" := (G ⊢ typ_sngl p ⟿ typ_sngl q) (at level 40, p at level 59).
+(*Notation "G '⊢p' p '⬳' q" := (G ⊢ typ_sngl p ⬳ typ_sngl q) (at level 40, p at level 59).*)
+
 Lemma repl_comp_sngl_inv1 : forall G T p,
-    repl_composition_qp G T (typ_sngl p) ->
+    G ⊢ typ_sngl p ⟿ T ->
     exists q, T = typ_sngl q.
 Proof.
   introv Hr. dependent induction Hr; eauto.
@@ -568,7 +573,7 @@ Proof.
 Qed.
 
 Lemma repl_comp_sngl_inv2 : forall G T p,
-    repl_composition_qp G (typ_sngl p) T ->
+    G ⊢ T ⟿ typ_sngl p ->
     exists q, T = typ_sngl q.
 Proof.
   introv Hr. dependent induction Hr; eauto.
@@ -577,7 +582,7 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd_inv1 G T U :
-  repl_composition_qp G T (typ_bnd U) ->
+  G ⊢ typ_bnd U ⟿ T ->
   exists S, T = typ_bnd S.
 Proof.
   introv Hr. dependent induction Hr; eauto.
@@ -586,7 +591,7 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd_inv2 G T U :
-  repl_composition_qp G (typ_bnd U) T ->
+  G ⊢ T ⟿ typ_bnd U ->
   exists S, T = typ_bnd S.
 Proof.
   introv Hr. dependent induction Hr; eauto.
@@ -595,8 +600,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_and1: forall G T T' U,
-    repl_composition_qp G T T' ->
-    repl_composition_qp G (typ_and T U) (typ_and T' U).
+    G ⊢ T ⟿ T' ->
+    G ⊢ typ_and T U ⟿ typ_and T' U.
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
@@ -606,8 +611,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_and2: forall G T T' U,
-    repl_composition_qp G T T' ->
-    repl_composition_qp G (typ_and U T) (typ_and U T').
+    G ⊢ T ⟿ T' ->
+    G ⊢ typ_and U T ⟿ typ_and U T'.
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
@@ -617,8 +622,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd: forall G T T',
-    repl_composition_qp G T T' ->
-    repl_composition_qp G (typ_bnd T) (typ_bnd T').
+    G ⊢ T ⟿ T' ->
+    G ⊢ typ_bnd T ⟿ typ_bnd T'.
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
@@ -628,8 +633,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd': forall G T T',
-    repl_composition_qp G (typ_bnd T) (typ_bnd T') ->
-    repl_composition_qp G T T'.
+    G ⊢ typ_bnd T ⟿ typ_bnd T' ->
+    G ⊢ T ⟿ T'.
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
@@ -641,26 +646,26 @@ Proof.
     apply* IHHr.
 Qed.
 
-Lemma repl_comp_record_has1 G T U V a :
-  repl_composition_qp G T U ->
-  record_has T { a ⦂ V } ->
-  exists V', record_has U { a ⦂ V' } /\ repl_composition_qp G V V'.
+Lemma repl_comp_record_has2 G T U U' a :
+  G ⊢ T ⟿ U ->
+  record_has U { a ⦂ U' } ->
+  exists T', record_has T { a ⦂ T' } /\ G ⊢ T' ⟿ U'.
 Proof. Admitted.
 
-Lemma repl_comp_record_has2 G T U V a :
-  repl_composition_qp G T U ->
-  record_has U { a ⦂ V } ->
-  exists V', record_has T { a ⦂ V' } /\ repl_composition_qp G V' V.
+Lemma repl_comp_record_has1 G T U T' a :
+  G ⊢ T ⟿ U ->
+  record_has T { a ⦂ T' } ->
+  exists U', record_has U { a ⦂ U' } /\ G ⊢ T' ⟿ U'.
 Proof. Admitted.
 
 Lemma repl_composition_open G T U p :
-  repl_composition_qp G T U ->
-  repl_composition_qp G (open_typ_p p T) (open_typ_p p U).
+  G ⊢ T ⟿ U ->
+  G ⊢ open_typ_p p T ⟿ open_typ_p p U.
 Proof. Admitted.
 
 Lemma repl_composition_sngl: forall G p q T,
     inert G ->
-    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢ p ⟿' q ->
     G ⊢!!! p : T ->
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
@@ -681,7 +686,7 @@ Qed.
 
 Lemma repl_composition_sngl2: forall G p q T,
     inert G ->
-    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢ p ⟿' q ->
     G ⊢!!! q : T ->
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
@@ -698,22 +703,41 @@ Proof.
     lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
 Admitted.
 
-Lemma repl_composition_weaken G p q x T :
+Lemma repl_composition_weaken G x T U V :
   ok G ->
   x # G ->
-  repl_composition_qp G p q ->
-  repl_composition_qp (G & x ~ T) p q.
+  G ⊢ T ⟿ U ->
+  G & x ~ V ⊢ T ⟿ U.
 Proof.
-  intros Hok Hn Hr. gen x T. dependent induction Hr; intros.
+  intros Hok Hn Hr. gen x V. dependent induction Hr; intros.
   - constructor.
-  - destruct H as [r [q [n [Hrq Hr']]]].
+  - destruct H as [r [? [n [Hrq Hr']]]].
     eapply star_trans. apply star_one. econstructor. repeat eexists. apply* pf_weaken.
     apply Hr'. apply* IHHr.
 Qed.
 
+Notation "G '⊩' T '⟿' U '⬳' V" := (G ⊢ T ⟿ U /\ G ⊢ V ⟿ U) (at level 40, T at level 59).
+Notation "G '⊩' p '⟿'' q '⬳' r" := (G ⊢ p ⟿' q /\ G ⊢ r ⟿' q) (at level 40, p at level 59).
+
+Lemma repl_comp_trans_open G S W T p :
+  G ⊩ S ⟿ W ⬳ T ->
+  G ⊩ open_typ_p p S ⟿ open_typ_p p W ⬳ open_typ_p p T.
+Proof.
+  split; apply* repl_composition_open.
+Qed.
+
+Lemma repl_comp_trans_record_has G T S U V a :
+  G ⊩ T ⟿ S ⬳ U ->
+  record_has U {a ⦂ V} ->
+  exists V' S', record_has T {a ⦂ V'} /\ G ⊩ V' ⟿ S' ⬳ V.
+Proof.
+  intros [Hc1 Hc2] Hr. pose proof (repl_comp_record_has1 Hc2 Hr) as [V1 [Hr1 Hc1']].
+  pose proof (repl_comp_record_has2 Hc1 Hr1) as [V2 [Hr2 Hc2']]. repeat eexists; eauto.
+Qed.
+
 Lemma field_typing_comp1: forall G r q a U,
   inert G ->
-  repl_composition_qp G (typ_sngl r) (typ_sngl q) ->
+  G ⊢ q ⟿' r ->
   G ⊢!!! q•a : U ->
   exists T, G ⊢!!! r•a : T.
 Proof.
@@ -733,7 +757,7 @@ Qed.
 
 Lemma field_typing_comp2: forall G r q a U,
   inert G ->
-  repl_composition_qp G (typ_sngl q) (typ_sngl r) ->
+  G ⊢ r ⟿' q ->
   G ⊢!!! q•a : U ->
   exists T, G ⊢!!! r•a : T.
 Proof.
@@ -749,9 +773,9 @@ Qed.
 
 Lemma repl_composition_fld_elim: forall G p q a T,
     inert G ->
-    repl_composition_qp G (typ_sngl p) (typ_sngl q) ->
+    G ⊢ p ⟿' q ->
     G ⊢!!! p • a : T ->
-    repl_composition_qp G (typ_sngl p•a) (typ_sngl q•a).
+    G ⊢ p•a ⟿' q•a.
 Proof.
   introv Hi Hr. gen T. dependent induction Hr; introv Hpa.
   - apply star_refl.
@@ -763,13 +787,12 @@ Proof.
     * apply star_one. inversions Hr'. repeat eexists. apply Hpq.
       repeat rewrite <- proj_rewrite' in *.
       apply* rsngl.
-    * invert_repl. apply* IHHr. clear IHHr. rewrite <- proj_rewrite' in *.
-      apply* pt3_field_trans'.
+    * invert_repl. apply* IHHr.
 Qed.
 
 Lemma repl_comp_to_prec: forall G p q T,
     inert G ->
-    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢ p ⟿' q ->
     G ⊢!!! p: T ->
     p = q \/ G ⊢!!! p: typ_sngl q.
 Proof.
@@ -792,7 +815,7 @@ Admitted. (* todo: rewrite above lemmas using this lemma *)
 
 Lemma repl_comp_typed : forall G p q T,
     inert G ->
-    repl_composition_qp G (typ_sngl q) (typ_sngl p) ->
+    G ⊢ p ⟿' q ->
     G ⊢!!! q: T ->
     exists U, G ⊢!!! p: U.
 Proof.

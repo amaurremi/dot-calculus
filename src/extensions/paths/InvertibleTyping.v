@@ -404,7 +404,7 @@ Qed.
 Lemma invertible_repl_closure_comp_typed: forall G p T T',
     inert G ->
     G ⊢## p: T ->
-    repl_composition_qp G T' T ->
+    G ⊢ T ⟿ T' ->
     G ⊢## p: T'.
 Proof.
   introv Hi Hp Hr. dependent induction Hr; eauto.
@@ -414,7 +414,7 @@ Qed.
 
 Lemma inv_to_precise_sngl_repl_comp: forall G p q,
     G ⊢## p: typ_sngl q ->
-    exists r, G ⊢!!! p: typ_sngl r /\ repl_composition_qp G (typ_sngl q) (typ_sngl r).
+    exists r, G ⊢!!! p: typ_sngl r /\ G ⊢ r ⟿' q.
 Proof.
   introv Hp.
   dependent induction Hp.
@@ -527,12 +527,12 @@ Proof.
   - lets Hg: (precise_to_general H1).
     lets Hs: (sngl_path_named Hg). lets Ht: (typed_paths_named Hg).
     invert_repl; eapply ty_all_invv with (L:=dom G).
-    * eauto. 
-    * apply repl_swap in H9; eauto.
-    * introv Hy. eauto. 
-    * eauto. 
     * eauto.
-    * introv Hy. lets Ho: (repl_open_var y H9 Ht Hs). 
+    * apply repl_swap in H9; eauto.
+    * introv Hy. eauto.
+    * eauto.
+    * eauto.
+    * introv Hy. lets Ho: (repl_open_var y H9 Ht Hs).
       apply* weaken_subtyp.
 Qed.
 

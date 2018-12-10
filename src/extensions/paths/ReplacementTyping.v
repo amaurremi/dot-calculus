@@ -498,7 +498,7 @@ Qed.
 Lemma replacement_repl_closure_comp_typed: forall G p T T',
     inert G ->
     G ⊢// p: T ->
-    repl_composition_qp G T T' ->
+    G ⊢ T' ⟿ T ->
     G ⊢// p: T'.
 Proof.
   introv Hi Hp Hr. dependent induction Hr; eauto.
@@ -509,7 +509,7 @@ Qed.
 Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
     inert G ->
     G ⊢// p: typ_sngl q ->
-    exists q', repl_composition_qp G (typ_sngl q') (typ_sngl q) /\ G ⊢## p: typ_sngl q'.
+    exists q', G ⊢ q ⟿' q' /\ G ⊢## p: typ_sngl q'.
 Proof.
   introv Hi Hp. dependent induction Hp.
   - Case "ty_inv_r".
@@ -547,9 +547,9 @@ Proof.
   destruct (field_typing_comp2 _ Hi Hrc Hra) as[T2 Hr'a].
   lets Hper: (path_elim_prec _ Hi Hp' Hr'a).
   lets Hinv: (ty_precise_inv Hper).
-  assert (repl_composition_qp G (typ_sngl r • a) (typ_sngl r' • a)) as Hr'
+  assert (G ⊢ r' • a ⟿' r • a) as Hr'
     by apply* repl_composition_fld_elim.
-  assert (repl_composition_qp G (typ_sngl r • a) (typ_sngl q • a)) as Hr''
+  assert (G ⊢ q • a ⟿' r • a) as Hr''
    by apply* repl_composition_fld_elim.
   lets Hic: (invertible_repl_closure_comp_typed Hi Hinv Hr').
   apply* replacement_repl_closure_comp_typed.
@@ -989,7 +989,7 @@ Qed.
 Lemma repl_to_invertible_obj G U v :
   inert G ->
   G ⊢//v v : typ_bnd U ->
-  exists U', G ⊢##v v : typ_bnd U' /\ repl_composition_qp G U' U.
+  exists U', G ⊢##v v : typ_bnd U' /\ G ⊢ U ⟿ U'.
 Proof.
   intros Hi Hv. dependent induction Hv.
   - exists U. split*. constructor.
@@ -1029,7 +1029,7 @@ Qed.
 Lemma invertible_to_precise_obj G U v :
   inert G ->
   G ⊢##v v : typ_bnd U ->
-  exists T, G ⊢!v v : typ_bnd T /\ repl_composition_qp G U T.
+  exists T, G ⊢!v v : typ_bnd T /\ G ⊢ T ⟿ U.
 Proof.
   intros Hi Hv. dependent induction Hv.
   - inversions H. eexists. split*. constructor.
