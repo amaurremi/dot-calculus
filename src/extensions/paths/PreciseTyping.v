@@ -646,6 +646,36 @@ Proof.
     apply* IHHr.
 Qed.
 
+Lemma repl_comp_typ_rcd G A T U S :
+  G ⊢ typ_rcd { A >: T <: U } ⟿ S ->
+  exists T' U', S = typ_rcd { A >: T' <: U' }.
+Proof. Admitted.
+
+Lemma repl_comp_typ_rcd' G A T U S :
+  G ⊢ S ⟿ typ_rcd { A >: T <: U } ->
+  exists T' U', S = typ_rcd { A >: T' <: U' }.
+Proof. Admitted.
+
+Lemma repl_comp_trm_rcd G a T S :
+  G ⊢ typ_rcd { a ⦂ T } ⟿ S ->
+  exists T', S = typ_rcd { a ⦂ T' }.
+Proof. Admitted.
+
+Lemma repl_comp_trm_rcd' G a T S :
+  G ⊢ S ⟿ typ_rcd { a ⦂ T } ->
+  exists T', S = typ_rcd { a ⦂ T' }.
+Proof. Admitted.
+
+Lemma repl_comp_typ_all G T U S :
+  G ⊢ typ_all T U ⟿ S ->
+  exists T' U', S = typ_all T' U'.
+Proof. Admitted.
+
+Lemma repl_comp_typ_all' G T U S :
+  G ⊢ S ⟿ typ_all T U ->
+  exists T' U', S = typ_all T' U'.
+Proof. Admitted.
+
 Lemma repl_comp_record_has2 G T U U' a :
   G ⊢ T ⟿ U ->
   record_has U { a ⦂ U' } ->
