@@ -515,16 +515,15 @@ Proof.
   - pose proof (inert_ok Hi) as Hok%ok_concat_inv_l.
     repeat eexists. eauto. all: do 2 apply* repl_composition_weaken.
 Qed.
-(*
-Lemma lookup_step_preservation_sngl_prec3: forall G s p px pbs q t Q1 Q2 Q3,
+
+Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
-    p = p_sel (avar_f px) pbs ->
     G ⊢!!! p : typ_sngl q ->
     G ⊢! q : typ_all Q1 Q2 ⪼ Q3 ->
-    exists r r' G1 G2 pT, G = G1 & px ~ pT & G2 /\ t = defp r /\ G1 ⊩ q ⟿' r' ⬳ r.
-Proof.
+    exists r r', t = defp r /\ G ⊩ q ⟿' r' ⬳ r.
+Proof. Admitted. (*
   introv Hi Hwt Hs Heq Hp. gen t px pbs.
   dependent induction Hp; introv Hs; introv Heq Hq;
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs H Heq)
@@ -547,17 +546,14 @@ Proof.
     }
     assert (inert (G1 & px ~ pT)) as Hi' by (subst; apply* inert_prefix).
     pose proof (inert_prefix Hi') as Hi''.
-    assert (G ⊢ q ⟿' r2) as Hrq1' by (subst; repeat apply* repl_composition_weaken).
-    assert (G ⊢ r1 ⟿' r2) as Hrq2' by (subst; repeat apply* repl_composition_weaken).
-    assert (G ⊢ p_sel (avar_f px) rbs ⟿' r') as Hrc1' by (subst; repeat apply* repl_composition_weaken).
-    assert (G ⊢ q' ⟿' r') as Hrc2' by (subst; repeat apply* repl_composition_weaken).
-    pose proof (repl_comp_to_prec Hi Hrq1' (pt3 (pt2 Hq))) as [-> | Hq']; clear Hrq1.
+    pose proof (repl_comp_to_prec Hi Hrq1 (pt3 (pt2 Hq))) as [-> | Hq']; clear Hrq1.
     + assert (exists R, G ⊢!!! r1 : R) as [R Hr1] by admit.
       pose proof (repl_comp_to_prec Hi Hrq2' Hr1) as [-> | Hq']; clear Hrq2 Hr1.
       * assert (exists R', G ⊢!!! q' : R') as [R' Hrt] by admit.
         pose proof (repl_comp_to_prec Hi Hrc1' Hp) as [<- | Hp'];
-          pose proof (repl_comp_to_prec Hi Hrc2' Hrt) as [-> | Hp'']; do 5 eexists; split*; clear Hrc1 Hrc2.
-        ** split; eauto. split. constructor. apply* prec_to_repl_comp3.
+          pose proof (repl_comp_to_prec Hi Hrc2' Hrt) as [-> | Hp''];
+          do 5 eexists; split*; clear Hrc1 Hrc2; subst.
+        ** split; eauto. split.  constructor. apply* prec_to_repl_comp3. apply Hp.
         ** split. constructor. eapply star_trans; apply* prec_to_repl_comp3.
         ** split. constructor.
            pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
@@ -627,6 +623,29 @@ Proof.
     all: apply* repl_composition_fld_elim; admit. (* named typing stuff *)
 Admitted.
 
+Lemma repl_comp_in_env G p q :
+  G ⊢ p ⟿' q ->
+  p = q \/ (exists px pbs qx qbs T U,
+              p = p_sel (avar_f px) pbs /\
+              q = p_sel (avar_f qx) qbs /\
+              binds px T G /\ binds qx U G).
+Proof.
+  intros Hp. dependent induction Hp; auto.
+  assert (exists r, b = typ_sngl r) as [r ->]. {
+    inversions H. destruct_all. inversions H0. eauto.
+  }
+  destruct H as [r' [r'' [n [Hr Hrt]]]].
+  invert_repl.
+  specialize (IHHp _ _ eq_refl eq_refl)
+    as [-> | [px [pbs [qx [qbs [T [U [HH [HHH [Hb Hb']]]]]]]]]].
+  - admit.
+  - simpl_dot. right. assert (exists rx rbs, r'' = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
+    assert (exists V, binds rx V G) as [V Hb''] by admit.
+    do 6 eexists. split. auto. split. Focus 2. split. apply Hb. apply Hb''.
+
+
+
+
 Lemma lookup_same_var_same_type G s x bs cs T:
   inert G ->
   well_typed G s ->
@@ -643,10 +662,14 @@ Proof.
       pose proof (lookup_step_preservation_prec2 Hi (well_typed_push Hwt H H0 H1) Hs Ht eq_refl)
         as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
             [[S' [ds [W [U' [P [G1 [G2 [pT [[=] [Hp' [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
-             [? [? [? [? [? [? [[= <-] [-> [Heq [Hrc1 Hrc2]]]]]]]]]]]].
+             [r [r' [r'' [G1 [G2 [pT [[= <-] [-> [Heq [Hrc1 Hrc2]]]]]]]]]]]].
       rewrite <- concat_empty_r in Heq at 1.
-      apply eq_sym in Heq. apply env_ok_inv in Heq as [<- [_ [<- ->]]]; try rewrite concat_empty_r in *; auto.
+      apply eq_sym in Heq.
+      apply env_ok_inv in Heq as [<- [_ [<- ->]]]; try rewrite concat_empty_r in *; auto.
+      pose proof (repl_comp_in_env Hrc2)
       pose proof (repl_comp_sngl_inv2 Hrc1) as [q ->].
+
+
       Admitted.
 
 
