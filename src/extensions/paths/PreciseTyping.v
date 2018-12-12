@@ -733,7 +733,7 @@ Proof.
     lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
 Admitted.
 
-Lemma repl_composition_weaken G x T U V :
+Lemma repl_composition_weaken_one G x T U V :
   ok G ->
   x # G ->
   G ⊢ T ⟿ U ->
@@ -744,6 +744,17 @@ Proof.
   - destruct H as [r [? [n [Hrq Hr']]]].
     eapply star_trans. apply star_one. econstructor. repeat eexists. apply* pf_weaken.
     apply Hr'. apply* IHHr.
+Qed.
+
+Lemma repl_composition_weaken G G' T U :
+  ok (G & G') ->
+  G ⊢ T ⟿ U ->
+  G & G' ⊢ T ⟿ U.
+Proof.
+  intros Hok Hr. induction G' using env_ind.
+  - rewrite* concat_empty_r.
+  - rewrite concat_assoc in *. apply ok_push_inv in Hok as [? ?].
+    eapply repl_composition_weaken_one; eauto.
 Qed.
 
 Notation "G '⊩' T '⟿' U '⬳' V" := (G ⊢ T ⟿ U /\ G ⊢ V ⟿ U) (at level 40, T at level 59).

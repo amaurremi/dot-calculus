@@ -315,7 +315,7 @@ Proof.
     eauto.
 Qed.
 
-Lemma inert_prefix: forall G x T,
+Lemma inert_prefix_one: forall G x T,
     inert (G & x ~ T) ->
     inert G.
 Proof.
@@ -327,4 +327,13 @@ Lemma inert_last G x T :
   inert_typ T.
 Proof.
   intros Hi. inversions Hi. false* empty_push_inv. apply eq_push_inv in H as [-> [-> _]]. auto.
+Qed.
+
+Lemma inert_prefix G G' :
+  inert (G & G') ->
+  inert G.
+Proof.
+  induction G' using env_ind; intros Hi.
+  - rewrite concat_empty_r in Hi; auto.
+  - rewrite concat_assoc in Hi. apply inert_prefix_one in Hi. eauto.
 Qed.
