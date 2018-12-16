@@ -831,18 +831,36 @@ Proof.
     * invert_repl. apply* IHHr.
 Qed.
 
-Lemma repl_comp_to_prec: forall G p q T,
+Lemma pt2_strengthen_from_pt1 G G' p bs T T' U :
+  G ⊢! p: T ⪼ T' ->
+  G & G' ⊢!! p••bs : U ->
+  G  ⊢!! p••bs : U.
+Proof. Admitted.
+
+Lemma pt3_strengthen_from_pt2 G G' p T U :
+  G ⊢!! p: T ->
+  G & G' ⊢!!! p : U ->
+  G  ⊢!!! p : U.
+Proof. Admitted.
+
+Lemma pt1_strengthen_from_pt3 G G' p T U V :
+  G ⊢!!! p: T ->
+  G & G' ⊢! p : U ⪼ V ->
+  G  ⊢! p : U ⪼ V.
+Proof. Admitted.
+
+Lemma repl_comp_to_prec': forall G G' p q T,
     inert G ->
     G ⊢ p ⟿' q ->
-    G ⊢!!! p: T ->
+    G & G' ⊢!!! p: T ->
     p = q \/ G ⊢!!! p: typ_sngl q.
 Proof.
   introv Hi Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
   assert (exists r, b = typ_sngl r) as [r Heq] by admit. subst.
   specialize (IHHr _ _ Hi eq_refl eq_refl). destruct (IHHr _ Hp). subst.
   - destruct H as [p1 [p2 [n [H1 H2]]]]. right. inversions H2.
-    repeat rewrite proj_rewrite_mult in *.
     destruct (pt2_exists Hp) as [U Hu].
+    apply (pt2_strengthen_from_pt1 _ H1) in Hu.
     lets Hpf: (pf_pt2_trans_inv_mult _ Hi H1 Hu). subst*.
   - specialize (IHHr _ Hp). destruct H as [p1 [p2 [n [H1 H2]]]].
     destruct (repl_prefixes_sngl H2) as [bs [He1 He2]]. subst.
@@ -853,6 +871,16 @@ Proof.
       lets Hs: (sngl_typed3 Hi IH). destruct Hs.
       apply* pt3_trans_trans.
 Admitted. (* todo: rewrite above lemmas using this lemma *)
+
+Lemma repl_comp_to_prec: forall G p q T,
+    inert G ->
+    G ⊢ p ⟿' q ->
+    G ⊢!!! p: T ->
+    p = q \/ G ⊢!!! p: typ_sngl q.
+Proof.
+  introv Hi Hp Hpt. assert (G = G & empty) as Heq by rewrite* concat_empty_r.
+  rewrite Heq in Hpt. apply* repl_comp_to_prec'.
+Qed.
 
 Lemma repl_comp_typed : forall G p q T,
     inert G ->
