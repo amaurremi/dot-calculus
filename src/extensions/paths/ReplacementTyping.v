@@ -506,6 +506,48 @@ Proof.
   lets Hrc: (replacement_repl_closure_qp Hi Hpq Hp Hr'). eauto.
 Qed.
 
+Lemma sngl_typed_inv G p q :
+  inert G ->
+  G ⊢## p: typ_sngl q ->
+  exists T, G ⊢!! q : T.
+Proof.
+  intros Hi Hp. dependent induction Hp.
+  - apply (sngl_typed3 Hi) in H as [U Hq]. apply* pt2_exists.
+  - specialize (IHHp _ Hi eq_refl) as [T Hq].
+    invert_repl. pose proof (pf_pt2_trans_inv_mult _ Hi H Hq) as ->.
+    apply* sngl_typed2.
+Qed.
+
+Lemma pt2_fld_mult G p q bs T :
+  G ⊢!! p : typ_sngl q ->
+  G ⊢!! q •• bs : T ->
+  G ⊢!! p •• bs : typ_sngl q •• bs.
+Proof.
+  intros Hp. gen T. induction bs; introv Hq.
+  - repeat rewrite field_sel_nil in *. auto.
+  - repeat rewrite proj_rewrite' in *.
+    pose proof (pt2_backtrack _ _ Hq) as [U Hqbs]. eauto.
+Qed.
+
+(* a proof without ⟿ *)
+(*
+Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
+    inert G ->
+    G ⊢// p: typ_sngl q ->
+    exists q', (q = q' \/ G ⊢!!! q: typ_sngl q') /\ G ⊢## p: typ_sngl q'.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+  Case "ty_sngl_qp_r".
+  specialize (IHHp _ Hi eq_refl). destruct IHHp as [p' [[-> | Hr] Hr']].
+  - invert_repl. eexists. split. right.
+    pose proof (sngl_typed_inv Hi Hr') as [T Hq].
+    apply (pt2_fld_mult _ (pt2 H)) in Hq. eauto. auto.
+  - exists p'. split*. right. invert_repl.
+    pose proof (pt2_exists Hr) as [U Hq02].
+    pose proof (pt2_fld_mult _ (pt2 H) Hq02) as Hpbs.
+    eauto.
+Qed.*)
+
 Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
     inert G ->
     G ⊢// p: typ_sngl q ->
