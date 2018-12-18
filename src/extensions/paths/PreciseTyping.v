@@ -721,7 +721,8 @@ Lemma repl_composition_sngl2: forall G p q T,
     p = q \/ G ⊢!!! p : typ_sngl q.
 Proof.
   introv Hi Hc Hq. gen T. dependent induction Hc; introv Hq; eauto.
-  assert (exists r, b = typ_sngl r) as [p3 Heq] by admit.
+  assert (exists r, b = typ_sngl r) as [p3 Heq].
+  { destruct H as [x [q0 [n [_ H]]]]. inversion* H. }
   subst.
   specialize (IHHc _ _ Hi eq_refl eq_refl).
   destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
@@ -731,7 +732,7 @@ Proof.
   - lets Htt: (pt3_trans_trans _ Hi H' Hqs). right*.
   - right. destruct (sngl_typed3 Hi Hp) as [S' Hqbs].
     lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
-Admitted.
+Qed.
 
 Lemma repl_composition_weaken_one G x T U V :
   ok G ->
@@ -838,7 +839,9 @@ Lemma repl_comp_to_prec: forall G p q T,
     p = q \/ G ⊢!!! p: typ_sngl q.
 Proof.
   introv Hi Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
-  assert (exists r, b = typ_sngl r) as [r Heq] by admit. subst.
+  assert (exists r, b = typ_sngl r) as [r Heq].
+  { inversion H as [x [y [n [_ H0]]]]. inversion* H0. }
+  subst.
   specialize (IHHr _ _ Hi eq_refl eq_refl). destruct (IHHr _ Hp). subst.
   - destruct H as [p1 [p2 [n [H1 H2]]]]. right. inversions H2.
     repeat rewrite proj_rewrite_mult in *.
@@ -852,7 +855,7 @@ Proof.
     * right*. apply* pt3_sngl_trans3.
       lets Hs: (sngl_typed3 Hi IH). destruct Hs.
       apply* pt3_trans_trans.
-Admitted. (* todo: rewrite above lemmas using this lemma *)
+Qed. (* todo: rewrite above lemmas using this lemma *)
 
 Lemma repl_comp_typed : forall G p q T,
     inert G ->
@@ -861,11 +864,13 @@ Lemma repl_comp_typed : forall G p q T,
     exists U, G ⊢!!! p: U.
 Proof.
   introv Hi Hr Hq. gen T. dependent induction Hr; introv Hq; eauto.
-  assert (exists q', b = typ_sngl q') as [q' Heq] by admit. subst.
+  assert (exists q', b = typ_sngl q') as [q' Heq].
+  { inversion H as [x [y [n [_ H0]]]]. inversion* H0. }
+  subst.
   destruct H as [r [r' [n [H2 H3]]]].
   destruct (repl_prefixes_sngl H3) as [bs [He1 He2]]. subst.
   apply* IHHr. apply* pt3_field_trans'.
-Admitted.
+Qed.
 
 Lemma pt23_invert : forall G p q T,
     inert G ->

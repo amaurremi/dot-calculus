@@ -893,7 +893,7 @@ Proof.
     destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
     + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
       apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.
-    + constructor. apply binds_subst in b; auto. admit. (*easy*)
+    + constructor. apply binds_subst in b; auto. apply* binds_weaken. apply* ok_middle_change.
 Qed.
 
 Lemma open_env_last_defs z bs P G x T ds U :
