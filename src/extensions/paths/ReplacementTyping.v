@@ -529,6 +529,8 @@ Proof.
     pose proof (pt2_backtrack _ _ Hq) as [U Hqbs]. eauto.
 Qed.
 
+(* a proof without ⟿ *)
+(*
 Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
     inert G ->
     G ⊢// p: typ_sngl q ->
@@ -544,7 +546,7 @@ Proof.
     pose proof (pt2_exists Hr) as [U Hq02].
     pose proof (pt2_fld_mult _ (pt2 H) Hq02) as Hpbs.
     eauto.
-Qed.
+Qed.*)
 
 Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
     inert G ->
