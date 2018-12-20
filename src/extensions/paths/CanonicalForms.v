@@ -227,7 +227,7 @@ Proof.
              as [<- | Hpr']; clear Hrc1' Hrc2';
                repeat eexists; try rewrite concat_empty_r; eauto.
     * SCase "x <> x0".
-      apply pf_strengthen in Hp; auto. apply lookup_strengthen in Hs; auto.
+      apply pf_strengthen in Hp; auto. apply lookup_strengthen_one in Hs; auto.
       inversions Heq.
       specialize (IHHwt (inert_prefix Hi) _ _ _ _ _ _ Hs Hp eq_refl)
         as [[? [? [[= ->]]]] |
@@ -560,55 +560,6 @@ Proof.
   false* (binds_fresh_inv Hb).
 Qed.
 
-
-
-Lemma lookup_same_var_same_type G s x bs cs T:
-  inert G ->
-  well_typed G s ->
-  s ⟦ p_sel (avar_f x) bs ⟼ defp (p_sel (avar_f x) cs) ⟧ ->
-  G ⊢!! p_sel (avar_f x) bs : T ->
-  T = typ_sngl (p_sel (avar_f x) cs).
-Proof.
-  intros Hi Hwt. gen x bs cs T. induction Hwt; introv Hs Ht.
-  - Case "s is empty".
-    false* lookup_empty.
-  - Case "G is not empty".
-    destruct (classicT (x = x0)) as [<- | Hn].
-    + SCase "x = x0".
-      pose proof (lookup_step_preservation_prec2 Hi (well_typed_push Hwt H H0 H1) Hs Ht eq_refl)
-        as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
-            [[S' [ds [W [U' [P [G1 [G2 [pT [[=] [Hp' [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
-             [q [r [r' [G1 [G2 [pT [[= <-] [-> [Heq [Hrc1 Hrc2]]]]]]]]]]]].
-      rewrite <- concat_empty_r in Heq at 1.
-      apply eq_sym in Heq. apply env_ok_inv in Heq as [<- [<- ->]]; try rewrite concat_empty_r in *; auto.
-      assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
-      destruct Hrc1 as [-> | Hrc1];
-        destruct Hrc2 as [-> | [U Hu]%precise_to_general3%typing_implies_bound];
-        eauto.
-      * false binds_fresh_inv; eauto.
-      * apply sngl_typed3 in Hrc1 as
-            [T [S Hb]%precise_to_general3%typing_implies_bound].
-        false binds_fresh_inv; eauto. apply* inert_prefix.
-      * false binds_fresh_inv; eauto.
-    + SCase "x <> x0".
-      apply pt2_strengthen_one in Ht; auto.
-      apply lookup_strengthen in Hs; eauto. apply* IHHwt. apply* inert_prefix.
-Qed.
-
-Lemma lookup_same_var_same_type3 G s x bs cs ds:
-  inert G ->
-  well_typed G s ->
-  s ⟦ p_sel (avar_f x) bs ⟼ defp (p_sel (avar_f x) cs) ⟧ ->
-  G ⊢!!! p_sel (avar_f x) bs : typ_sngl (p_sel (avar_f x) ds) ->
-  cs = ds.
-Proof.
-  intros Hi Hwt Hs Ht. gen cs. dependent induction Ht; introv Hs.
-  - Case "pt3".
-    apply (lookup_same_var_same_type Hi Hwt Hs) in H as [= ->]. auto.
-  - Case "pt3_sngl_trans".
-    pose proof (lookup_same_var_same_type Hi Hwt Hs H) as [= ->].
-    specialize (IHHt _ _ _ Hi Hwt eq_refl eq_refl). Abort.
-
 Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     well_typed G s ->
@@ -616,8 +567,8 @@ Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     G ⊢!!! p : typ_sngl q ->
     G ⊢! q : typ_all Q1 Q2 ⪼ Q3 ->
     exists r r', t = defp r /\
-    (q = r' \/ G ⊢!!! q : typ_sngl r') /\
-    (r = r' \/ G ⊢!!! r: typ_sngl r').
+            (q = r' \/ G ⊢!!! q : typ_sngl r') /\
+            (r = r' \/ G ⊢!!! r : typ_sngl r').
 Proof.
   introv Hi Hwt Hs Hp. gen t.
   assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
@@ -629,216 +580,55 @@ Proof.
   - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwt Hp') as [? [? [Hl ?]]].
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
-  - apply inert_prefix in Hi. do 2 eexists; repeat split*. admit.
+  - destruct Hrc1 as [-> | Hrc1]; destruct Hrc2 as [-> | Hrc2]; do 2 eexists; eauto; split*; split;
+      [ left* | right | right | left* | right | right ]; repeat apply* pt3_weaken.
   - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwt Hp') as [? [? [Hl ?]]].
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
   - pose proof (typ_to_lookup3 Hi Hwt Hp) as [t Hl].
     assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs Heqr]] by admit.
-    specialize (IHHp _ Hi Hwt eq_refl _ _ Heqr _ Hl Hq) as [r1 [r2 [-> [Hrq1 Hrq2]]]]. Admitted. (*
-    + assert (exists R, G1 & px ~ pT & G2 ⊢!!! r1 : R) as [R Hr1] by admit.
-      pose proof (inert_ok (inert_prefix Hi)) as Hok'.
-      pose proof (inert_ok Hi) as Hok.
-      pose proof (repl_comp_to_prec Hi Hrq2 Hr1) as [-> | Hq'].
-      * assert (exists R', G1 & px ~ pT & G2 ⊢!!! q' : R') as [R' Hrt] by admit.
-        pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc1)) Hp)
-          as [-> | Hp'];
-          pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc2)) Hrt)
-          as [-> | Hp'']; do 2 eexists; split*; clear Hrc1 Hrc2.
-        ** split. constructor. apply* prec_to_repl_comp3.
-        ** split. constructor. eapply star_trans; apply* prec_to_repl_comp3.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** constructor.
+    specialize (IHHp _ Hi Hwt eq_refl _ _ Heqr _ Hl Hq) as [r1 [r2 [-> [[-> | Hq'] [-> | Hq'']]]]].
+      * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
+        ** split. left*. right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1 [[= ->] [-> | ?]]]]; eauto.
+           false* pt1_inert_pt3_sngl_false.
+        ** split. left*.
+           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1 [[= ->] [-> | ?]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+           *** right. repeat apply* pt3_weaken.
            *** false* pt1_inert_pt3_sngl_false.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** eapply star_trans; apply* prec_to_repl_comp3.
+      * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
+        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken. auto.
+        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1' [[= ->] [-> | ?]]]]; eauto. false* pt1_inert_pt3_sngl_false.
+        ** split. left*.
+           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp'))) as [? | [r1' [[= ->] [-> | HHH]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+           *** right. repeat apply* pt3_weaken.
            *** false* pt1_inert_pt3_sngl_false.
-      * assert (exists R', G1 & px ~ pT & G2 ⊢!!! q' : R') as [R' Hrt] by admit.
-        pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc1)) Hp)
-          as [-> | Hp'];
-          pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc2)) Hrt)
-          as [-> | Hp'']; do 2 eexists; split*; clear Hrc1 Hrc2.
-        ** split. constructor. apply* prec_to_repl_comp3.
-        ** split. constructor. eapply star_trans. apply (prec_to_repl_comp3 Hi Hp). apply* prec_to_repl_comp3.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** constructor.
+      * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
+        ** split. left*. right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1 [[= ->] [-> | ?]]]]; eauto.
+           false* pt1_inert_pt3_sngl_false.
+        ** split. left*.
+           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1 [[= ->] [-> | ?]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+           *** right. repeat apply* pt3_weaken.
            *** false* pt1_inert_pt3_sngl_false.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | HHH]]]]; try solve [apply* prec_to_repl_comp3].
-           *** eapply star_trans; apply* prec_to_repl_comp3.
+      * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
+        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken. auto.
+        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+             as [? | [r1' [[= ->] [-> | ?]]]]; eauto. false* pt1_inert_pt3_sngl_false.
+        ** split. left*.
+           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp'))) as [? | [r1' [[= ->] [-> | HHH]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
+           *** right. repeat apply* pt3_weaken.
            *** false* pt1_inert_pt3_sngl_false.
-    + false* (pt2_inert_pt3_sngl_false Hi (pt2 Hq) Hq').
-      apply pf_forall_U in Hq as ->. auto.
 Qed.
-
-Lemma lookup_step_preservation_sngl_prec3: forall G s p px pbs q t Q1 Q2 Q3,
-    inert G ->
-    well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
-    p = p_sel (avar_f px) pbs ->
-    G ⊢!!! p : typ_sngl q ->
-    G ⊢! q : typ_all Q1 Q2 ⪼ Q3 ->
-    exists r r' G1 G2 pT, t = defp r /\ G = G1 & px ~ pT & G2 /\
-                     (q = r' \/ G1 ⊢!!! q: typ_sngl r') /\
-                     (r = r' \/ G1 ⊢!!! r: typ_sngl r').
-Proof.
-  introv Hi Hwt Hs Heq Hp. gen t px pbs.
-  dependent induction Hp; introv Hs; introv Heq Hq;
-    destruct (lookup_step_preservation_prec2 Hi Hwt Hs H Heq)
-    as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
-        [[S' [ds [W [U [P [G1 [G2 [pT [-> [Hp' [Heq' [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
-         [q' [r [r' [G1 [G2 [pT [-> [[= ->] [-> [Hrc1 Hrc2]]]]]]]]]]]].
-  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwt Hp') as [? [? [Hl ?]]].
-    pose proof (lookup_step_func Hl Hs) as [=].
-  - pose proof (pf_sngl_T Hi Hp') as [=].
-  - apply inert_prefix in Hi.
-    destruct Hrc1 as [-> | Hrc1]; destruct Hrc2 as [-> | Hrc2];
-    repeat eexists; eauto.
-  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwt Hp') as [? [? [Hl ?]]].
-    pose proof (lookup_step_func Hl Hs) as [=].
-  - pose proof (pf_sngl_T Hi Hp') as [=].
-  - pose proof (typ_to_lookup3 Hi Hwt Hp) as [t Hl].
-    assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
-    specialize (IHHp _ Hi Hwt eq_refl _ Hl _ _ eq_refl Hq)
-      as [r1 [r2 [G1' [G2' [rT' [-> [HeqG' [Hrq1 Hrq2]]]]]]]]. subst.
-   (* assert (exists s1 s2 pv, s = s1 & px ~ pv & s2)
-      as [s1 [s2 [pv Heqs]]] by admit.
-    assert (exists s1' s2' rv, s = s1' & rx ~ rv & s2')
-      as [s1' [s2' [rv Heqs']]] by admit.*)
-    assert (exists R, G1' & rx ~ rT' ⊢!!! r1 : R) as [R Hr1] by admit.
-    assert (exists R', G1 & px ~ pT ⊢!!! q' : R') as [R' Hrt] by admit.
-    apply (pt2_strengthen eq_refl Hi) in H.
-    pose proof (inert_prefix Hi) as Hi'.
-    pose proof (sngl_typed2 Hi' H) as [Tr Hr2].
-    apply (pt3_strengthen_from_pt2 Hr2) in Hp. clear Hr2.
-    pose proof (sngl_typed3 Hi' Hp) as [Tq Hq3].
-    apply (pt1_strengthen_from_pt3 Hq3) in Hq. clear Hq3.
-    clear Hl Hs Hr1 Hrt.
-    destruct Hrc1 as [<- | Hrc1]; destruct Hrc2 as [<- | Hrc2];
-      destruct Hrq1 as [<- | Hrq1]; destruct Hrq2 as [<- | Hrq2].
-      * repeat eexists.
-
-
-      Γ1, rx: pT ⊢!!! rx.rbs : r1.type
-      Γ1, rx: pT ⊢!! px.pbs: rx.rbs.type
-      Γ1, rx: pT ⊢! r1: ∀
-      Γ1 ⊢ rx.rbs ⟿ r' ⬳ q'
-      Γ1' ⊢ q ⬳ r1
-      ________________________________
-      Γ1 ⊢ q ⟿ ? ⬳ q'
-
-
-
-
-
-
-      Γ1, rx: pT ⊢!!! rx.rbs : q.type
-      Γ1, rx: pT ⊢!! px.pbs: rx.rbs.type
-      Γ1, rx: pT ⊢! q: ∀
-      γ1, rx = rv ⟦ px.pbs = q' ⟧
-      γ1, rx = rv ⟦ rx.rbs = r1 ⟧
-      Γ1 ⊢ rx.rbs ⟿ r' ⬳ q'
-      Γ1' ⊢ q ⟿ r2 ⬳ r1
-      ________________________________
-      Γ1 ⊢ q ⟿ ? ⬳ q'
-
-
-
-    destruct (classicT (px = rx)) as [-> | Hn].
-    -- apply env_ok_inv in HeqG' as [<- [<- <-]];
-         try (rewrite HeqG' in Hi; apply* inert_ok).
-       pose proof (repl_comp_to_prec' (inert_prefix Hi') Hrq1 (pt3 (pt2 Hq)))
-         as [-> | Hq'].
-      + pose proof (inert_ok (inert_prefix Hi)) as Hok'.
-        pose proof (inert_ok Hi) as Hok.
-        pose proof (repl_comp_to_prec' (inert_prefix Hi') Hrq2 Hr1) as [-> | Hq'].
-        * pose proof (repl_comp_to_prec' (inert_prefix Hi') Hrc1 Hp)
-            as [<- | Hp'];
-            pose proof (repl_comp_to_prec' (inert_prefix Hi') Hrc2 Hrt)
-            as [-> | Hp'']; do 5 eexists; do 2 split*; clear Hrc1 Hrc2 Hok Hok'.
-          ** split. constructor. clear Hrq2 Hrq1 Heqs Hr1 Hrt.
-
-             Γ1, rx: pT ⊢!!! rx.rbs : r2.type
-             Γ1, rx: pT ⊢!! rx.pbs: rx.rbs.type
-             Γ1, rx: pT ⊢! r2: ∀
-             γ1, rx = rv ⟦ rx.pbs = rx.rbs ⟧
-             γ1, rx = rv ⟦ rx.rbs = r2 ⟧
-             _________________________________
-             Γ1 ⊢ rx.rbs ⟿ r2
-
-
-             apply* prec_to_repl_comp3.
-          ** split. constructor. eapply star_trans; apply* prec_to_repl_comp3.
-          ** split. constructor.
-             pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-             *** constructor.
-             *** false* pt1_inert_pt3_sngl_false.
-          ** split. constructor.
-             pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-             *** eapply star_trans; apply* prec_to_repl_comp3.
-
-
-
-
-
-    pose proof (inert_prefix (inert_prefix Hi)) as HiG1.
-    rewrite HeqG' in Hq, Hi.
-    rewrite <- concat_assoc in Hq, Hi.
-    pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrq1 (pt3 (pt2 Hq)))
-      as [-> | Hq'].
-    + assert (exists R, G1 & px ~ pT & G2 ⊢!!! r1 : R) as [R Hr1] by admit.
-
-      pose proof (inert_ok (inert_prefix Hi)) as Hok'.
-      pose proof (inert_ok Hi) as Hok.
-      rewrite HeqG' in Hr1.
-      rewrite <- concat_assoc in Hr1.
-      pose proof (inert_prefix Hi) as Hi'.
-      pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrq2 Hr1) as [-> | Hq'].
-      * assert (exists R', G1 & px ~ pT & G2 ⊢!!! q' : R') as [R' Hrt] by admit.
-
-        rewrite concat_assoc in *.
-        rewrite <- HeqG' in Hi. rewrite <- concat_assoc in Hi, Hp, Hrt.
-
-        pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrc1 Hp)
-          as [<- | Hp'];
-          pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrc2 Hrt)
-          as [-> | Hp'']; do 5 eexists; do 2 split*; clear Hrc1 Hrc2.
-        ** split. constructor.
-
-           apply* prec_to_repl_comp3.
-           admit.
-        ** split. constructor. eapply star_trans; apply* prec_to_repl_comp3.
-           admit.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** constructor.
-           *** false* pt1_inert_pt3_sngl_false.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1 [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** eapply star_trans; apply* prec_to_repl_comp3.
-           *** false* pt1_inert_pt3_sngl_false.
-      * assert (exists R', G1 & px ~ pT & G2 ⊢!!! q' : R') as [R' Hrt] by admit.
-        pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc1)) Hp)
-          as [-> | Hp'];
-          pose proof (repl_comp_to_prec Hi (repl_composition_weaken Hok (repl_composition_weaken Hok' Hrc2)) Hrt)
-          as [-> | Hp'']; do 2 eexists; split*; clear Hrc1 Hrc2.
-        ** split. constructor. apply* prec_to_repl_comp3.
-        ** split. constructor. eapply star_trans. apply (prec_to_repl_comp3 Hi Hp). apply* prec_to_repl_comp3.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | ?]]]]; try solve [apply* prec_to_repl_comp3].
-           *** constructor.
-           *** false* pt1_inert_pt3_sngl_false.
-        ** split. constructor.
-           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | HHH]]]]; try solve [apply* prec_to_repl_comp3].
-           *** eapply star_trans; apply* prec_to_repl_comp3.
-           *** false* pt1_inert_pt3_sngl_false.
-    + false* (pt2_inert_pt3_sngl_false Hi (pt2 Hq) Hq').
-      apply pf_forall_U in Hq as ->. auto.
-Qed.
-*)
 
 Lemma object_lookup1 G s p T U :
   inert G ->
@@ -870,38 +660,153 @@ Proof.
     eapply star_trans. apply star_one. apply* lookup_sel_p. auto.
 Qed.
 
-Lemma sngl_path_lookup2 G s p q :
+Lemma lookup_same_var_same_type G s x bs cs T:
   inert G ->
   well_typed G s ->
-  G ⊢!! p : typ_sngl q ->
-   exists r r', s ⟦ defp p ⟼* defp r ⟧ /\ G ⊩ r ⟿' r' ⬳ q.
+  s ⟦ p_sel (avar_f x) bs ⟼ defp (p_sel (avar_f x) cs) ⟧ ->
+  G ⊢!! p_sel (avar_f x) bs : T ->
+  T = typ_sngl (p_sel (avar_f x) cs).
 Proof.
-  intros Hi Hwt Hpq. dependent induction Hpq.
-  - pose proof (pf_sngl_T Hi H) as ->.
-    destruct (sngl_path_lookup1 Hi Hwt H) as [? [? [? [? ?]]]].
-    repeat eexists. apply* star_one. eauto. eauto. Abort. (*
-  - specialize (IHHpq1 _ Hi Hwt eq_refl) as [? [? [? ?]]].
-    repeat eexists. apply* lookup_step_fld_star.
-    all: apply* repl_composition_fld_elim; admit. (* named typing stuff *)
-Admitted.*)
+  intros Hi Hwt. gen x bs cs T. induction Hwt; introv Hs Ht.
+  - Case "s is empty".
+    false* lookup_empty.
+  - Case "G is not empty".
+    destruct (classicT (x = x0)) as [<- | Hn].
+    + SCase "x = x0".
+      pose proof (lookup_step_preservation_prec2 Hi (well_typed_push Hwt H H0 H1) Hs Ht eq_refl)
+        as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
+            [[S' [ds [W [U' [P [G1 [G2 [pT [[=] [Hp' [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
+             [q [r [r' [G1 [G2 [pT [[= <-] [-> [Heq [Hrc1 Hrc2]]]]]]]]]]]].
+      rewrite <- concat_empty_r in Heq at 1.
+      apply eq_sym in Heq. apply env_ok_inv in Heq as [<- [<- ->]]; try rewrite concat_empty_r in *; auto.
+      assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
+      destruct Hrc1 as [-> | Hrc1];
+        destruct Hrc2 as [-> | [U Hu]%precise_to_general3%typing_implies_bound];
+        eauto.
+      * false binds_fresh_inv; eauto.
+      * apply sngl_typed3 in Hrc1 as
+            [T [S Hb]%precise_to_general3%typing_implies_bound].
+        false binds_fresh_inv; eauto. apply* inert_prefix.
+      * false binds_fresh_inv; eauto.
+    + SCase "x <> x0".
+      apply pt2_strengthen_one in Ht; auto.
+      apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix.
+Qed.
 
-Lemma typed_path_lookup_same_var G s y bs cs :
+Lemma wt_prefix G1 x T G2 s :
+  well_typed (G1 & x ~ T & G2) s ->
+  exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).
+Proof. Admitted.
+
+Lemma lookup_step_weaken s p t s' :
+  ok (s & s') ->
+  s ⟦ p ⟼ t ⟧ ->
+  s & s' ⟦ p ⟼ t ⟧.
+Proof. Admitted.
+
+Lemma lookup_weaken s t1 t2 s' :
+  ok (s & s') ->
+  s ⟦ t1 ⟼* t2 ⟧ ->
+  s & s' ⟦ t1 ⟼* t2 ⟧.
+Proof. Admitted.
+
+Lemma typed_path_lookup_same_var2 G s y bs cs :
+  inert G ->
+  well_typed G s ->
+  G ⊢!! p_sel (avar_f y) bs : typ_sngl (p_sel (avar_f y) cs) ->
+  s ⟦ p_sel (avar_f y) bs ⟼ defp (p_sel (avar_f y) cs) ⟧.
+Proof.
+  intros Hi Hwt Hp. pose proof (typ_to_lookup2 Hi Hwt Hp) as [t Hs].
+  pose proof (lookup_step_preservation_prec2 Hi Hwt Hs Hp eq_refl)
+        as [[? [? [? [[= ->] [Hv ->%pf_sngl_T]]]]] |
+            [[? [? [? [? [? [? [? [? [[= ->] [[=]%pf_sngl_T ?]]]]]]]]]] |
+             [q' [r [r' [G1 [G2 [pT [-> [[= <-] [-> [Hrc1 Hrc2]]]]]]]]]]]]; auto.
+  - proof_recipe. inversions Hv. inversions H. inversion H0.
+  - apply (pt2_strengthen eq_refl Hi) in Hp.
+    pose proof (wt_prefix Hwt) as [v [s1 [s2 [-> Hwt']]]].
+    apply (lookup_strengthen eq_refl) in Hs.
+    pose proof (inert_ok Hi) as Hok%ok_middle_inv_l.
+    destruct Hrc1 as [<- | Hrc1]; destruct Hrc2 as [-> | Hrc2]; eauto.
+    + apply* lookup_step_weaken. admit. (* easy *)
+    + apply (sngl_typed3 (inert_prefix (inert_prefix Hi))) in Hrc2
+        as [T [U Hb]%precise_to_general3%typing_implies_bound].
+      false binds_fresh_inv; eauto.
+    + pose proof (typing_implies_bound (precise_to_general3 Hrc1)) as [S Hb].
+      false binds_fresh_inv; eauto.
+    + pose proof (typing_implies_bound (precise_to_general3 Hrc1)) as [S Hb].
+      false binds_fresh_inv; eauto.
+Qed.
+
+Lemma pt3_strengthen_one G bs T x y U :
+  inert (G & x ~ T) ->
+  G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
+  y <> x ->
+  G ⊢!!! p_sel (avar_f y) bs : U.
+Proof. Admitted.
+
+Lemma pt3_strengthen G G1 G2 bs T x U :
+  G = G1 & x ~ T & G2 ->
+  inert G ->
+  G ⊢!!! p_sel (avar_f x) bs : U ->
+  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
+Proof. Admitted.
+
+Lemma typed_path_lookup_same_var3 G s y bs cs :
   inert G ->
   well_typed G s ->
   G ⊢!!! p_sel (avar_f y) bs : typ_sngl (p_sel (avar_f y) cs) ->
   s ⟦ defp (p_sel (avar_f y) bs) ⟼* defp (p_sel (avar_f y) cs) ⟧.
 Proof.
   intros Hi Hwt Hp. dependent induction Hp.
-  -
+  - apply star_one. apply* typed_path_lookup_same_var2.
+  - pose proof (typed_paths_named (precise_to_general3 Hp)) as [qx [qbs ->]].
+    destruct (classicT (qx = y)) as [-> | Hn].
+    + pose proof (typed_path_lookup_same_var2 Hi Hwt H) as Hs.
+      specialize (IHHp _ _ _ Hi Hwt eq_refl eq_refl).
+      eapply star_trans. apply* star_one. auto.
+    + clear IHHp.
+      pose proof (typing_implies_bound (precise_to_general2 H)) as [S [G1 [G2 ->]]%binds_destruct].
+      pose proof (inert_ok Hi) as Hok%ok_middle_inv_l.
+      eapply pt2_strengthen in H; eauto.
+      pose proof (sngl_typed2 (inert_prefix Hi) H)
+        as [T [U [[-> ->] |
+                  [Hn' [G1' [G2' ->]]%binds_destruct]]%binds_push_inv]%precise_to_general2%typing_implies_bound].
+      * false*.
+      * do 2 rewrite <- concat_assoc in Hp, Hi. apply (pt3_strengthen eq_refl Hi) in Hp.
+        apply (sngl_typed2 (inert_prefix Hi)) in Hp as [V [W Hb]%precise_to_general2%typing_implies_bound].
+        simpl_dom. apply notin_union in Hok as [Hnu _]. false binds_fresh_inv; eauto.
+Qed.
 
- Γ, y: T ⊢!!! y.bs: r.type
-        Γ, y: T ⊢! r: ∀
-        s, y = v ⟦ y.bs ↦ y.cs ⟧
-        Γ, y: T ⊢ r ⟿ r2 ⬳ y.cs
-        Γ, y: T ⊢!! y.bs: y.cs
-        _________________________
-        s, y = v ⟦ y.bs ↦* r ⟧
+Lemma wt_to_ok_s G s :
+  well_typed G s ->
+  ok s.
+Proof. Admitted.
 
+Lemma prev_var_exists G p q px pbs qx qbs:
+  p = p_sel (avar_f px) pbs ->
+  q = p_sel (avar_f qx) qbs ->
+  G ⊢!!! p : typ_sngl q ->
+  px <> qx ->
+  exists p' cs q' ds rx,
+    rx <> px /\
+    p' = p_sel (avar_f px) cs /\
+    q' = p_sel (avar_f rx) ds /\
+    (p = p' \/ G ⊢!!! p : typ_sngl p') /\
+    G ⊢!! p' : typ_sngl q' /\
+    (q' = q \/ G ⊢!!! q' : typ_sngl q).
+Proof.
+  intros -> -> Hp Hn. dependent induction Hp.
+  - repeat eexists; eauto.
+  - pose proof (sngl_path_named (precise_to_general2 H)) as [rx [rbs ->]].
+    destruct (classicT (rx = qx)) as [-> | Hn'].
+    + do 5 eexists. split. eauto. split*.
+    + specialize (IHHp _ _ _ _ eq_refl eq_refl Hn')
+        as [p' [cs [q' [ds [sx [Hn'' [-> [-> [Hp' [Hpq Hq]]]]]]]]]].
+      destruct (classicT (px = rx)) as [-> | Hnpr].
+      * eexists. exists cs. eexists. exists ds sx. repeat split*. right.
+        destruct Hp' as [<- | Hnr]; eauto.
+      * eexists. exists pbs. eexists. exists rbs rx. split*.
+Qed.
 
 Lemma typed_path_lookup_helper G s p r S T V :
   inert G ->
@@ -915,88 +820,102 @@ Proof.
     apply precise_to_general in Hr. false* typing_empty_false.
   - Case "G is not empty".
     destruct p as [x' bs].
-    (* showing that y is named *)
-    assert (exists px, x' = avar_f px) as [px Heq] by admit.
+    pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs [= -> ->]]].
     destruct (classicT (x = px)) as [-> | Hn].
     + SCase "x = px".
       lets Hwt': (well_typed_push Hwt H H0 H1).
       pose proof (typ_to_lookup3 Hi Hwt' Hp) as [t Hlt].
       pose proof (lookup_step_preservation_sngl_prec3 Hi Hwt' Hlt Hp Hr)
-        as [r1 [r2 [-> Hrc]]].
-      assert (exists y cs, r1 = p_sel (avar_f y) cs) as [y [cs ->]] by admit.
-      destruct (classicT (px = y)) as [-> | Hn].
-      * SSCase "px = y".
-        subst. pose proof (pt2_exists Hp) as [U Hp'].
-        pose proof (lookup_same_var_same_type Hi Hwt' Hlt Hp') as ->.
-        destruct (rx = y)
+        as [r1 [r2 [-> [Hrc Hrc']]]].
+      pose proof (sngl_path_named (precise_to_general3 Hp)) as [rx [rbs ->]].
+      destruct (classicT (px = rx)) as [-> | Hn].
+      { apply* typed_path_lookup_same_var3. }
+      pose proof (prev_var_exists eq_refl eq_refl Hp Hn) as
+          [p' [cs' [q' [ds [sx [Hn' [-> [-> [Hpp' [Hp'q' Hq'q]]]]]]]]]].
+      pose proof (typ_to_lookup2 Hi Hwt' Hp'q') as [t Hst].
+      pose proof (lookup_step_preservation_prec2 Hi Hwt' Hst Hp'q' eq_refl)
+        as [[S' [U' [u [[= ->] [Hv ->%pf_sngl_T]]]]] |
+            [[S' [ds' [W [U' [P [G1 [G2 [pT [-> [[=]%pf_sngl_T [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
+             [q' [r [r' [G1 [G2 [pT [[= ->] [[= <-] [Heq' [Hrc1 Hrc2]]]]]]]]]]]]; auto.
+      { simpl in *. proof_recipe. inversions Hv. inversions H2. inversion H3. }
+      pose proof (inert_prefix Hi) as Hi'.
+      rewrite <- concat_empty_r in Heq' at 1. apply env_ok_inv'  in Heq' as [-> [-> <-]];
+                                               try rewrite concat_empty_r in *; auto.
+      pose proof (named_path_lookup_step Hst) as [q'x [q'bs ->]].
+      assert (q'x <> px) as Hnqy. {
+        intros ->. pose proof (lookup_same_var_same_type Hi Hwt' Hst Hp'q') as [= -> ->]. false*.
+      }
+      apply star_trans with (b:=defp (p_sel (avar_f px) cs')). {
+        destruct Hpp' as [[= ->] | Hpp'].
+        - apply* star_refl.
+        - eapply (typed_path_lookup_same_var3 Hi); auto.
+      }
+      clear Hpp'.
+      assert (p_sel (avar_f rx) rbs = r2) as <-. {
+        destruct Hrc as [<- | Ht]; auto. false (pt1_inert_pt3_sngl_false Hi Hr Ht); auto.
+      }
+      clear Hrc.
+      apply star_trans with (b:=defp (p_sel (avar_f q'x) q'bs)).
+      { apply* star_one. }
+      apply* lookup_weaken.
+      { apply* wt_to_ok_s. }
+      apply pf_strengthen in Hr; auto. clear Hrc' Hst Hp'q' Hp.
+      destruct Hq'q as [[= -> ->] | Hq'q%pt3_strengthen_one]; destruct Hrc1 as [<- | Hrc1]; destruct Hrc2 as [[= ->] | Hrc2]; subst; auto;
+        [ apply* star_refl | ..];
+        try solve [apply* IHHwt; try solve [false (pt1_inert_pt3_sngl_false Hi' Hr Hrc1); auto]].
+        * apply* IHHwt. apply* pt3_sngl_trans3.
+        * pose proof (pt3_invert Hi' Hrc1 Hq'q) as [Contra | [q' [[= ->] [[= <-] | Hqt]]]].
+          ** false (pt1_inert_pt3_sngl_false Hi' Hr Contra); auto.
+          ** subst. apply* star_refl.
+          ** apply* IHHwt.
+        * pose proof (pt3_invert Hi' Hrc1 Hq'q) as [Contra | [q' [[= ->] [[= <-] | Hqt]]]].
+          ** false (pt1_inert_pt3_sngl_false Hi' Hr Contra); auto.
+          ** apply* IHHwt.
+          ** apply (pt3_sngl_trans3 Hrc2) in Hqt. apply* IHHwt.
+    + SCase "x <> px".
+      apply pt3_strengthen_one in Hp; auto. apply lookup_weaken.
+      { apply* ok_push. apply* wt_to_ok_s. }
+      pose proof (inert_prefix Hi) as Hi'.
+      apply* IHHwt.
+      apply (sngl_typed3 Hi') in Hp as [U Ht]. apply* pt1_strengthen_from_pt3.
+Qed.
 
-        Γ, y: T ⊢!!! y.bs: r.type
-        Γ, y: T ⊢! r: ∀
-        s, y = v ⟦ y.bs ↦ y.cs ⟧
-        Γ, y: T ⊢ r ⟿ r2 ⬳ y.cs
-        Γ, y: T ⊢!! y.bs: y.cs
-        _________________________
-        s, y = v ⟦ y.bs ↦* r ⟧
+Lemma last_path G p T U :
+  inert G ->
+  G ⊢!!! p : typ_all T U ->
+  G ⊢!! p : typ_all T U \/ exists q, G ⊢!!! p: typ_sngl q /\ G ⊢!! q : typ_all T U.
+Proof.
+  intros Hi Hp. dependent induction Hp; eauto.
+  specialize (IHHp _ _ Hi eq_refl) as [Hq | [r [Hq Hr]]]; eauto.
+Qed.
 
-
-Lemma typed_path_lookup1 G s p T U :
+Lemma typed_path_lookup3 G s p T U :
     inert G ->
     well_typed G s ->
-    G ⊢! p: T ⪼ U ->
+    G ⊢!!! p: typ_all T U ->
     exists v, s ∋ (p, v).
 Proof.
-  introv Hi Hwt. gen p T U. induction Hwt; introv Hp.
-  - Case "G is empty".
-    apply precise_to_general in Hp. false* typing_empty_false.
-  - Case "G is not empty".
-    destruct p as [y bs].
-    (* showing that y is named *)
-    assert (exists x0, y = avar_f x0) as [x0 ->] by admit. (* later when we figure out how to make env closed *)
-    destruct (classicT (x = x0)) as [-> | Hn].
-    * SCase "x = x0".
-      dependent induction Hp; try simpl_dot.
-      + SSCase "pf_bind".
-      eexists. constructor. apply star_one. constructor. eauto.
-      + SSCase "pf_fld".
-        specialize (IHHp _ _ _ _ JMeq_refl eq_refl Hi _ _ Hwt H0 H H1 IHHwt) as [w Hs].
-        lets Hwt': (well_typed_push Hwt H H0 H1). pose proof (pf_bnd_T2 Hi Hp) as [V ->].
-        pose proof (object_lookup1 Hi Hwt' Hp) as [X [ds [Y [px [pbs [P [Hl [[= -> ->] [Hds Hrc]]]]]]]]].
-        pose proof (pf_record_has_U Hi Hp) as Hr.
-        assert (exists Z, record_has X {a ⦂ Z}) as [Z Hr'] by admit. admit.
-      + SSCase "pf_open".
-        eauto.
-      + SSCase "pf_and1".
-        eauto.
-      + SSCase "pf_and2".
-        eauto.
-    * apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) _ _ _ Hp) as [t Hs].
-      eexists. constructor. apply* lookup_push_neq. inversion* Hs.
-Abort.
-(*
-Lemma typed_path_lookup2 G s p T :
-    inert G ->
-    well_typed G s ->
-    G ⊢!! p: T ->
-    exists v, s ∋ (p, v).
-Proof.
-  introv Hi Hwt Hp. induction Hp.
-  - apply* typed_path_lookup1.
-  - specialize (IHHp1 Hi Hwt) as [v1 Hs1]. specialize (IHHp2 Hi Hwt) as [v2 Hs2].
-    eexists. constructor. apply star_trans with (b:=defp q • a).
-    * pose proof (sngl_path_lookup2 Hi Hwt Hp1) as [r [r' [Hs [Hrc1 Hrc2]]]].
-      (* todo tricky but maybe similar to typed_path_lookup1 cycle case *) admit.
-    * inversion* Hs2.
-Abort.
-
-Lemma typed_path_lookup3 G s p T :
-    inert G ->
-    well_typed G s ->
-    G ⊢!!! p: T ->
-    exists v, s ∋ (p, v).
-Proof.
-  induction 3; apply* typed_path_lookup2.
-Qed.*)
-
+  intros Hi Hwt Hp.
+  pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs ->]].
+  apply (last_path Hi) in Hp as [Hp | [q [Hpq Hq]]].
+  - inversions Hp. pose proof (typ_to_lookup1 Hi Hwt H) as [t Hs].
+    destruct (lookup_step_preservation_prec1 Hi Hwt Hs H eq_refl)
+          as [[S [u [-> Ht]]] |
+              [[S [ds' [W [T'' [P [G1 [G2 [pT [-> [[= ->] [? ?]]]]]]]]]]] |
+               [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]].
+    + eexists. constructor. apply* star_one.
+    + eexists. constructor. apply* star_one.
+    + apply pf_sngl_U in H as [=].
+  - inversions Hq. pose proof (pf_forall_T Hi H) as ->.
+    pose proof (typed_path_lookup_helper Hi Hwt Hpq H) as Hs.
+    pose proof (typ_to_lookup1 Hi Hwt H) as [t Hs'].
+    pose proof (typed_paths_named (precise_to_general H)) as [qx [qbs ->]].
+    destruct (lookup_step_preservation_prec1 Hi Hwt Hs' H eq_refl)
+          as [[S [u [-> Ht]]] |
+              [[S [ds' [W [T'' [P [G1 [G2 [pT [-> [[= ->] [? ?]]]]]]]]]]] |
+               [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]].
+    eexists. constructor. eapply star_trans. apply Hs. apply* star_one.
+Qed.
 
 
 (** * Lemmas to Prove Canonical Forms for Functions *)
@@ -1013,8 +932,8 @@ Proof.
   proof_recipe.
   apply repl_to_precise_typ_all in Hp as [S' [T' [? [Hpr' [? ?]]]]]; auto.
   apply IHHl.
-  pose proof (lookup_step_preservation_prec3 Hi Hwt H Hpr') as [[S1 [T1 [[= -> ->] Ht]]] | [? [[=] ?]]]; auto.
-  apply ty_sub with (T:=typ_all S1 T1); auto; fresh_constructor; apply* tight_to_general.
+  pose proof (lookup_step_preservation_prec3_fun Hi Hwt H Hpr') as Hb.
+  apply ty_sub with (T:=typ_all S' T'); auto; fresh_constructor; apply* tight_to_general.
 Qed.
 
 Inductive well_typed_prec : ctx -> sta -> Prop :=
@@ -1028,67 +947,6 @@ Inductive well_typed_prec : ctx -> sta -> Prop :=
       well_typed_prec (G & x ~ T) (s & x ~ v).
 
 Hint Constructors well_typed_prec.
-
-Lemma inert_narrow G G' :
-  inert G ->
-  G' ⪯ G ->
-  inert G'.
-Proof.
-  intros Hi. gen G'. induction Hi; introv HG.
-  - inversions HG; auto. false* empty_push_inv.
-  - inversions HG; eauto. apply eq_push_inv in H1 as [<- [<- <-]].
-    constructor; auto. Abort.
-
-Lemma narrow_notin G G' x :
-  G' ⪯ G ->
-  x # G ->
-  x # G'.
-Proof.
-  induction 1; auto.
-Qed.
-
-Lemma narrow_ok G G' :
-  G' ⪯ G ->
-  ok G ->
-  ok G'.
-Proof.
-  induction 1; auto.
-Qed.
-
-(*Lemma repl_comp_record:
-  (forall D, record_dec D ->
-        forall G D', G ⊢ typ_rcd D ⟿ typ_rcd D' -> record_dec D') /\
-  (forall T ls , record_typ T ls ->
-        forall G T', G ⊢ T ⟿ T' -> record_typ T' ls) /\
-  (forall T, inert_typ T ->
-        forall G T', G ⊢ T ⟿ T' -> inert_typ T').
-Proof.
-  apply rcd_mutind; intros; eauto.
-  - apply repl_comp_typ_rcd in H as [T' [U' [= ->]]]. apply rd_typ.
-
-Lemma record_typ_repl_comp T U G :
-  record_type T ->
-  G ⊢ T ⟿ U ->
-  record_type U.
-Proof.
-  intros Hr. gen U. inversions Hr. induction H; introv Hc; subst; econstructor.
-  -
-
-Lemma well_typed_precise G s :
-  inert G ->
-  well_typed G s ->
-  exists G', inert G' /\ G' ⪯ G /\ well_typed_prec G' s.
-Proof.
-  intros Hi. induction 1; eauto.
-  pose proof (inert_prefix Hi) as Hi'.
-  specialize (IHwell_typed Hi') as [G' [HiG' [HG' Hwt']]].
-  eapply narrow_typing in H2; eauto.
-  pose proof (narrow_notin HG' H0) as Hni.
-  destruct (inert_last Hi) as [S T | T]; proof_recipe.
-  - exists (G' & x ~ typ_all S1 T1). repeat split; eauto.
-  - exists (G' & x ~ typ_bnd U''). repeat split; eauto.
-
-*)
 
 Lemma corresponding_types_fun: forall G s p S T,
     inert G ->

@@ -92,7 +92,7 @@ Proof.
   constructor. apply* binds_push_neq. intro. subst. eapply binds_fresh_inv; eauto.
 Qed.
 
-Lemma lookup_strengthen: forall s y v x bs t,
+Lemma lookup_strengthen_one: forall s y v x bs t,
     s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
     y <> x ->
     s ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
@@ -100,6 +100,12 @@ Proof.
   introv Hl Hn. dependent induction Hl; try solve_lookup.
   constructor. eapply binds_push_neq_inv; eauto.
 Qed.
+
+Lemma lookup_strengthen s s1 s2 x v bs t :
+    s = s1 & x ~ v & s2 ->
+    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
+    s1 & x ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+Proof. Admitted.
 
 Lemma named_path_lookup_step: forall s t p,
         s ⟦ t ⟼ defp p ⟧ ->
