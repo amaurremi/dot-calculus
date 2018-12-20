@@ -149,11 +149,9 @@ Proof.
   - Case "G is empty".
     false* lookup_empty.
   - Case "G is not empty".
-    destruct p as [y bs].
-    (* showing that y is named *)
-    assert (exists x0, y = avar_f x0) as [x0 ->] by admit. (* later when we figure out how to make env closed *)
-    destruct (classicT (x = x0)) as [-> | Hn].
-    * SCase "x = x0".
+    pose proof (typed_paths_named (precise_to_general Hp)) as [px' [bs ->]].
+    destruct (classicT (x = px')) as [-> | Hn].
+    * SCase "x = px".
       (** induction on ⟦⟼⟧ **)
       gen T U T0 px pbs.
       dependent induction Hs; introv Hi Hv; introv Hp; introv [= -> <-]; try simpl_dot; try rewrite proj_rewrite in *.
@@ -236,7 +234,7 @@ Proof.
       + left. repeat eexists. apply* weaken_ty_trm.
       + right. left. repeat eexists. rewrite concat_assoc. eauto.
         apply* weaken_ty_defs. all: eauto.
-      + right. right. repeat eexists. rewrite concat_assoc. eauto. eauto. auto.
+      + right. right. repeat eexists. rewrite concat_assoc. all: eauto.
 Qed.
 
 Lemma lookup_step_preservation_prec2 G s p px pbs t T :
@@ -311,7 +309,7 @@ Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
            (exists q, t = defp q /\ G ⊢!!! q : T))).
 Proof.
   introv Hi Hwt Hs Hp. gen t.
-  assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
+  pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs Heq]].
   dependent induction Hp; introv Hs Hit;
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs H Heq)
                                 as [[S' [U [u [[= ->] [Hv Hp']]]]] |
@@ -434,7 +432,7 @@ Proof.
   intros Hi Hwt Hp. gen p T U. induction Hwt; introv Hp.
   (** induction on ⟦~⟧ **)
   - false. dependent induction Hp; eauto. apply* binds_empty_inv.
-  - assert (exists y bs, p = p_sel (avar_f y) bs) as [y [bs ->]] by admit.
+  - pose proof (typed_paths_named (precise_to_general Hp)) as [y [bs ->]].
     (* later when we figure out how to make env closed *)
     destruct (classicT (x = y)) as [-> | Hn].
     * SCase "x = y".
@@ -467,7 +465,7 @@ Proof.
   intros Hi Hwt Hp. induction Hp.
   - apply* typ_to_lookup1.
   - specialize (IHHp1 Hi Hwt) as [u1 Hs1]. specialize (IHHp2 Hi Hwt) as [u2 Hs2].
-    assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs ->]] by admit.
+    pose proof (typed_paths_named (precise_to_general2 Hp1)) as [px [pbs ->]].
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs1 Hp1 eq_refl)
                                 as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
                                     [[S' [ds [W [U' [P [G1 [G2 [pT [-> [Hp' [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
@@ -495,7 +493,7 @@ Lemma sngl_path_lookup1 G s p q U :
                    (q = r' \/ G ⊢!!! q : typ_sngl r').
 Proof.
   intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
-  assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs ->]] by admit.
+  pose proof (typed_paths_named (precise_to_general Hp)) as [px [pbs ->]].
   destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp eq_refl)
            as [[S [u [-> Ht]]] |
               [[S [ds' [W [T'' [P [G1 [G2 [pT [-> [[= ->] ?]]]]]]]]]] |
@@ -519,10 +517,9 @@ Proof.
   - econstructor. apply* pf_strengthen.
   - simpl_dot.
     specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
-    assert (exists qx qbs, q = p_sel (avar_f qx) qbs)
-      as [qx [qbs ->]] by admit.
+    pose proof (sngl_path_named (precise_to_general2 Ht1)) as [qx [qbs ->]].
     simpl in *.
-    repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto.
+    repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto. simpl.
     admit.
 Admitted.
 
@@ -554,7 +551,7 @@ Lemma repl_comp_env2 G x bs p :
 Proof.
   intros Hg Hx. dependent induction Hg; auto.
   destruct H as [r [r' [n [Hr Hrt]]]].
-  assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
+  pose proof (typed_paths_named (precise_to_general Hr)) as [rx [rbs ->]].
   invert_repl. simpl in *. simpl_dot.
   assert (exists S, binds x S G) as [S Hb] by admit.
   false* (binds_fresh_inv Hb).
@@ -571,7 +568,7 @@ Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
             (r = r' \/ G ⊢!!! r : typ_sngl r').
 Proof.
   introv Hi Hwt Hs Hp. gen t.
-  assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
+  pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs Heq]].
   dependent induction Hp; introv Hs Hq;
     destruct (lookup_step_preservation_prec2 Hi Hwt Hs H Heq)
     as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
@@ -586,7 +583,7 @@ Proof.
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
   - pose proof (typ_to_lookup3 Hi Hwt Hp) as [t Hl].
-    assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs Heqr]] by admit.
+    pose proof (typed_paths_named (precise_to_general3 Hp)) as [rx [rbs Heqr]].
     specialize (IHHp _ Hi Hwt eq_refl _ _ Heqr _ Hl Hq) as [r1 [r2 [-> [[-> | Hq'] [-> | Hq'']]]]].
       * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
         ** split. left*. right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
@@ -640,7 +637,7 @@ Lemma object_lookup1 G s p T U :
                    G ⊩ S ⟿ W ⬳ T.
 Proof.
   intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
-  assert (exists px pbs, p = p_sel (avar_f px) pbs) as [px [pbs Heq]] by admit.
+  pose proof (typed_paths_named (precise_to_general Hp)) as [px [pbs Heq]].
   destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp Heq)
            as [[? [? [[= ->]]]] |
           [[S [ds' [W [T'' [P [G1 [G2 [pT [-> [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
@@ -679,7 +676,7 @@ Proof.
              [q [r [r' [G1 [G2 [pT [[= <-] [-> [Heq [Hrc1 Hrc2]]]]]]]]]]]].
       rewrite <- concat_empty_r in Heq at 1.
       apply eq_sym in Heq. apply env_ok_inv in Heq as [<- [<- ->]]; try rewrite concat_empty_r in *; auto.
-      assert (exists rx rbs, r = p_sel (avar_f rx) rbs) as [rx [rbs ->]] by admit.
+      pose proof (sngl_path_named (precise_to_general2 Ht)) as [rx [rbs ->]].
       destruct Hrc1 as [-> | Hrc1];
         destruct Hrc2 as [-> | [U Hu]%precise_to_general3%typing_implies_bound];
         eauto.
