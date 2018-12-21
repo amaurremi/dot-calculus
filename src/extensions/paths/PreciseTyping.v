@@ -98,20 +98,6 @@ Proof.
   apply* pf2_inertsngl.
 Qed.
 
-Lemma pf2_bot: forall G p,
-    inert G ->
-    G ⊢!! p: typ_bot -> False.
-Proof.
-  introv Hi Hp. dependent induction Hp; eauto using pf_bot.
-Qed.
-
-Lemma pf3_bot: forall G p,
-    inert G ->
-    G ⊢!!! p: typ_bot -> False.
-Proof.
-  introv Hi Hp. dependent induction Hp; eauto using pf2_bot.
-Qed.
-
 Lemma pt2_psel: forall G p q A,
     inert G ->
     G ⊢!! p : typ_path q A -> False.
@@ -599,39 +585,6 @@ Proof.
   specialize (IHHr _ eq_refl). destruct_all. eexists. eauto.
 Qed.
 
-Lemma repl_comp_and1: forall G T T' U,
-    G ⊢ T ⟿ T' ->
-    G ⊢ typ_and T U ⟿ typ_and T' U.
-Proof.
-  introv Hr. dependent induction Hr.
-  - apply star_refl.
-  - apply star_trans with (b:=typ_and b U); auto. apply star_one.
-    unfolds typed_repl_comp_qp. destruct_all.
-    repeat eexists; eauto.
-Qed.
-
-Lemma repl_comp_and2: forall G T T' U,
-    G ⊢ T ⟿ T' ->
-    G ⊢ typ_and U T ⟿ typ_and U T'.
-Proof.
-  introv Hr. dependent induction Hr.
-  - apply star_refl.
-  - apply star_trans with (b:=typ_and U b); auto. apply star_one.
-    unfolds typed_repl_comp_qp. destruct_all.
-    repeat eexists; eauto.
-Qed.
-
-Lemma repl_comp_bnd: forall G T T',
-    G ⊢ T ⟿ T' ->
-    G ⊢ typ_bnd T ⟿ typ_bnd T'.
-Proof.
-  introv Hr. dependent induction Hr.
-  - apply star_refl.
-  - apply star_trans with (b:=typ_bnd b); auto. apply star_one.
-    unfolds typed_repl_comp_qp. destruct_all.
-    repeat eexists; eauto.
-Qed.
-
 Lemma repl_comp_bnd': forall G T T',
     G ⊢ typ_bnd T ⟿ typ_bnd T' ->
     G ⊢ T ⟿ T'.
@@ -645,36 +598,6 @@ Proof.
     apply star_trans with (b:=V). apply star_one. econstructor. repeat eexists. apply H. inversion* H0.
     apply* IHHr.
 Qed.
-
-Lemma repl_comp_typ_rcd G A T U S :
-  G ⊢ typ_rcd { A >: T <: U } ⟿ S ->
-  exists T' U', S = typ_rcd { A >: T' <: U' }.
-Proof. Admitted.
-
-Lemma repl_comp_typ_rcd' G A T U S :
-  G ⊢ S ⟿ typ_rcd { A >: T <: U } ->
-  exists T' U', S = typ_rcd { A >: T' <: U' }.
-Proof. Admitted.
-
-Lemma repl_comp_trm_rcd G a T S :
-  G ⊢ typ_rcd { a ⦂ T } ⟿ S ->
-  exists T', S = typ_rcd { a ⦂ T' }.
-Proof. Admitted.
-
-Lemma repl_comp_trm_rcd' G a T S :
-  G ⊢ S ⟿ typ_rcd { a ⦂ T } ->
-  exists T', S = typ_rcd { a ⦂ T' }.
-Proof. Admitted.
-
-Lemma repl_comp_typ_all G T U S :
-  G ⊢ typ_all T U ⟿ S ->
-  exists T' U', S = typ_all T' U'.
-Proof. Admitted.
-
-Lemma repl_comp_typ_all' G T U S :
-  G ⊢ S ⟿ typ_all T U ->
-  exists T' U', S = typ_all T' U'.
-Proof. Admitted.
 
 Lemma repl_comp_record_has2 G T U U' a :
   G ⊢ T ⟿ U ->
@@ -838,17 +761,61 @@ Lemma pt2_strengthen_from_pt1 G G' p bs T T' U :
   G  ⊢!! p••bs : U.
 Proof. Admitted.
 
-Lemma pt3_strengthen_from_pt2 G G' p T U :
-  G ⊢!! p: T ->
-  G & G' ⊢!!! p : U ->
-  G  ⊢!!! p : U.
-Proof. Admitted.
-
 Lemma pt1_strengthen_from_pt3 G G' p T U V :
   G ⊢!!! p: T ->
   G & G' ⊢! p : U ⪼ V ->
   G  ⊢! p : U ⪼ V.
 Proof. Admitted.
+
+Lemma pt2_strengthen_one G y bs T x U :
+  inert (G & x ~ T) ->
+  G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
+  x <> y ->
+  G ⊢!! p_sel (avar_f y) bs : U.
+Proof.
+  intros Hi Ht Hn. dependent induction Ht.
+  - econstructor. apply* pf_strengthen.
+  - simpl_dot.
+    specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
+    pose proof (sngl_path_named (precise_to_general2 Ht1)) as [qx [qbs ->]].
+    simpl in *.
+    repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto. simpl.
+    admit.
+Admitted.
+
+Lemma pt2_strengthen G G1 G2 bs T x U :
+  G = G1 & x ~ T & G2 ->
+  inert G ->
+  G ⊢!! p_sel (avar_f x) bs : U ->
+  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
+Proof.
+  induction G2 using env_ind. Admitted.
+
+Lemma pt3_strengthen_one G bs T x y U :
+  inert (G & x ~ T) ->
+  G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
+  y <> x ->
+  G ⊢!!! p_sel (avar_f y) bs : U.
+Proof. Admitted.
+
+Lemma pt3_strengthen G G1 G2 bs T x U :
+  G = G1 & x ~ T & G2 ->
+  inert G ->
+  G ⊢!!! p_sel (avar_f x) bs : U ->
+  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
+Proof. Admitted.
+
+Lemma pt3_exists G p T :
+  G ⊢ trm_path p : T ->
+  exists U, G ⊢!!! p : U.
+Proof.
+Admitted.
+
+Lemma pt3_weaken G G' p T :
+  G ⊢!!! p: T ->
+  G & G' ⊢!!! p: T.
+Proof.
+  Admitted.
 
 Lemma repl_comp_to_prec': forall G G' p q T,
     inert G ->
@@ -962,19 +929,6 @@ Lemma pt1_inert_pt3_sngl_false G p q T U :
 Proof.
   intros Hi Hp Hq Hin. gen T U. dependent induction Hq; introv Hin; introv Hp;
   apply* pt1_inert_pt2_sngl_false.
-Qed.
-
-Lemma pt2_inert_pt3_sngl_false G p q T :
-  inert G ->
-  G ⊢!! p : T ->
-  G ⊢!!! p : typ_sngl q ->
-  inert_typ T ->
-  False.
-Proof.
-  intros Hi Hp Hpq Hin. gen q. induction Hp; introv Hpq.
-  - apply* pt1_inert_pt3_sngl_false. destruct Hin. apply pf_forall_T in H as ->; auto.
-    pose proof (pf_bnd_T Hi H) as ->. apply pf_inert in H; auto. inversions H; eauto.
-  - inversion Hin.
 Qed.
 
 Lemma pt3_inert_pt2_sngl_invert G p q T :

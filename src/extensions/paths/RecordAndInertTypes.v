@@ -25,6 +25,18 @@ Lemma hasnt_notin : forall x bs P G ds ls l U,
     defs_hasnt ds l ->
     l \notin ls.
 Proof.
+    Ltac inversion_def_typ :=
+    match goal with
+    | H: _; _; _; _ ⊢ _ : _ |- _ => inversions H
+    end.
+
+  introv Hds Hrec Hhasnt.
+  inversions Hhasnt. gen ds. induction Hrec; intros; inversions Hds.
+  - inversion_def_typ; simpl in *; case_if; apply* notin_singleton.
+  - apply notin_union; split; simpl in *.
+    + apply* IHHrec. case_if*.
+    + inversion_def_typ; case_if; apply* notin_singleton.
+Qed.
 
 Lemma defs_has_open ds d p :
   defs_has ds d ->
@@ -39,18 +51,6 @@ Proof.
     * apply* IHds.
 Qed.
 
-  Ltac inversion_def_typ :=
-    match goal with
-    | H: _; _; _; _ ⊢ _ : _ |- _ => inversions H
-    end.
-
-  introv Hds Hrec Hhasnt.
-  inversions Hhasnt. gen ds. induction Hrec; intros; inversions Hds.
-  - inversion_def_typ; simpl in *; case_if; apply* notin_singleton.
-  - apply notin_union; split; simpl in *.
-    + apply* IHHrec. case_if*.
-    + inversion_def_typ; case_if; apply* notin_singleton.
-Qed.
 
 (** [labels(D) = labels(D^x)] *)
 Lemma open_dec_preserves_label: forall D x i,
@@ -91,21 +91,6 @@ Proof.
   unfold open_typ. simpl. eauto.
 Qed.
 
-(** [record_dec D]   #<br>#
-    [――――――――――――――] #<br>#
-    [record_dec D^x] *)
-Lemma open_record_dec: forall D x,
-  record_dec D -> record_dec (open_dec x D).
-Proof.
-  intros. apply* open_record.
-Qed.
-
-Lemma open_record_dec_p: forall D x,
-  record_dec D -> record_dec (open_dec_p x D).
-Proof.
-  intros. apply* open_record_p.
-Qed.
-
 (** [record_typ T]   #<br>#
     [――――――――――――――] #<br>#
     [record_typ T^x] *)
@@ -119,16 +104,6 @@ Lemma open_record_typ_p: forall T p ls,
   record_typ T ls -> record_typ (open_typ_p p T) ls.
 Proof.
   intros. apply* open_record_p.
-Qed.
-
-(** [record_typ T]   #<br>#
-    [――――――――――――――] #<br>#
-    [record_typ T^x] *)
-Lemma open_record_type: forall T x,
-  record_type T -> record_type (open_typ x T).
-Proof.
-  intros. destruct H as [ls H]. exists ls. eapply open_record_typ.
-  eassumption.
 Qed.
 
 Lemma open_record_type_p: forall T p,
@@ -167,26 +142,14 @@ Proof.
     constructor*; try constructor; apply (hasnt_notin H); eauto.
 Qed.
 
-(** Opening does not affect the labels of a [record_typ]. *)
-Lemma opening_preserves_labels : forall z T ls ls',
-    record_typ T ls ->
-    record_typ (open_typ z T) ls' ->
-    ls = ls'.
-Proof.
-  introv Ht Hopen. gen ls'.
-  dependent induction Ht; intros.
-  - inversions Hopen. rewrite* <- open_dec_preserves_label.
-  - inversions Hopen. rewrite* <- open_dec_preserves_label.
-    specialize (IHHt ls0 H4). rewrite* IHHt.
-Qed.
 
- Ltac invert_open :=
-    match goal with
-    | [ H: _ = open_rec_typ _ _ ?T' |- _ ] =>
-       destruct T'; inversions* H
-    | [ H: _ = open_rec_dec _ _ ?D' |- _ ] =>
-       destruct D'; inversions* H
-    end.
+Ltac invert_open :=
+  match goal with
+  | [ H: _ = open_rec_typ _ _ ?T' |- _ ] =>
+    destruct T'; inversions* H
+  | [ H: _ = open_rec_dec _ _ ?D' |- _ ] =>
+    destruct D'; inversions* H
+  end.
 
 Lemma record_open:
   (forall D, record_dec D ->
@@ -271,34 +234,6 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
-Lemma record_has_open T a U p :
-  record_has T { a ⦂ U } ->
-  exists V, record_has (open_typ_p p T) { a ⦂ V }.
-Proof.
-  intros Hr. dependent induction Hr.
-  - eexists. econstructor.
-  - specialize (IHHr _ _ eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
-  - specialize (IHHr _ _ eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
-Qed.
-
-Lemma record_has_close T a U p :
-  record_has (open_typ_p p T) { a ⦂ U } ->
-  exists V, record_has T { a ⦂ V }.
-Proof.
-  intros Hr. dependent induction Hr; destruct T; inversions x.
-  - destruct d; inversions H0. eexists. econstructor.
-  - specialize (IHHr _ _ _ _ eq_refl eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
-  - specialize (IHHr _ _ _ _ eq_refl eq_refl) as [V Hrh]. eexists. unfold open_typ_p in *. simpl. eauto.
-Qed.
-
-Lemma record_has_sel_typ: forall G p T a U,
-    G ⊢ trm_path p : T ->
-    record_has T {a ⦂ U} ->
-    G ⊢ trm_path (p • a) : U.
-Proof.
-  introv Hp Hr. dependent induction Hr; eauto.
-Qed.
-
 Lemma inert_concat: forall G' G,
     inert G ->
     inert G' ->
@@ -320,13 +255,6 @@ Lemma inert_prefix_one: forall G x T,
     inert G.
 Proof.
   introv Hi. inversions Hi. false* empty_push_inv. lets Heq: (eq_push_inv H); destruct_all; subst*.
-Qed.
-
-Lemma inert_last G x T :
-  inert (G & x ~ T) ->
-  inert_typ T.
-Proof.
-  intros Hi. inversions Hi. false* empty_push_inv. apply eq_push_inv in H as [-> [-> _]]. auto.
 Qed.
 
 Lemma inert_prefix G G' :

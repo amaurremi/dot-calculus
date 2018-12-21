@@ -126,9 +126,6 @@ with subst_defrhs (z: var) (u: path) (drhs: def_rhs) : def_rhs :=
 Definition subst_ctx (z: var) (u: path) (G: ctx) : ctx :=
   map (subst_typ z u) G.
 
-(** Substitution on the values of an evaluation context: [e[y/x]]. *)
-Definition subst_env x y e := map (subst_val x y) e.
-
 (** ** Field selection *)
 
 (** [(p^q).bs = (p.bs)^q ] *)
@@ -154,16 +151,6 @@ Lemma last_field : forall p a x bs,
     exists bs', bs = a :: bs'.
 Proof.
   introv Heq. destruct* p. inversion* Heq.
-Qed.
-
-(** [p.a = q.b]    #<br>#
-    [――――――――――――] #<br>#
-    [p = q, a = b] *)
-Lemma invert_path_sel : forall p q a b,
-    p • a = q • b -> p = q /\ a = b.
-Proof.
-  introv Heq. destruct p as [x1 bs1]. destruct q as [x2 bs2].
-  induction bs1; inversion* Heq.
 Qed.
 
 (** * Simple Implications of Typing *)
@@ -228,13 +215,7 @@ Proof.
   intros. apply open_var_typ_dec_eq.
 Qed.
 
-Lemma open_var_dec_eq: forall x D,
-  open_dec x D = open_dec_p (pvar x) D.
-Proof.
-  intros. apply open_var_typ_dec_eq.
-Qed.
-
-Hint Rewrite open_var_typ_eq open_var_dec_eq open_var_path_eq.
+Hint Rewrite open_var_typ_eq open_var_path_eq.
 
 Lemma open_var_trm_val_def_eq : forall x,
   (forall t n,
@@ -321,80 +302,13 @@ Proof.
     f_equal; destruct_notin; eauto using open_fresh_avar_injective, open_fresh_path_injective.
 Qed.
 
-Lemma open_fresh_trm_val_def_defs_injective:
-  (forall t t' k x,
-      x \notin fv_trm t ->
-      x \notin fv_trm t' ->
-      open_rec_trm k x t = open_rec_trm k x t' ->
-      t = t') /\
-  (forall v v' k x,
-      x \notin fv_val v ->
-      x \notin fv_val v' ->
-      open_rec_val k x v = open_rec_val k x v' ->
-      v = v') /\
-  (forall d d' k x,
-      x \notin fv_def d ->
-      x \notin fv_def d' ->
-      open_rec_def k x d = open_rec_def k x d' ->
-      d = d') /\
-  (forall ds ds' k x,
-      x \notin fv_defs ds ->
-      x \notin fv_defs ds' ->
-      open_rec_defs k x ds = open_rec_defs k x ds' ->
-      ds = ds') /\
-  (forall drhs drhs' k x,
-      x \notin fv_defrhs drhs ->
-      x \notin fv_defrhs drhs' ->
-      open_rec_defrhs k x drhs = open_rec_defrhs k x drhs' ->
-      drhs = drhs').
-Proof.
-
-  Ltac injective_solver :=
-    match goal with
-    | [ H: _ = open_rec_trm _ _ ?t |- _ ] =>
-      destruct t; inversions H;
-      try (f_equal; simpl in *);
-      try (apply* open_fresh_avar_injective
-        || apply* open_fresh_path_injective);
-      eauto;
-      match goal with
-      | [ Heq: forall _ _ _, _ -> _ -> _ -> ?u = _ |- ?u = _ ] =>
-        apply* Heq; eauto
-      end
-    | [ H: _ = open_rec_val _ _ ?v |- _ ] =>
-      destruct v; inversions H; f_equal; simpl in *;
-      try apply* open_fresh_typ_dec_injective;
-      destruct_notin; eauto
-    | [ H: _ = open_rec_def _ _ ?d |- _ ] =>
-      destruct d; inversions H; f_equal;
-      try apply* open_fresh_typ_dec_injective;
-      destruct_notin; eauto
-    | [ H: _ = open_rec_defs _ _ ?ds |- _ ] =>
-      destruct ds; inversions H; f_equal;
-      simpl in *; destruct_notin; eauto
-    | [ H: _ = open_rec_defrhs _ _ ?drhs |- _ ] =>
-      destruct drhs; inversions H; f_equal;
-      simpl in *; destruct_notin;
-      try apply* open_fresh_path_injective; eauto
-    end.
-
-  apply trm_mutind; intros; try solve [injective_solver].
-Qed.
-
 (** * Variable Substitution Lemmas *)
 
 (** The following [subst_fresh_XYZ] lemmas state that if [x] is not free
     in a symbol [Y], then [Y[z/x] = Y]. *)
 
 (** Fresh substitution
-    - in variables *)
-Lemma subst_fresh_avar: forall x y,
-  (forall a: avar, x \notin fv_avar a -> subst_avar x y a = p_sel a nil).
-Proof.
-  intros. destruct* a. simpl. autounfold. case_var*. simpls. notin_false.
-Qed.
-
-(** - in paths *)
+    - in paths *)
 Lemma subst_fresh_path : forall x q p,
     x \notin fv_path p ->
     subst_path x q p = p.
@@ -467,10 +381,6 @@ Proof.
     reflexivity.
 Qed.
 
-(** Definition of substitution on named variables: #<br>#
-    [z[y/x] := if z == x then y else z], where [z] is a named variable. *)
-Definition subst_fvar(x y z: var): var := If z = x then y else z.
-
 (** The following lemmas state that substitution commutes with opening:
     for a symbol [Z], #<br>#
     [(Z^a)[y/x] = (Z[y/x])^(a[y/x])]. *)
@@ -507,17 +417,6 @@ Lemma subst_open_commut_typ_dec: forall x p u,
      = open_rec_dec_p n (subst_var_p x p u) (subst_dec x p D)).
 Proof.
   intros. apply typ_mutind; intros; simpl; f_equal*; apply* subst_open_commut_path.
-Qed.
-
-Lemma subst_open_commut_p: forall x p u y n,
-    named_path p ->
-    subst_path x p (open_rec_avar_p n u y)
-    = open_rec_path_p n (subst_path x p u) (subst_avar x p y).
-Proof.
-  introv Hl. unfold subst_path, subst_avar, subst_var_p.
-  destruct y as [n' | y]; simpl; repeat case_if; destruct u; destruct a; simpl;
-    try (rewrite* app_nil_r); repeat case_if; unfold sel_fields; destruct* p;
-      inversions Hl; destruct_all; inversions H; rewrite* app_nil_l; inversion H.
 Qed.
 
 Lemma subst_open_commut_path_p: forall p n x q u,
@@ -627,15 +526,6 @@ Proof.
   intros. apply* subst_open_commut_trm_val_def_defs_p.
 Qed.
 
-(** - definitions only *)
-Lemma subst_open_commut_defs: forall x y u ds,
-    named_path y ->
-    subst_defs x y (open_defs u ds)
-    = open_defs_p (subst_var_p x y u) (subst_defs x y ds).
-Proof.
-  intros. apply* subst_open_commut_trm_val_def_defs.
-Qed.
-
 Lemma subst_open_commut_defs_p: forall x y u ds,
     named_path y ->
     subst_defs x y (open_defs_p u ds)
@@ -656,15 +546,6 @@ Lemma subst_intro_trm: forall x u t, x \notin (fv_trm t) -> named_path u ->
 Proof.
   introv Fr Hl. unfold open_trm. rewrite* subst_open_commut_trm.
   destruct (@subst_fresh_trm_val_def_defs x u) as [Q _]. rewrite~ (Q t).
-  unfold subst_var_p. case_var~.
-Qed.
-
-(** - definitions *)
-Lemma subst_intro_defs: forall x u ds, x \notin (fv_defs ds) -> named_path u ->
-  open_defs_p u ds = subst_defs x u (open_defs x ds).
-Proof.
-  introv Fr Hl. unfold open_trm. rewrite* subst_open_commut_defs.
-  destruct (@subst_fresh_trm_val_def_defs x u) as [_ [_ [_ [Q _]]]]. rewrite~ (Q ds).
   unfold subst_var_p. case_var~.
 Qed.
 
@@ -825,13 +706,6 @@ Proof.
       * inversions* H4.
 Qed.
 
-Lemma defs_has_typing: forall z bs P G d a T,
-    z; bs; P; G ⊢ d : { a ⦂ T } ->
-    exists t, d = {a := t}.
-Proof.
-  introv Hd. dependent induction Hd; eauto.
-Qed.
-
 Lemma inert_subst_mut:
   (forall D, record_dec D -> forall x p,
         record_dec (subst_dec x p D)) /\
@@ -861,12 +735,6 @@ Proof.
   destruct (binds_push_inv Hb) as [[H1 H2] | [H1 H2]]; subst.
   repeat eexists. rewrite* concat_empty_r.
   specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
-Qed.
-
-Lemma open_idempotent p q x bs :
-  open_path_p p (open_path_p (p_sel (avar_f x) bs) q) = open_path_p (p_sel (avar_f x) bs) q.
-Proof.
-  destruct q. destruct a; simpl; destruct p; eauto. case_if; subst; simpl; eauto. case_if*.
 Qed.
 
 Lemma open_env_rules:
@@ -904,3 +772,31 @@ Proof.
   intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
   rewrite* concat_empty_r.
 Qed.
+
+Lemma env_ok_inv {A} (G1 G2 G1' G2' : env A) x T T' :
+  G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
+  ok (G1' & x ~ T' & G2') ->
+  G1 = G1' /\ T = T' /\ G2 = G2'.
+Proof.
+  gen G2'. induction G2 using env_ind; introv Heq Hn.
+  - assert (G2' = empty) as ->. {
+      destruct G2' using env_ind; auto. rewrite concat_assoc in Heq.
+(*      rewrite concat_empty_r in *.
+      pose proof (eq_push_inv Heq) as [-> ?]. rewrite Heq in Hi. apply inert_ok in Hi.
+      rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi. simpl_dom.
+      apply notin_union in Hi as [Contra ?].  false* notin_same.*)
+Admitted.
+
+Lemma env_ok_inv' {A} (G1 G2 G1' G2' : env A) x T T' :
+  G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
+  ok (G1 & x ~ T & G2) ->
+  G1 = G1' /\ T = T' /\ G2 = G2'.
+Proof.
+  intros Heq Hok. rewrite Heq in Hok. apply (env_ok_inv Heq) in Hok.
+  split*.
+Qed.
+
+Lemma wt_prefix G1 x T G2 s :
+  well_typed (G1 & x ~ T & G2) s ->
+  exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).
+Proof. Admitted.

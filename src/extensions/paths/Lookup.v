@@ -67,16 +67,6 @@ Proof.
   intros. dependent induction H; eauto. false* binds_empty_inv.
 Qed.
 
-Lemma lookup_push_eq_inv_var :
-    forall s x v t,
-    s & x ~ v ⟦ pvar x ⟼ t ⟧ ->
-    t = defv v.
-Proof.
-  introv Hx. inversions Hx;
-    try (destruct (last_field _ _ H) as [bs Hbs]; inversion Hbs).
-  apply binds_push_eq_inv in H1. subst*.
-Qed.
-
 Ltac solve_lookup :=
   match goal with
   | [ H : _ • _ = p_sel _ _ |- _ ] =>
@@ -113,38 +103,11 @@ Lemma named_path_lookup_step: forall s t p,
 Proof.
   intros. Admitted.
 
-Lemma named_path_lookup: forall s p v,
-    s ∋ (p, v) ->
-    exists x bs, p = p_sel (avar_f x) bs.
-Proof.
-  intros. inversions H. Admitted.
-
 Lemma lookup_val_inv: forall s v t,
     s ⟦ defv v ⟼* t ⟧ ->
     t = defv v.
 Proof.
   introv Hs. dependent induction Hs. auto. inversion H.
-Qed.
-
-Lemma lookup_path_inv: forall s t p,
-    s ⟦ t ⟼* defp p ⟧ ->
-    exists q, t = defp q.
-Proof.
-  introv Hs. dependent induction Hs; eauto. destruct (IHHs _ eq_refl) as [q Heq]. subst.
-  inversions H; eauto.
-Qed.
-
-Lemma lookup_last_path: forall s p v,
-    s ∋ (p, v) ->
-    exists q, s ⟦ defp p ⟼* defp q ⟧ /\
-         s ⟦ q ⟼ defv v ⟧.
-Proof.
-  introv Hl.
-  inversions Hl. dependent induction H1. destruct b; subst.
-  - specialize (IHstar _ _ eq_refl eq_refl). destruct IHstar as [r [Hs Hl]].
-    exists r. split. eapply star_trans. apply star_one. apply  H. all: auto.
-  - apply lookup_val_inv in H1. inversions H1.
-    exists p. split*. apply star_refl.
 Qed.
 
 Lemma lookup_step_func: forall s t t1 t2,
@@ -182,13 +145,6 @@ Proof.
   lets Hf: (finseq_unique H' H2 Hirr1 H3 Hirr2). inversion* Hf.
 Qed.
 
-Lemma lookup_implies_binds : forall s x bs t,
-    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
-    exists v, binds x v s.
-Proof.
-  introv Hl. dependent induction Hl; try simpl_dot; eauto.
-Qed.
-
 Lemma lookup_push_neq : forall s x bs v y t,
     s ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧ ->
     y # s ->
@@ -201,3 +157,15 @@ Proof.
       apply* star_trans. apply star_one. apply* lookup_step_push_neq.
     * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_push_neq.
 Qed.
+
+Lemma lookup_step_weaken s p t s' :
+  ok (s & s') ->
+  s ⟦ p ⟼ t ⟧ ->
+  s & s' ⟦ p ⟼ t ⟧.
+Proof. Admitted.
+
+Lemma lookup_weaken s t1 t2 s' :
+  ok (s & s') ->
+  s ⟦ t1 ⟼* t2 ⟧ ->
+  s & s' ⟦ t1 ⟼* t2 ⟧.
+Proof. Admitted.

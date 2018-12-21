@@ -15,28 +15,6 @@ Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrow
         Weakening.
 Require Import Sequences.
 
-(** * Well-typedness *)
-
-(** If [e: G], the variables in the domain of [e] are distinct. *)
-Lemma well_typed_to_ok_G: forall s G,
-    well_typed G s -> ok G.
-Proof.
-  intros. induction H; jauto.
-Qed.
-Hint Resolve well_typed_to_ok_G.
-
-(** [s: G]       #<br>#
-    [x ∉ dom(G)] #<br>#
-    [――――――――――] #<br>#
-    [x ∉ dom(s)] *)
-Lemma well_typed_notin_dom: forall G s x,
-    well_typed G s ->
-    x # s ->
-    x # G.
-Proof.
-  intros. induction H; auto.
-Qed.
-
 Lemma val_typing: forall G v T,
   G ⊢ trm_val v : T ->
   exists T', G ⊢!v v : T' /\
@@ -94,35 +72,6 @@ Proof.
       simpl in *. repeat eexists; auto.
     * left. inversions Hdt. eauto.
 Qed.
-
-Lemma env_ok_inv {A} (G1 G2 G1' G2' : env A) x T T' :
-  G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
-  ok (G1' & x ~ T' & G2') ->
-  G1 = G1' /\ T = T' /\ G2 = G2'.
-Proof.
-  gen G2'. induction G2 using env_ind; introv Heq Hn.
-  - assert (G2' = empty) as ->. {
-      destruct G2' using env_ind; auto. rewrite concat_assoc in Heq.
-(*      rewrite concat_empty_r in *.
-      pose proof (eq_push_inv Heq) as [-> ?]. rewrite Heq in Hi. apply inert_ok in Hi.
-      rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi. simpl_dom.
-      apply notin_union in Hi as [Contra ?].  false* notin_same.*)
-Admitted.
-
-Lemma env_ok_inv' {A} (G1 G2 G1' G2' : env A) x T T' :
-  G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
-  ok (G1 & x ~ T & G2) ->
-  G1 = G1' /\ T = T' /\ G2 = G2'.
-Proof.
-  intros Heq Hok. rewrite Heq in Hok. apply (env_ok_inv Heq) in Hok.
-  split*.
-Qed.
-
-Lemma pt3_exists G p T :
-  G ⊢ trm_path p : T ->
-  exists U, G ⊢!!! p : U.
-Proof.
-  Admitted.
 
 Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
     inert G ->
@@ -288,12 +237,6 @@ Proof.
                                    [? [? [? [? [? [? [[=] ?]]]]]]]]]; auto.
 Admitted.
 
-Lemma pt3_weaken G G' p T :
-  G ⊢!!! p: T ->
-  G & G' ⊢!!! p: T.
-Proof.
-  Admitted.
-
 Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     inert G ->
     well_typed G s ->
@@ -357,68 +300,6 @@ Proof.
   intros Hi Hwt Hs Hp.
   destruct (lookup_step_preservation_inert_prec3 Hi Hwt Hs Hp) as
       [[? [? [-> Ht]]] | [? [[=] ?]]]; auto.
-Qed.
-
-Lemma lookup_step_preservation_prec3_bnd G s p T q :
-    inert G ->
-    well_typed G s ->
-    s ⟦ p ⟼ defp q ⟧ ->
-    G ⊢!!! p : typ_bnd T ->
-    G ⊢!!! q : typ_bnd T.
-Proof.
-  introv Hi Hwt Hs Hp.
-  assert (inert_typ (typ_bnd T)) as Hit. {
-    apply (pf3_inertsngl Hi) in Hp. inversions Hp; inversions H; auto; inversion H0; inversion H.
-  }
-  destruct (lookup_step_preservation_inert_prec3 Hi Hwt Hs Hp) as
-      [[? [? [[=] ?]]] | [U [[= ->] [[? [? [? [? [? [? [[=] ?]]]]]]] | [? [[= ->] ?]]]]]]; auto.
-Qed.
-
-(* TODO !!!
-   it might be that we will have to select specific px and pbs and not just arbitrary ones *)
-Lemma lookup_preservation G s p t T :
-  inert G ->
-  well_typed G s ->
-  s ⟦ defp p ⟼* t ⟧ ->
-  G ⊢!!! p : T ->
-  inert_typ T ->
-  t = defp p \/
-  (exists S U, T = typ_all S U /\ G ⊢ deftrm t : typ_all S U) \/
-  (exists U, T = typ_bnd U /\
-        ((exists S ds px pbs W P, t = defv (val_new S ds) /\
-                             px; pbs; P; G ⊢ open_defs_p (p_sel (avar_f px) pbs) ds ::
-                                             open_typ_p (p_sel (avar_f px) pbs) S /\
-                             G ⊩ S ⟿ W ⬳ U) \/
-         (exists q, t = defp q /\ G ⊢!!! q : T))).
-Proof.
-  intros Hi Hwt Hs. gen T. dependent induction Hs; introv Hp Hit.
-  - left*.
-  - right.
-    pose proof (lookup_step_preservation_inert_prec3 Hi Hwt H Hp Hit)
-      as [[S [U [[= ->] Ht]]] |
-          [U [[= ->] [[S [ds [px [pbs [W [P [[= ->] [Heq [Hds [Hrc1 Hrc2]]]]]]]]]] |
-                     [q [[= ->] Hq]]]]]].
-    + left. destruct b as [q | v].
-      * simpl in *. proof_recipe.
-        specialize (IHHs _ Hi Hwt eq_refl _ Hpr (inert_typ_all _ _))
-          as [-> |
-              [[S' [U' [[= ->] Ht']]] |
-               [? [[= ->] [[? [? [? [? [? [? [[= ->] ?]]]]]]] |
-                     [? [[= ->] ?]]]]]]]; repeat eexists; simpl.
-        ** eapply ty_sub. apply* precise_to_general3.
-           eapply subtyp_all. apply* tight_to_general. eauto.
-        ** eapply ty_sub. apply Ht'. eapply subtyp_all. apply* tight_to_general.
-           subst. apply Hspr2.
-      * apply lookup_val_inv in Hs as ->. simpl in *. repeat eexists. auto.
-    + right. eexists. split*.
-      apply lookup_val_inv in Hs as ->. left. repeat eexists; subst; eauto.
-    + right. eexists. split*.
-      specialize (IHHs _ Hi Hwt eq_refl _ Hq Hit)
-        as [-> |
-            [[S' [U' [[= ->] Ht']]] |
-             [U' [[= ->] [[S [ds [qx [qbs [W [P [-> [Hds [Hrc1 Hrc2]]]]]]]]] |
-                        [? [[= ->] ?]]]]]]]; eauto.
-      left. repeat eexists; eauto.
 Qed.
 
 (** * Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
@@ -507,56 +388,6 @@ Proof.
     + split*. split; right; repeat apply* pt3_weaken.
 Qed.
 
-Lemma pt2_strengthen_one G y bs T x U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
-  x <> y ->
-  G ⊢!! p_sel (avar_f y) bs : U.
-Proof.
-  intros Hi Ht Hn. dependent induction Ht.
-  - econstructor. apply* pf_strengthen.
-  - simpl_dot.
-    specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
-    pose proof (sngl_path_named (precise_to_general2 Ht1)) as [qx [qbs ->]].
-    simpl in *.
-    repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto. simpl.
-    admit.
-Admitted.
-
-Lemma pt2_strengthen G G1 G2 bs T x U :
-  G = G1 & x ~ T & G2 ->
-  inert G ->
-  G ⊢!! p_sel (avar_f x) bs : U ->
-  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
-Proof.
-  induction G2 using env_ind. Admitted.
-
-Lemma repl_comp_env1 G x bs p :
-  G ⊢ p_sel (avar_f x) bs ⟿' p ->
-  x # G ->
-  p = p_sel (avar_f x) bs.
-Proof.
-  intros Hg Hx. dependent induction Hg; auto.
-  destruct H as [r [r' [n [Hr Hrt]]]].
-  invert_repl. specialize (IHHg _ _ _ eq_refl eq_refl Hx). simpl_dot.
-  apply precise_to_general in Hr.
-  apply typing_implies_bound in Hr as [S Hb].
-  false* (binds_fresh_inv Hb).
-Qed.
-
-Lemma repl_comp_env2 G x bs p :
-  G ⊢ p ⟿' p_sel (avar_f x) bs ->
-  x # G ->
-  p = p_sel (avar_f x) bs.
-Proof.
-  intros Hg Hx. dependent induction Hg; auto.
-  destruct H as [r [r' [n [Hr Hrt]]]].
-  pose proof (typed_paths_named (precise_to_general Hr)) as [rx [rbs ->]].
-  invert_repl. simpl in *. simpl_dot.
-  assert (exists S, binds x S G) as [S Hb] by admit.
-  false* (binds_fresh_inv Hb).
-Qed.
-
 Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     well_typed G s ->
@@ -627,36 +458,6 @@ Proof.
            *** false* pt1_inert_pt3_sngl_false.
 Qed.
 
-Lemma object_lookup1 G s p T U :
-  inert G ->
-  well_typed G s ->
-  G ⊢! p : typ_bnd T ⪼ U ->
-  exists S ds W px pbs P, s ⟦ p ⟼ defv (val_new S ds) ⟧ /\
-                   p = p_sel (avar_f px) pbs /\
-                   px; pbs; P; G ⊢ open_defs_p p ds :: open_typ_p p S /\
-                   G ⊩ S ⟿ W ⬳ T.
-Proof.
-  intros Hi Hwt Hp. destruct (typ_to_lookup1 Hi Hwt Hp) as [t Hs].
-  pose proof (typed_paths_named (precise_to_general Hp)) as [px [pbs Heq]].
-  destruct (lookup_step_preservation_prec1 Hi Hwt Hs Hp Heq)
-           as [[? [? [[= ->]]]] |
-          [[S [ds' [W [T'' [P [G1 [G2 [pT [-> [[= ->] [-> [Hds [Hrc1 Hrc2]]]]]]]]]]]]] |
-           [? [? [? [? [? [? [-> [[= ->] [-> [? ?]]]]]]]]]]]]; eauto.
-  - proof_recipe. inversion H0.
-  - repeat eexists; eauto; repeat apply* repl_composition_weaken;
-      apply inert_ok; apply* inert_prefix.
-Qed.
-
-Lemma lookup_step_fld_star s p q a :
-  s ⟦ defp p ⟼* defp q ⟧ ->
-  s ⟦ defp p • a ⟼* defp q • a ⟧.
-Proof.
-  intros Hs. dependent induction Hs.
-  - apply star_refl.
-  - pose proof (lookup_path_inv Hs) as [r ->]. specialize (IHHs _ _ eq_refl eq_refl).
-    eapply star_trans. apply star_one. apply* lookup_sel_p. auto.
-Qed.
-
 Lemma lookup_same_var_same_type G s x bs cs T:
   inert G ->
   well_typed G s ->
@@ -690,23 +491,6 @@ Proof.
       apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix.
 Qed.
 
-Lemma wt_prefix G1 x T G2 s :
-  well_typed (G1 & x ~ T & G2) s ->
-  exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).
-Proof. Admitted.
-
-Lemma lookup_step_weaken s p t s' :
-  ok (s & s') ->
-  s ⟦ p ⟼ t ⟧ ->
-  s & s' ⟦ p ⟼ t ⟧.
-Proof. Admitted.
-
-Lemma lookup_weaken s t1 t2 s' :
-  ok (s & s') ->
-  s ⟦ t1 ⟼* t2 ⟧ ->
-  s & s' ⟦ t1 ⟼* t2 ⟧.
-Proof. Admitted.
-
 Lemma typed_path_lookup_same_var2 G s y bs cs :
   inert G ->
   well_typed G s ->
@@ -733,20 +517,6 @@ Proof.
     + pose proof (typing_implies_bound (precise_to_general3 Hrc1)) as [S Hb].
       false binds_fresh_inv; eauto.
 Qed.
-
-Lemma pt3_strengthen_one G bs T x y U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
-  y <> x ->
-  G ⊢!!! p_sel (avar_f y) bs : U.
-Proof. Admitted.
-
-Lemma pt3_strengthen G G1 G2 bs T x U :
-  G = G1 & x ~ T & G2 ->
-  inert G ->
-  G ⊢!!! p_sel (avar_f x) bs : U ->
-  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
-Proof. Admitted.
 
 Lemma typed_path_lookup_same_var3 G s y bs cs :
   inert G ->
@@ -932,18 +702,6 @@ Proof.
   pose proof (lookup_step_preservation_prec3_fun Hi Hwt H Hpr') as Hb.
   apply ty_sub with (T:=typ_all S' T'); auto; fresh_constructor; apply* tight_to_general.
 Qed.
-
-Inductive well_typed_prec : ctx -> sta -> Prop :=
-  | well_typed_prec_empty :
-    well_typed_prec empty empty
-  | well_typed_prec_push : forall (G : ctx) (s : sta) (x : var) (T : typ) (v : val),
-      well_typed_prec G s ->
-      x # G ->
-      x # s ->
-      G ⊢!v v : T ->
-      well_typed_prec (G & x ~ T) (s & x ~ v).
-
-Hint Constructors well_typed_prec.
 
 Lemma corresponding_types_fun: forall G s p S T,
     inert G ->

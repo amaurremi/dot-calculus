@@ -54,7 +54,7 @@ all: $(LEROYNAME)
 doc: $(LEROYNAME)
 proofs: $(LEROYNAME)
 %vo: $(LEROYNAME)
-	  
+
 $(LEROYNAME): $(wildcard $(LEROYSRC)/*.v)
 	       $(MAKE) -C $(LEROYDIR)
 
@@ -133,7 +133,7 @@ DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
 DPDTEXT+=Print FileDependGraph $(DPDMODULES).
 
 $(DPDFILENAME): $(shell coqdep -sort $(FILES))
-	echo $(DPDTEXT) | coqtop 
+	echo $(DPDTEXT) | coqtop
 
 $(DPDDOT): $(DPDFILENAME)
 	dpd2dot -without-defs $<

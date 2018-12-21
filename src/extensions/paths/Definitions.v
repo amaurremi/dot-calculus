@@ -243,7 +243,7 @@ Definition open_trm  u e := open_rec_trm   0 u e.
 Definition open_val  u v := open_rec_val   0 u v.
 Definition open_def  u d := open_rec_def   0 u d.
 Definition open_defs u l := open_rec_defs  0 u l.
-Definition open_defrhs u t := open_rec_defrhs 0 u t.
+Definition open_defrhsdd u t := open_rec_defrhs 0 u t.
 Definition open_path u p := open_rec_path  0 u p.
 
 Definition open_paths u ps := map (open_path u) ps.

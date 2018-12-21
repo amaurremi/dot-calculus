@@ -120,49 +120,12 @@ Proof.
   introv Hr Hpq. apply repl_swap in Hr. eauto.
 Qed.
 
-Lemma repl_sub_swap: forall G p q T U n,
-    repl_typ n q p T U ->
-    G ⊢!!! p: typ_sngl q ->
-    G ⊢# U <: T.
-Proof.
-  introv Hr Hpq. apply repl_swap in Hr. eauto.
-Qed.
-
 Ltac solve_repl_sub :=
     try (apply* tight_to_general);
     try solve [apply* repl_sub];
-    try solve [apply* repl_sub_swap];
     eauto.
 
 (** *** Invertible to Precise Typing [|-## to |-!] *)
-
-(** Invertible typing implies tight typing. *)
-Lemma inv_to_tight: forall G p T,
-    inert G ->
-    G ⊢## p: T ->
-    G ⊢# trm_path p: T.
-Proof.
-  introv Hi Ht. induction Ht; try (specialize (IHHt Hi)); eauto.
-  apply* precise_to_tight3. eapply ty_sub_t. apply IHHt. eauto.
-Qed.
-
-(** Invertible-to-precise typing for field declarations: #<br>#
-    [G |-## p: {a: T}]            #<br>#
-    [――――――――――――――――――――――]      #<br>#
-    [exists T', G |-! p: {a: T'}]      #<br>#
-    [G |-# T' <: T]. *)
-Lemma invertible_to_precise_trm_dec: forall G p a T,
-  inert G ->
-  G ⊢## p : typ_rcd {a ⦂ T} ->
-  exists T',
-    G ⊢!!! p: typ_rcd {a ⦂ T'} /\
-    G ⊢# T' <: T.
-Proof.
-  introv Hi Hinv.
-  dependent induction Hinv.
-  repeat eexists; eauto.
-  specialize (IHHinv _ _ Hi eq_refl). destruct IHHinv as [T' [Hp Hs]]. repeat eexists; eauto.
-Qed.
 
 (** Invertible-to-precise typing for function types: #<br>#
     [ok G]                        #<br>#
@@ -312,44 +275,6 @@ Proof.
     specialize (IHHp Hi _ _ H _ _ H0). eauto.
 Qed.
 
-Lemma invertible_repl_closure2 : forall G p q r T T' n,
-    inert G ->
-    G ⊢## p : T ->
-    G ⊢!! q : typ_sngl r ->
-    repl_typ n q r T T' ->
-    G ⊢## p : T'.
-Proof.
-  introv Hi Hp Hq Hr. dependent induction Hq.
-  - apply* invertible_repl_closure. lets Heq: (pf_sngl_T Hi H). subst. auto.
-  - lets Hr': (repl_field_elim _ _ _ Hr).
-    eauto.
-Qed.
-
-Lemma invertible_repl_closure3 : forall G p q r T T' n,
-    inert G ->
-    G ⊢## p : T ->
-    G ⊢!!! q : typ_sngl r ->
-    repl_typ n q r T T' ->
-    G ⊢## p : T'.
-Proof.
-  introv Hi Hp Hq Hr. gen p T. dependent induction Hq; introv Hp Hr.
-  - apply* invertible_repl_closure2.
-  - destruct (repl_insert q Hr) as [U [Hr1 Hr2]].
-    lets Hc: (invertible_repl_closure2 Hi Hp H Hr1). apply* IHHq.
-Qed.
-
-Lemma invertible_repl_closure_comp: forall G p q r T T',
-    inert G ->
-    G ⊢## p: T ->
-    G ⊢!!! q: typ_sngl r ->
-    repl_repeat_typ q r T T' ->
-    G ⊢## p: T'.
-Proof.
-  introv Hi Hp Hq Hc. gen p. dependent induction Hc; introv Hp; eauto.
-  unfolds repl_some_typ. destruct_all.
-  apply* IHHc. apply* invertible_repl_closure3.
-Qed.
-
 Lemma invertible_bot : forall G p,
     inert G ->
     G ⊢## p: typ_bot -> False.
@@ -433,18 +358,6 @@ Proof.
   introv Hi Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
   destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
   exists r. split*. apply* repl_comp_to_prec.
-Qed.
-
-Lemma inv_sngl_trans: forall G p q T,
-    inert G ->
-    G ⊢## p : typ_sngl q ->
-    G ⊢## q : T ->
-    G ⊢## p : T.
-Proof.
-  introv Hi Hpq Hq. gen p. induction Hq; introv Hpq; eauto.
-  destruct (inv_to_precise_sngl Hi Hpq) as [r [Hpr [Heq | Hr]]].
-  - subst. constructor. apply* pt3_sngl_trans3.
-  - constructor. eapply pt3_sngl_trans3. apply Hpr. apply* pt3_sngl_trans3.
 Qed.
 
 (** Invertible typing for values *)

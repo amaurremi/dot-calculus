@@ -235,25 +235,3 @@ Lemma tight_to_general:
 Proof.
   apply ts_mutind_ts; intros; subst; eauto using precise_to_general3.
 Qed.
-
-Lemma precise_to_tight: forall G p T U,
-    G ⊢! p : T ⪼ U ->
-    G ⊢# trm_path p : T /\ G ⊢# trm_path p : U.
-Proof.
-  introv Hp. dependent induction Hp; split*. constructor*.  constructor*.
-Qed.
-
-Lemma precise_to_tight2: forall G p T,
-    G ⊢!! p : T ->
-    G ⊢# trm_path p : T.
-Proof.
-  introv Hp. dependent induction Hp; eauto. apply* precise_to_tight.
-Qed.
-
-Lemma precise_to_tight3: forall G p T,
-    G ⊢!!! p : T ->
-    G ⊢# trm_path p : T.
-Proof.
-  introv Hp. dependent induction Hp; eauto. apply* precise_to_tight2.
-  apply precise_to_tight2 in H. eauto.
-Qed.

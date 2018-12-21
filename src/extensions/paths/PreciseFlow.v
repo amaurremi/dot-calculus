@@ -15,11 +15,6 @@ Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing
 Definition is_sngl T := exists p, T = typ_sngl p.
 Definition inert_sngl T := inert_typ T \/ is_sngl T.
 
-Lemma sngl_inert_sngl: forall q, inert_sngl (typ_sngl q).
-Proof.
-  introv. right. eexists. eauto.
-Qed.
-
 Ltac invert_repl :=
   repeat match goal with
          | [H: repl_dec _ _ _ {_ ⦂ _} _ |- _ ] =>
@@ -201,27 +196,7 @@ Proof.
   intros. induction H; intros; subst; eauto.
 Qed.
 
-Lemma narrow_to_precise_v : forall G G' v T,
-    G ⊢!v v: T ->
-    G' ⪯ G ->
-    G' ⊢!v v: T.
-Proof.
-  introv Hv Hs. inversions Hv; fresh_constructor_p;
-  assert (z \notin L) as Hz by auto; specialize (H z Hz);
-  (apply* narrow_typing || apply* narrow_defs); destruct (subenv_implies_ok Hs);
-  apply* subenv_extend; apply ok_push.
-Qed.
-
 (** ** Precise Flow Lemmas *)
-
-Lemma pf_U_top: forall p G T,
-    G ⊢! p: typ_top ⪼ T ->
-    T = typ_top.
-Proof.
-  introv Pf.
-  dependent induction Pf; auto;
-    try (specialize (IHPf eq_refl); inversion IHPf).
-Qed.
 
 (** The following two lemmas say that the type to which a variable is bound in an inert context is inert. *)
 Lemma binds_inert : forall G x T,
@@ -234,13 +209,6 @@ Proof.
   - destruct (binds_push_inv Bi).
     + destruct H1. subst. assumption.
     + destruct H1. apply (IHHinert H2).
-Qed.
-
-Lemma pf_TT: forall G p T U,
-    G ⊢! p: T ⪼ U ->
-    G ⊢! p: T ⪼ T.
-Proof.
-  introv Hp. induction Hp; eauto.
 Qed.
 
 (** The precise type of a value is inert. *)
@@ -395,21 +363,6 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(** If [x]'s precise type is a record type, then [G(x)] is a recursive type. *)
-Lemma pf_bnd_T3: forall G p T Ds,
-    inert G ->
-    G ⊢! p: T ⪼ Ds ->
-    record_type Ds ->
-    exists U, T = typ_bnd U.
-Proof.
-  introv Hi Pf Hr.
-  lets HT: (pf_inert Hi Pf).
-  destruct* HT.
-  inversions H.
-  apply pf_forall_U in Pf. destruct_all. subst. inversion Hr. inversion H. eauto.
-  inversions H. apply pf_sngl_U in Pf. subst. inversion Hr. inversion H.
-Qed.
-
 (** The following two lemmas express that if [x]'s precise type is a function type,
     then [G(x)] is the same function type. *)
 Lemma pf_forall_T : forall p G S T U,
@@ -546,31 +499,6 @@ Proof.
   apply* unique_rcd_typ.
  Qed.
 
-Lemma pf_dec_fld_unique : forall G p T a U1 U2,
-    inert G ->
-    G ⊢! p: T ⪼ typ_rcd {a ⦂ U1} ->
-    G ⊢! p: T ⪼ typ_rcd {a ⦂ U2} ->
-    U1 = U2.
-Proof.
-  introv Hi Pf1 Pf2.
-  destruct (pf_bnd_T2 Hi Pf1) as [T1 He1]. subst.
-  destruct (pf_rec_rcd_U Hi Pf1) as [Ht | Ht]; inversions Ht.
-  destruct (pf_rec_rcd_U Hi Pf2) as [Ht | Ht]; inversions Ht.
-  dependent induction Pf1.
-  - lets Hb: (pf_bnd_T Hi Pf1). inversions Hb.
-    destruct U; inversions x. destruct d; inversions H2.
-    lets Hrh: (pf_record_has_U Hi Pf2).
-    inversion* Hrh.
-  - lets Hrh: (pf_record_has_U Hi Pf2).
-    assert (record_has (typ_and (typ_rcd {a ⦂ U1}) U0) {a ⦂ U1}) as Hrh' by auto.
-    lets Hrh'': (pf_record_has_T Hi Pf1 Hrh'). apply (pf_rcd_T Hi) in Pf2.
-    lets Hrt: (open_record_type_p p Pf2). apply* unique_rcd_trm.
-  - lets Hrh: (pf_record_has_U Hi Pf2).
-    assert (record_has (typ_and U3 (typ_rcd {a ⦂ U1})) {a ⦂ U1}) as Hrh' by auto.
-    lets Hrh'': (pf_record_has_T Hi Pf1 Hrh'). apply (pf_rcd_T Hi) in Pf2.
-    lets Hrt: (open_record_type_p p Pf2). apply* unique_rcd_trm.
-Qed.
-
 Lemma pf_T_unique: forall G p T1 T2 U1 U2,
     inert G ->
     G ⊢! p: T1 ⪼ U1 ->
@@ -643,25 +571,6 @@ Proof.
   - destruct p. inversions x.
     specialize (IHHt _ _ _ _ _ Hi JMeq_refl eq_refl Hneq).
     lets Hf: (pf_fld IHHt). eauto.
-Qed.
-
-Lemma pf_var_sngl : forall G x p T,
-    inert G ->
-    G ⊢! pvar x : typ_sngl p ⪼ T ->
-    False.
-Proof.
-  introv Hi Hx. dependent induction Hx; eauto.
-  apply (binds_inert H0) in Hi. inversion Hi.
-  unfolds sel_fields. destruct p0. inversion x.
-Qed.
-
-Lemma pf_inert_bnd : forall G p T D,
-    inert G ->
-    G ⊢! p : T ⪼ typ_rcd D ->
-    inert_typ T.
-Proof.
-  introv Hi Hp. lets Hr: (pf_bnd_T2 Hi Hp). destruct_all.
-  subst. apply pf_rcd_T in Hp; auto. inversions Hp. apply* inert_typ_bnd.
 Qed.
 
 Lemma pf_path_sel: forall G p a T U,

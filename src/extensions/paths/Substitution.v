@@ -341,50 +341,6 @@ Qed.
 
 (** * Renaming  *)
 
-(** Renaming the name of the opening variable for definition typing.  #<br>#
-
-    [ok G]                              #<br>#
-    [y] fresh                           #<br>#
-    [y; []; P; G, y: T^y ⊢ ds^y : T^y]  #<br>#
-    [G ⊢ x.bs: T^x.bs]                  #<br>#
-    [―――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ ds^x.bs : T^x.bs]    *)
-Lemma renaming_def_strengthen: forall G y T ds x bs P p,
-    ok G ->
-    y # G ->
-    y \notin (fv_ctx_types G \u fv_defs ds \u fv_typ T) ->
-    y; nil; P; G & y ~ open_typ y T ⊢ open_defs y ds :: open_typ y T ->
-    p = p_sel (avar_f x) bs ->
-    x <> y ->
-    G ⊢ trm_path p : open_typ_p p T ->
-    x; bs; P; G ⊢ open_defs_p p ds :: open_typ_p p T.
-Proof.
-  introv Hok Hny Hny' Hy Heq Hxy Hp. lets Hn: (typed_paths_named Hp).
-  rewrite subst_intro_typ with (x:=y).
-  rewrite subst_intro_defs with (x:=y).
-  assert (x = subst_var y x y) as Hx by (unfold subst_var; case_if*). rewrite Hx.
-  eapply subst_ty_defs. eapply Hy. all: auto.
-  - apply Heq.
-  - admit.
-  - rewrite* <- subst_intro_typ.
-  - case_if. rewrite app_nil_r. reflexivity.
-Admitted.
-
-Lemma renaming_def_weaken: forall x bs P G ds U y T,
-  ok (G & x ~ T) ->
-  y # G ->
-  x; bs; P; G & x ~ T ⊢ open_defs_p (p_sel (avar_f x) bs) ds :: open_typ_p (p_sel (avar_f x) bs) U ->
-  y; nil; P; G & x ~ T & y ~ open_typ y U ⊢ open_defs y ds :: open_typ y U.
-Proof.
-  introv Hok Hn Hx. apply weaken_ty_defs with (G2:=y ~ open_typ y U) in Hx.
-  apply (proj43 weaken_rules) with (G:=G&y~open_typ y U).
-  rewrite open_var_typ_eq. rewrite open_var_defs_eq.
-  rewrite subst_intro_typ with (x:=x). rewrite subst_intro_defs with (x:=x).
-  assert (y = subst_var x y y) as Heq. admit.
-  rewrite Heq at 1.
-  eapply subst_ty_defs.
-Admitted.
-
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#
     [z] fresh                #<br>#

@@ -5,6 +5,29 @@ Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
             OperationalSemantics PreciseTyping RecordAndInertTypes Substitution Weakening.
 
+Module Safety.
+(** * Well-typedness *)
+
+(** If [e: G], the variables in the domain of [e] are distinct. *)
+Lemma well_typed_to_ok_G: forall s G,
+    well_typed G s -> ok G.
+Proof.
+  intros. induction H; jauto.
+Qed.
+Hint Resolve well_typed_to_ok_G.
+
+(** [s: G]       #<br>#
+    [x ∉ dom(G)] #<br>#
+    [――――――――――] #<br>#
+    [x ∉ dom(s)] *)
+Lemma well_typed_notin_dom: forall G s x,
+    well_typed G s ->
+    x # s ->
+    x # G.
+Proof.
+  intros. induction H; auto.
+Qed.
+
 (** The typing of a term with a stack *)
 Inductive sta_trm_typ : sta * trm -> typ -> Prop :=
 | sta_trm_typ_c : forall G s t T,
@@ -185,3 +208,5 @@ Theorem safety t u s T :
 Proof.
   intros Ht Hr. apply* safety_helper. constructor.
 Qed.
+
+End Safety.
