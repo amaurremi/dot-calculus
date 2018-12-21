@@ -778,14 +778,18 @@ Lemma env_ok_inv {A} (G1 G2 G1' G2' : env A) x T T' :
   ok (G1' & x ~ T' & G2') ->
   G1 = G1' /\ T = T' /\ G2 = G2'.
 Proof.
-  gen G2'. induction G2 using env_ind; introv Heq Hn.
-  - assert (G2' = empty) as ->. {
-      destruct G2' using env_ind; auto. rewrite concat_assoc in Heq.
-(*      rewrite concat_empty_r in *.
-      pose proof (eq_push_inv Heq) as [-> ?]. rewrite Heq in Hi. apply inert_ok in Hi.
-      rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi. simpl_dom.
-      apply notin_union in Hi as [Contra ?].  false* notin_same.*)
-Admitted.
+  gen G1' G2' T'. induction G2 using env_ind; introv Heq Hn; destruct (env_case G2') as [-> | [y [U [G2'' ->]]]];
+             repeat rewrite concat_empty_r in *.
+  - apply eq_push_inv in Heq; destruct_all; subst; auto.
+  - rewrite concat_assoc in Heq.
+    apply eq_push_inv in Heq as [-> [-> ->]].
+    apply ok_middle_inv_r in Hn. simpl_dom. apply notin_union in Hn as [C _]. false* notin_same.
+  - rewrite concat_assoc in Heq. apply eq_push_inv in Heq as [-> [-> <-]]. rewrite <- concat_assoc in Hn.
+    apply ok_middle_inv_r in Hn. simpl_dom. apply notin_union in Hn as [C _]. false* notin_same.
+  - rewrite concat_assoc in Hn. repeat rewrite concat_assoc in Heq.
+    apply eq_push_inv in Heq as [-> [-> Heq]]. apply ok_concat_inv_l in Hn.
+    specialize (IHG2 _ _ _ Heq Hn) as [-> [-> ->]]. auto.
+Qed.
 
 Lemma env_ok_inv' {A} (G1 G2 G1' G2' : env A) x T T' :
   G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
@@ -799,4 +803,13 @@ Qed.
 Lemma wt_prefix G1 x T G2 s :
   well_typed (G1 & x ~ T & G2) s ->
   exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).
-Proof. Admitted.
+Proof.
+  intros Hwt. dependent induction Hwt.
+  - false* empty_middle_inv.
+  - destruct (env_case G2) as [-> | [y [U [G2' ->]]]].
+    + rewrite concat_empty_r in *. apply eq_push_inv in x as [-> [-> ->]].
+      repeat eexists. rewrite concat_empty_r. eauto. constructor*.
+    + rewrite concat_assoc in x. apply eq_push_inv in x as [-> [-> ->]].
+      specialize (IHHwt _ _ _ _ JMeq_refl) as [w [s1 [s2 [-> Hwt']]]].
+      exists w s1 (s2 & y ~ v). split*. rewrite concat_assoc. auto.
+Qed.

@@ -599,22 +599,76 @@ Proof.
     apply* IHHr.
 Qed.
 
+Lemma repl_comp_typ_rcd G A T U S :
+  G ⊢ typ_rcd { A >: T <: U } ⟿ S ->
+  exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
+Proof. Admitted.
+
+Lemma repl_comp_typ_rcd' G A T U S :
+  G ⊢ S ⟿ typ_rcd { A >: T <: U } ->
+  exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
+Proof. Admitted.
+
+Lemma repl_comp_trm_rcd G a T S :
+  G ⊢ typ_rcd { a ⦂ T } ⟿ S ->
+  exists T', S = typ_rcd { a ⦂ T' } /\ G ⊢ T ⟿ T'.
+Proof. Admitted.
+
+Lemma repl_comp_trm_rcd' G a T S :
+  G ⊢ S ⟿ typ_rcd { a ⦂ T } ->
+  exists T', S = typ_rcd { a ⦂ T' } /\ G ⊢ T' ⟿ T .
+Proof. Admitted.
+
+Lemma repl_comp_typ_and1 G T U S :
+  G ⊢ S ⟿ typ_and T U ->
+  exists T' U', S = typ_and T' U' /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
+Proof. Admitted.
+
+Lemma repl_comp_typ_and2 G T U S :
+  G ⊢ typ_and T U ⟿ S ->
+  exists T' U', S = typ_and T' U' /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
+Proof. Admitted.
+
 Lemma repl_comp_record_has2 G T U U' a :
   G ⊢ T ⟿ U ->
   record_has U { a ⦂ U' } ->
   exists T', record_has T { a ⦂ T' } /\ G ⊢ T' ⟿ U'.
-Proof. Admitted.
+Proof.
+  intros Hrc Hr. gen T. dependent induction Hr; introv Hrc.
+  - apply repl_comp_trm_rcd' in Hrc as [T' [-> Hr]]. eauto.
+  - apply repl_comp_typ_and1 in Hrc as [T' [U'' [-> [Hrc1 Hrc2]]]].
+    specialize (IHHr _ _ eq_refl _ Hrc1) as [V [Hr' Hrc]].
+    eexists. split. apply rh_andl. eauto. auto.
+  - apply repl_comp_typ_and1 in Hrc as [T' [U'' [-> [Hrc1 Hrc2]]]].
+    specialize (IHHr _ _ eq_refl _ Hrc2) as [V [Hr' Hrc]].
+    eexists. split. apply rh_andr. eauto. auto.
+Qed.
 
 Lemma repl_comp_record_has1 G T U T' a :
   G ⊢ T ⟿ U ->
   record_has T { a ⦂ T' } ->
   exists U', record_has U { a ⦂ U' } /\ G ⊢ T' ⟿ U'.
-Proof. Admitted.
+Proof.
+  intros Hrc Hr. gen U. dependent induction Hr; introv Hrc.
+  - apply repl_comp_trm_rcd in Hrc as [T'' [-> Hr]]. eauto.
+  - apply repl_comp_typ_and2 in Hrc as [T'' [U'' [-> [Hrc1 Hrc2]]]].
+    specialize (IHHr _ _ eq_refl _ Hrc1) as [V [Hr' Hrc]].
+    eexists. split. apply rh_andl. eauto. auto.
+  - apply repl_comp_typ_and2 in Hrc as [T'' [U'' [-> [Hrc1 Hrc2]]]].
+    specialize (IHHr _ _ eq_refl _ Hrc2) as [V [Hr' Hrc]].
+    eexists. split. apply rh_andr. eauto. auto.
+Qed.
 
 Lemma repl_composition_open G T U p :
   G ⊢ T ⟿ U ->
   G ⊢ open_typ_p p T ⟿ open_typ_p p U.
-Proof. Admitted.
+Proof.
+  intros Hrc. dependent induction Hrc.
+  - apply star_refl.
+  - eapply star_trans with (b:=open_typ_p p b); auto.
+    destruct H as [q [r [n [Hp Hr]]]]. apply star_one. econstructor. repeat eexists. apply Hp. apply* repl_open.
+    eapply sngl_path_named. apply* precise_to_general. eapply typed_paths_named. apply* precise_to_general.
+Qed.
 
 Lemma repl_composition_sngl: forall G p q T,
     inert G ->
@@ -777,7 +831,7 @@ Proof.
   - econstructor. apply* pf_strengthen.
   - simpl_dot.
     specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
-    pose proof (sngl_path_named (precise_to_general2 Ht1)) as [qx [qbs ->]].
+    (*pose proof (sngl_path_named (precise_to_general2 Ht1)) as [qx [qbs ->]].*)
     simpl in *.
     repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto. simpl.
     admit.

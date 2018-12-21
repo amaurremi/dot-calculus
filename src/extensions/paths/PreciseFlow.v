@@ -427,34 +427,6 @@ Proof.
   - destruct H as [r Heq]. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(*Definition original_path G p T U q :=
-    G ⊢! p: T ⪼ U /\
-    G ⊢! q: T ⪼ T /\
-    (p = q \/ G ⊢! p: typ_sngl q ⪼ typ_sngl q).
-Lemma original_path_not_opened: forall G p T U,
-    G ⊢! p: T ⪼ U ->
-    original_path G p T U p.
-Proof.
-  introv Hp. unfold original_path. split*. split.
-  apply* pf_TT. left*.
-Qed.
-Lemma original_path_unique: forall G p T1 T2 U1 U2 q1 q2,
-    original_path G p T1 U1 q1 ->
-    original_path G p T2 U2 q2 ->
-    q1 = q2.
-Proof.
-  introv [Hp1 [Hq1 H1]] [Hp2 [Hq2 H2]].
-Admitted.
-Lemma original_path_exists: forall G p T U,
-    inert G ->
-    G ⊢! p: T ⪼ U ->
-    exists q T', original_path G p T' T' q.
-Proof.
-  introv Hi Hp. induction Hp; try specialize (IHHp Hi);
-                  try solve [unfolds original_path; destruct_all;
-                             do 2 eexists; eauto; split*].
-Qed.
-*)
 (** If [G(x) = mu(T)], and [G ⊢! p: ... /\ D /\ ...], then [T^x = ... /\ D /\ ...]. *)
 Lemma pf_record_has_T : forall p G T T' D,
     inert G ->
@@ -545,20 +517,6 @@ Proof.
   destruct (pf_rec_rcd_U Hi Pf) as [H1 | H1]; inversions H1. inversions H.
   inversions* H1.
 Qed.
-
-(*
-Lemma narrow_precise : forall G G' x T U,
-    G ⊢! x: T ⪼ U->
-    G' ⪯ G ->
-    exists T', G' ⊢! x: T' ⪼ U.
-Proof.
-  introv Hx Hs. inversions Hx.
-  - admit.
-  assert (z \notin L) as Hz by auto; specialize (H z Hz);
-  (apply* narrow_typing || apply* narrow_defs); destruct (subenv_implies_ok Hs);
-  apply* subenv_extend; apply ok_push.
-Qed.
-*)
 
 Lemma pf_strengthen: forall G y V x bs T U,
     inert (G & y ~ V) ->
