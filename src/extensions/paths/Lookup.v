@@ -73,15 +73,6 @@ Ltac solve_lookup :=
     rewrite <- H; econstructor; simpl_dot; eauto
   end.
 
-Lemma lookup_step_push_neq : forall s x bs v y t,
-    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
-    y # s ->
-    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
-Proof.
-  introv Hp Hn. dependent induction Hp; try solve_lookup.
-  constructor. apply* binds_push_neq. intro. subst. eapply binds_fresh_inv; eauto.
-Qed.
-
 Lemma lookup_strengthen_one: forall s y v x bs t,
     s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
     y <> x ->
@@ -92,10 +83,24 @@ Proof.
 Qed.
 
 Lemma lookup_strengthen s s1 s2 x v bs t :
-    s = s1 & x ~ v & s2 ->
-    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
-    s1 & x ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
-Proof. Admitted.
+  ok s ->
+  s = s1 & x ~ v & s2 ->
+  s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
+  s1 & x ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+Proof.
+  intros Hok -> Hs. induction s2 using env_ind.
+  - rewrite concat_empty_r in Hs; auto.
+  - destruct (classicT (x0 = x)) as [-> | Hn].
+    + apply ok_middle_inv_r in Hok. simpl_dom. apply notin_union in Hok as [Contra _]. false* notin_same.
+    + rewrite concat_assoc in *.
+      apply lookup_strengthen_one in Hs; auto.
+Qed.
+
+Lemma named_lookup_step: forall s t p,
+        s ⟦ p ⟼ t ⟧ ->
+        exists x bs, p = p_sel (avar_f x) bs.
+Proof.
+  intros. Admitted.
 
 Lemma named_path_lookup_step: forall s t p,
         s ⟦ t ⟼ defp p ⟧ ->
@@ -145,7 +150,28 @@ Proof.
   lets Hf: (finseq_unique H' H2 Hirr1 H3 Hirr2). inversion* Hf.
 Qed.
 
-Lemma lookup_push_neq : forall s x bs v y t,
+Lemma lookup_step_weaken_one : forall s x bs v y t,
+    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
+    y # s ->
+    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+Proof.
+  introv Hp Hn. dependent induction Hp; try solve_lookup.
+  constructor. apply* binds_push_neq. intro. subst. eapply binds_fresh_inv; eauto.
+Qed.
+
+Lemma lookup_step_weaken s p t s' :
+  ok (s & s') ->
+  s ⟦ p ⟼ t ⟧ ->
+  s & s' ⟦ p ⟼ t ⟧.
+Proof.
+  intros Hok Hs. induction s' using env_ind.
+  - rewrite concat_empty_r in *; auto.
+  - rewrite concat_assoc in *. apply ok_push_inv in Hok as [Hok Hn].
+    destruct (named_lookup_step Hs) as [y [bs ->]].
+    apply* lookup_step_weaken_one.
+Qed.
+
+Lemma lookup_weaken_one : forall s x bs v y t,
     s ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧ ->
     y # s ->
     s & y ~ v ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧.
@@ -154,18 +180,23 @@ Proof.
   - apply star_refl.
   - destruct b; subst.
     * lets Hnl: (named_path_lookup_step H). destruct_all. subst.
-      apply* star_trans. apply star_one. apply* lookup_step_push_neq.
-    * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_push_neq.
+      apply* star_trans. apply star_one. apply* lookup_step_weaken_one.
+    * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_weaken_one.
 Qed.
-
-Lemma lookup_step_weaken s p t s' :
-  ok (s & s') ->
-  s ⟦ p ⟼ t ⟧ ->
-  s & s' ⟦ p ⟼ t ⟧.
-Proof. Admitted.
 
 Lemma lookup_weaken s t1 t2 s' :
   ok (s & s') ->
   s ⟦ t1 ⟼* t2 ⟧ ->
   s & s' ⟦ t1 ⟼* t2 ⟧.
-Proof. Admitted.
+Proof.
+  intros Hok Hs. induction s' using env_ind.
+  - rewrite concat_empty_r in *; auto.
+  - rewrite concat_assoc in *. apply ok_push_inv in Hok as [Hok Hn].
+    assert (t1 = t2 \/ exists y bs, t1 = defp (p_sel (avar_f y) bs)) as [-> | [y [bs ->]]].
+    { inversions Hs; auto. right. destruct t1.
+      - destruct (named_lookup_step H) as [? [? ->]]. eauto.
+      - inversion H.
+    }
+    + apply star_refl.
+    + apply* lookup_weaken_one.
+Qed.

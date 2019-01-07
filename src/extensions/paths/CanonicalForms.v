@@ -334,7 +334,7 @@ Proof.
       + eauto.
     * SCase "x <> y".
       apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) _ _ _ Hp) as [t Hs].
-      eexists. apply* lookup_step_push_neq.
+      eexists. apply* lookup_step_weaken_one.
 Qed.
 
 Lemma typ_to_lookup2 G s p T :
@@ -491,6 +491,13 @@ Proof.
       apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix.
 Qed.
 
+Lemma wt_to_ok_s G s :
+  well_typed G s ->
+  ok s.
+Proof.
+  induction 1; eauto.
+Qed.
+
 Lemma typed_path_lookup_same_var2 G s y bs cs :
   inert G ->
   well_typed G s ->
@@ -505,10 +512,11 @@ Proof.
   - proof_recipe. inversions Hv. inversions H. inversion H0.
   - apply (pt2_strengthen eq_refl Hi) in Hp.
     pose proof (wt_prefix Hwt) as [v [s1 [s2 [-> Hwt']]]].
-    apply (lookup_strengthen eq_refl) in Hs.
+    pose proof (wt_to_ok_s Hwt) as Hoks.
+    apply (lookup_strengthen Hoks eq_refl) in Hs.
     pose proof (inert_ok Hi) as Hok%ok_middle_inv_l.
     destruct Hrc1 as [<- | Hrc1]; destruct Hrc2 as [-> | Hrc2]; eauto.
-    + apply* lookup_step_weaken. admit. (* easy *)
+    + apply* lookup_step_weaken.
     + apply (sngl_typed3 (inert_prefix (inert_prefix Hi))) in Hrc2
         as [T [U Hb]%precise_to_general3%typing_implies_bound].
       false binds_fresh_inv; eauto.
@@ -543,11 +551,6 @@ Proof.
         apply (sngl_typed2 (inert_prefix Hi)) in Hp as [V [W Hb]%precise_to_general2%typing_implies_bound].
         simpl_dom. apply notin_union in Hok as [Hnu _]. false binds_fresh_inv; eauto.
 Qed.
-
-Lemma wt_to_ok_s G s :
-  well_typed G s ->
-  ok s.
-Proof. Admitted.
 
 Lemma prev_var_exists G p q px pbs qx qbs:
   p = p_sel (avar_f px) pbs ->
