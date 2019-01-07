@@ -548,7 +548,7 @@ Proof.
                   [Hn' [G1' [G2' ->]]%binds_destruct]]%binds_push_inv]%precise_to_general2%typing_implies_bound].
       * false*.
       * do 2 rewrite <- concat_assoc in Hp, Hi. apply (pt3_strengthen eq_refl Hi) in Hp.
-        apply (sngl_typed2 (inert_prefix Hi)) in Hp as [V [W Hb]%precise_to_general2%typing_implies_bound].
+        apply (sngl_typed3 (inert_prefix Hi)) in Hp as [V [W Hb]%precise_to_general3%typing_implies_bound].
         simpl_dom. apply notin_union in Hok as [Hnu _]. false binds_fresh_inv; eauto.
 Qed.
 
