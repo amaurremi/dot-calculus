@@ -374,7 +374,7 @@ Qed.
 Lemma sngl_typed : forall G p q,
     inert G ->
     G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
-    exists T, G ⊢! q: T ⪼ T.
+    exists T, G ⊢!! q: T.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto; try solve [apply pf_sngl_U in Hp; inversion Hp].
   - apply binds_inert in H0. inversion H0. auto.
@@ -602,32 +602,72 @@ Qed.
 Lemma repl_comp_typ_rcd G A T U S :
   G ⊢ typ_rcd { A >: T <: U } ⟿ S ->
   exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]].
+    specialize (IHHr _ _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]].
+    invert_repl; repeat eexists; eauto;
+      [ apply star_trans with (b:=T') | apply star_trans with (b:=U') ];
+        auto; apply star_one; econstructor; repeat eexists; eauto.
+Qed.
 
 Lemma repl_comp_typ_rcd' G A T U S :
   G ⊢ S ⟿ typ_rcd { A >: T <: U } ->
   exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]].
+    invert_repl;
+      specialize (IHHr _ _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]];
+      repeat eexists; eauto; apply star_trans with (b:=T2); auto; apply star_one; econstructor; eauto.
+Qed.
 
 Lemma repl_comp_trm_rcd G a T S :
   G ⊢ typ_rcd { a ⦂ T } ⟿ S ->
   exists T', S = typ_rcd { a ⦂ T' } /\ G ⊢ T ⟿ T'.
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]].
+    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]]. invert_repl.
+    eexists; split; eauto. apply star_trans with (b:=T'); auto. apply star_one. econstructor; eauto.
+Qed.
 
 Lemma repl_comp_trm_rcd' G a T S :
   G ⊢ S ⟿ typ_rcd { a ⦂ T } ->
   exists T', S = typ_rcd { a ⦂ T' } /\ G ⊢ T' ⟿ T .
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]]. invert_repl.
+    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]].
+    eexists; split; eauto. apply star_trans with (b:=T2); auto. apply star_one. econstructor; eauto.
+Qed.
 
 Lemma repl_comp_typ_and1 G T U S :
   G ⊢ S ⟿ typ_and T U ->
   exists T' U', S = typ_and T' U' /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]]. invert_repl;
+    specialize (IHHr _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]];
+    repeat eexists; eauto; apply star_trans with (b:=T2); auto; apply star_one; econstructor; eauto.
+Qed.
 
 Lemma repl_comp_typ_and2 G T U S :
   G ⊢ typ_and T U ⟿ S ->
   exists T' U', S = typ_and T' U' /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
-Proof. Admitted.
+Proof.
+  intros Hr. dependent induction Hr.
+  - repeat eexists; apply star_refl.
+  - destruct H as [p[q[n[Hp Hr']]]].
+    specialize (IHHr _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]]; invert_repl; repeat eexists; eauto;
+      [ apply star_trans with (b:=T') | apply star_trans with (b:=U') ];
+      auto; apply star_one; econstructor; eauto.
+Qed.
 
 Lemma repl_comp_record_has2 G T U U' a :
   G ⊢ T ⟿ U ->

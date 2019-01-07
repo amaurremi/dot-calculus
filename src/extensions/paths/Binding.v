@@ -307,6 +307,14 @@ Qed.
 (** The following [subst_fresh_XYZ] lemmas state that if [x] is not free
     in a symbol [Y], then [Y[z/x] = Y]. *)
 
+Lemma subst_fresh_var x y z :
+    x <> y ->
+    subst_var x z y = y.
+Proof.
+  intros Hn.
+  unfold subst_var. case_if; auto.
+Qed.
+
 (** Fresh substitution
     - in paths *)
 Lemma subst_fresh_path : forall x q p,
@@ -526,6 +534,14 @@ Proof.
   intros. apply* subst_open_commut_trm_val_def_defs_p.
 Qed.
 
+Lemma subst_open_commut_defs: forall x y u ds,
+    named_path y ->
+    subst_defs x y (open_defs u ds)
+    = open_defs_p (subst_var_p x y u) (subst_defs x y ds).
+Proof.
+  intros. apply* subst_open_commut_trm_val_def_defs.
+Qed.
+
 Lemma subst_open_commut_defs_p: forall x y u ds,
     named_path y ->
     subst_defs x y (open_defs_p u ds)
@@ -555,6 +571,14 @@ Lemma subst_intro_typ: forall x u T, x \notin (fv_typ T) -> named_path u ->
 Proof.
   introv Fr Hl. unfold open_typ. rewrite* subst_open_commut_typ.
   destruct (@subst_fresh_typ_dec x u) as [Q _]. rewrite* (Q T).
+  unfold subst_var_p. case_var*.
+Qed.
+
+Lemma subst_intro_defs x u ds : x \notin (fv_defs ds) -> named_path u ->
+  open_defs_p u ds = subst_defs x u (open_defs x ds).
+Proof.
+  introv Fr Hl. unfold open_defs. rewrite* subst_open_commut_defs.
+  destruct (subst_fresh_trm_val_def_defs x u) as [_ [_ [_ [Q _]]]]. rewrite* (Q ds).
   unfold subst_var_p. case_var*.
 Qed.
 

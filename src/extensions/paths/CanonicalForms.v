@@ -166,7 +166,7 @@ Proof.
         ++ destruct t; inversions Heq1. right. right.
            pose proof (repl_comp_sngl_inv1 Hrc1') as [r ->]. pose proof (repl_comp_sngl_inv2 Hrc2') as [r' ->].
            pose proof (pf_sngl_U Hp) as ->.
-           pose proof (sngl_typed Hi Hp) as [V Hr'%pt2%pt3].
+           pose proof (sngl_typed Hi Hp) as [V Hr'%pt3].
            pose proof (pt3_exists Hq) as [V'' Hp3].
            pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrc2' Hr')
              as [-> | Hpr];

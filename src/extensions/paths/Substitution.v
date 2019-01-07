@@ -382,7 +382,16 @@ Qed.
 
 Lemma rename_defs G x P T ds z :
   x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
-  z # G ->
+  ok (G & x ~ open_typ x T & z ~ open_typ z T) ->
   z; nil; P; G & z ~ open_typ z T ⊢ open_defs z ds :: open_typ z T.
 Proof.
-Admitted.
+  intros Hds Hok.
+  apply weaken_ty_defs with (G2:=z ~ open_typ z T) in Hds; auto.
+  assert (z = subst_var x z z) as Heq. {
+    unfold subst_var. case_if; auto.
+  }
+  rewrite Heq at 1. rewrite open_var_defs_eq, open_var_typ_eq. rewrite subst_intro_defs with (x:=x).
+  - rewrite subst_intro_typ with (x:=x).
+    + (* todo: this doesn't work, we can't use substitution for this. we need to do a mutual induction
+         and prove this from scratch. *)
+  Admitted.
