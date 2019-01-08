@@ -180,12 +180,6 @@ Proof.
   inversions H1. eauto.
 Qed.
 
-Lemma sngl_path_named: forall G t p,
-  G ⊢ t: typ_sngl p ->
-  named_path p.
-Proof.
-Admitted.
-
 (** * Opening Lemmas *)
 
 (** ** Conversion between opening with paths and variables *)

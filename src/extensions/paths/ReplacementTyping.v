@@ -186,8 +186,7 @@ Proof.
            ** eapply subtyp_sngl_qp; eauto.
               apply precise_to_general in Hq.
               apply weaken_ty_trm; eauto.
-           ** apply precise_to_general_h in Hq as [Hq].
-              eapply sngl_path_named. apply Hq.
+           ** apply sngl_typed in Hq as [T Ht%precise_to_general2%typed_paths_named]; auto.
            ** apply precise_to_general_h in Hq as [Hq].
               eapply typed_paths_named. apply Hq.
     -- SCase "ty_sel_qp_inv".
@@ -755,8 +754,7 @@ Proof.
            ** eapply subtyp_sngl_qp; eauto.
               apply precise_to_general in Hpq.
               apply weaken_ty_trm; eauto.
-           ** apply precise_to_general_h in Hpq as [Hq].
-              eapply sngl_path_named. apply Hq.
+           ** apply sngl_typed in Hpq as [? ?%precise_to_general2%typed_paths_named]; auto.
            ** apply precise_to_general_h in Hpq as [Hq].
               eapply typed_paths_named. apply Hq.
   - Case "ty_and_rv".

@@ -163,14 +163,13 @@ Ltac solve_names :=
       apply precise_to_general in H;
       apply* typed_paths_named
     | [H: _ ⊢! ?p : typ_sngl ?q ⪼ _  |- named_path ?q ] =>
-      apply precise_to_general in H;
-      apply* sngl_path_named
+      apply sngl_typed in H as [? ?%precise_to_general2%typed_paths_named]; auto
     | [H: _ ⊢!!! ?p : typ_sngl ?q |- named_path ?p ] =>
       apply precise_to_general3 in H;
       apply* typed_paths_named
     | [H: _ ⊢!!! ?p : typ_sngl ?q |- named_path ?q ] =>
       apply precise_to_general3 in H;
-      apply* sngl_path_named
+      auto (*apply* sngl_path_named*)
     end.
 
 Lemma invertible_repl_closure_helper :
@@ -206,12 +205,13 @@ Proof.
     apply pf3_and_destruct2 in H2; auto. eauto.
     apply pf3_and_destruct1 in H2; auto. eauto.
     invert_repl. apply pf3_and_destruct2 in H2; auto. eauto.
-  - lets Hg: (precise_to_general H1).
-    lets Hs: (sngl_path_named Hg). lets Ht: (typed_paths_named Hg).
+  - pose proof (sngl_typed H H1) as [U Hs%precise_to_general2%typed_paths_named].
+    lets Ht: (typed_paths_named (precise_to_general H1)).
     invert_repl; eapply ty_all_inv with (L:=dom G). eauto. apply repl_swap in H9. eauto.
     introv Hy. eauto. eauto. eauto.
     introv Hy.
-    lets Ho: (repl_open_var y H9 Ht Hs). apply* weaken_subtyp.
+    lets Ho: (repl_open_var y H9 Ht Hs). eapply weaken_subtyp. solve_repl_sub.
+    apply* ok_push.
 Qed.
 
 Lemma invertible_repl_closure : forall G p q r T T' n,
@@ -437,8 +437,8 @@ Proof.
   - inversions H1.
   - inversions H0.
   - inversions H2.
-  - lets Hg: (precise_to_general H1).
-    lets Hs: (sngl_path_named Hg). lets Ht: (typed_paths_named Hg).
+  - pose proof (sngl_typed H H1) as [U Hs%precise_to_general2%typed_paths_named].
+    lets Ht: (typed_paths_named (precise_to_general H1)).
     invert_repl; eapply ty_all_invv with (L:=dom G).
     * eauto.
     * apply repl_swap in H9; eauto.
@@ -446,7 +446,7 @@ Proof.
     * eauto.
     * eauto.
     * introv Hy. lets Ho: (repl_open_var y H9 Ht Hs).
-      apply* weaken_subtyp.
+      eapply weaken_subtyp; auto. solve_repl_sub.
 Qed.
 
 Lemma invertible_repl_closure_v : forall G v q r T T' n,

@@ -20,7 +20,6 @@ Require Import Definitions Binding.
 
 Reserved Notation "s '∋' t" (at level 40).
 Reserved Notation "s '⟦' t '⟼' u '⟧'" (at level 40).
-Reserved Notation "s '↓' p '==' ds" (at level 40).
 
 Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 

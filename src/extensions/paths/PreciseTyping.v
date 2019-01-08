@@ -371,6 +371,31 @@ Proof.
     apply* pt3_sngl_trans3. apply* path_elim_prec.
 Qed.
 
+(** Wellformed paths *)
+
+Reserved Notation "G '⌈' p '⟼' T '⌉'" (at level 40).
+
+Inductive wf_path : ctx -> path -> typ -> Prop :=
+
+(** [G(x) = T ]   #<br>#
+    [―――――――――]   #<br>#
+    [wf G x]   *)
+| wf_var G x T :
+    binds x T G ->
+    G ⌈ pvar x ⟼ T ⌉
+
+| wf_sel_sngl G p q a T :
+    G ⌈ p ⟼ typ_sngl q ⌉ ->
+    G ⌈ q•a ⟼ T ⌉ ->
+    G ⌈ p•a ⟼ typ_sngl q•a ⌉
+
+| wf_sel_inert G p a T U :
+    G ⌈ p ⟼ typ_bnd T ⌉ ->
+    record_has T {a ⦂ U} ->
+    G ⌈ p•a ⟼ open_typ_p p U ⌉
+
+where "G '⌈' p '⟼' T '⌉'" := (wf_path G p T).
+
 Lemma sngl_typed : forall G p q,
     inert G ->
     G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
@@ -706,14 +731,16 @@ Proof.
 Qed.
 
 Lemma repl_composition_open G T U p :
+  inert G ->
   G ⊢ T ⟿ U ->
   G ⊢ open_typ_p p T ⟿ open_typ_p p U.
 Proof.
-  intros Hrc. dependent induction Hrc.
+  intros Hi Hrc. dependent induction Hrc.
   - apply star_refl.
   - eapply star_trans with (b:=open_typ_p p b); auto.
     destruct H as [q [r [n [Hp Hr]]]]. apply star_one. econstructor. repeat eexists. apply Hp. apply* repl_open.
-    eapply sngl_path_named. apply* precise_to_general. eapply typed_paths_named. apply* precise_to_general.
+    pose proof (sngl_typed Hi Hp) as [T Ht]. eapply typed_paths_named. apply* precise_to_general2.
+    eapply typed_paths_named. apply* precise_to_general.
 Qed.
 
 Lemma repl_composition_sngl: forall G p q T,
@@ -785,6 +812,7 @@ Notation "G '⊩' T '⟿' U '⬳' V" := (G ⊢ T ⟿ U /\ G ⊢ V ⟿ U) (at lev
 Notation "G '⊩' p '⟿'' q '⬳' r" := (G ⊢ p ⟿' q /\ G ⊢ r ⟿' q) (at level 40, p at level 59).
 
 Lemma repl_comp_trans_open G S W T p :
+  inert G ->
   G ⊩ S ⟿ W ⬳ T ->
   G ⊩ open_typ_p p S ⟿ open_typ_p p W ⬳ open_typ_p p T.
 Proof.
@@ -1072,10 +1100,10 @@ Lemma pt3_strengthen_one G bs T x y U :
 Proof.
   intros Hi Hp Hn. dependent induction Hp.
   - constructor. apply* pt2_strengthen_one.
-  - pose proof (sngl_path_named (precise_to_general2 H)) as [qx [qbs ->]].
+  - pose proof (sngl_typed2 Hi H) as [U Ht%precise_to_general2]. apply typed_paths_named in Ht as [qx [qbs ->]].
     destruct (classicT (qx = x)) as [-> | Hn'].
     + clear IHHp. apply pt2_strengthen_one in H; auto.
-      apply (sngl_typed2 (inert_prefix Hi)) in H as [U Ht].
+      apply (sngl_typed2 (inert_prefix Hi)) in H as [S Ht].
       apply (pt2_destruct_env (inert_prefix Hi)) in Ht as [G1 [G2 [px [pbs [V [-> [= -> ->]]]]]]].
       apply inert_ok in Hi. rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi.
       simpl_dom. apply notin_union in Hi as [Contra _]. false* notin_same.
@@ -1148,6 +1176,19 @@ Proof.
     apply Hp2. rewrite HeqG. apply* pt3_weaken. rewrite concat_assoc in Hi. apply inert_ok. apply* inert_prefix.
     rewrite concat_assoc in Hi. apply inert_ok. apply* inert_prefix.
     rewrite Heq in Hi. apply* inert_ok.
+Qed.
+
+Lemma pt3_fld_strengthen G p a T U G' :
+  inert (G & G') ->
+  G ⊢!!! p : T ->
+  G & G' ⊢!!! p • a : U ->
+  G ⊢!!! p • a : U.
+Proof.
+  intros Hi Hp Hpa.
+  pose proof (pt3_strengthen_full Hi Hpa) as [G1 [G2 [px [pbs [V [HeqG [Heqp Hp1]]]]]]]. simpl_dot.
+  pose proof (pt3_strengthen_full (inert_prefix Hi) Hp) as [G1' [G2' [px' [pbs' [V' [-> [[= <- <-] HHH]]]]]]].
+  rewrite <- concat_assoc in *. apply env_ok_inv' in HeqG as [-> [-> <-]]; auto.
+  rewrite concat_assoc in *. apply* pt3_weaken. apply inert_ok. apply* inert_prefix.
 Qed.
 
 Lemma pt1_strengthen_from_pt3 G G' p T U V :

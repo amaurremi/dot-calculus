@@ -51,6 +51,16 @@ Proof.
     * apply* IHds.
 Qed.
 
+Lemma defs_has_open' ds p t a :
+  defs_has (open_defs_p p ds) {a := t} ->
+  exists u, defs_has ds {a := u}.
+Proof.
+  introv Hd. induction ds; inversions Hd.
+  case_if.
+  - inversions H0. destruct d; inversions H1. eexists. unfold defs_has. simpl. case_if*.
+  - unfold defs_has. simpl. case_if*.
+    destruct d; inversions C0. simpl in C. false*.
+Qed.
 
 (** [labels(D) = labels(D^x)] *)
 Lemma open_dec_preserves_label: forall D x i,
