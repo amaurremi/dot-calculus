@@ -547,7 +547,7 @@ Proof.
   intros Hp. dependent induction Hp; try simpl_dot; eauto.
 Qed.
 
-Lemma pf_weaken G p T U x V :
+Lemma pf_weaken_one G p T U x V :
   ok G ->
   x # G ->
   G ⊢! p : T ⪼ U ->
@@ -556,4 +556,15 @@ Proof.
   introv Hok Hx Hp. dependent induction Hp; eauto. apply pf_bind.
   - apply* ok_push.
   - apply* binds_push_neq. intros ->. eapply binds_fresh_inv; eauto.
+Qed.
+
+Lemma pf_weaken G G' p T U :
+  ok (G & G') ->
+  G ⊢! p : T ⪼ U ->
+  G & G' ⊢! p : T ⪼ U.
+Proof.
+  intros Hok Hp. induction G' using env_ind.
+  - rewrite* concat_empty_r.
+  - rewrite concat_assoc in *. eapply pf_weaken_one; auto. rewrite <- concat_empty_r in Hok.
+    apply* ok_middle_inv_l.
 Qed.

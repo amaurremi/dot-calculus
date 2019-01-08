@@ -168,9 +168,9 @@ Proof.
            pose proof (pf_sngl_U Hp) as ->.
            pose proof (sngl_typed Hi Hp) as [V Hr'%pt3].
            pose proof (pt3_exists Hq) as [V'' Hp3].
-           pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrc2' Hr')
+           pose proof (repl_comp_to_prec' Hi Hrc2' Hr')
              as [-> | Hpr];
-             pose proof (repl_comp_to_prec' (inert_prefix Hi) Hrc1' Hp3)
+             pose proof (repl_comp_to_prec' Hi Hrc1' Hp3)
              as [<- | Hpr']; clear Hrc1' Hrc2';
                repeat eexists; try rewrite concat_empty_r; eauto.
     * SCase "x <> x0".
@@ -279,9 +279,13 @@ Proof.
     + right. eexists. split*. right. eexists. split*.
       apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
     + left. repeat eexists.
-      pose proof (pt3_inert_sngl_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hr)) (inert_typ_all _ _)) as Hr'. apply* precise_to_general3.
+      do 2 eapply pt3_weaken in Hr.
+      pose proof (pt3_inert_sngl_invert Hi Hp Hr (inert_typ_all _ _)) as Hr'.
+      apply* precise_to_general3. all: eauto; apply* inert_ok. apply* inert_prefix.
     + right. eexists. split*. right. eexists. split*.
-      apply* (pt3_inert_sngl_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hr))).
+      do 2 eapply pt3_weaken in Hr.
+      apply* (pt3_inert_sngl_invert Hi Hp Hr).
+      all: eauto; apply* inert_ok. apply* inert_prefix.
     + left. repeat eexists. apply precise_to_general3.
       eapply pt3_sngl_trans3. repeat apply* pt3_weaken.
       apply* pt3_inert_sngl_invert. repeat apply* pt3_weaken.
@@ -410,6 +414,7 @@ Proof.
   - pose proof (pf_sngl_T Hi Hp') as [=].
   - destruct Hrc1 as [-> | Hrc1]; destruct Hrc2 as [-> | Hrc2]; do 2 eexists; eauto; split*; split;
       [ left* | right | right | left* | right | right ]; repeat apply* pt3_weaken.
+    all: apply* inert_ok; apply* inert_prefix.
   - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwt Hp') as [? [? [Hl ?]]].
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
@@ -418,43 +423,55 @@ Proof.
     specialize (IHHp _ Hi Hwt eq_refl _ _ Heqr _ Hl Hq) as [r1 [r2 [-> [[-> | Hq'] [-> | Hq'']]]]].
       * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
         ** split. left*. right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+           apply inert_ok. apply* inert_prefix.
+        ** split. left*. do 2 eapply pt3_weaken in Hp'. pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1 [[= ->] [-> | ?]]]]; eauto.
-           false* pt1_inert_pt3_sngl_false.
-        ** split. left*.
-           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+           false* pt1_inert_pt3_sngl_false. all: apply* inert_ok; apply* inert_prefix.
+        ** split. left*. do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1 [[= ->] [-> | ?]]]].
-           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-           *** right. repeat apply* pt3_weaken.
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken. eapply inert_ok, inert_prefix; eauto.
+           *** right. repeat apply* pt3_weaken. eapply inert_ok, inert_prefix; eauto.
            *** false* pt1_inert_pt3_sngl_false.
       * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
-        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken. auto.
-        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken.
+           apply* inert_ok. apply* inert_prefix. auto.
+        ** split. left*. do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1' [[= ->] [-> | ?]]]]; eauto. false* pt1_inert_pt3_sngl_false.
         ** split. left*.
-           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp'))) as [? | [r1' [[= ->] [-> | HHH]]]].
-           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-           *** right. repeat apply* pt3_weaken.
+           do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | HHH]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken. apply* inert_ok. apply* inert_prefix.
+           *** right. repeat apply* pt3_weaken. apply* inert_ok. apply* inert_prefix.
            *** false* pt1_inert_pt3_sngl_false.
       * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
         ** split. left*. right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+           apply* inert_ok. apply* inert_prefix.
+        ** split. left*.
+           do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1 [[= ->] [-> | ?]]]]; eauto.
            false* pt1_inert_pt3_sngl_false.
         ** split. left*.
-           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+            do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1 [[= ->] [-> | ?]]]].
-           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-           *** right. repeat apply* pt3_weaken.
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken. apply* inert_ok; apply* inert_prefix.
+           *** right. repeat apply* pt3_weaken. apply* inert_ok; apply* inert_prefix.
            *** false* pt1_inert_pt3_sngl_false.
       * destruct Hrc1 as [-> | Hp']; destruct Hrc2 as [-> | Hp'']; do 2 eexists; split*.
-        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken. auto.
-        ** split. left*. pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp')))
+        ** split. left*. right. eapply pt3_sngl_trans3. repeat apply* pt3_weaken.
+           apply inert_ok; apply* inert_prefix. auto.
+        ** split. left*.
+            do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp')
              as [? | [r1' [[= ->] [-> | ?]]]]; eauto. false* pt1_inert_pt3_sngl_false.
         ** split. left*.
-           pose proof (pt3_invert Hi Hp (pt3_weaken _ (pt3_weaken _ Hp'))) as [? | [r1' [[= ->] [-> | HHH]]]].
-           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken.
-           *** right. repeat apply* pt3_weaken.
+           do 2 eapply pt3_weaken in Hp'; try solve [apply* inert_ok; apply* inert_prefix].
+           pose proof (pt3_invert Hi Hp Hp') as [? | [r1' [[= ->] [-> | HHH]]]].
+           *** right. apply* pt3_sngl_trans3. repeat apply* pt3_weaken. apply* inert_ok. apply* inert_prefix.
+           *** right. repeat apply* pt3_weaken. apply* inert_ok. apply* inert_prefix.
            *** false* pt1_inert_pt3_sngl_false.
 Qed.
 
