@@ -393,10 +393,12 @@ Qed.
 Hint Constructors wf_env.
  *)
 
-(* the problem with the following definition is that it doesn't allow us to prove
-   wf_env (G & G') -> wf_env G *)
-(*Definition wf_env G : Prop :=
-  forall p q, G ⊢!! p : typ_sngl q -> exists T, G ⊢!! q : T.*)
+Definition wf_env G : Prop :=
+  forall p q, G ⊢!! p : typ_sngl q -> exists G1 G2 px pbs T U,
+             G = G1 & px ~ U & G2 /\
+             p = p_sel (avar_f px) pbs /\
+             G1 & px ~ U ⊢!! p : typ_sngl q /\
+             G1 & px ~ U ⊢!! q : T.
 
 Lemma pt2_weaken_one G p T x U :
   ok (G & x ~ U) ->
@@ -467,45 +469,35 @@ Proof.
   - specialize (IHHp1 Hi). specialize (IHHp2 Hi). destruct_all. simpl_dot. repeat eexists.
 Qed.
 
-Lemma pt2_destruct_env' G p q :
-  inert G ->
-  wf_env G ->
-  G ⊢!! p : typ_sngl q ->
-  exists G1 G2 x bs V T, G = G1 & x ~ V & G2 /\
-                  p = p_sel (avar_f x) bs /\
-                  G1 & x ~ V ⊢!! p : typ_sngl q /\
-                  G1 & x ~ V ⊢!! q : T.
+Lemma wf_ok G : wf_env G -> ok G.
 Proof.
-  intros Hi Hwf Hp. gen p q. induction Hwf; introv Hpq.
-  - apply precise_to_general2 in Hpq. false* typing_empty_false.
-  - pose proof (pt2_destruct_env Hi Hpq) as [G1 [G2 [px [pbs [V [Heq ->]]]]]].
-    repeat eexists. apply Heq.
-    destruct (classicT (px = x)) as [-> | Hn].
-    + rewrite <- concat_empty_r in Hi, Heq at 1. pose proof (env_ok_inv' Heq (inert_ok Hi)) as [-> [-> <-]].
-      clear Heq. rewrite concat_empty_r in *. auto.
-    + assert (exists G3, G2 = G3 & x ~ T) as [G3 ->]. {
-        destruct G2 as [|G2 z Z] using env_ind.
-        - rewrite concat_empty_r in Heq.
-          apply eq_push_inv in Heq as [-> [-> ->]]. false*.
-        - rewrite concat_assoc in *. apply eq_push_inv in Heq as [-> [-> ->]].
-          eauto.
-      }
-      rewrite concat_assoc in *. apply eq_push_inv in Heq as [_ [_ ->]].
-Abort. (*
+  intros Hwf.
 
-
-       pose proof (pt2_destruct_env Hi Hpq) as [G1' [G2' [y [cs [W [Heq' [= -> ->]]]]]]].
-      rewrite Heq' in Heq, Hi. pose proof (env_ok_inv' Heq (inert_ok Hi)) as [-> [-> ->]].
-Qed.*)
-
-(*Lemma wf_env_prefix G G' :
-  inert (G & G') -> wf_env (G & G') -> wf_env G.
+Lemma wf_env_prefix_one G x T :
+  wf_env (G & x ~ T) -> wf_env G.
 Proof.
-  intros Hi Hwf. induction G' using env_ind.
+  intros Hwf. unfold wf_env in *. introv Hpq.
+
+  specialize (Hwf _ _ Hpq).
+
+Lemma wf_env_prefix G G' :
+  wf_env (G & G') -> wf_env G.
+Proof.
+  intros Hwf. gen G. induction G' using env_ind; introv Hwf.
   - rewrite concat_empty_r in Hwf; auto.
   - rewrite concat_assoc in *. apply IHG'. apply* inert_prefix.
     introv Hp. pose proof (pt2_weaken (inert_ok Hi) Hp) as Hp'.
-    pose proof (Hwf p q Hp') as [T Hq].*)
+    pose proof (Hwf p q Hp') as [G1 [G2 [px [pbs [T [U [Heq [-> [Hpq Hq]]]]]]]]].
+    destruct (classicT (px = x)) as [-> | Hn].
+    + rewrite <- concat_empty_r in Heq at 1.
+      apply env_ok_inv in Heq as [<- [<- <-]]. pose proof (typing_implies_bound (precise_to_general2 Hp)) as [S Hb].
+      apply inert_ok in Hi. apply ok_push_inv in Hi as [_ Hn]. false binds_fresh_inv. apply Hb. auto.
+      rewrite concat_empty_r in Heq. rewrite Heq in Hi. auto.
+    + destruct G2 as [|G2 y S] using env_ind.
+      { rewrite concat_empty_r in Heq. apply eq_push_inv in Heq as [-> [-> <-]]. false*. }
+      rewrite concat_assoc in Heq. apply eq_push_inv in Heq as [-> [-> Heq]].
+      repeat eexists. apply Heq. eauto. eauto.
+Qed.
 
 Lemma pt2_var_sngl G x p :
   inert G ->
@@ -524,8 +516,7 @@ Lemma pt2_strengthen_one_helper G y bs T x U :
   x <> y ->
   exists S, G ⊢!! p_sel (avar_f y) bs : S.
 Proof.
-  intros Hi Hwf Ht Hn.
-  dependent induction Ht.
+  intros Hi Hwf Ht Hn. dependent induction Ht.
   - eexists. econstructor. apply* pf_strengthen.
   - simpl_dot.
     specialize (IHHt1 _ _ _ _ _ Hi Hwf JMeq_refl eq_refl Hn) as [S Hy].
@@ -537,46 +528,45 @@ Proof.
     specialize (IHHt2 _ _ _ _ _ Hi Hwf JMeq_refl eq_refl).
     destruct (classicT (x0 = qx)) as [-> | Hn'].
     + clear IHHt2. false.
-      inversions Hwf.
-      { apply* empty_push_inv. }
-      apply eq_push_inv in H as [-> [-> ->]].
-      pose proof (H2
+      pose proof (Hwf _ _ Ht1) as [G1 [G2 [px [pbs [S [V [Heq [[= -> ->] [Hpq Hq]]]]]]]]].
+      destruct G2 as [|G2 y W] using env_ind.
+      { rewrite concat_empty_r in Heq. apply eq_push_inv in Heq as [-> [-> <-]]. false*. }
+      rewrite concat_assoc in Heq. apply eq_push_inv in Heq as [-> [-> ->]].
+      pose proof (pt2_destruct_env (inert_prefix (inert_prefix Hi)) Hq)
+        as [G3 [G4 [yx [ybs [Y [Heq [= -> ->]]]]]]].
+      rewrite Heq in Hi. apply inert_ok in Hi. do 2 rewrite <- concat_assoc in Hi.
+      apply ok_middle_inv_r in Hi. simpl_dom. do 2 apply notin_union_r2 in Hi. apply* notin_same.
     + specialize (IHHt2 Hn') as [S Hq]. rewrite proj_rewrite in *.
       eexists. eapply pt2_sngl_trans. apply Hy. eauto.
-
-
-
-
-
-
 Qed.
 
-Lemma pt2_strengthen_one G y bs T x U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
-  x <> y ->
-  G ⊢!! p_sel (avar_f y) bs : U.
-Proof.
-  intros Hi Ht Hn. pose proof (typing_implies_bound (precise_to_general2 Ht)) as [S Hb].
-  apply binds_push_neq_inv in Hb; auto.
-Qed.
-
-Lemma sngl_typed2_helper : forall G p q,
+Lemma sngl_typed2 : forall G p q,
     inert G ->
     wf_env G ->
     G ⊢!! p: typ_sngl q ->
-    exists G1 G2 px pbs U T, G = G1 & px ~ U & G2 /\ p = p_sel (avar_f px) pbs /\ G1 & px ~ U ⊢!! q: T.
+    exists T, G ⊢!! q: T.
 Proof.
-  introv Hi Hwf. gen p q. induction Hwf; introv Hpq.
-  - apply precise_to_general2 in Hpq. false* typing_empty_false.
-  - pose proof (typed_paths_named (precise_to_general2 Hpq)) as [px [pbs ->]].
-    destruct (classicT (px = x)) as [-> | Hn].
-    + specialize (H0 _ _ Hpq) as [y [cs [-> [[-> [U Hy]] | [Hn [U Hy]]]]]].
-      * repeat eexists; eauto. rewrite* concat_empty_r.
-      * repeat eexists. rewrite* concat_empty_r. apply* pt2_weaken.
-    + clear H0.
+  introv Hi Hwf Hpq. specialize (Hwf _ _ Hpq) as [G1 [G2 [px [pbs [T [U [-> [-> [Hp Hq]]]]]]]]].
+  eexists. apply* pt2_weaken.
+Qed.
 
-      specialize (IHHwf (inert_prefix Hi) _ _ Hy).
+Lemma sngl_typed G p q :
+    inert G ->
+    wf_env G ->
+    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    exists T, G ⊢!! q: T.
+Proof.
+  intros Hi Hwf Hp. apply pt2 in Hp. apply* sngl_typed2.
+Qed.
+
+Lemma sngl_typed3 : forall G p q,
+    inert G ->
+    wf_env G ->
+    G ⊢!!! p: typ_sngl q ->
+    exists T, G ⊢!!! q: T.
+Proof.
+  introv Hi Hwf Hp. dependent induction Hp; eauto.
+  destruct* (sngl_typed2 Hi Hwf H).
 Qed.
 
 Lemma pt2_fld_strengthen G p a T U G' :
@@ -598,153 +588,87 @@ Proof.
     + rewrite proj_rewrite in *.
       pose proof (pt2_backtrack _ _ Hp) as [W Hpb]. specialize (IHHpa1 _ _ _ _ Hi Hwf JMeq_refl eq_refl _ Hpb).
       specialize (IHHpa2 _ _ _ _ Hi Hwf JMeq_refl eq_refl).
-      pose proof (sngl_typed2 (inert_prefix Hi) Hwf IHHpa1) as [X Hq]. eauto.
+      pose proof (sngl_typed2 (inert_prefix Hi) (wf_env_prefix Hi Hwf) IHHpa1) as [X Hq]. eauto.
 Qed.
 
 Lemma pt2_strengthen_one G y bs T x U :
   inert (G & x ~ T) ->
+  wf_env (G & x ~ T) ->
   G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
   x <> y ->
   G ⊢!! p_sel (avar_f y) bs : U.
 Proof.
-  intros Hi Ht Hn. dependent induction Ht.
+  intros Hi Hwf Ht Hn. dependent induction Ht.
   - econstructor. apply* pf_strengthen.
   - simpl_dot.
-    specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
+    specialize (IHHt1 _ _ _ _ _ Hi Hwf JMeq_refl eq_refl Hn).
     repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto.
-    pose proof (sngl_typed2 (inert_prefix Hi) IHHt1) as [V Hq].
+    pose proof (sngl_typed2 (inert_prefix Hi) (wf_env_prefix Hi Hwf) IHHt1) as [V Hq].
     apply* pt2_fld_strengthen.
 Qed.
 
 Lemma pt2_strengthen G G1 G2 bs T x U :
   G = G1 & x ~ T & G2 ->
   inert G ->
+  wf_env G ->
   G ⊢!! p_sel (avar_f x) bs : U ->
   G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
 Proof.
-  intros -> Hi Hp. induction G2 using env_ind.
+  intros -> Hi Hwf Hp. induction G2 using env_ind.
   - rewrite concat_empty_r in *. auto.
   - destruct (classicT (x0 = x)) as [-> | Hn].
     + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
       false* notin_same.
-    + rewrite concat_assoc in *. apply pt2_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) Hp). eauto.
+    + rewrite concat_assoc in *. eapply pt2_strengthen_one in Hp; auto.
+      specialize (IHG2 (inert_prefix Hi) (wf_env_prefix Hi Hwf) Hp). eauto.
 Qed.
 
 Lemma pt3_strengthen_one G bs T x y U :
   inert (G & x ~ T) ->
+  wf_env (G & x ~ T) ->
   G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
   y <> x ->
   G ⊢!!! p_sel (avar_f y) bs : U.
 Proof.
-  intros Hi Hp Hn. dependent induction Hp.
+  intros Hi Hwf Hp Hn. dependent induction Hp.
   - constructor. apply* pt2_strengthen_one.
-  - pose proof (sngl_typed2 Hi H) as [U Ht%precise_to_general2]. apply typed_paths_named in Ht as [qx [qbs ->]].
+  - pose proof (sngl_typed2 Hi Hwf H) as [U Ht%precise_to_general2]. apply typed_paths_named in Ht as [qx [qbs ->]].
     destruct (classicT (qx = x)) as [-> | Hn'].
     + clear IHHp. apply pt2_strengthen_one in H; auto.
       apply (sngl_typed2 (inert_prefix Hi)) in H as [S Ht].
       apply (pt2_destruct_env (inert_prefix Hi)) in Ht as [G1 [G2 [px [pbs [V [-> [= -> ->]]]]]]].
       apply inert_ok in Hi. rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi.
-      simpl_dom. apply notin_union in Hi as [Contra _]. false* notin_same.
+      simpl_dom. apply notin_union in Hi as [Contra _]. false* notin_same. apply* wf_env_prefix.
     + apply pt2_strengthen_one in H; auto. eauto.
 Qed.
 
 Lemma pt3_strengthen G G1 G2 bs T x U :
   G = G1 & x ~ T & G2 ->
   inert G ->
+  wf_env G ->
   G ⊢!!! p_sel (avar_f x) bs : U ->
   G1 & x ~ T ⊢!!! p_sel (avar_f x) bs : U.
 Proof.
-  intros -> Hi Hp. induction G2 using env_ind.
+  intros -> Hi Hwf Hp. induction G2 using env_ind.
   - rewrite concat_empty_r in *. auto.
   - destruct (classicT (x0 = x)) as [-> | Hn].
     + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
       false* notin_same.
     + rewrite concat_assoc in *. apply pt3_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) Hp). eauto.
+      specialize (IHG2 (inert_prefix Hi) (wf_env_prefix Hi Hwf) Hp). eauto.
 Qed.
 
 Lemma pt2_strengthen_full G p T :
   inert G ->
+  wf_env G ->
   G ⊢!! p : T ->
   exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
                   p = p_sel (avar_f x) bs /\
                   G1 & x ~ V ⊢!! p : T.
 Proof.
-  intros Hi Hp. pose proof (pt2_destruct_env Hi Hp) as [G1 [G2 [x [bs [V [-> ->]]]]]].
+  intros Hi Hwf Hp. pose proof (pt2_destruct_env Hi Hp) as [G1 [G2 [x [bs [V [-> ->]]]]]].
   repeat eexists. apply* pt2_strengthen.
 Qed.
-
-
-Lemma sngl_typed2_helper : forall G p U,
-    inert G ->
-    wf_env G ->
-    G ⊢!! p: U ->
-    (exists q T, U = typ_sngl q /\ G ⊢!! q: T) \/ (exists T, G ⊢! p : T ⪼ U).
-Proof.
-  introv Hi Hwf. gen p U. induction Hwf; introv Hpq.
-  - apply precise_to_general2 in Hpq. false* typing_empty_false.
-  - pose proof (typed_paths_named (precise_to_general2 Hpq)) as [px [pbs ->]].
-    destruct (classicT (px = x)) as [-> | Hn].
-    + pose proof (pt2_inertsngl Hi Hpq) as [[Hin | Hs] | Hr].
-      * right. inversions Hpq; eauto. inversion Hin.
-      * inversions Hs.
-        specialize (H0 _ _ Hpq) as [y [cs [-> [[-> [U Hy]] | [Hn [U Hy]]]]]]; left; eauto.
-        specialize (IHHwf (inert_prefix Hi) _ _ Hy) as [[q [S [-> Hq]]] | [S Hp]];
-          repeat eexists; apply* pt2_weaken_one.
-      * right. inversions Hpq; eauto. inversions Hr. inversions H3.
-    + pose proof (pt2_inertsngl Hi Hpq) as [[Hin | Hs] | Hr].
-      * right. inversions Hpq; eauto. inversion Hin.
-      * inversions Hs.
-Qed.
-
-Lemma sngl_typed2 : forall G p q,
-    inert G ->
-    wf_env G ->
-    G ⊢!! p: typ_sngl q ->
-    exists T, G ⊢!! q: T.
-Proof.
-  introv Hi Hwf. gen p q. induction Hwf; introv Hpq.
-  - apply precise_to_general2 in Hpq. false* typing_empty_false.
-  - pose proof (typed_paths_named (precise_to_general2 Hpq)) as [px [pbs ->]].
-    destruct (classicT (px = x)) as [-> | Hn].
-    + specialize (H0 _ _ Hpq) as [y [cs [-> [[-> [U Hy]] | [Hn [U Hy]]]]]]; eauto.
-      specialize (IHHwf (inert_prefix Hi) _ _ Hy).
-Qed.
-
-Lemma sngl_typed G p q :
-    inert G ->
-    wf_env G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
-    exists T, G ⊢!! q: T.
-Proof.
-  intros Hi Hwf Hp. apply* Hwf.
-Qed.
-
-Lemma sngl_typed2 : forall G p q,
-    inert G ->
-    wf_env G ->
-    G ⊢!! p: typ_sngl q ->
-    exists T, G ⊢!! q: T.
-Proof.
-  introv Hi Hwf Hp. apply* Hwf.
-Qed.
-
-Lemma sngl_typed3 : forall G p q,
-    inert G ->
-    wf_env G ->
-    G ⊢!!! p: typ_sngl q ->
-    exists T, G ⊢!!! q: T.
-Proof.
-  introv Hi Hwf Hp. dependent induction Hp; eauto.
-  destruct* (sngl_typed2 Hi Hwf H).
-Qed.
-
-Lemma pt3_exists G p T :
-  G ⊢ trm_path p : T ->
-  exists U, G ⊢!!! p : U.
-Proof.
-Admitted.
 
 Lemma pt3_trans_trans: forall G p q bs T,
     inert G ->
@@ -1276,130 +1200,14 @@ Proof.
                              eapply (pt3_inert_pt2_sngl_invert Hi Hp); eauto.
 Qed.
 
-
-Lemma pt2_destruct_env G p T :
-  inert G ->
-  G ⊢!! p : T ->
-  exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
-                  p = p_sel (avar_f x) bs.
-Proof.
-  intros Hi Hp. induction Hp.
-  - apply pf_strengthen_full in H; auto. destruct_all; repeat eexists; eauto.
-  - specialize (IHHp1 Hi). specialize (IHHp2 Hi). destruct_all. simpl_dot. repeat eexists.
-Qed.
-
-Lemma wf_env_prefix G G' :
-  inert (G & G') -> wf_env (G & G') -> wf_env G.
-Proof.
-  intros Hi Hwf. induction G' using env_ind.
-  - rewrite concat_empty_r in Hwf; auto.
-  - rewrite concat_assoc in *. apply IHG'. apply* inert_prefix.
-    introv Hp. pose proof (pt2_weaken (inert_ok Hi) Hp) as Hp'.
-    pose proof (Hwf p q Hp') as [T Hq].
-
-Lemma pt2_fld_strengthen G p a T U G' :
-  inert (G & G') ->
-  wf_env (G & G') ->
-  G ⊢!! p : T ->
-  G & G' ⊢!! p • a : U ->
-  G ⊢!! p • a : U.
-Proof.
-  intros Hi Hwf Hp Hpa. gen T. dependent induction Hpa; introv Hp.
-  - pose proof (pf_strengthen_full Hi H) as [G1 [G2 [px [pbs [V [HeqG [Heqp Hp1]]]]]]]. simpl_dot.
-    pose proof (pt2_destruct_env (inert_prefix Hi) Hp) as [G1' [G2' [px' [pbs' [V' [-> [= -> ->]]]]]]].
-    rewrite <- concat_assoc in *. apply env_ok_inv' in HeqG as [-> [-> <-]].
-    + rewrite concat_assoc in *. apply* pt2_weaken. apply* inert_ok. apply* inert_prefix.
-    + apply* inert_ok.
-  - simpl_dot.
-    destruct f0.
-    + pose proof (typed_paths_named (precise_to_general2 Hpa1)) as [px [pbs [= -> <-]]]. false* pt2_var_sngl.
-    + rewrite proj_rewrite in *.
-      pose proof (pt2_backtrack _ _ Hp) as [W Hpb]. specialize (IHHpa1 _ _ _ _ Hi Hwf JMeq_refl eq_refl _ Hpb).
-      specialize (IHHpa2 _ _ _ _ Hi Hwf JMeq_refl eq_refl).
-      pose proof (sngl_typed2 (inert_prefix Hi) Hwf IHHpa1) as [X Hq]. eauto.
-Qed.
-
-Lemma pt2_strengthen_one G y bs T x U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
-  x <> y ->
-  G ⊢!! p_sel (avar_f y) bs : U.
-Proof.
-  intros Hi Ht Hn. dependent induction Ht.
-  - econstructor. apply* pf_strengthen.
-  - simpl_dot.
-    specialize (IHHt1 _ _ _ _ _ Hi JMeq_refl eq_refl Hn).
-    repeat rewrite proj_rewrite. eapply pt2_sngl_trans; auto.
-    pose proof (sngl_typed2 (inert_prefix Hi) IHHt1) as [V Hq].
-    apply* pt2_fld_strengthen.
-Qed.
-
-Lemma pt2_strengthen G G1 G2 bs T x U :
-  G = G1 & x ~ T & G2 ->
-  inert G ->
-  G ⊢!! p_sel (avar_f x) bs : U ->
-  G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
-Proof.
-  intros -> Hi Hp. induction G2 using env_ind.
-  - rewrite concat_empty_r in *. auto.
-  - destruct (classicT (x0 = x)) as [-> | Hn].
-    + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
-      false* notin_same.
-    + rewrite concat_assoc in *. apply pt2_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) Hp). eauto.
-Qed.
-
-Lemma pt3_strengthen_one G bs T x y U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
-  y <> x ->
-  G ⊢!!! p_sel (avar_f y) bs : U.
-Proof.
-  intros Hi Hp Hn. dependent induction Hp.
-  - constructor. apply* pt2_strengthen_one.
-  - pose proof (sngl_typed2 Hi H) as [U Ht%precise_to_general2]. apply typed_paths_named in Ht as [qx [qbs ->]].
-    destruct (classicT (qx = x)) as [-> | Hn'].
-    + clear IHHp. apply pt2_strengthen_one in H; auto.
-      apply (sngl_typed2 (inert_prefix Hi)) in H as [S Ht].
-      apply (pt2_destruct_env (inert_prefix Hi)) in Ht as [G1 [G2 [px [pbs [V [-> [= -> ->]]]]]]].
-      apply inert_ok in Hi. rewrite <- concat_assoc in Hi. apply ok_middle_inv_r in Hi.
-      simpl_dom. apply notin_union in Hi as [Contra _]. false* notin_same.
-    + apply pt2_strengthen_one in H; auto. eauto.
-Qed.
-
-Lemma pt3_strengthen G G1 G2 bs T x U :
-  G = G1 & x ~ T & G2 ->
-  inert G ->
-  G ⊢!!! p_sel (avar_f x) bs : U ->
-  G1 & x ~ T ⊢!!! p_sel (avar_f x) bs : U.
-Proof.
-  intros -> Hi Hp. induction G2 using env_ind.
-  - rewrite concat_empty_r in *. auto.
-  - destruct (classicT (x0 = x)) as [-> | Hn].
-    + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
-      false* notin_same.
-    + rewrite concat_assoc in *. apply pt3_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) Hp). eauto.
-Qed.
-
-Lemma pt2_strengthen_full G p T :
-  inert G ->
-  G ⊢!! p : T ->
-  exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
-                  p = p_sel (avar_f x) bs /\
-                  G1 & x ~ V ⊢!! p : T.
-Proof.
-  intros Hi Hp. pose proof (pt2_destruct_env Hi Hp) as [G1 [G2 [x [bs [V [-> ->]]]]]].
-  repeat eexists. apply* pt2_strengthen.
-Qed.
-
 Lemma pt2_strengthen_from_pt1 G G' p bs T T' U :
   inert (G & G') ->
+  wf_env (G & G') ->
   G ⊢! p: T ⪼ T' ->
   G & G' ⊢!! p••bs : U ->
   G  ⊢!! p••bs : U.
 Proof.
-  intros Hi Hp1 Hp2. gen U. induction bs; introv Hp2.
+  intros Hi Hwf Hp1 Hp2. gen U. induction bs; introv Hp2.
   - rewrite field_sel_nil in *.
     apply pt2_strengthen_full in Hp2 as [G1 [G2 [px [pbs [V [Heq [-> Ht]]]]]]]; auto.
     pose proof (pt2_destruct_env (inert_prefix Hi) (pt2 Hp1)) as [G1' [G2' [px' [pbs' [V' [-> [= -> ->]]]]]]].
@@ -1408,23 +1216,27 @@ Proof.
     apply* pt2_weaken.
   - rewrite proj_rewrite' in *. pose proof (pt2_backtrack _ _ Hp2) as [V Hb].
     specialize (IHbs _ Hb).
-    pose proof (pt2_fld_strengthen _ Hi IHbs Hp2). eauto.
+    pose proof (pt2_fld_strengthen _ Hi Hwf IHbs Hp2). eauto.
 Qed.
 
 Lemma pt3_strengthen_full G p T :
   inert G ->
+  wf_env G ->
   G ⊢!!! p : T ->
   exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
                   p = p_sel (avar_f x) bs /\
                   G1 & x ~ V ⊢!!! p : T.
 Proof.
-  intros Hi Hp. induction Hp.
+  intros Hi Hwf Hp. induction Hp.
   - pose proof (pt2_destruct_env Hi H) as [G1 [G2 [x [bs [V [-> ->]]]]]].
     repeat eexists. constructor. apply* pt2_strengthen.
-  - specialize (IHHp Hi) as [G1 [G2 [x [bs [V [-> [-> Hp3]]]]]]].
-    pose proof (pt2_strengthen_full Hi H) as [G1' [G2' [y [cs [W3 [Heq [-> Hp2]]]]]]].
+  - specialize (IHHp Hi Hwf) as [G1 [G2 [x [bs [V [-> [-> Hp3]]]]]]].
+    pose proof (pt2_strengthen_full Hi Hwf H) as [G1' [G2' [y [cs [W3 [Heq [-> Hp2]]]]]]].
     do 5 eexists. split. apply Heq. split*.
     assert (inert (G1' & y ~ W3)) as Hi' by (rewrite Heq in Hi; apply* inert_prefix).
+    assert (wf_env (G1' & y ~ W3)) as Hwf'.
+    { rewrite Heq in Hwf. eapply wf_env_prefix. Focus 2. eauto.
+
     pose proof (sngl_typed2 Hi' Hp2) as [U Hx].
     apply (pt2_strengthen_full Hi') in Hx as [G1'' [G2'' [z [ds [X [HeqG [[= <- <-] Hx]]]]]]].
     rewrite HeqG in Heq. do 2 rewrite <- concat_assoc in Heq. rewrite concat_assoc in Heq.
@@ -1432,7 +1244,7 @@ Proof.
     apply pt2_weaken with (G':=G2'') in Hx. rewrite <- HeqG in Hx. eapply pt3_sngl_trans.
     apply Hp2. rewrite HeqG. apply* pt3_weaken. rewrite concat_assoc in Hi. apply inert_ok. apply* inert_prefix.
     rewrite concat_assoc in Hi. apply inert_ok. apply* inert_prefix.
-    rewrite Heq in Hi. apply* inert_ok.
+    rewrite Heq in Hi. apply* inert_ok
 Qed.
 
 Lemma pt3_fld_strengthen G p a T U G' :
