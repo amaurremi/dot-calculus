@@ -32,6 +32,7 @@ Qed.
 Inductive sta_trm_typ : sta * trm -> typ -> Prop :=
 | sta_trm_typ_c : forall G s t T,
     inert G ->
+    wf_env G ->
     well_typed G s ->
     G ⊢ t : T ->
     sta_trm_typ (s, t) T.
@@ -60,11 +61,13 @@ Ltac solve_IH :=
   match goal with
   | [IH: well_typed _ _ ->
          inert _ ->
+         wf_env _ ->
          forall t', (_, _) |-> (_, _) -> _,
        Wt: well_typed _ _,
        In: inert _,
+       Wf: wf_env _,
        Hr: (_, _) |-> (_, ?t') |- _] =>
-    specialize (IH Wt In t' Hr); destruct_all
+    specialize (IH Wt In Wf t' Hr); destruct_all
   end;
   match goal with
   | [Hi: _ & ?G' ⊢ _ : _ |- _] =>
@@ -85,18 +88,20 @@ Ltac solve_let :=
 Lemma preservation_helper: forall G s t s' t' T,
     well_typed G s ->
     inert G ->
+    wf_env G ->
     (s, t) |-> (s', t') ->
     G ⊢ t : T ->
     exists G', inert G' /\
+          wf_env (G & G') /\
           well_typed (G & G') s' /\
           G & G' ⊢ t' : T.
 Proof.
-  introv Hwt Hin Hred Ht. gen t'.
+  introv Hwt Hin Hwf Hred Ht. gen t'.
   induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
     | [Hp: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
-        pose proof (canonical_forms_fun Hin Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
+        pose proof (canonical_forms_fun Hin Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
         inversions Hred
     end.
     lookup_eq.
@@ -114,6 +119,7 @@ Proof.
       pose proof (val_typing Ht) as [V [Hv Hs]].
       exists (x ~ V). repeat split.
       ** rewrite <- concat_empty_l. constructor~. eapply pfv_inert; eauto.
+      ** constructor*. introv Hx. admit.
       ** constructor~. apply (precise_to_general_v Hv).
       ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. constructor*. apply* weaken_subtyp.
@@ -142,8 +148,8 @@ Theorem preservation : forall s s' t t' T,
     (s, t) |-> (s', t') ->
     ⊢ (s', t') : T.
 Proof.
-  introv Ht Hr. destruct Ht as [* Hi Hwf Ht].
-  lets Hp: (preservation_helper Hwf Hi Hr Ht). destruct Hp as [G' [Hi' [Hwf' Ht']]].
+  introv Ht Hr. destruct Ht as [* Hi Hwf Hwt Ht].
+  lets Hp: (preservation_helper Hwt Hi Hwf Hr Ht). destruct Hp as [G' [Hi' [Hwf' [Hwt' Ht']]]].
   apply sta_trm_typ_c with (G:=G & G'); auto. apply* inert_concat.
 Qed.
 
@@ -154,11 +160,13 @@ Ltac solve_let_prog :=
   match goal with
       | [IH: ⊢ (?s, ?t) : ?T ->
              inert _ ->
+             wf_env _ ->
              well_typed _ _ -> _,
          Hi: inert _,
+         Hwf: wf_env _,
          Hwt: well_typed _ _ |- _] =>
         assert (⊢ (s, t): T) as Hs by eauto;
-        specialize (IH Hs Hi Hwt) as [IH | [s' [t' Hr]]];
+        specialize (IH Hs Hi Hwf Hwt) as [IH | [s' [t' Hr]]];
         eauto; inversion IH
       end.
 
@@ -173,10 +181,10 @@ Theorem progress: forall s t T,
     ⊢ (s, t) : T ->
     norm_form t \/ exists s' t', (s, t) |-> (s', t').
 Proof.
-  introv Ht. inversion Ht as [G s' t' T' Hi Hwt HT]. subst.
+  introv Ht. inversion Ht as [G s' t' T' Hi Hwf Hwt HT]. subst.
   induction HT; unfold tvar; eauto.
   - Case "ty_all_elim".
-    pose proof (canonical_forms_fun Hi Hwt HT1). destruct_all. right*.
+    pose proof (canonical_forms_fun Hi Hwf Hwt HT1). destruct_all. right*.
   - Case "ty_let".
     right. destruct t; try solve [solve_let_prog].
     pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
@@ -188,11 +196,12 @@ Qed.
 Theorem safety_helper G t1 t2 s1 s2 T :
   G ⊢ t1 : T ->
   inert G ->
+  wf_env G ->
   well_typed G s1 ->
   star red (s1, t1) (s2, t2) ->
   (exists s3 t3, (s2, t2) |-> (s3, t3)) \/ norm_form t2.
 Proof.
-  intros Ht Hi Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwt; introv Ht.
+  intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
   - assert (⊢ (s2, t2) : T) as Ht' by eauto.
     destruct (progress Ht'); eauto.
   - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).

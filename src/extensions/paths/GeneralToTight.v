@@ -75,13 +75,14 @@ Qed.
     [G ⊢# S <: x.A]            *)
 Lemma sel_replacement: forall G p A S U,
     inert G ->
+    wf_env G ->
     G ⊢# trm_path p : typ_rcd {A >: S <: U} ->
     (G ⊢# typ_path p A <: U /\
      G ⊢# S <: typ_path p A).
 Proof.
-  introv HG Hty.
-  pose proof (replacement_closure HG Hty) as Hinv.
-  pose proof (sel_premise HG Hinv) as [T [Ht [Hs1 Hs2]]].
+  introv Hi Hwf Hty.
+  pose proof (replacement_closure Hi Hwf Hty) as Hinv.
+  pose proof (sel_premise Hi Hinv) as [T [Ht [Hs1 Hs2]]].
   split.
   - apply subtyp_sel1_t in Ht. apply subtyp_trans_t with (T:=T); auto.
   - apply subtyp_sel2_t in Ht. apply subtyp_trans_t with (T:=T); auto.
@@ -89,18 +90,19 @@ Qed.
 
 Lemma sngl_replacement: forall G p q n T U,
     inert G ->
+    wf_env G ->
     G ⊢# trm_path p: typ_sngl q ->
     repl_typ n p q T U ->
     G ⊢# T <: U /\ G ⊢# U <: T.
 Proof.
-  introv Hi Hp Hr.
-  lets Hc: (replacement_closure Hi Hp).
+  introv Hi Hwf Hp Hr.
+  lets Hc: (replacement_closure Hi Hwf Hp).
   lets Hri: (repl_to_invertible_sngl_repl_comp Hi Hc). destruct Hri as [V [Hrc Hpt]].
   destruct (repl_comp_sngl_inv1 Hrc) as [r Heq]. inversions Heq.
   destruct (inv_to_precise_sngl_repl_comp Hpt) as [r' [Ht Hrc']].
-  destruct (sngl_typed3 Hi Ht) as [V Hst].
-  destruct (repl_composition_sngl Hi Hrc' Hst) as [Heq | Hpq].
-  - subst. destruct (repl_composition_sngl2 Hi Hrc Hst).
+  destruct (sngl_typed3 Hi Hwf Ht) as [V Hst].
+  destruct (repl_composition_sngl Hi Hwf Hrc' Hst) as [Heq | Hpq].
+  - subst. destruct (repl_composition_sngl2 Hi Hwf Hrc Hst).
     * subst. split. eauto. apply repl_swap in Hr. eauto.
     * split.
       ** destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
@@ -108,8 +110,8 @@ Proof.
       ** apply repl_swap in Hr.
          destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
          apply subtyp_trans_t with (T:=S); eauto.
-  - destruct (sngl_typed3 Hi Hpq) as [T' Ht'].
-    destruct (repl_composition_sngl2 Hi Hrc Ht').
+  - destruct (sngl_typed3 Hi Hwf Hpq) as [T' Ht'].
+    destruct (repl_composition_sngl2 Hi Hwf Hrc Ht').
     * subst. split.
       ** destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
          apply subtyp_trans_t with (T:=S); eauto.
@@ -147,6 +149,7 @@ Qed.
     [G ⊢# S <: U]         *)
 Lemma general_to_tight: forall G0,
   inert G0 ->
+  wf_env G0 ->
   (forall G t T,
      G ⊢ t : T ->
      G = G0 ->
@@ -156,16 +159,17 @@ Lemma general_to_tight: forall G0,
      G = G0 ->
      G ⊢# S <: U).
 Proof.
-  intros G0 HG.
+  intros G0 Hi Hwf.
   apply ts_mutind; intros; subst;
     try solve [eapply sel_replacement; auto]; eauto.
-  - destruct* (sngl_replacement HG (H eq_refl) r).
-  - apply repl_swap in r. destruct* (sngl_replacement HG (H eq_refl) r).
+  - destruct* (sngl_replacement Hi Hwf (H eq_refl) r).
+  - apply repl_swap in r. destruct* (sngl_replacement Hi Hwf (H eq_refl) r).
 Qed.
 
 (** The general-to-tight lemma, formulated for term typing. *)
 Lemma general_to_tight_typing: forall G t T,
   inert G ->
+  wf_env G ->
   G ⊢ t : T ->
   G ⊢# t : T.
 Proof.
@@ -175,9 +179,10 @@ Qed.
 Ltac proof_recipe :=
   match goal with
   | [ Hg: ?G ⊢ _ : _,
-      Hi: inert ?G |- _ ] =>
-    apply (general_to_tight_typing Hi) in Hg;
-    ((apply (replacement_closure Hi) in Hg) || (apply (replacement_closure_v Hi) in Hg));
+      Hi: inert ?G,
+      Hwf: wf_env ?G |- _ ] =>
+    apply (general_to_tight_typing Hi Hwf) in Hg;
+    ((apply (replacement_closure Hi Hwf) in Hg) || (apply (replacement_closure_v Hi Hwf) in Hg));
     try lets Hok: (inert_ok Hi);
     try match goal with
         | [ Hr: ?G ⊢// _ : typ_all _ _,
