@@ -485,7 +485,7 @@ Proof.
           eauto.
       }
       rewrite concat_assoc in *. apply eq_push_inv in Heq as [_ [_ ->]].
-
+Abort. (*
 
 
        pose proof (pt2_destruct_env Hi Hpq) as [G1' [G2' [y [cs [W [Heq' [= -> ->]]]]]]].
@@ -530,7 +530,11 @@ Proof.
       as [qx [qbs Heq]]. simpl_dot.
     specialize (IHHt2 _ _ _ _ _ Hi Hwf JMeq_refl eq_refl).
     destruct (classicT (x0 = qx)) as [-> | Hn'].
-    + clear IHHt2.
+    + clear IHHt2. false.
+      inversions Hwf.
+      { apply* empty_push_inv. }
+      apply eq_push_inv in H as [-> [-> ->]].
+      pose proof (H2
     + specialize (IHHt2 Hn') as [S Hq]. rewrite proj_rewrite in *.
       eexists. eapply pt2_sngl_trans. apply Hy. eauto.
 
