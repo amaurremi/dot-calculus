@@ -373,7 +373,12 @@ Qed.
 
 (** Wellformed paths and environments *)
 
-Inductive wf_env : ctx -> Prop :=
+(* the problem with the following definition is that it doesn't allow us to prove
+   strenthening for ⊢!! and pt2_destruct_env' because they depend on each other in a circular way.
+   the reason is that we are defining well-formedness for (G & x ~ T) through reasoning on (G & x ~ T)
+   rather than just reasoning on G. We also can't define well-formedness inductively for the additional
+   x ~ T because T can have circular path dependencies inside. *)
+(*Inductive wf_env : ctx -> Prop :=
 | wfe_empty :
     wf_env empty
 | wfe_push G x T :
@@ -386,6 +391,7 @@ Inductive wf_env : ctx -> Prop :=
     wf_env (G & x ~ T).
 
 Hint Constructors wf_env.
+ *)
 
 (* the problem with the following definition is that it doesn't allow us to prove
    wf_env (G & G') -> wf_env G *)
