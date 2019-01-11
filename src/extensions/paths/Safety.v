@@ -43,54 +43,36 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** * Preservation *)
 
+Reserved Notation "p '==>' T '=' bs '=>' U" (at level 40, T at level 10).
+
 Inductive lookup_typ : path -> typ -> list trm_label -> typ -> Prop :=
 | lt_empty p T :
-    lookup_typ p T nil T
+    p ==> T =nil=> T
 | lt_fld p T V a bs S :
-    record_has S { a ⦂ T } ->
-    lookup_typ p•a T bs V ->
-    lookup_typ p S (a :: bs) V
-| lt_bnd p T V bs :
-    lookup_typ p (open_typ_p p T) bs V ->
-    lookup_typ p (typ_bnd T) bs V.
+    p•a ==> T =bs=> V ->
+    record_has (open_typ_p p S) { a ⦂ T } ->
+    p   ==> typ_bnd S =a::bs=> V
+where "p '==>' T '=' bs '=>' U" := (lookup_typ p T bs U).
 
 Hint Constructors lookup_typ.
-
-(*Fixpoint lookup_typ T bs p n {struct n} : option typ :=
-  match n with
-  | O =>
-  match bs with
-  | nil =>
-    Some T
-  | (b :: bs)%list =>
-    match T with
-    | typ_rcd { a ⦂ U } =>
-      If a = b then lookup_typ U bs p•a (n - 1) else None
-    | typ_and U1 U2 =>
-      match lookup_typ U1 (b :: bs)%list p (n - 1) with
-      | Some V => Some V
-      | None => lookup_typ U2 (b :: bs)%list p (n - 1)
-      end
-    | typ_bnd U =>
-      lookup_typ (open_typ_p p U) (b :: bs)%list p (n - 1)
-    | _ => None
-    end
-end.*)
 
 Lemma pf_to_lookup_typ G x bs T U V :
   inert (G & x ~ V) ->
   G & x ~ V ⊢! p_sel (avar_f x) bs : T ⪼ U ->
-  lookup_typ (pvar x) V bs T.
+  pvar x ==> V =bs=> T.
 Proof.
   intros Hi Hp. dependent induction Hp; eauto.
   - apply binds_push_eq_inv in H0 as ->. auto.
   - simpl_dot.
-    pose proof (pf_bnd_T2 Hi Hp) as [S ->].
+    pose proof (pf_bnd_T2 Hi Hp) as [S ->]. rename f into bs.
     apply pf_record_has_U in Hp; auto.
     specialize (IHHp _ _ _ _ Hi JMeq_refl eq_refl).
     inversions IHHp; eauto.
-    + admit.
-    + apply lt_bnd. apply* lt_fld.
+    eapply lt_fld.
+    + eapply lt_fld.
+
+    pose proof (lookup_typ_follow IHHp) as Hp'. simpl in *. rewrite List.app_nil_r in Hp'.
+     apply lt_bnd in Hp'.
 
 
 Lemma pf_sngl G x bs T U a :
