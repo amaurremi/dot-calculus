@@ -188,8 +188,11 @@ Ltac proof_recipe :=
         | [ Hr: ?G ⊢// _ : typ_all _ _,
             Hok: ok ?G |- _ ] =>
           destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
-        | [ Hrv: ?G ⊢//v _ : typ_bnd _,
-            Hok: ok ?G |- _ ] =>
+        | [ Hr: ?G ⊢// _ : typ_rcd _ |- _ ] =>
+          destruct (repl_to_precise_fld Hi Hr) as [Spr [Hpr Hspr]]
+        | [ Hr: ?G ⊢// _ : typ_sngl _ |- _ ] =>
+          destruct (repl_to_precise_sngl Hi Hwf Hr) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]
+        | [ Hrv: ?G ⊢//v _ : typ_bnd _ |- _ ] =>
           apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
           apply (invertible_to_precise_obj Hi) in Hrv as [U'' [Hrv Hrc']];
           try match goal with
@@ -203,5 +206,5 @@ Ltac proof_recipe :=
               Hok: ok ?G |- _ ] =>
             apply invertible_val_to_precise_lambda in Hrv as [L1 [S1 [T1 [Hvpr [HS1 HS2]]]]]; auto
           end
-        end
+       end
   end.

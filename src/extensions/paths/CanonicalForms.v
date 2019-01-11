@@ -73,14 +73,23 @@ Proof.
     * left. inversions Hdt. eauto.
 Qed.
 
-Lemma pt2_exists' G p T :
+Lemma pt3_exists G p T :
   inert G ->
   wf_env G ->
   G ⊢ trm_path p : T ->
-  exists U, G ⊢!! p : U.
+  exists U, G ⊢!!! p : U.
 Proof.
   intros Hi Hwf Hp. dependent induction Hp; eauto.
-  - Admitted.
+  - eexists; eauto.
+  - proof_recipe. apply pt3_field_elim in Hpr. eauto.
+  - specialize (IHHp1 _ Hi Hwf eq_refl) as [U Hp0]. specialize (IHHp2 _ Hi Hwf eq_refl) as [S Hq].
+    proof_recipe. proof_recipe.
+    + eexists. apply* pt3_trans2.
+    + eapply pt3_trans2 in Hq3q2; eauto. eexists. apply* pt3_trans2.
+    + eapply field_elim_q3 in Hqq2 as [W Hq3a]; eauto. eexists. apply* pt3_trans2.
+    + eapply field_elim_q3 in Hqq2 as [W Hq2a]; eauto. apply (pt3_trans2 _ Hq3q2) in Hq2a.
+      eexists. apply* pt3_trans2.
+Qed.
 
 Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
     inert G ->
@@ -182,10 +191,10 @@ Proof.
            pose proof (repl_comp_sngl_inv1 Hrc1') as [r ->]. pose proof (repl_comp_sngl_inv2 Hrc2') as [r' ->].
            pose proof (pf_sngl_U Hp) as ->.
            pose proof (sngl_typed Hi Hwf Hp) as [V Hr'%pt3].
-           pose proof (pt2_exists' Hi Hwf Hq) as [V'' Hp2].
+           pose proof (pt3_exists Hi Hwf Hq) as [V'' Hp3].
            pose proof (repl_comp_to_prec' Hi Hwf Hrc2' Hr')
              as [-> | Hpr];
-             pose proof (repl_comp_to_prec' Hi Hwf Hrc1' (pt3 Hp2))
+             pose proof (repl_comp_to_prec' Hi Hwf Hrc1' Hp3)
              as [<- | Hpr']; clear Hrc1' Hrc2';
                repeat eexists; try rewrite concat_empty_r; eauto.
     * SCase "x <> x0".

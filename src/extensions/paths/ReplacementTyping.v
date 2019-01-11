@@ -672,42 +672,54 @@ Proof.
     eapply replacement_subtyping_closure. auto. auto. apply H. auto.
 Qed.
 
+Lemma repl_to_precise_fld G U p a :
+  inert G ->
+  G ⊢// p : typ_rcd { a ⦂ U } ->
+  exists S, G ⊢!!! p : typ_rcd { a ⦂ S } /\ G ⊢ S <: U.
+Proof.
+  intros Hi Hp. inversions Hp. dependent induction H.
+  - repeat eexists; eauto.
+  - specialize (IHty_path_inv _ _ Hi eq_refl) as [S [Hp3 Hs]].
+    eexists. split. apply Hp3. eapply subtyp_trans. apply Hs. apply* tight_to_general.
+Qed.
+
+Lemma repl_to_precise_sngl G p q :
+  inert G ->
+  wf_env G ->
+  G ⊢// p : typ_sngl q ->
+  exists q2 q3, G ⊢!!! p : typ_sngl q3 /\ (q = q2 \/ G ⊢!!! q : typ_sngl q2) /\ (q2 = q3 \/ G ⊢!!! q3 : typ_sngl q2).
+Proof.
+  intros Hi Hwf Hp.
+  apply (repl_to_invertible_sngl Hi Hwf) in Hp as [r [Hpi [-> | Hpr]]];
+    apply (inv_to_precise_sngl Hi Hwf) in Hpi as [q2 [Hpq [-> | ?]]]; repeat eexists; eauto.
+Qed.
+
 (** Replacement typing for values *)
-
 Reserved Notation "G '⊢//v' v ':' T" (at level 40, v at level 59).
-
 Inductive ty_replv : ctx -> val -> typ -> Prop :=
-
 | ty_inv_rv : forall G v T,
     G ⊢##v v: T ->
     G ⊢//v v: T
-
 | ty_and_rv : forall G v T U,
     G ⊢//v v: T ->
     G ⊢//v v: U ->
     G ⊢//v v: typ_and T U
-
 | ty_sel_rv : forall G v T q S A,
     G ⊢//v v: T ->
     G ⊢! q: S ⪼ typ_rcd {A >: T <: T} ->
     G ⊢//v v: typ_path q A
-
 | ty_rec_qp_rv : forall G p q v T T' n,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
     G ⊢//v v : typ_bnd T ->
     repl_typ n q p T T' ->
     G ⊢//v v : typ_bnd T'
-
 | ty_sel_qp_rv : forall G p q v r' r'' A n,
     G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
     G ⊢//v v : typ_path r' A ->
     repl_typ n q p (typ_path r' A) (typ_path r'' A) ->
     G ⊢//v v : typ_path r'' A
-
 where "G '⊢//v' v ':' T" := (ty_replv G v T).
-
 Hint Constructors ty_replv.
-
 Lemma invertible_andv: forall G v T U,
     inert G ->
     G ⊢##v v: typ_and T U ->
@@ -715,7 +727,6 @@ Lemma invertible_andv: forall G v T U,
 Proof.
   introv Hi Hp. dependent induction Hp; eauto. inversion H.
 Qed.
-
 Lemma repl_andv: forall G v T U,
     inert G ->
     G ⊢//v v: typ_and T U ->
@@ -724,7 +735,6 @@ Proof.
   introv Hi Hv. dependent induction Hv; eauto.
   destruct (invertible_andv Hi H). split*.
 Qed.
-
 Lemma replacement_repl_closure_qp_v G v p q T T' n :
     inert G ->
     wf_env G ->
