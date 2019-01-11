@@ -3,7 +3,7 @@ Set Implicit Arguments.
 Require Import Coq.Program.Equality.
 Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
-            OperationalSemantics PreciseTyping RecordAndInertTypes Substitution Weakening.
+            OperationalSemantics PreciseTyping RecordAndInertTypes Subenvironments Substitution Weakening.
 
 Module Safety.
 (** * Well-typedness *)
@@ -43,6 +43,56 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** * Preservation *)
 
+Inductive lookup_typ : path -> typ -> list trm_label -> typ -> Prop :=
+| lt_empty p T :
+    lookup_typ p T nil T
+| lt_fld p T V a bs S :
+    record_has S { a ⦂ T } ->
+    lookup_typ p•a T bs V ->
+    lookup_typ p S (a :: bs) V
+| lt_bnd p T V bs :
+    lookup_typ p (open_typ_p p T) bs V ->
+    lookup_typ p (typ_bnd T) bs V.
+
+Hint Constructors lookup_typ.
+
+(*Fixpoint lookup_typ T bs p n {struct n} : option typ :=
+  match n with
+  | O =>
+  match bs with
+  | nil =>
+    Some T
+  | (b :: bs)%list =>
+    match T with
+    | typ_rcd { a ⦂ U } =>
+      If a = b then lookup_typ U bs p•a (n - 1) else None
+    | typ_and U1 U2 =>
+      match lookup_typ U1 (b :: bs)%list p (n - 1) with
+      | Some V => Some V
+      | None => lookup_typ U2 (b :: bs)%list p (n - 1)
+      end
+    | typ_bnd U =>
+      lookup_typ (open_typ_p p U) (b :: bs)%list p (n - 1)
+    | _ => None
+    end
+end.*)
+
+Lemma pf_to_lookup_typ G x bs T U V :
+  inert (G & x ~ V) ->
+  G & x ~ V ⊢! p_sel (avar_f x) bs : T ⪼ U ->
+  lookup_typ (pvar x) V bs T.
+Proof.
+  intros Hi Hp. dependent induction Hp; eauto.
+  - apply binds_push_eq_inv in H0 as ->. auto.
+  - simpl_dot.
+    pose proof (pf_bnd_T2 Hi Hp) as [S ->].
+    apply pf_record_has_U in Hp; auto.
+    specialize (IHHp _ _ _ _ Hi JMeq_refl eq_refl).
+    inversions IHHp; eauto.
+    + admit.
+    + apply lt_bnd. apply* lt_fld.
+
+
 Lemma pf_sngl G x bs T U a :
   inert G ->
   G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
@@ -52,6 +102,44 @@ Proof.
   - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
     pose proof (pf_bnd_T2 Hi Hp) as [S ->]. eauto.
   - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
+Qed.
+
+Lemma def_wf z P G D d :
+  inert G ->
+  wf_env G ->
+  z # G ->
+  z; nil; P; G & z ~ open_typ z (typ_rcd D) ⊢ open_def z d : open_dec z D ->
+  wf_env (G & z ~ open_typ z (typ_rcd D)).
+Proof.
+  intros Hi Hwf Hz Hds. constructor*. introv Hp.
+  dependent induction Hds.
+  - destruct d; inversions x1. destruct D; inversions x.
+    rename x0 into x. rename t0 into T. rename t2 into U. rename t3 into V. rename t1 into A.
+    false. admit.
+  - destruct d; inversions x1. destruct d; inversions H3. destruct v; inversions H2.
+    destruct D; inversions x. rename x0 into x. rename t into a. rename t3 into T.
+    admit.
+  - destruct d; inversions x1. destruct D; inversions x. destruct t1; inversions H4.
+    destruct d; inversions H3. destruct v; inversions H2.
+    rename t0 into a. rename x0 into x. rename t1 into T. admit.
+  - destruct D; inversions x. destruct d; inversions x1. destruct t0; inversions H4.
+    destruct p; inversions H3. destruct d; inversions H5. destruct p; inversions H3.
+    rename x0 into x. rename a into z. rename f0 into a. rename a0 into z'. rename t1 into b. admit.
+Admitted.
+
+Lemma defs_wf z P G T ds U :
+  inert G ->
+  wf_env G ->
+  z # G ->
+  z; nil; P; G & z ~ U ⊢ open_defs z ds :: open_typ z T ->
+  (* record_sub U T or something -- subtyping/narrowing doesn't work *)
+  wf_env (G & z ~ U).
+Proof.
+  intros Hi Hwf Hz Hds.
+  dependent induction Hds; destruct T; inversions x.
+  - destruct ds; inversions x1. destruct ds; inversions H1.
+    admit.
+  - destruct T2; inversions H3. destruct ds; inversions x1. eauto.
 Qed.
 
 Lemma val_typing G x v T :
@@ -69,9 +157,9 @@ Proof.
     destruct bs as [|b bs].
     + apply pf_binds in Hp; auto. apply binds_push_eq_inv in Hp as [=].
     + apply pf_sngl in Hp as [? [? [=]%pf_binds%binds_push_eq_inv]]; auto.
-  - exists (typ_bnd T). repeat split*.
-    constructor*. introv Hp.
-    admit.
+  - exists (typ_bnd T). repeat split*. pick_fresh z. assert (z \notin L) as Hz by auto.
+    specialize (H z Hz). assert (z # G) as Hz' by auto.
+    pose proof (defs_wf _ _ Hi Hwf Hz' H). admit.
   - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eauto.
 Qed.
 
