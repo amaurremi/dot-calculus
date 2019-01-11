@@ -43,6 +43,38 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** * Preservation *)
 
+Lemma pf_sngl G x bs T U a :
+  inert G ->
+  G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
+  exists S V, G ⊢! pvar x : typ_bnd S ⪼ V.
+Proof.
+  intros Hi Hp. gen G x a T U. induction bs; introv Hi; introv Hp.
+  - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
+    pose proof (pf_bnd_T2 Hi Hp) as [S ->]. eauto.
+  - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
+Qed.
+
+Lemma val_typing G x v T :
+  inert G ->
+  wf_env G ->
+  G ⊢ trm_val v : T ->
+  x # G ->
+  exists T', G ⊢!v v : T' /\
+        G ⊢ T' <: T /\
+        wf_env (G & x ~ T').
+Proof.
+  intros Hi Hwf Hv Hx. dependent induction Hv; eauto.
+  - exists (typ_all T U). repeat split*. constructor; eauto. introv Hp.
+    assert (binds x (typ_all T U) (G & x ~ typ_all T U)) as Hb by auto. apply pf_bind in Hb; auto.
+    destruct bs as [|b bs].
+    + apply pf_binds in Hp; auto. apply binds_push_eq_inv in Hp as [=].
+    + apply pf_sngl in Hp as [? [? [=]%pf_binds%binds_push_eq_inv]]; auto.
+  - exists (typ_bnd T). repeat split*.
+    constructor*. introv Hp.
+    admit.
+  - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eauto.
+Qed.
+
 (** Helper tactics for proving Preservation *)
 
 Ltac lookup_eq :=
@@ -96,12 +128,12 @@ Lemma preservation_helper: forall G s t s' t' T,
           well_typed (G & G') s' /\
           G & G' ⊢ t' : T.
 Proof.
-  introv Hwt Hin Hwf Hred Ht. gen t'.
+  introv Hwt Hi Hwf Hred Ht. gen t'.
   induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
     | [Hp: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
-        pose proof (canonical_forms_fun Hin Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
+        pose proof (canonical_forms_fun Hi Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
         inversions Hred
     end.
     lookup_eq.
@@ -109,17 +141,16 @@ Proof.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
     eapply renaming_typ; eauto. eauto. eauto.
   - Case "ty_let".
-    destruct t; try solve [solve_let].
+    destruct t; try solve [solve_let].∉
      + SCase "[t = (let x = v in u)] where v is a value".
       repeat invert_red.
       match goal with
         | [Hn: ?x # ?s |- _] =>
           pose proof (well_typed_notin_dom Hwt Hn) as Hng
       end.
-      pose proof (val_typing Ht) as [V [Hv Hs]].
-      exists (x ~ V). repeat split.
+      pose proof (val_typing Hi Hwf Ht Hng) as [V [Hv [Hs Hwf']]].
+      exists (x ~ V). repeat split; auto.
       ** rewrite <- concat_empty_l. constructor~. eapply pfv_inert; eauto.
-      ** constructor*. introv Hx. admit.
       ** constructor~. apply (precise_to_general_v Hv).
       ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. constructor*. apply* weaken_subtyp.

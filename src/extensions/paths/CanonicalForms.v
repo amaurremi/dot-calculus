@@ -15,15 +15,6 @@ Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrow
         Weakening.
 Require Import Sequences.
 
-Lemma val_typing: forall G v T,
-  G ⊢ trm_val v : T ->
-  exists T', G ⊢!v v : T' /\
-        G ⊢ T' <: T.
-Proof.
-  intros G v T H. dependent induction H; eauto.
-  destruct (IHty_trm _ eq_refl). destruct_all. eauto.
-Qed.
-
 Definition deftrm t : trm :=
   match t with
   | defp p => trm_path p
