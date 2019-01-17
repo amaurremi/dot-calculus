@@ -427,7 +427,6 @@ Lemma invertible_repl_closure_v_helper :
   (forall D,
       record_dec D -> forall G v q r D' n,
       inert G ->
-      wf_env G ->
       G ⊢!v v: typ_rcd D ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_dec n q r D D' ->
@@ -435,7 +434,6 @@ Lemma invertible_repl_closure_v_helper :
   (forall U ls,
       record_typ U ls -> forall G v q r U' n,
       inert G ->
-      wf_env G ->
       G ⊢!v v: U ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_typ n q r U U' ->
@@ -443,38 +441,36 @@ Lemma invertible_repl_closure_v_helper :
   (forall U,
       inert_typ U -> forall G v q r U' n,
       inert G ->
-      wf_env G ->
       G ⊢!v v: U ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_typ n q r U U' ->
       G ⊢##v v: U').
 Proof.
   apply rcd_mutind; intros; try solve [invert_repl; eauto].
+  - inversions H0.
   - inversions H1.
+  - inversions H0.
   - inversions H2.
-  - inversions H1.
-  - inversions H3.
-  - pose proof (sngl_typed H H0 H2) as [U Hs%precise_to_general2%typed_paths_named].
-    lets Ht: (typed_paths_named (precise_to_general H2)).
+  - pose proof (pf_sngl_named H1) as Hs.
+    lets Ht: (typed_paths_named (precise_to_general H1)).
     invert_repl; eapply ty_all_invv with (L:=dom G).
     * eauto.
-    * apply repl_swap in H10; eauto.
+    * apply repl_swap in H9; eauto.
     * introv Hy. eauto.
     * eauto.
     * eauto.
-    * introv Hy. lets Ho: (repl_open_var y H10 Ht Hs).
+    * introv Hy. lets Ho: (repl_open_var y H9 Ht Hs).
       eapply weaken_subtyp; auto. solve_repl_sub.
 Qed.
 
 Lemma invertible_repl_closure_v : forall G v q r T T' n,
     inert G ->
-    wf_env G ->
     G ⊢##v v : T ->
     G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
     repl_typ n q r T T' ->
     G ⊢##v v : T'.
 Proof.
-  introv Hi Hwf Hv Hqr Hrep. gen q r T' n.
+  introv Hi Hv Hqr Hrep. gen q r T' n.
   induction Hv; introv Hq Hrep.
   - Case "ty_precise_invv".
     lets Ht: (pfv_inert H).
