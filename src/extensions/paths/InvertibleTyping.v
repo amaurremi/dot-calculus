@@ -157,26 +157,31 @@ Qed.
 
 (** ** Invertible Replacement Closure *)
 
+Lemma pf_sngl_named G p q T :
+  G ⊢! p : T ⪼ typ_sngl q -> named_path q.
+Proof. Admitted.
+
+
 Ltac solve_names :=
   match goal with
     | [H: _ ⊢! ?p : typ_sngl ?q ⪼ _ |- named_path ?p ] =>
       apply precise_to_general in H;
       apply* typed_paths_named
     | [H: _ ⊢! ?p : typ_sngl ?q ⪼ _  |- named_path ?q ] =>
-      apply sngl_typed in H as [? ?%precise_to_general2%typed_paths_named]; auto
+      apply pf_sngl_named in H; auto
     | [H: _ ⊢!!! ?p : typ_sngl ?q |- named_path ?p ] =>
       apply precise_to_general3 in H;
       apply* typed_paths_named
     | [H: _ ⊢!!! ?p : typ_sngl ?q |- named_path ?q ] =>
       apply precise_to_general3 in H;
       auto (*apply* sngl_path_named*)
-    end.
+  end.
+
 
 Lemma invertible_repl_closure_helper :
   (forall D,
       record_dec D -> forall G p q r D' n,
       inert G ->
-      wf_env G ->
       G ⊢!!! p: typ_rcd D ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_dec n q r D D' ->
@@ -184,7 +189,6 @@ Lemma invertible_repl_closure_helper :
   (forall U ls,
       record_typ U ls -> forall G p q r U' n,
       inert G ->
-      wf_env G ->
       G ⊢!!! p: U ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_typ n q r U U' ->
@@ -192,40 +196,38 @@ Lemma invertible_repl_closure_helper :
   (forall U,
       inert_typ U -> forall G p q r U' n,
       inert G ->
-      wf_env G ->
       G ⊢!!! p: U ->
       G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
       repl_typ n q r U U' ->
       G ⊢## p: U').
 Proof.
   apply rcd_mutind; intros; try solve [invert_repl; eauto].
-  - invert_repl; eapply ty_dec_typ_inv. eapply ty_precise_inv. apply H1.
+  - invert_repl; eapply ty_dec_typ_inv. eapply ty_precise_inv. apply H0.
     solve_repl_sub. eauto.
     eauto. eauto. solve_repl_sub.
   - invert_repl. eapply ty_dec_trm_inv. eapply ty_precise_inv. eauto. eauto.
   - invert_repl. eapply ty_dec_trm_inv. eapply ty_precise_inv. eauto. eauto.
   - invert_repl; eapply ty_and_inv. apply* H. apply* pt3_and_destruct1.
-    apply pt3_and_destruct2 in H3; auto. eauto.
-    apply pt3_and_destruct1 in H3; auto. eauto.
-    invert_repl. apply pt3_and_destruct2 in H3; auto. eauto.
-  - pose proof (sngl_typed H H0 H2) as [U Hs%precise_to_general2%typed_paths_named].
-    lets Ht: (typed_paths_named (precise_to_general H2)).
-    invert_repl; eapply ty_all_inv with (L:=dom G). eauto. apply repl_swap in H10. eauto.
+    apply pt3_and_destruct2 in H2; auto.
+    apply pt3_and_destruct1 in H2; auto.
+    invert_repl. apply pt3_and_destruct2 in H2; auto. eauto.
+  - pose proof (pf_sngl_named H1) as Hs.
+    pose proof (typed_paths_named (precise_to_general H1)) as Ht.
+    invert_repl; eapply ty_all_inv with (L:=dom G). eauto. apply repl_swap in H9. eauto.
     introv Hy. eauto. eauto. eauto.
     introv Hy.
-    lets Ho: (repl_open_var y H10 Ht Hs). eapply weaken_subtyp. solve_repl_sub.
+    lets Ho: (repl_open_var y H9 Ht Hs). eapply weaken_subtyp. solve_repl_sub.
     apply* ok_push.
 Qed.
 
 Lemma invertible_repl_closure : forall G p q r T T' n,
     inert G ->
-    wf_env G ->
     G ⊢## p : T ->
     G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
     repl_typ n q r T T' ->
     G ⊢## p : T'.
 Proof.
-  introv Hi Hwf Hp Hqr Hrep. gen q r T' n.
+  introv Hi Hp Hqr Hrep. gen q r T' n.
   induction Hp; introv Hq Hrep.
   - Case "ty_precise_inv".
     destruct (pt3_inertsngl Hi H) as [[Hin | Hs] | Hr].
@@ -269,14 +271,13 @@ Proof.
     } subst.
     destruct (repl_prefixes_sel Hrep) as [bs [He1 He2]]. subst.
     destruct (repl_prefixes_sel H0) as [cs [He1 He2]]. subst.
-    specialize (IHHp Hi Hwf _ _ H _ _ H0). eauto.
+    specialize (IHHp Hi _ _ H _ _ H0). eauto.
   - Case "ty_sngl_qp_inv".
     assert (exists r''', T' = typ_sngl r''') as [r''' Heq]. {
       invert_repl. eauto.
     } subst.
-    destruct (repl_prefixes_sngl Hrep) as [bs [He1 He2]]. subst.
-    destruct (repl_prefixes_sngl H0) as [cs [He1 He2]]. subst.
-    specialize (IHHp Hi Hwf _ _ H _ _ H0). eauto.
+    destruct (repl_prefixes_sngl Hrep) as [bs [-> ->]].
+    destruct* (repl_prefixes_sngl H0) as [? [? ?]].
 Qed.
 
 Lemma invertible_bot : forall G p,
@@ -301,14 +302,13 @@ Qed.
 
 Lemma invertible_bnd : forall G p T,
     inert G ->
-    wf_env G ->
     G ⊢## p: typ_bnd T ->
     G ⊢## p: open_typ_p p T \/
              (exists q, G ⊢!!! p: typ_sngl q /\ G ⊢## p: open_typ_p q T).
 Proof.
-  introv Hi Hwf Hp. dependent induction Hp; auto.
+  introv Hi Hp. dependent induction Hp; auto.
   - destruct (pt3_bnd Hi H) as [Hp | [q [Hp1 Hp2]]]. left*. right*.
-  - destruct (IHHp _ Hi Hwf eq_refl) as [Hr | [q' [Hr Hr']]].
+  - destruct (IHHp _ Hi eq_refl) as [Hr | [q' [Hr Hr']]].
     * left. apply* invertible_repl_closure. apply* repl_open; solve_names.
     * right. repeat eexists. eauto. eapply repl_open in H0.
       eapply invertible_repl_closure. auto. auto. apply Hr'. apply H. apply H0.
@@ -333,15 +333,31 @@ Qed.
 
 Lemma invertible_repl_closure_comp_typed: forall G p T T',
     inert G ->
-    wf_env G ->
     G ⊢## p: T ->
     G ⊢ T ⟿ T' ->
     G ⊢## p: T'.
 Proof.
-  introv Hi Hwf Hp Hr. dependent induction Hr; eauto.
+  introv Hi Hp Hr. dependent induction Hr; eauto.
   destruct H as [p' [q' [n [Hpq Hr']]]].
   apply* invertible_repl_closure. apply* repl_swap.
 Qed.
+
+Lemma inv_to_precise_sngl: forall G p q,
+    inert G ->
+    G ⊢## p: typ_sngl q ->
+    exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+  Case "ty_sngl_pq_inv".
+  specialize (IHHp _ Hi eq_refl) as [r1 [Hr Hrq]].
+  eexists; split*. invert_repl.
+  destruct Hrq as [-> | Hr1].
+  -  clear Hp. assert (G ⊢!! r : typ_sngl p •• bs) as Hr' by admit. clear Hr.
+    gen q0. dependent induction Hr'; introv Hp.
+     + admit.
+     + destruct q, p. rewrite <- proj_rewrite in x. unfold sel_fields in x.
+       inversions x.
+
 
 Lemma inv_to_precise_sngl_repl_comp: forall G p q,
     G ⊢## p: typ_sngl q ->
@@ -358,12 +374,12 @@ Qed.
 
 Lemma inv_to_precise_sngl: forall G p q,
     inert G ->
-    wf_env G ->
     G ⊢## p: typ_sngl q ->
     exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
 Proof.
-  introv Hi Hwf Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
-  destruct (sngl_typed3 Hi Hwf Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+  introv Hi Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
+
+  destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
   exists r. split*. apply* repl_comp_to_prec.
 Qed.
 

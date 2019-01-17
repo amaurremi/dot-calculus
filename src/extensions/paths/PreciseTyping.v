@@ -10,7 +10,7 @@ Set Implicit Arguments.
 
 Require Import Sequences.
 Require Import Coq.Program.Equality List.
-Require Import Definitions Binding RecordAndInertTypes Replacement Subenvironments Narrowing.
+Require Import Definitions Binding RecordAndInertTypes Replacement.
 Require Export PreciseFlow.
 
 Inductive precise_typing2: ctx -> path -> typ -> Prop :=
@@ -978,49 +978,6 @@ Proof.
     destruct H as [q [r [n [Hp Hr]]]]. apply star_one. econstructor. repeat eexists. apply Hp. apply* repl_open.
     pose proof (sngl_typed Hi Hwf Hp) as [T Ht]. eapply typed_paths_named. apply* precise_to_general2.
     eapply typed_paths_named. apply* precise_to_general.
-Qed.
-
-Lemma repl_composition_sngl: forall G p q T,
-    inert G ->
-    wf_env G ->
-    G ⊢ p ⟿' q ->
-    G ⊢!!! p : T ->
-    p = q \/ G ⊢!!! p : typ_sngl q.
-Proof.
-  introv Hi Hwf Hc Hq. dependent induction Hc; eauto.
-  assert (exists r, b = typ_sngl r) as [p3 Heq].
-  { inversion H as [x [y [n [_ H0]]]]. inversion* H0. }
-  subst.
-  specialize (IHHc _ _ Hi Hwf eq_refl eq_refl Hq).
-  destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
-  lets H': (pt3 (pt2 H)).
-  destruct IHHc as [Heq | Hp]; subst.
-  - lets Htt: (pt3_trans_trans _ Hi H' Hq).
-    right*.
-  - right.
-    destruct (sngl_typed3 Hi Hwf Hp) as [S Hqbs].
-    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
-Qed.
-
-Lemma repl_composition_sngl2: forall G p q T,
-    inert G ->
-    wf_env G ->
-    G ⊢ p ⟿' q ->
-    G ⊢!!! q : T ->
-    p = q \/ G ⊢!!! p : typ_sngl q.
-Proof.
-  introv Hi Hwf Hc Hq. gen T. dependent induction Hc; introv Hq; eauto.
-  assert (exists r, b = typ_sngl r) as [p3 Heq].
-  { destruct H as [x [q0 [n [_ H]]]]. inversion* H. }
-  subst.
-  specialize (IHHc _ _ Hi Hwf eq_refl eq_refl).
-  destruct H as [r1 [r2 [n [H Hr]]]]. inversions Hr.
-  lets H': (pt3 (pt2 H)).
-  lets Hqs: (pt3_field_trans _ Hi H' Hq).
-  destruct (IHHc _ Hqs) as [Heq | Hp]; subst.
-  - lets Htt: (pt3_trans_trans _ Hi H' Hqs). right*.
-  - right. destruct (sngl_typed3 Hi Hwf Hp) as [S' Hqbs].
-    lets Htt: (pt3_trans_trans _ Hi H' Hqbs). apply* pt3_sngl_trans3.
 Qed.
 
 Lemma repl_composition_weaken_one G x T U V :
