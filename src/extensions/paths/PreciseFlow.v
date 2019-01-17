@@ -568,3 +568,7 @@ Proof.
   - rewrite concat_assoc in *. eapply pf_weaken_one; auto. rewrite <- concat_empty_r in Hok.
     apply* ok_middle_inv_l.
 Qed.
+
+Lemma pf_sngl_named G p q T :
+  G ⊢! p : T ⪼ typ_sngl q -> named_path q.
+Proof. Admitted.

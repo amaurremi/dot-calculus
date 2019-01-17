@@ -11,7 +11,7 @@ Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
 Require Import Sequences.
-Require Import Definitions Binding Narrowing PreciseTyping RecordAndInertTypes Replacement
+Require Import Definitions Binding Narrowing PreciseFlow PreciseTyping RecordAndInertTypes Replacement
                Subenvironments Substitution TightTyping Weakening.
 
 (** ** Invertible typing *)
@@ -156,11 +156,6 @@ Proof.
 Qed.
 
 (** ** Invertible Replacement Closure *)
-
-Lemma pf_sngl_named G p q T :
-  G ⊢! p : T ⪼ typ_sngl q -> named_path q.
-Proof. Admitted.
-
 
 Ltac solve_names :=
   match goal with
@@ -352,11 +347,7 @@ Proof.
   specialize (IHHp _ Hi eq_refl) as [r1 [Hr Hrq]].
   eexists; split*. invert_repl.
   destruct Hrq as [-> | Hr1].
-  -  clear Hp. assert (G ⊢!! r : typ_sngl p •• bs) as Hr' by admit. clear Hr.
-    gen q0. dependent induction Hr'; introv Hp.
-     + admit.
-     + destruct q, p. rewrite <- proj_rewrite in x. unfold sel_fields in x.
-       inversions x.
+  Abort.
 
 
 Lemma inv_to_precise_sngl_repl_comp: forall G p q,
@@ -374,12 +365,12 @@ Qed.
 
 Lemma inv_to_precise_sngl: forall G p q,
     inert G ->
+    wf_env G ->
     G ⊢## p: typ_sngl q ->
     exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
 Proof.
-  introv Hi Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
-
-  destruct (sngl_typed3 Hi Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
+  introv Hi Hwf Hp. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
+  destruct (sngl_typed3 Hi Hwf Hpr) as [U Hru]. destruct (pt2_exists Hru) as [U' Hru'].
   exists r. split*. apply* repl_comp_to_prec.
 Qed.
 
