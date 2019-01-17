@@ -43,38 +43,6 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** * Preservation *)
 
-Reserved Notation "p '==>' T '=' bs '=>' U" (at level 40, T at level 10).
-
-Inductive lookup_typ : path -> typ -> list trm_label -> typ -> Prop :=
-| lt_empty p T :
-    p ==> T =nil=> T
-| lt_fld p T V a bs S :
-    p•a ==> T =bs=> V ->
-    record_has (open_typ_p p S) { a ⦂ T } ->
-    p   ==> typ_bnd S =a::bs=> V
-where "p '==>' T '=' bs '=>' U" := (lookup_typ p T bs U).
-
-Hint Constructors lookup_typ.
-
-Lemma pf_to_lookup_typ G x bs T U V :
-  inert (G & x ~ V) ->
-  G & x ~ V ⊢! p_sel (avar_f x) bs : T ⪼ U ->
-  pvar x ==> V =bs=> T.
-Proof.
-  intros Hi Hp. dependent induction Hp; eauto.
-  - apply binds_push_eq_inv in H0 as ->. auto.
-  - simpl_dot.
-    pose proof (pf_bnd_T2 Hi Hp) as [S ->]. rename f into bs.
-    apply pf_record_has_U in Hp; auto.
-    specialize (IHHp _ _ _ _ Hi JMeq_refl eq_refl).
-    inversions IHHp; eauto.
-    eapply lt_fld.
-    + eapply lt_fld.
-
-    pose proof (lookup_typ_follow IHHp) as Hp'. simpl in *. rewrite List.app_nil_r in Hp'.
-     apply lt_bnd in Hp'.
-
-
 Lemma pf_sngl G x bs T U a :
   inert G ->
   G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
@@ -84,44 +52,6 @@ Proof.
   - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
     pose proof (pf_bnd_T2 Hi Hp) as [S ->]. eauto.
   - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
-Qed.
-
-Lemma def_wf z P G D d :
-  inert G ->
-  wf_env G ->
-  z # G ->
-  z; nil; P; G & z ~ open_typ z (typ_rcd D) ⊢ open_def z d : open_dec z D ->
-  wf_env (G & z ~ open_typ z (typ_rcd D)).
-Proof.
-  intros Hi Hwf Hz Hds. constructor*. introv Hp.
-  dependent induction Hds.
-  - destruct d; inversions x1. destruct D; inversions x.
-    rename x0 into x. rename t0 into T. rename t2 into U. rename t3 into V. rename t1 into A.
-    false. admit.
-  - destruct d; inversions x1. destruct d; inversions H3. destruct v; inversions H2.
-    destruct D; inversions x. rename x0 into x. rename t into a. rename t3 into T.
-    admit.
-  - destruct d; inversions x1. destruct D; inversions x. destruct t1; inversions H4.
-    destruct d; inversions H3. destruct v; inversions H2.
-    rename t0 into a. rename x0 into x. rename t1 into T. admit.
-  - destruct D; inversions x. destruct d; inversions x1. destruct t0; inversions H4.
-    destruct p; inversions H3. destruct d; inversions H5. destruct p; inversions H3.
-    rename x0 into x. rename a into z. rename f0 into a. rename a0 into z'. rename t1 into b. admit.
-Admitted.
-
-Lemma defs_wf z P G T ds U :
-  inert G ->
-  wf_env G ->
-  z # G ->
-  z; nil; P; G & z ~ U ⊢ open_defs z ds :: open_typ z T ->
-  (* record_sub U T or something -- subtyping/narrowing doesn't work *)
-  wf_env (G & z ~ U).
-Proof.
-  intros Hi Hwf Hz Hds.
-  dependent induction Hds; destruct T; inversions x.
-  - destruct ds; inversions x1. destruct ds; inversions H1.
-    admit.
-  - destruct T2; inversions H3. destruct ds; inversions x1. eauto.
 Qed.
 
 Lemma val_typing G x v T :
@@ -141,7 +71,7 @@ Proof.
     + apply pf_sngl in Hp as [? [? [=]%pf_binds%binds_push_eq_inv]]; auto.
   - exists (typ_bnd T). repeat split*. pick_fresh z. assert (z \notin L) as Hz by auto.
     specialize (H z Hz). assert (z # G) as Hz' by auto.
-    pose proof (defs_wf _ _ Hi Hwf Hz' H). admit.
+    admit.
   - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eauto.
 Qed.
 
@@ -211,7 +141,7 @@ Proof.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
     eapply renaming_typ; eauto. eauto. eauto.
   - Case "ty_let".
-    destruct t; try solve [solve_let].∉
+    destruct t; try solve [solve_let].
      + SCase "[t = (let x = v in u)] where v is a value".
       repeat invert_red.
       match goal with

@@ -97,39 +97,36 @@ Lemma sngl_replacement: forall G p q n T U,
 Proof.
   introv Hi Hwf Hp Hr.
   lets Hc: (replacement_closure Hi Hwf Hp).
-  lets Hri: (repl_to_invertible_sngl_repl_comp Hi Hc). destruct Hri as [V [Hrc Hpt]].
-  destruct (repl_comp_sngl_inv1 Hrc) as [r Heq]. inversions Heq.
-  destruct (inv_to_precise_sngl_repl_comp Hpt) as [r' [Ht Hrc']].
-  destruct (sngl_typed3 Hi Hwf Ht) as [V Hst].
-  destruct (repl_composition_sngl Hi Hwf Hrc' Hst) as [Heq | Hpq].
-  - subst. destruct (repl_composition_sngl2 Hi Hwf Hrc Hst).
-    * subst. split. eauto. apply repl_swap in Hr. eauto.
-    * split.
-      ** destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-         apply subtyp_trans_t with (T:=S); eauto.
-      ** apply repl_swap in Hr.
-         destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-         apply subtyp_trans_t with (T:=S); eauto.
-  - destruct (sngl_typed3 Hi Hwf Hpq) as [T' Ht'].
-    destruct (repl_composition_sngl2 Hi Hwf Hrc Ht').
-    * subst. split.
-      ** destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
-         apply subtyp_trans_t with (T:=S); eauto.
-      ** apply repl_swap in Hr.
-         destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
-         apply subtyp_trans_t with (T:=S); eauto.
-    * destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
-      split.
-      ** apply subtyp_trans_t with (T:=S). eauto.
-         destruct (repl_insert r Hr2) as [S' [Hr1' Hr2']].
-         apply subtyp_trans_t with (T:=S'); eauto.
-      ** apply repl_swap in Hr. destruct (repl_insert r Hr) as [S' [Hr1' Hr2']].
-         apply subtyp_trans_t with (T:=S'). eauto.
-         destruct (repl_insert r' Hr2') as [S'' [Hr1'' Hr2'']].
-         apply subtyp_trans_t with (T:=S''); eauto.
+  pose proof (repl_to_invertible_sngl Hi Hwf Hc) as [r [Hpt [-> | Hpq]]];
+    pose proof (inv_to_precise_sngl Hi Hwf Hpt) as [r' [Ht [-> | Hrc']]].
+  - split. eauto. apply repl_swap in Hr. eauto.
+  - split.
+    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+      eapply subtyp_sngl_pq_t. eapply pt3_sngl_trans3. apply Ht. eauto. eauto.
+    + destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=S).
+      * apply repl_swap in Hr2. eauto.
+      * apply repl_swap in Hr1. eauto.
+  - split.
+    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+      eapply subtyp_trans_t; eauto.
+    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=S).
+      apply repl_swap in Hr2. eauto. apply repl_swap in Hr1. eauto.
+  - split.
+    + destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=S).
+      * eauto.
+      * destruct (repl_insert r Hr2) as [S' [Hr1' Hr2']].
+        apply subtyp_trans_t with (T:=S'); eauto.
+    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=S).
+      * apply repl_swap in Hr2. eauto.
+      * destruct (repl_insert r' Hr1) as [S' [Hr1' Hr2']].
+        apply subtyp_trans_t with (T:=S').
+        ** apply repl_swap in Hr2'. eauto.
+        ** apply repl_swap in Hr1'. eauto.
 Qed.
-
-
 
 (** * General to Tight [⊢ to ⊢#] *)
 (** The following lemma corresponds to Theorem 3.3 in the paper.
