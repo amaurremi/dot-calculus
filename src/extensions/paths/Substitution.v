@@ -230,9 +230,6 @@ Proof.
     eapply ty_path_elim; try (rewrite <- sel_fields_subst); auto.
   - Case "ty_rec_intro".
     constructor. rewrite* <- subst_open_commut_typ_p.
-  - Case "ty_def_all".
-    subst_tydef_solver.
-    constructor*. apply* inert_subst.
   - Case "ty_def_new".
     specialize (H _ _ _ _ _ _ eq_refl H1 H2 H3 eq_refl H5 H6 eq_refl).
     assert (named_path (p_sel (avar_f p_x) p_bs)) as Hn by repeat eexists.

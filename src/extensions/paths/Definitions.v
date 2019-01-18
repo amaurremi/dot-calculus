@@ -650,10 +650,9 @@ with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
 (** [G ⊢ lambda(T)t: U]                     #<br>#
     [―――――――――――――――――――――――――――――――――――――] #<br>#
     [x; bs; P; G ⊢ {b = lambda(T)t: U}: {b: T}] *)
- | ty_def_all : forall x bs P G T t b U,
-    G ⊢ trm_val (val_lambda T t) : U ->
-    inert_typ U ->
-    x; bs; P; G ⊢ { b :=v val_lambda T t } : { b ⦂ U }
+ | ty_def_all : forall x bs P G T t b U V,
+    G ⊢ trm_val (val_lambda T t) : typ_all U V ->
+    x; bs; P; G ⊢ { b :=v val_lambda T t } : { b ⦂ typ_all U V }
 
 (** [x; (b, bs); P; G ⊢ ds^p.b: T^p.b]             #<br>#
     [―――――――――――――――――――――――――――――――――――――] #<br>#

@@ -1,6 +1,6 @@
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality.
+Require Import Coq.Program.Equality List.
 Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
             OperationalSemantics PreciseTyping RecordAndInertTypes Subenvironments Substitution Weakening.
@@ -58,7 +58,7 @@ Lemma def_typing_rhs z bs P G a t q :
       z; bs; P; G ⊢ {a := t} : {a ⦂ typ_sngl q} ->
       exists T, G ⊢ trm_path q : T.
 Proof.
-  intros Hd. dependent induction Hd; eauto. inversion H0.
+  intros Hd. dependent induction Hd; eauto.
 Qed.
 
 Reserved Notation "x '==>' T '=' bs '=>' U" (at level 40, T at level 20).
@@ -74,7 +74,6 @@ Inductive lookup_fields_typ : var -> typ -> list trm_label -> typ -> Prop :=
 where "x '==>' T '=' bs '=>' U" := (lookup_fields_typ x T bs U).
 
 Hint Constructors lookup_fields_typ.
-
 
 Lemma pf_to_lft G x bs T S U :
   inert (G & x ~ T) ->
@@ -113,11 +112,27 @@ Lemma lft_typ_dec_inv x S bs A T U cs V :
   cs = nil.
 Proof.
   gen x S bs A T U V. induction cs; introv Hl1 Hl2; auto.
-  rewrite <- List.app_comm_cons in Hl2.
+  rewrite <- app_comm_cons in Hl2.
   inversions Hl2. specialize (IHcs _ _ _ _ _ _ _ Hl1 H3) as ->.
-  rewrite List.app_nil_l in H3.
+  rewrite app_nil_l in H3.
   assert (U0 = typ_rcd {A >: T <: U}) as -> by admit.
   inversions H5.
+Qed.
+
+Lemma lft_trm_dec_inv x S bs T cs V :
+  inert_typ S ->
+  x ==> S =bs=> T ->
+  x ==> S =cs++bs=> V ->
+                 (cs = nil /\ T = V) \/
+                 (exists a bs, cs = (a :: bs)%list /\ exists U, T = typ_bnd U).
+Proof.
+  gen x S bs T V. induction cs; introv Hi Hl1 Hl2; auto.
+  - rewrite app_nil_l in *. left. split*. eapply lft_unique; eauto.
+  - rewrite <- app_comm_cons in *. inversions Hl2.
+    specialize (IHcs _ _ _ _ _ Hi Hl1 H3) as [[-> ->] | [b [ds [-> [W ->]]]]].
+    + rewrite app_nil_l in *. clear H3. right. repeat eexists.
+    + rewrite <- app_comm_cons in *. inversions H3.
+      assert (W = U0) as -> by admit. right. repeat eexists.
 Qed.
 
 Lemma defs_typing_rhs z bs P G ds T a q U S cs :
@@ -125,19 +140,21 @@ Lemma defs_typing_rhs z bs P G ds T a q U S cs :
   inert_typ S ->
   z ==> S =bs=> typ_bnd T ->
   z ==> S =cs++bs=> typ_bnd U ->
-  record_has (open_typ_p (p_sel (avar_f z) (cs++bs)%list) U) {a ⦂ typ_sngl q} ->
+  record_has (open_typ_p (p_sel (avar_f z) (cs++bs)) U) {a ⦂ typ_sngl q} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
   induction 1; intros Hin Hl1 Hl2 Hr; eauto.
   - destruct D; inversions H.
     + pose proof (lft_typ_dec_inv _ Hl1 Hl2) as ->.
-      rewrite List.app_nil_l in Hl2.
+      rewrite app_nil_l in Hl2.
       pose proof (lft_unique Hin Hl1 Hl2) as [= <-].
       inversion Hr.
-    + admit. (*todo
+    + pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
+      * rewrite app_nil_l in *. inversion Hr.
+      * admit. (* I can do that *)
+    + rename t into b.
 
-        change lambda def rule to make U forall type*)
-    +
+
 
 
 
