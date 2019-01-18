@@ -107,16 +107,43 @@ Proof.
 Qed.
 
 Lemma lft_typ_dec_inv x S bs A T U cs V :
+  inert_typ S ->
   x ==> S =bs=> typ_bnd (typ_rcd {A >: T <: U}) ->
   x ==> S =cs++bs=> V ->
   cs = nil.
 Proof.
-  gen x S bs A T U V. induction cs; introv Hl1 Hl2; auto.
+  gen x S bs A T U V. induction cs; introv Hin Hl1 Hl2; auto.
   rewrite <- app_comm_cons in Hl2.
-  inversions Hl2. specialize (IHcs _ _ _ _ _ _ _ Hl1 H3) as ->.
+  inversions Hl2. specialize (IHcs _ _ _ _ _ _ _ Hin Hl1 H3) as ->.
   rewrite app_nil_l in H3.
-  assert (U0 = typ_rcd {A >: T <: U}) as -> by admit.
+  pose proof (lft_unique Hin Hl1 H3) as [= <-].
   inversions H5.
+Qed.
+
+Lemma lft_typ_all_inv x S bs cs V T U:
+  inert_typ S ->
+  x ==> S =bs=> typ_all T U ->
+  x ==> S =cs++bs=> V ->
+  cs = nil.
+Proof.
+  gen x S bs T U V. induction cs; introv Hin Hl1 Hl2; auto.
+  rewrite <- app_comm_cons in Hl2.
+  inversions Hl2. specialize (IHcs _ _ _ _ _ _ Hin Hl1 H3) as ->.
+  rewrite app_nil_l in H3.
+  pose proof (lft_unique Hin Hl1 H3) as [= <-].
+Qed.
+
+Lemma lft_typ_sngl_inv x S bs p cs V :
+  inert_typ S ->
+  x ==> S =bs=> typ_sngl p ->
+  x ==> S =cs++bs=> V ->
+  cs = nil.
+Proof.
+  gen x S bs p V. induction cs; introv Hin Hl1 Hl2; auto.
+  rewrite <- app_comm_cons in Hl2.
+  inversions Hl2. specialize (IHcs _ _ _ _ _ Hin Hl1 H3) as ->.
+  rewrite app_nil_l in H3.
+  pose proof (lft_unique Hin Hl1 H3) as [= <-].
 Qed.
 
 Lemma lft_trm_dec_inv x S bs T cs V :
@@ -131,37 +158,168 @@ Proof.
   - rewrite <- app_comm_cons in *. inversions Hl2.
     specialize (IHcs _ _ _ _ _ Hi Hl1 H3) as [[-> ->] | [b [ds [-> [W ->]]]]].
     + rewrite app_nil_l in *. clear H3. right. repeat eexists.
-    + rewrite <- app_comm_cons in *. inversions H3.
-      assert (W = U0) as -> by admit. right. repeat eexists.
+    + rewrite <- app_comm_cons in *. inversions H3. right. repeat eexists.
 Qed.
 
+Lemma lft_fld_unique S x a T cs bs U :
+  inert_typ S ->
+  x ==> S =bs=> typ_bnd (typ_rcd {a ⦂ T}) ->
+  x ==> S =cs++bs=> U ->
+  cs = nil \/ exists cs', cs = cs' ++ a :: nil.
+Proof.
+  intros Hin Hl1 Hl2. gen S x a T bs U. induction cs; introv Hin; introv Hl1; introv Hl2; eauto.
+  rewrite <- app_comm_cons in *. inversions Hl2.
+  specialize (IHcs _ Hin _ _ _ _ Hl1 _ H3) as [-> | [cs' ->]]; eauto.
+  - right. repeat eexists. rewrite app_nil_l in *.
+    pose proof (lft_unique Hin Hl1 H3) as [= <-]. inversion* H5.
+  - right. exists (a :: cs'). rewrite* app_comm_cons.
+Qed.
+
+Lemma app_nil_cons {A} (cs bs : list A) c : (cs ++ c :: nil) ++ bs = cs ++ c :: bs.
+Proof.
+  gen c bs. induction cs; introv; auto.
+  rewrite <- app_comm_cons. rewrite <- app_comm_cons. rewrite IHcs. auto.
+Qed.
+
+Lemma lfs_defs_typing : forall cs z bs P G ds T S U,
+  z; bs; P; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
+  inert_typ S ->
+  z ==> S =bs=> typ_bnd T ->
+  z ==> S =cs++bs=> typ_bnd U ->
+  exists ds', z; (cs++bs); P; G ⊢ ds' :: open_typ_p (p_sel (avar_f z) (cs++bs)) U.
+Proof.
+  induction cs; introv Hds Hin Hl1 Hl2.
+  - rewrite app_nil_l in*. pose proof (lft_unique Hin Hl1 Hl2) as [= ->]. eauto.
+  - rewrite <- app_comm_cons in *. inversions Hl2.
+    specialize (IHcs _ _ _ _ _ _ _ _ Hds Hin Hl1 H3) as [ds' Hds'].
+    pose proof (record_has_ty_defs Hds' H5) as [d [Hdh Hd]].
+    inversions Hd. eauto.
+Qed.
+
+(*Lemma defs_typing_rhs z bs P G d D a q U S cs T :
+  z; bs; P; G ⊢ d : open_dec_p (p_sel (avar_f z) bs) D ->
+  inert_typ S ->
+  z ==> S =bs=> typ_bnd T ->
+  record_has T D ->
+  z ==> S =cs++bs=> typ_bnd U ->
+  record_has (open_typ_p (p_sel (avar_f z) (cs++bs)) U) {a ⦂ typ_sngl q} ->
+  exists W, G ⊢ trm_path q : W.
+Proof.
+  intros Hds Hin Hl1 Hl2 Hr. inversions Hds.
+  - destruct D; inversions H.
+    + Case "def_typ".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (lft_typ_dec_inv _ Hin Hl1 Hl2) as ->.
+      rewrite app_nil_l in Hl2.
+      pose proof (lft_unique Hin Hl1 Hl2) as [= <-].
+      inversion Hr.
+    + Case "def_all".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
+      * rewrite app_nil_l in *. destruct t2; inversions H2. inversion Hr.
+      * destruct t2; inversions H2.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [cs Heq]].
+        rewrite Heq in Hl2.
+        eapply lft_cons in Hl1; try solve [constructor].
+        rewrite app_nil_cons in Hl2.
+        pose proof (lft_typ_all_inv _ Hin Hl1 Hl2) as ->.
+        rewrite app_nil_l in *.
+        pose proof (lft_unique Hin Hl1 Hl2) as [=].
+    + Case "def_new".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (ty_def_new _ eq_refl H8 H9).
+      destruct cs as [|c cs].
+      * rewrite app_nil_l in *.  pose proof (lft_unique Hin Hl1 Hl2) as [= <-].
+        destruct t1; inversions H2.
+        inversion Hr.
+      * destruct t1; inversions H2.
+        rename x0 into x. rename t0 into b. rename t1 into T.
+        assert (x ==> S =b::bs=> open_typ_p (p_sel (avar_f x) bs) (typ_bnd T)) as Hl1'. {
+          eapply lft_cons. eauto. constructor*.
+        }
+        unfold open_typ_p in Hl1'. simpl in Hl1'.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [es Heq]].
+        rewrite Heq in *. rewrite app_nil_cons in Hl2, Hr.
+        pose proof (lfs_defs_typing _ H9 Hin Hl1' Hl2) as [ds' Hds'].
+        pose proof (record_has_ty_defs Hds' Hr) as [d [Hdh Hd]].
+        inversions Hd. eauto.
+    + Case "def_path".
+      pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
+      * rewrite app_nil_l in *.
+        destruct T; inversions x. destruct d; inversions H0. destruct t1; inversions H4.
+        unfold open_typ_p in Hr. simpl in Hr. inversions Hr. rewrite <- H0. eauto.
+      * destruct T; inversions x. destruct d; inversions H0. destruct t1; inversions H4.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [cs Heq]].
+        rewrite Heq in Hl2.
+        eapply lft_cons in Hl1; try solve [constructor].
+        rewrite app_nil_cons in Hl2.
+        pose proof (lft_typ_sngl_inv _ Hin Hl1 Hl2) as ->.
+        rewrite app_nil_l in *.
+        pose proof (lft_unique Hin Hl1 Hl2) as [=].
+  - admit.
+Qed.*)
+
 Lemma defs_typing_rhs z bs P G ds T a q U S cs :
-  z; bs; P; G ⊢ ds :: T ->
+  z; bs; P; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
   inert_typ S ->
   z ==> S =bs=> typ_bnd T ->
   z ==> S =cs++bs=> typ_bnd U ->
   record_has (open_typ_p (p_sel (avar_f z) (cs++bs)) U) {a ⦂ typ_sngl q} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
-  induction 1; intros Hin Hl1 Hl2 Hr; eauto.
+  intros Hds Hin Hl1 Hl2 Hr.
+  gen S a q U cs. dependent induction Hds; introv Hin Hl1; introv Hl2 Hr.
   - destruct D; inversions H.
-    + pose proof (lft_typ_dec_inv _ Hl1 Hl2) as ->.
+    + Case "def_typ".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (lft_typ_dec_inv _ Hin Hl1 Hl2) as ->.
       rewrite app_nil_l in Hl2.
       pose proof (lft_unique Hin Hl1 Hl2) as [= <-].
       inversion Hr.
-    + pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
-      * rewrite app_nil_l in *. inversion Hr.
-      * admit. (* I can do that *)
-    + rename t into b.
-
-
-
-
-
-  - destruct D; inversions Hr. inversions H. inversion H8. apply* def_typing_rhs.
-  - inversions Hr; eauto. inversions H5. inversions H0.
-    + inversion H10.
-    + eauto.
+    + Case "def_all".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
+      * rewrite app_nil_l in *. destruct t2; inversions H2. inversion Hr.
+      * destruct t2; inversions H2.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [cs Heq]].
+        rewrite Heq in Hl2.
+        eapply lft_cons in Hl1; try solve [constructor].
+        rewrite app_nil_cons in Hl2.
+        pose proof (lft_typ_all_inv _ Hin Hl1 Hl2) as ->.
+        rewrite app_nil_l in *.
+        pose proof (lft_unique Hin Hl1 Hl2) as [=].
+    + Case "def_new".
+      destruct T; inversions x. destruct d; inversions H0.
+      pose proof (ty_def_new _ eq_refl H8 H9).
+      destruct cs as [|c cs].
+      * rewrite app_nil_l in *.  pose proof (lft_unique Hin Hl1 Hl2) as [= <-].
+        destruct t1; inversions H2.
+        inversion Hr.
+      * destruct t1; inversions H2.
+        rename x0 into x. rename t0 into b. rename t1 into T.
+        assert (x ==> S =b::bs=> open_typ_p (p_sel (avar_f x) bs) (typ_bnd T)) as Hl1'. {
+          eapply lft_cons. eauto. constructor*.
+        }
+        unfold open_typ_p in Hl1'. simpl in Hl1'.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [es Heq]].
+        rewrite Heq in *. rewrite app_nil_cons in Hl2, Hr.
+        pose proof (lfs_defs_typing _ H9 Hin Hl1' Hl2) as [ds' Hds'].
+        pose proof (record_has_ty_defs Hds' Hr) as [d [Hdh Hd]].
+        inversions Hd. eauto.
+    + Case "def_path".
+      pose proof (lft_trm_dec_inv _ Hin Hl1 Hl2) as [[-> [= <-]] | [b [ds [-> [W [= <-]]]]]].
+      * rewrite app_nil_l in *.
+        destruct T; inversions x. destruct d; inversions H0. destruct t1; inversions H4.
+        unfold open_typ_p in Hr. simpl in Hr. inversions Hr. rewrite <- H0. eauto.
+      * destruct T; inversions x. destruct d; inversions H0. destruct t1; inversions H4.
+        pose proof (lft_fld_unique _ Hin Hl1 Hl2) as [[=] | [cs Heq]].
+        rewrite Heq in Hl2.
+        eapply lft_cons in Hl1; try solve [constructor].
+        rewrite app_nil_cons in Hl2.
+        pose proof (lft_typ_sngl_inv _ Hin Hl1 Hl2) as ->.
+        rewrite app_nil_l in *.
+        pose proof (lft_unique Hin Hl1 Hl2) as [=].
+  - admit.
 Qed.
 
 Lemma defs_typing_rhs z bs P G ds T a q :
