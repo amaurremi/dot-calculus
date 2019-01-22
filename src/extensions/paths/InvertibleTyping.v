@@ -337,18 +337,68 @@ Proof.
   apply* invertible_repl_closure. apply* repl_swap.
 Qed.
 
+Inductive wf_env_inv : ctx -> Prop :=
+    wfe_empty : wf_env_inv empty
+  | wfe_push : forall (G : ctx) (x : var) (T : typ),
+               wf_env_inv G ->
+               x # G ->
+               (forall (bs : fields) (q : path),
+                G & x ~ T ⊢! p_sel (avar_f x) bs : typ_sngl q ⪼ typ_sngl q -> exists U, G & x ~ T ⊢## q : U) ->
+               wf_env_inv (G & x ~ T).
+
+Lemma wf_env_inv_pf_to_typed G p q :
+  inert G ->
+  wf_env_inv G ->
+  G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+  exists U, G ⊢!! q : U.
+Proof.
+  introv Hi Hwf. gen p q. induction Hwf; introv Hp.
+  - apply precise_to_general in Hp. false* typing_empty_false.
+  - pose proof (precise_to_general Hp) as [px [pbs ->]]%typed_paths_named.
+    destruct (classicT (px = x)) as [-> | Hn].
+    + specialize (H0 _ _ Hp) as [U' Hu]. clear IHHwf Hp. dependent induction Hu; eauto.
+      apply* pt2_exists.
+    + apply pf_strengthen in Hp; auto. specialize (IHHwf (inert_prefix Hi) _ _ Hp) as [U Hq].
+      exists U. apply* pt2_weaken.
+Qed.
+
+Lemma wf_env_inv_pt2_to_typed G p q :
+  inert G ->
+  wf_env_inv G ->
+  G ⊢!! p : typ_sngl q ->
+  exists U, G ⊢!! q : U.
+Proof.
+  intros Hi Hwf Hp. dependent induction Hp; eauto.
+  apply* wf_env_inv_pf_to_typed. pose proof (pf_sngl_T Hi H) as ->. eauto.
+Qed.
+
+Lemma wf_env_inv_pt3_to_typed G p q :
+  inert G ->
+  wf_env_inv G ->
+  G ⊢!!! p : typ_sngl q ->
+  exists U, G ⊢!! q : U.
+Proof.
+  intros Hi Hwf Hp. dependent induction Hp; eauto.
+  apply* wf_env_inv_pt2_to_typed.
+Qed.
+
 Lemma inv_to_precise_sngl: forall G p q,
     inert G ->
+    wf_env_inv G ->
     G ⊢## p: typ_sngl q ->
     exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
 Proof.
-  introv Hi Hp. dependent induction Hp; eauto.
+  introv Hi Hwf Hp. dependent induction Hp; eauto.
   Case "ty_sngl_pq_inv".
-  specialize (IHHp _ Hi eq_refl) as [r1 [Hr Hrq]].
+  specialize (IHHp _ Hi Hwf eq_refl) as [r1 [Hr Hrq]].
   eexists; split*. invert_repl.
   destruct Hrq as [-> | Hr1].
-  Abort.
-
+  - pose proof (wf_env_inv_pt3_to_typed Hi Hwf Hr) as [U Hq].
+    pose proof (pf_pt2_trans_inv_mult _ Hi H Hq) as ->. eauto.
+  - pose proof (wf_env_inv_pt3_to_typed Hi Hwf Hr1) as [U Hq].
+    pose proof (pf_pt2_trans_inv_mult _ Hi H Hq) as ->.
+    right. apply* pt3_sngl_trans3.
+Qed.
 
 Lemma inv_to_precise_sngl_repl_comp: forall G p q,
     G ⊢## p: typ_sngl q ->
