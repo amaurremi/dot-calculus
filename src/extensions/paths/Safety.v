@@ -85,18 +85,6 @@ where "x '==>' T '=' bs '=>' U" := (lookup_fields_typ x T bs U).
 
 Hint Constructors lookup_fields_typ.
 
-Lemma pf_to_lft G x bs T S U :
-  inert (G & x ~ T) ->
-  G & x ~ T ⊢! p_sel (avar_f x) bs : S ⪼ U ->
-  x ==> T =bs=> S.
-Proof.
-  intros Hi Hp. dependent induction Hp; eauto.
-  - apply binds_push_eq_inv in H0 as ->. auto.
-  - simpl_dot. specialize (IHHp _ _ _ _ Hi JMeq_refl eq_refl).
-    pose proof (pf_bnd_T2 Hi Hp) as [V ->].
-    econstructor; eauto. apply* pf_record_has_U.
-Qed.
-
 Lemma inert_record_has T p a U :
   inert_typ (typ_bnd T) ->
   record_has (open_typ_p p T) {a ⦂ U} ->
@@ -133,20 +121,6 @@ Proof.
     eapply unique_rcd_trm. apply* open_record_type_p. eauto. eauto.
 Qed.
 
-Lemma lft_typ_dec_inv x S bs A T U cs V :
-  inert_typ S ->
-  x ==> S =bs=> typ_bnd (typ_rcd {A >: T <: U}) ->
-  x ==> S =cs++bs=> V ->
-  cs = nil.
-Proof.
-  gen x S bs A T U V. induction cs; introv Hin Hl1 Hl2; auto.
-  rewrite <- app_comm_cons in Hl2.
-  inversions Hl2. specialize (IHcs _ _ _ _ _ _ _ Hin Hl1 H3) as ->.
-  rewrite app_nil_l in H3.
-  pose proof (lft_unique Hin Hl1 H3) as [= <-].
-  inversions H5.
-Qed.
-
 Lemma lft_typ_all_inv x S bs cs V T U:
   inert_typ S ->
   x ==> S =bs=> typ_all T U ->
@@ -171,41 +145,6 @@ Proof.
   inversions Hl2. specialize (IHcs _ _ _ _ _ Hin Hl1 H3) as ->.
   rewrite app_nil_l in H3.
   pose proof (lft_unique Hin Hl1 H3) as [= <-].
-Qed.
-
-Lemma lft_trm_dec_inv x S bs T cs V :
-  inert_typ S ->
-  x ==> S =bs=> T ->
-  x ==> S =cs++bs=> V ->
-                 (cs = nil /\ T = V) \/
-                 (exists a bs, cs = (a :: bs)%list /\ exists U, T = typ_bnd U).
-Proof.
-  gen x S bs T V. induction cs; introv Hi Hl1 Hl2; auto.
-  - rewrite app_nil_l in *. left. split*. eapply lft_unique; eauto.
-  - rewrite <- app_comm_cons in *. inversions Hl2.
-    specialize (IHcs _ _ _ _ _ Hi Hl1 H3) as [[-> ->] | [b [ds [-> [W ->]]]]].
-    + rewrite app_nil_l in *. clear H3. right. repeat eexists.
-    + rewrite <- app_comm_cons in *. inversions H3. right. repeat eexists.
-Qed.
-
-Lemma lft_fld_unique S x a T cs bs U :
-  inert_typ S ->
-  x ==> S =bs=> typ_bnd (typ_rcd {a ⦂ T}) ->
-  x ==> S =cs++bs=> U ->
-  cs = nil \/ exists cs', cs = cs' ++ a :: nil.
-Proof.
-  intros Hin Hl1 Hl2. gen S x a T bs U. induction cs; introv Hin; introv Hl1; introv Hl2; eauto.
-  rewrite <- app_comm_cons in *. inversions Hl2.
-  specialize (IHcs _ Hin _ _ _ _ Hl1 _ H3) as [-> | [cs' ->]]; eauto.
-  - right. repeat eexists. rewrite app_nil_l in *.
-    pose proof (lft_unique Hin Hl1 H3) as [= <-]. inversion* H5.
-  - right. exists (a :: cs'). rewrite* app_comm_cons.
-Qed.
-
-Lemma app_nil_cons {A} (cs bs : list A) c : (cs ++ c :: nil) ++ bs = cs ++ c :: bs.
-Proof.
-  gen c bs. induction cs; introv; auto.
-  rewrite <- app_comm_cons. rewrite <- app_comm_cons. rewrite IHcs. auto.
 Qed.
 
 Lemma lfs_defs_typing : forall cs z bs P G ds T S U,

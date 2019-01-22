@@ -382,7 +382,7 @@ Proof.
   apply* wf_env_inv_pt2_to_typed.
 Qed.
 
-Lemma inv_to_precise_sngl: forall G p q,
+Lemma inv_to_precise_sngl': forall G p q,
     inert G ->
     wf_env_inv G ->
     G ⊢## p: typ_sngl q ->
@@ -430,7 +430,7 @@ Reserved Notation "G '⊢##v' v ':' T" (at level 40, v at level 59).
 
 Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
 
-(** [G ⊢• p: qs ⪼ T]  #<br>#
+(** [G ⊢ p: qs ⪼ T]  #<br>#
     [―――――――――――――――] #<br>#
     [G ⊢## p: T]     *)
 | ty_precise_invv : forall G v T,
