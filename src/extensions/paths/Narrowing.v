@@ -51,12 +51,12 @@ Lemma narrow_rules:
   (forall G t T, G ⊢ t : T -> forall G',
     G' ⪯ G ->
     G' ⊢ t : T)
-/\ (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G',
+/\ (forall z bs G d D, z; bs; G ⊢ d : D -> forall G',
     G' ⪯ G ->
-    z; bs; P; G' ⊢ d : D)
-/\ (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G',
+    z; bs; G' ⊢ d : D)
+/\ (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G',
     G' ⪯ G ->
-    z; bs; P; G' ⊢ ds :: T)
+    z; bs; G' ⊢ ds :: T)
 /\ (forall G S U, G ⊢ S <: U -> forall G',
     G' ⪯ G ->
     G' ⊢ S <: U).
@@ -91,10 +91,10 @@ Proof.
   intros. apply* narrow_rules.
 Qed.
 
-Lemma narrow_defs: forall G G' ds T z bs P,
-    z; bs; P; G ⊢ ds :: T ->
+Lemma narrow_defs: forall G G' ds T z bs,
+    z; bs; G ⊢ ds :: T ->
     G' ⪯ G ->
-    z; bs; P; G' ⊢ ds :: T.
+    z; bs; G' ⊢ ds :: T.
 Proof.
   intros. apply* narrow_rules.
 Qed.

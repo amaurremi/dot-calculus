@@ -51,13 +51,13 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     G ⊢# trm_path q : S ->
     G ⊢# trm_app p q : open_typ_p q T
 
-(** [z; P; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
+(** [z; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
     [z fresh]                          #<br>#
     [―――――――――――――――――――――――――――――――]  #<br>#
     [G ⊢# nu(T)ds :: mu(T)]             *)
-| ty_new_intro_t : forall G P ds T L,
+| ty_new_intro_t : forall G ds T L,
     (forall z, z \notin L ->
-      z; nil; P; G & (z ~ open_typ z T) ⊢ open_defs z ds :: open_typ z T) ->
+      z; nil; G & (z ~ open_typ z T) ⊢ open_defs z ds :: open_typ z T) ->
     G ⊢# trm_val (val_new T ds) : typ_bnd T
 
 (** [G ⊢# p: {a: T}] #<br>#

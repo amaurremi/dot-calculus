@@ -164,10 +164,6 @@ Definition defs_hasnt(ds: defs)(l: label) := get_def l ds = None.
 (** Typing environment ([G]) *)
 Definition ctx := env typ.
 
-(** A list of field paths, representing a list of paths
-    that start with the same variable. *)
-Definition paths := list fields.
-
 (** The sequence of variable-to-value let bindings, [(let x = v in)*],
      is represented as a value environment that maps variables to values: *)
 Definition sta := env val.
@@ -522,21 +518,10 @@ Inductive inert : ctx -> Prop :=
 
 Reserved Notation "G '⊢' t ':' T" (at level 40, t at level 59).
 Reserved Notation "G '⊢' T '<:' U" (at level 40, T at level 59).
-Reserved Notation "x ';' bs ';' P ';' G '⊢' d ':' D"
-         (at level 40, bs at level 39, P at level 39, G at level 39, d at level 59).
-Reserved Notation "x ';' bs ';' P ';' G '⊢' ds '::' D"
-         (at level 40, bs at level 39, P at level 39, G at level 39, ds at level 59).
-(* Reserved Notation "P '⊢' p '<' q" (at level 40, p at level 59). *)
-
-Definition uniq := TLC.LibList.noduplicates.
-
-Inductive path_precedes : paths -> fields -> fields -> Prop :=
-| pp: forall P P1 P2 p q,
-    P = app P1 P2 ->
-    uniq P ->
-    In q P1 ->
-    In p P2 ->
-    path_precedes P p q.
+Reserved Notation "x ';' bs ';' G '⊢' d ':' D"
+         (at level 40, bs at level 39, G at level 39, d at level 59).
+Reserved Notation "x ';' bs ';' G '⊢' ds '::' D"
+         (at level 40, bs at level 39, G at level 39, ds at level 59).
 
 (** ** Term typing [G ⊢ t: T] *)
 Inductive ty_trm : ctx -> trm -> typ -> Prop :=
@@ -567,13 +552,13 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
     G ⊢ trm_path q : S ->
     G ⊢ trm_app p q : open_typ_p q T
 
-(** [z; P; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
+(** [z; G, z: T^z ⊢ ds^z :: T^z]    #<br>#
     [z fresh]                          #<br>#
     [―――――――――――――――――――――――――――――――]  #<br>#
     [G ⊢ nu(T)ds :: mu(T)]             *)
-| ty_new_intro : forall L G T ds P,
+| ty_new_intro : forall L G T ds,
     (forall z, z \notin L ->
-      z; nil; P; G & (z ~ open_typ z T) ⊢ open_defs z ds :: open_typ z T) ->
+      z; nil; G & (z ~ open_typ z T) ⊢ open_defs z ds :: open_typ z T) ->
     G ⊢ trm_val (val_new T ds) : typ_bnd T
 
 (** [G ⊢ p: {a: T}] #<br>#
@@ -641,61 +626,59 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
     G ⊢ t : U
 where "G '⊢' t ':' T" := (ty_trm G t T)
 
-(** ** Single-definition typing [x; bs; P; G ⊢ d: D] *)
-with ty_def : var -> fields -> paths -> ctx -> def -> dec -> Prop :=
+(** ** Single-definition typing [x; bs; G ⊢ d: D] *)
+with ty_def : var -> fields -> ctx -> def -> dec -> Prop :=
 (** [x; bs; G ⊢ {A = T}: {A: T..T}]   *)
-| ty_def_typ : forall x bs P G A T,
-    x; bs; P; G ⊢ def_typ A T : { A >: T <: T }
+| ty_def_typ : forall x bs G A T,
+    x; bs; G ⊢ def_typ A T : { A >: T <: T }
 
 (** [G ⊢ lambda(T)t: U]                     #<br>#
     [―――――――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ {b = lambda(T)t: U}: {b: T}] *)
- | ty_def_all : forall x bs P G T t b U V,
+    [x; bs; G ⊢ {b = lambda(T)t: U}: {b: T}] *)
+ | ty_def_all : forall x bs G T t b U V,
     G ⊢ trm_val (val_lambda T t) : typ_all U V ->
-    x; bs; P; G ⊢ { b :=v val_lambda T t } : { b ⦂ typ_all U V }
+    x; bs; G ⊢ { b :=v val_lambda T t } : { b ⦂ typ_all U V }
 
-(** [x; (b, bs); P; G ⊢ ds^p.b: T^p.b]             #<br>#
+(** [x; (b, bs); G ⊢ ds^p.b: T^p.b]             #<br>#
     [―――――――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ {b = nu(T)ds}: {b: T}]    *)
- | ty_def_new : forall x bs b P G ds T p,
+    [x; bs; G ⊢ {b = nu(T)ds}: {b: T}]    *)
+ | ty_def_new : forall x bs b G ds T p,
      p = p_sel (avar_f x) bs ->
      inert_typ (typ_bnd T) ->
-     x; (b :: bs); P; G ⊢ open_defs_p p•b ds :: open_typ_p p•b T ->
-     x; bs; P; G ⊢ { b :=v val_new T ds } : { b ⦂ typ_bnd T }
+     x; (b :: bs); G ⊢ open_defs_p p•b ds :: open_typ_p p•b T ->
+     x; bs; G ⊢ { b :=v val_new T ds } : { b ⦂ typ_bnd T }
 
 (** if [x == head(q)] then [P ⊢ fields(q) < (b, bs)] #<br>#
     [G ⊢ q: T]                                       #<br>#
     [――――――――――――――――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ {b = q}: {b: q.type}]                 *)
- | ty_def_path : forall x bs P G q y cs b T,
+    [x; bs; G ⊢ {b = q}: {b: q.type}]                 *)
+ | ty_def_path : forall x bs G q b T,
     G ⊢ trm_path q: T ->
     inert_typ T ->
-    q = p_sel (avar_f y) cs ->
-    (x = y -> path_precedes P cs (b :: bs)) ->
-    x; bs; P; G ⊢ { b :=p q } : { b ⦂ typ_sngl q }
+    x; bs; G ⊢ { b :=p q } : { b ⦂ typ_sngl q }
 
-where "x ';' bs ';' P ';' G '⊢' d ':' D" := (ty_def x bs P G d D)
+where "x ';' bs ';' G '⊢' d ':' D" := (ty_def x bs G d D)
 
-(** ** Multiple-definition typing [x; bs; P; G ⊢ ds :: T] *)
-with ty_defs : var -> fields -> paths -> ctx -> defs -> typ -> Prop :=
-(** [x; bs; P G ⊢ d: D]                #<br>#
+(** ** Multiple-definition typing [x; bs; G ⊢ ds :: T] *)
+with ty_defs : var -> fields -> ctx -> defs -> typ -> Prop :=
+(** [x; bs; G ⊢ d: D]                #<br>#
     [――――――――――――――――――――――――――――――――] #<br>#
-    [x; bs; P; G ⊢ d ++ defs_nil : D]   *)
-| ty_defs_one : forall x bs P G d D,
-    x; bs; P; G ⊢ d : D ->
-    x; bs; P; G ⊢ defs_cons defs_nil d :: typ_rcd D
+    [x; bs; G ⊢ d ++ defs_nil : D]   *)
+| ty_defs_one : forall x bs G d D,
+    x; bs; G ⊢ d : D ->
+    x; bs; G ⊢ defs_cons defs_nil d :: typ_rcd D
 
 (** [x; bs; G ⊢ ds :: T]           #<br>#
     [x; bs; G ⊢ d: D]              #<br>#
     [d \notin ds]                  #<br>#
     [―――――――――――――――――――――――――――]  #<br>#
     [x; bs; G ⊢ ds ++ d : T /\ D]   *)
-| ty_defs_cons : forall x bs P G d ds D T,
-    x; bs; P; G ⊢ ds :: T ->
-    x; bs; P; G ⊢ d : D ->
+| ty_defs_cons : forall x bs G d ds D T,
+    x; bs; G ⊢ ds :: T ->
+    x; bs; G ⊢ d : D ->
     defs_hasnt ds (label_of_def d) ->
-    x; bs; P; G ⊢ defs_cons ds d :: typ_and T (typ_rcd D)
-where "x ';' bs ';' P ';' G '⊢' ds '::' T" := (ty_defs x bs P G ds T)
+    x; bs; G ⊢ defs_cons ds d :: typ_and T (typ_rcd D)
+where "x ';' bs ';' G '⊢' ds '::' T" := (ty_defs x bs G ds T)
 
 (** ** Subtyping [ G ⊢ T <: U] *)
 with subtyp : ctx -> typ -> typ -> Prop :=

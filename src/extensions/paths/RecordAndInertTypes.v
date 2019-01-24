@@ -19,15 +19,15 @@ Require Import Definitions Binding.
     [l \notin ls']                          #<br>#
     [―――――――――――――――――――――――――――――――――――]  #<br>#
     [l \notin ls] *)
-Lemma hasnt_notin : forall x bs P G ds ls l U,
-    x; bs; P; G ⊢ ds :: U ->
+Lemma hasnt_notin : forall x bs G ds ls l U,
+    x; bs; G ⊢ ds :: U ->
     record_typ U ls ->
     defs_hasnt ds l ->
     l \notin ls.
 Proof.
     Ltac inversion_def_typ :=
     match goal with
-    | H: _; _; _; _ ⊢ _ : _ |- _ => inversions H
+    | H: _; _; _ ⊢ _ : _ |- _ => inversions H
     end.
 
   introv Hds Hrec Hhasnt.
@@ -124,17 +124,17 @@ Proof.
 Qed.
 
 (** The type of definitions is a record type. *)
-Lemma ty_defs_record_type : forall z bs P G ds T,
-    z; bs; P; G ⊢ ds :: T ->
+Lemma ty_defs_record_type : forall z bs G ds T,
+    z; bs; G ⊢ ds :: T ->
     record_type T.
 Proof.
   intros. induction H; destruct D;
     repeat match goal with
         | [ H: record_type _ |- _ ] =>
           destruct H
-        | [ Hd: _; _; _; _ ⊢ _ : { _ >: _ <: _ } |- _ ] =>
+        | [ Hd: _; _; _ ⊢ _ : { _ >: _ <: _ } |- _ ] =>
           inversions Hd
-        | [ Hd: _; _; _; _ ⊢ _ : { _ ⦂ _ } |- _ ] =>
+        | [ Hd: _; _; _ ⊢ _ : { _ ⦂ _ } |- _ ] =>
           inversions Hd
     end;
     match goal with

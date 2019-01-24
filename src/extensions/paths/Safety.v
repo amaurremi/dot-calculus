@@ -54,20 +54,20 @@ Proof.
   - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
 Qed.
 
-Lemma def_typing_sngl_rhs z bs P G a t q :
-  z; bs; P; G ⊢ {a := t} : {a ⦂ typ_sngl q} ->
+Lemma def_typing_sngl_rhs z bs G a t q :
+  z; bs; G ⊢ {a := t} : {a ⦂ typ_sngl q} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
   intros Hd. dependent induction Hd; eauto.
 Qed.
 
-Lemma defs_typing_sngl_rhs z bs P G ds T a q :
-  z; bs; P; G ⊢ ds :: T ->
+Lemma defs_typing_sngl_rhs z bs G ds T a q :
+  z; bs; G ⊢ ds :: T ->
   record_has T {a ⦂ typ_sngl q} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
   induction 1; intros Hr.
-  - destruct D; inversions Hr. inversions H. apply* def_typing_sngl_rhs.
+  - destruct D; inversions Hr. inversions H. eauto.
   - inversions Hr; auto. inversions H5. inversions H0. eauto.
 Qed.
 
@@ -147,23 +147,23 @@ Proof.
   pose proof (lft_unique Hin Hl1 H3) as [= <-].
 Qed.
 
-Lemma lfs_defs_typing : forall cs z bs P G ds T S U,
-  z; bs; P; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
+Lemma lfs_defs_typing : forall cs z bs G ds T S U,
+  z; bs; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
   inert_typ S ->
   z ==> S =bs=> typ_bnd T ->
   z ==> S =cs++bs=> typ_bnd U ->
-  exists ds', z; (cs++bs); P; G ⊢ ds' :: open_typ_p (p_sel (avar_f z) (cs++bs)) U.
+  exists ds', z; (cs++bs); G ⊢ ds' :: open_typ_p (p_sel (avar_f z) (cs++bs)) U.
 Proof.
   induction cs; introv Hds Hin Hl1 Hl2.
   - rewrite app_nil_l in*. pose proof (lft_unique Hin Hl1 Hl2) as [= ->]. eauto.
   - rewrite <- app_comm_cons in *. inversions Hl2.
-    specialize (IHcs _ _ _ _ _ _ _ _ Hds Hin Hl1 H3) as [ds' Hds'].
+    specialize (IHcs _ _ _ _ _ _ _ Hds Hin Hl1 H3) as [ds' Hds'].
     pose proof (record_has_ty_defs Hds' H5) as [d [Hdh Hd]].
     inversions Hd. eauto.
 Qed.
 
-Lemma def_typing_rhs z bs P G d a q U S cs T b V :
-  z; bs; P; G ⊢ d : {b ⦂ V} ->
+Lemma def_typing_rhs z bs G d a q U S cs T b V :
+  z; bs; G ⊢ d : {b ⦂ V} ->
   inert_typ S ->
   z ==> S =bs=> typ_bnd T ->
   record_has (open_typ_p (p_sel (avar_f z) bs) T) {b ⦂ V} ->
@@ -178,11 +178,11 @@ Proof.
     rewrite app_nil_l in *.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
   - Case "def_new".
-    pose proof (ty_def_new _ eq_refl H7 H8).
+    pose proof (ty_def_new _ eq_refl H6 H7).
     assert (z ==> S =b::bs=> typ_bnd T0) as Hl1'. {
         eapply lft_cons. eauto. eauto.
     }
-    pose proof (lfs_defs_typing _ H8 Hin Hl1' Hl2) as [ds' Hds'].
+    pose proof (lfs_defs_typing _ H7 Hin Hl1' Hl2) as [ds' Hds'].
     pose proof (record_has_ty_defs Hds' Hr) as [d [Hdh Hd]].
     inversions Hd. eauto.
   - Case "def_path".
@@ -192,8 +192,8 @@ Proof.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
 Qed.
 
-Lemma defs_typing_rhs z bs P G ds T a q U S cs T' b V :
-  z; bs; P; G ⊢ ds :: T ->
+Lemma defs_typing_rhs z bs G ds T a q U S cs T' b V :
+  z; bs; G ⊢ ds :: T ->
   inert_typ S ->
   z ==> S =bs=> typ_bnd T' ->
   record_has (open_typ_p (p_sel (avar_f z) bs) T') {b ⦂ V} ->
@@ -263,7 +263,7 @@ Proof.
       assert (inert (G & x ~ typ_bnd T)) as Hi' by eauto.
       pose proof (pf_sngl_to_lft Hi' Hp) as [-> | [b [c [bs' [bs'' [U [V [-> [Hl1 [Hl2 [Hr1 Hr2]]]]]]]]]]].
       { apply pf_binds in Hp as [=]%binds_push_eq_inv; auto. }
-      assert (x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T)
+      assert (x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T)
         as Hdx%open_env_last_defs by (apply* rename_defs); eauto.
       destruct bs'' as [|bs'h bs't].
       + rewrite app_nil_l in *. inversions Hl1. inversions Hl2.

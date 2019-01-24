@@ -704,10 +704,10 @@ Qed.
     [―――――――――――――――――――――――]       #<br>#
     [exists d, ds = ... /\ d /\ ...]       #<br>#
     [G ⊢ d: D]                      *)
-Lemma record_has_ty_defs: forall z bs P G T ds D,
-  z; bs; P; G ⊢ ds :: T ->
+Lemma record_has_ty_defs: forall z bs G T ds D,
+  z; bs; G ⊢ ds :: T ->
   record_has T D ->
-  exists d, defs_has ds d /\ z; bs; P; G ⊢ d : D.
+  exists d, defs_has ds d /\ z; bs; G ⊢ d : D.
 Proof.
   introv Hdefs Hhas. induction Hdefs.
   - inversion Hhas; subst. exists d. split.
@@ -760,14 +760,14 @@ Lemma open_env_rules:
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
     G1 & x ~ typ_bnd S & G2 ⊢ t : T) /\
-  (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G1 G2 x S,
+  (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
-  (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G1 G2 x S,
+    z; bs; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
+  (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    z; bs; P; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
+    z; bs; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
@@ -782,10 +782,10 @@ Proof.
     + constructor. apply binds_subst in b; auto. apply* binds_weaken. apply* ok_middle_change.
 Qed.
 
-Lemma open_env_last_defs z bs P G x T ds U :
+Lemma open_env_last_defs z bs G x T ds U :
   ok (G & x ~ open_typ x T) ->
-  z ; bs ; P ; G & x ~ open_typ x T ⊢ ds :: U ->
-  z ; bs ; P ; G & x ~ typ_bnd T ⊢ ds :: U.
+  z ; bs ; G & x ~ open_typ x T ⊢ ds :: U ->
+  z ; bs ; G & x ~ typ_bnd T ⊢ ds :: U.
 Proof.
   intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
   rewrite* concat_empty_r.

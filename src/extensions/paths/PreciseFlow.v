@@ -92,13 +92,13 @@ Inductive ty_val_p : ctx -> val -> typ -> Prop :=
       G & x ~ T ⊢ open_trm x t : open_typ x U) ->
     G ⊢!v val_lambda T t : typ_all T U
 
-(** [x; []; P; G, x: T^x ⊢ ds^x: T^x]       #<br>#
+(** [x; []; G, x: T^x ⊢ ds^x: T^x]       #<br>#
     [x fresh]                               #<br>#
     [―――――――――――――――――――――――――――――――]       #<br>#
     [G ⊢! ν(T)ds: μ(T)]                     *)
 | ty_new_intro_p
-     : forall (L : fset var) (G : env typ) (T : typ) (ds : defs) (P : paths),
-       (forall x : var, x \notin L -> x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T) ->
+     : forall (L : fset var) (G : env typ) (T : typ) (ds : defs),
+       (forall x : var, x \notin L -> x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T) ->
        G ⊢!v val_new T ds : typ_bnd T
 
 where "G '⊢!v' v ':' T" := (ty_val_p G v T).
