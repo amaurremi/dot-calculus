@@ -866,6 +866,10 @@ Scheme repl_typ_mut := Induction for repl_typ Sort Prop
   with repl_dec_mut := Induction for repl_dec Sort Prop.
 Combined Scheme repl_mutind from repl_typ_mut, repl_dec_mut.
 
+Scheme ty_def_mut' := Induction for ty_def Sort Prop
+  with ty_defs_mut' := Induction for ty_defs Sort Prop.
+Combined Scheme ty_def_mutind from ty_def_mut', ty_defs_mut'.
+
 (** * Tactics *)
 
 (** Tactics for generating fresh variables. *)

@@ -377,6 +377,35 @@ Proof.
   apply* typed_paths_named.
 Qed.
 
+Lemma rename_ty_trm x z G1 T G2 t U:
+  x \notin fv_ctx_types (G1 & z ~ T & G2) ->
+  x # (G1 & z ~ T & G2) ->
+  G1 & z ~ T & G2 ⊢ t : U ->
+  ok (G1 & z ~ T & G2) ->
+  G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢ subst_trm z (pvar x) t : subst_typ z (pvar x) U.
+Proof.
+  intros Hx Hx' Ht Hok.
+  apply weaken_ty_trm with (G2:=x ~ subst_typ z (pvar x) T) in Ht; auto. Admitted.
+
+
+Lemma rename_def_defs :
+  (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G1 T G2 x,
+     G = G1 & z ~ T & G2 ->
+     x \notin fv_ctx_types G ->
+     x # G ->
+     x; bs; P; G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢
+                                                           subst_def z (pvar x) d : subst_dec z (pvar x) D) /\
+  (forall z bs P G ds U, z; bs; P; G ⊢ ds :: U -> forall G1 T G2 x,
+     G = G1 & z ~ T & G2 ->
+     x \notin fv_ctx_types G ->
+     x # G ->
+     x; bs; P; G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢
+                                                           subst_defs z (pvar x) ds :: subst_typ z (pvar x) U).
+Proof.
+  apply ty_def_mutind; subst; intros.
+  - constructor.
+  - Admitted.
+
 Lemma rename_defs G x P T ds z :
   x; nil; P; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
   ok (G & x ~ open_typ x T & z ~ open_typ z T) ->
