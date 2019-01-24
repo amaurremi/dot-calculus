@@ -65,6 +65,31 @@ Proof.
   apply* sel_premise_inv.
 Qed.
 
+Lemma sel_premise_fld_inv: forall G p a U,
+  inert G ->
+  G ⊢## p : typ_rcd {a ⦂ U} ->
+  exists T,
+    G ⊢!!! p : typ_rcd {a ⦂ T} /\
+    G ⊢# T <: U.
+Proof.
+  introv Hi Hp.
+  dependent induction Hp.
+  - repeat eexists; eauto.
+  - specialize (IHHp _ _ Hi eq_refl) as [S [Hp' Hs]].
+    repeat eexists; eauto.
+Qed.
+
+Lemma sel_premise_fld: forall G p a U,
+  inert G ->
+  G ⊢// p : typ_rcd {a ⦂ U} ->
+  exists T,
+    G ⊢!!! p : typ_rcd {a ⦂ T} /\
+    G ⊢# T <: U.
+Proof.
+  introv HG Hr. dependent induction Hr.
+  apply* sel_premise_fld_inv.
+Qed.
+
 (** * Sel-<: Replacement
     This lemma corresponds to Lemma 3.4 in the paper.
 
@@ -75,52 +100,61 @@ Qed.
     [G ⊢# S <: x.A]            *)
 Lemma sel_replacement: forall G p A S U,
     inert G ->
-    wf_env G ->
     G ⊢# trm_path p : typ_rcd {A >: S <: U} ->
     (G ⊢# typ_path p A <: U /\
      G ⊢# S <: typ_path p A).
 Proof.
-  introv Hi Hwf Hty.
-  pose proof (replacement_closure Hi Hwf Hty) as Hinv.
+  introv Hi Hty.
+  pose proof (replacement_closure Hi Hty) as Hinv.
   pose proof (sel_premise Hi Hinv) as [T [Ht [Hs1 Hs2]]].
   split.
   - apply subtyp_sel1_t in Ht. apply subtyp_trans_t with (T:=T); auto.
   - apply subtyp_sel2_t in Ht. apply subtyp_trans_t with (T:=T); auto.
 Qed.
 
-Lemma sngl_replacement: forall G p q n T U,
+Lemma tight_to_prec_exists G p T :
+  inert G ->
+  G ⊢# trm_path p : T ->
+  exists U, G ⊢!! p : U.
+Proof.
+  intros Hi Hp. pose proof (replacement_closure Hi Hp). clear Hp.
+  dependent induction H; eauto. dependent induction H; eauto. dependent induction H; eauto.
+Qed.
+
+Lemma sngl_replacement: forall G p q n T U S,
     inert G ->
-    wf_env G ->
     G ⊢# trm_path p: typ_sngl q ->
+    G ⊢# trm_path q : S ->
     repl_typ n p q T U ->
     G ⊢# T <: U /\ G ⊢# U <: T.
 Proof.
-  introv Hi Hwf Hp Hr.
-  lets Hc: (replacement_closure Hi Hwf Hp).
-  pose proof (repl_to_invertible_sngl Hi Hwf Hc) as [r [Hpt [-> | Hpq]]];
-    pose proof (inv_to_precise_sngl Hi Hwf Hpt) as [r' [Ht [-> | Hrc']]].
-  - split. eauto. apply repl_swap in Hr. eauto.
+  introv Hi Hp Hr.
+  apply (tight_to_prec_exists Hi) in Hr as [V Hq].
+  lets Hc: (replacement_closure Hi Hp).
+  pose proof (repl_to_invertible_sngl Hi Hc Hq) as [r [W [Hpt [Hq' [-> | Hpq]]]]];
+    pose proof (inv_to_precise_sngl Hi Hpt (pt3 Hq')) as [r' [Ht [-> | Hrc']]].
+  - split. eauto. apply repl_swap in H. eauto.
   - split.
-    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-      eapply subtyp_sngl_pq_t. eapply pt3_sngl_trans3. apply Ht. eauto. eauto.
-    + destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
-      apply subtyp_trans_t with (T:=S).
+    + destruct (repl_insert r H) as [X [Hr1 Hr2]].
+      eapply subtyp_sngl_pq_t. eapply pt3_sngl_trans3. apply Ht. eauto. eauto. eauto.
+    + destruct (repl_insert r' H) as [X [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=X).
       * apply repl_swap in Hr2. eauto.
       * apply repl_swap in Hr1. eauto.
   - split.
-    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-      eapply subtyp_trans_t; eauto.
-    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-      apply subtyp_trans_t with (T:=S).
+    + destruct (repl_insert r H) as [X [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=X); eauto.
+    + destruct (repl_insert r H) as [X [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=X).
       apply repl_swap in Hr2. eauto. apply repl_swap in Hr1. eauto.
   - split.
-    + destruct (repl_insert r' Hr) as [S [Hr1 Hr2]].
-      apply subtyp_trans_t with (T:=S).
+    + destruct (repl_insert r' H) as [X [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=X).
       * eauto.
       * destruct (repl_insert r Hr2) as [S' [Hr1' Hr2']].
         apply subtyp_trans_t with (T:=S'); eauto.
-    + destruct (repl_insert r Hr) as [S [Hr1 Hr2]].
-      apply subtyp_trans_t with (T:=S).
+    + destruct (repl_insert r H) as [X [Hr1 Hr2]].
+      apply subtyp_trans_t with (T:=X).
       * apply repl_swap in Hr2. eauto.
       * destruct (repl_insert r' Hr1) as [S' [Hr1' Hr2']].
         apply subtyp_trans_t with (T:=S').
@@ -146,7 +180,6 @@ Qed.
     [G ⊢# S <: U]         *)
 Lemma general_to_tight: forall G0,
   inert G0 ->
-  wf_env G0 ->
   (forall G t T,
      G ⊢ t : T ->
      G = G0 ->
@@ -156,17 +189,16 @@ Lemma general_to_tight: forall G0,
      G = G0 ->
      G ⊢# S <: U).
 Proof.
-  intros G0 Hi Hwf.
+  intros G0 Hi.
   apply ts_mutind; intros; subst;
     try solve [eapply sel_replacement; auto]; eauto.
-  - destruct* (sngl_replacement Hi Hwf (H eq_refl) r).
-  - apply repl_swap in r. destruct* (sngl_replacement Hi Hwf (H eq_refl) r).
+  - destruct* (sngl_replacement Hi (H eq_refl) (H0 eq_refl) r).
+  - apply repl_swap in r. destruct* (sngl_replacement Hi (H eq_refl) (H0 eq_refl) r).
 Qed.
 
 (** The general-to-tight lemma, formulated for term typing. *)
 Lemma general_to_tight_typing: forall G t T,
   inert G ->
-  wf_env G ->
   G ⊢ t : T ->
   G ⊢# t : T.
 Proof.
@@ -176,10 +208,9 @@ Qed.
 Ltac proof_recipe :=
   match goal with
   | [ Hg: ?G ⊢ _ : _,
-      Hi: inert ?G,
-      Hwf: wf_env ?G |- _ ] =>
-    apply (general_to_tight_typing Hi Hwf) in Hg;
-    ((apply (replacement_closure Hi Hwf) in Hg) || (apply (replacement_closure_v Hi Hwf) in Hg));
+      Hi: inert ?G |- _ ] =>
+    apply (general_to_tight_typing Hi) in Hg;
+    ((apply (replacement_closure Hi) in Hg) || (apply (replacement_closure_v Hi) in Hg));
     try lets Hok: (inert_ok Hi);
     try match goal with
         | [ Hr: ?G ⊢// _ : typ_all _ _,
@@ -187,8 +218,9 @@ Ltac proof_recipe :=
           destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
         | [ Hr: ?G ⊢// _ : typ_rcd _ |- _ ] =>
           destruct (repl_to_precise_fld Hi Hr) as [Spr [Hpr Hspr]]
-        | [ Hr: ?G ⊢// _ : typ_sngl _ |- _ ] =>
-          destruct (repl_to_precise_sngl Hi Hwf Hr) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]
+        | [ Hr: ?G ⊢// _ : typ_sngl ?q,
+            Hq: ?G ⊢!! ?q : _ |- _ ] =>
+          destruct (repl_to_precise_sngl Hi Hr Hq) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]
         | [ Hrv: ?G ⊢//v _ : typ_bnd _ |- _ ] =>
           apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
           apply (invertible_to_precise_obj Hi) in Hrv as [U'' [Hrv Hrc']];

@@ -99,13 +99,18 @@ Lemma named_lookup_step: forall s t p,
         s ⟦ p ⟼ t ⟧ ->
         exists x bs, p = p_sel (avar_f x) bs.
 Proof.
-  intros. Admitted.
+  intros. dependent induction H.
+  - repeat eexists; eauto.
+  - specialize (IHlookup_step _ eq_refl) as [? [? ->]]. simpl. repeat eexists; eauto.
+  - specialize (IHlookup_step _ eq_refl) as [? [? ->]]. simpl. repeat eexists; eauto.
+Qed.
 
-Lemma named_path_lookup_step: forall s t p,
+Lemma named_path_lookup_step: forall G s t p,
+        well_typed G s ->
         s ⟦ t ⟼ defp p ⟧ ->
         exists x bs, p = p_sel (avar_f x) bs.
 Proof.
-  intros. Admitted.
+  Abort.
 
 Lemma lookup_val_inv: forall s v t,
     s ⟦ defv v ⟼* t ⟧ ->
@@ -178,8 +183,11 @@ Proof.
   introv Hl Hn. gen y. dependent induction Hl; introv Hn.
   - apply star_refl.
   - destruct b; subst.
-    * lets Hnl: (named_path_lookup_step H). destruct_all. subst.
-      apply* star_trans. apply star_one. apply* lookup_step_weaken_one.
+    * destruct Hl.
+      ** apply* star_trans. apply star_one. apply* lookup_step_weaken_one. apply star_refl.
+      ** apply* star_trans. apply star_one. apply* lookup_step_weaken_one.
+         assert (exists q, a = defp q) as [q ->] by (inversions H0; eauto).
+         pose proof (named_lookup_step H0) as [? [? ->]]. eauto.
     * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_weaken_one.
 Qed.
 

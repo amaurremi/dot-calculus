@@ -28,10 +28,10 @@ Lemma repl_composition_sub G T U :
   G ⊢ U <: T /\ G ⊢ T <: U.
 Proof.
   intros Hr. dependent induction Hr; eauto.
-  destruct H as [q [r [n [Hq%precise_to_general Hrt]]]]. destruct_all.
+  destruct H as [q [r [n [S [Hq%precise_to_general [Hq' Hrt]]]]]]. destruct_all.
   split.
-  - eapply subtyp_trans. apply* subtyp_sngl_qp. auto.
-  - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eauto.
+  - eapply subtyp_trans. apply* subtyp_sngl_qp. apply* precise_to_general2. eauto.
+  - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eapply subtyp_sngl_pq; eauto. apply* precise_to_general2.
 Qed.
 
 Lemma defs_invert_trm x bs P G d a T :
@@ -66,20 +66,11 @@ Qed.
 
 Lemma pt3_exists G p T :
   inert G ->
-  wf_env G ->
   G ⊢ trm_path p : T ->
   exists U, G ⊢!!! p : U.
 Proof.
-  intros Hi Hwf Hp. dependent induction Hp; eauto.
-  - eexists; eauto.
-  - proof_recipe. apply pt3_field_elim in Hpr. eauto.
-  - specialize (IHHp1 _ Hi Hwf eq_refl) as [U Hp0]. specialize (IHHp2 _ Hi Hwf eq_refl) as [S Hq].
-    proof_recipe. proof_recipe.
-    + eexists. apply* pt3_trans2.
-    + eapply pt3_trans2 in Hq3q2; eauto. eexists. apply* pt3_trans2.
-    + eapply field_elim_q3 in Hqq2 as [W Hq3a]; eauto. eexists. apply* pt3_trans2.
-    + eapply field_elim_q3 in Hqq2 as [W Hq2a]; eauto. apply (pt3_trans2 _ Hq3q2) in Hq2a.
-      eexists. apply* pt3_trans2.
+  intros Hi Hp. apply (general_to_tight_typing Hi) in Hp.
+  apply tight_to_prec_exists in Hp as [? ?]; eauto.
 Qed.
 
 Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
@@ -154,7 +145,6 @@ Proof.
         rewrite Heq in Hi, Hwf.
         pose proof (repl_comp_trans_open (p_sel (avar_f px) f)
                                          (inert_prefix (inert_prefix Hi))
-                                         (wf_env_prefix (wf_env_prefix Hwf))
                                          Hrc) as Hrc_op.
         pose proof (repl_comp_trans_record_has Hrc_op Hr) as [V [W' [Hrh [Hrc1' Hrc2']]]].
         rewrite <- concat_empty_r in Heq at 1.
@@ -182,7 +172,7 @@ Proof.
            pose proof (repl_comp_sngl_inv1 Hrc1') as [r ->]. pose proof (repl_comp_sngl_inv2 Hrc2') as [r' ->].
            pose proof (pf_sngl_U Hp) as ->.
            pose proof (sngl_typed Hi Hwf Hp) as [V Hr'%pt3].
-           pose proof (pt3_exists Hi Hwf Hq) as [V'' Hp3].
+           pose proof (pt3_exists Hi Hq) as [V'' Hp3].
            pose proof (repl_comp_to_prec' Hi Hwf Hrc2' Hr')
              as [-> | Hpr];
              pose proof (repl_comp_to_prec' Hi Hwf Hrc1' Hp3)
@@ -372,7 +362,7 @@ Proof.
              eapply record_has_ty_defs in Hds as [d [Hdh Hds]]; eauto.
              eapply defs_invert_trm in Hds as [t ->]. unfold defs_has in *.
              simpl in *. apply* defs_has_open'. rewrite  Heq in Hi, Hwf.
-             repeat apply* inert_prefix. rewrite Heq in Hwf. repeat apply* wf_env_prefix.
+             repeat apply* inert_prefix.
            }
            eexists. rewrite proj_rewrite. eauto.
       + eauto.
@@ -681,7 +671,13 @@ Proof.
       pose proof (inert_prefix Hi) as Hi'.
       rewrite <- concat_empty_r in Heq' at 1. apply env_ok_inv'  in Heq' as [-> [-> <-]];
                                                try rewrite concat_empty_r in *; auto.
-      pose proof (named_path_lookup_step Hst) as [q'x [q'bs ->]].
+      assert (exists q'x q'bs, q' = p_sel (avar_f q'x) q'bs) as [q'x [q'bs ->]]. {
+        destruct Hrc2 as [-> | Hq'%precise_to_general3].
+        - destruct Hrc1 as [<- | Hq']; eauto.
+          pose proof (sngl_typed3 (inert_prefix Hi) (wf_env_prefix Hwf) Hq') as [? Hq''%precise_to_general3].
+          apply* typed_paths_named.
+        - apply* typed_paths_named.
+      }
       assert (q'x <> px) as Hnqy. {
         intros ->. pose proof (lookup_same_var_same_type Hi Hwf Hwt' Hst Hp'q') as [= -> ->]. false*.
       }
@@ -803,16 +799,15 @@ Qed.
     [forall fresh y, G, y: T ⊢ U'^y <: U^y] *)
 Lemma path_typ_all_to_binds: forall G p T U,
     inert G ->
-    wf_env G ->
     G ⊢ trm_path p : typ_all T U ->
     (exists L T' U',
         G ⊢!!! p : typ_all T' U' /\
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_typ y U') <: (open_typ y U))).
 Proof.
-  introv Hin Hwf Ht.
-  lets Htt: (general_to_tight_typing Hin Hwf Ht).
-  lets Hrepl: (replacement_closure Hin Hwf Htt).
+  introv Hin Ht.
+  lets Htt: (general_to_tight_typing Hin Ht).
+  lets Hrepl: (replacement_closure Hin Htt).
   destruct (repl_to_precise_typ_all Hin Hrepl) as [T' [U' [L [Hs1 [Hs2 Hs3]]]]].
   exists L T' U'. repeat split; auto.
   apply* tight_to_general.
@@ -828,14 +823,13 @@ Qed.
     [forall fresh y, G, y: T ⊢ t^y: U^y] *)
 Lemma val_typ_all_to_lambda: forall G v T U,
     inert G ->
-    wf_env G ->
     G ⊢ trm_val v : typ_all T U ->
     (exists L T' t,
         v = val_lambda T' t /\
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_trm y t) : open_typ y U)).
 Proof.
-  introv Hin Hwf Ht. proof_recipe. inversions Hvpr.
+  introv Hin Ht. proof_recipe. inversions Hvpr.
   exists (L1 \u L \u (dom G)) S1 t. repeat split~.
   intros. assert (HL: y \notin L) by auto. assert (HL0: y \notin L1) by auto.
   specialize (HS2 y HL0).
@@ -862,9 +856,9 @@ Lemma canonical_forms_fun: forall G s p T U,
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.
   introv Hin Hwf Hwt Hty.
-  destruct (path_typ_all_to_binds Hin Hwf Hty) as [L [S [T' [Hp [Hs1 Hs2]]]]].
+  destruct (path_typ_all_to_binds Hin Hty) as [L [S [T' [Hp [Hs1 Hs2]]]]].
   destruct (corresponding_types_fun Hin Hwf Hwt Hp) as [v [P Hv]].
-  destruct (val_typ_all_to_lambda Hin Hwf Hv) as [L' [S' [t [Heq [Hs1' Hs2']]]]].
+  destruct (val_typ_all_to_lambda Hin Hv) as [L' [S' [t [Heq [Hs1' Hs2']]]]].
   subst.
   exists (L \u L' \u (dom G)) S' t. repeat split~.
   - eapply subtyp_trans; eauto.
