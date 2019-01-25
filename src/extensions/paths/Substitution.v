@@ -361,13 +361,6 @@ Proof.
   apply* typed_paths_named.
 Qed.
 
-Lemma fv_ctx_types_concat (G : env typ) x T :
-  fv_ctx_types (G & x ~ T) = fv_ctx_types G \u fv_typ T.
-Proof.
-  gen x T. induction G using env_ind; intros.
-  - rewrite concat_empty_l. unfold fv_ctx_types, fv_in_values.
-Admitted.
-
 Lemma rename_ty_trm x z G1 T G2 t U:
   z \notin fv_ctx_types G1 ->
   G1 & z ~ T & G2 ⊢ t : U ->
@@ -380,7 +373,7 @@ Proof.
   }
   eapply subst_rules.
   apply H. eauto. eauto.
-  rewrite fv_ctx_types_concat. apply notin_union; split*.
+  rewrite fv_ctx_types_push_eq. apply notin_union; split*.
   apply* fresh_subst_typ_dec. simpl. intros Hin. rewrite in_singleton in Hin. subst.
   rewrite <- concat_assoc in Hok.
   apply ok_middle_inv_r in Hok. simpl_dom. apply notin_union in Hok as [C%notin_singleton _]. false*.

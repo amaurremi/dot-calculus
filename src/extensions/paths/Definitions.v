@@ -439,7 +439,8 @@ with fv_defrhs(drhs: def_rhs) : vars :=
   end.
 
 (** Free variables in the range (types) of a context *)
-Definition fv_ctx_types(G: ctx): vars := (fv_in_values (fun T => fv_typ T) G).
+Definition fv_ctx_types(G: ctx): vars :=
+  (fv_in_values (fun T => fv_typ T) G).
 Definition fv_sta_vals(s: sta): vars := (fv_in_values (fun v => fv_val v) s).
 
 (** ** Record types *)
