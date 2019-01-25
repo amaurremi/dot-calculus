@@ -361,47 +361,88 @@ Proof.
   apply* typed_paths_named.
 Qed.
 
+Lemma fv_ctx_types_concat (G : env typ) x T :
+  fv_ctx_types (G & x ~ T) = fv_ctx_types G \u fv_typ T.
+Proof.
+  gen x T. induction G using env_ind; intros.
+  - rewrite concat_empty_l. unfold fv_ctx_types, fv_in_values.
+Admitted.
+
 Lemma rename_ty_trm x z G1 T G2 t U:
-  x \notin fv_ctx_types (G1 & z ~ T & G2) ->
-  x # (G1 & z ~ T & G2) ->
+  z \notin fv_ctx_types G1 ->
   G1 & z ~ T & G2 ⊢ t : U ->
-  ok (G1 & z ~ T & G2) ->
+  ok (G1 & x ~ subst_typ z (pvar x) T & z ~ T & G2) ->
   G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢ subst_trm z (pvar x) t : subst_typ z (pvar x) U.
 Proof.
-  intros Hx Hx' Ht Hok.
-  apply weaken_ty_trm with (G2:=x ~ subst_typ z (pvar x) T) in Ht; auto. Admitted.
-
+  intros Hz Ht Hok.
+  assert (G1 & x ~ subst_typ z (pvar x) T & z ~ T & G2 ⊢ t : U). {
+    rewrite <- concat_assoc in *. apply* weaken_rules.
+  }
+  eapply subst_rules.
+  apply H. eauto. eauto.
+  rewrite fv_ctx_types_concat. apply notin_union; split*.
+  apply* fresh_subst_typ_dec. simpl. intros Hin. rewrite in_singleton in Hin. subst.
+  rewrite <- concat_assoc in Hok.
+  apply ok_middle_inv_r in Hok. simpl_dom. apply notin_union in Hok as [C%notin_singleton _]. false*.
+  constructor. apply* binds_concat_left_ok. apply ok_remove in Hok.
+  apply* ok_concat_map.
+Qed.
 
 Lemma rename_def_defs :
   (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 T G2 x,
      G = G1 & z ~ T & G2 ->
-     x \notin fv_ctx_types G ->
-     x # G ->
+     z \notin fv_ctx_types G1 ->
+     ok (G1 & x ~ subst_typ z (pvar x) T & z ~ T & G2) ->
      x; bs; G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢
                                                            subst_def z (pvar x) d : subst_dec z (pvar x) D) /\
   (forall z bs G ds U, z; bs; G ⊢ ds :: U -> forall G1 T G2 x,
      G = G1 & z ~ T & G2 ->
-     x \notin fv_ctx_types G ->
-     x # G ->
+     z \notin fv_ctx_types G1 ->
+     ok (G1 & x ~ subst_typ z (pvar x) T & z ~ T & G2) ->
      x; bs; G1 & x ~ subst_typ z (pvar x) T & subst_ctx z (pvar x) G2 ⊢
                                                            subst_defs z (pvar x) ds :: subst_typ z (pvar x) U).
 Proof.
-  apply ty_def_mutind; subst; intros.
+  apply ty_def_mutind; intros; subst.
   - constructor.
-  - Admitted.
+  - pose proof (rename_ty_trm H0 t0 H1).
+    constructor*.
+  - specialize (H _ _ _ _ eq_refl H1 H2). simpl in *. apply* ty_def_new. eapply inert_subst in i. eauto.
+    clear t.
+    rewrite subst_open_commut_defs_p in H; try repeat eexists.
+    rewrite subst_open_commut_typ_p in H; try repeat eexists.
+    unfold subst_path, subst_avar, subst_var_p in H. case_if.
+    simpl in H. rewrite List.app_nil_r in H. simpl. auto.
+  - pose proof (rename_ty_trm H0 t H1). econstructor; eauto. apply* inert_subst.
+  - constructor*.
+  - specialize (H0 _ _ _ _ eq_refl H2 H3). specialize (H _ _ _ _ eq_refl H2 H3).
+    econstructor; eauto. apply* subst_defs_hasnt. rewrite* <- subst_label_of_def.
+Qed.
 
 Lemma rename_defs G x T ds z :
+  x \notin fv_typ T ->
+  x \notin fv_defs ds ->
+  x \notin fv_ctx_types G ->
+  ok (G & z ~ subst_typ x (pvar z) (open_typ x T) & x ~ open_typ x T) ->
   x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T ->
-  ok (G & x ~ open_typ x T & z ~ open_typ z T) ->
   z; nil; G & z ~ open_typ z T ⊢ open_defs z ds :: open_typ z T.
 Proof.
-  intros Hds Hok.
-  apply weaken_ty_defs with (G2:=z ~ open_typ z T) in Hds; auto.
-  assert (z = subst_var x z z) as Heq. {
-    unfold subst_var. case_if; auto.
+  intros Hn Hn' Hn'' Hok Hx.
+  assert (G & z ~ open_typ z T = G & z ~ open_typ z T & empty) as Heq by rewrite* concat_empty_r.
+  assert (G & x ~ open_typ x T = G & x ~ open_typ x T & empty) as Heq' by rewrite* concat_empty_r.
+  rewrite Heq. rewrite Heq' in Hx. clear Heq Heq'.
+  assert (open_typ z T = subst_typ x (pvar z) (open_typ x T)) as Heq. {
+    rewrite open_var_typ_eq. unfold pvar. rewrite* <- subst_intro_typ. repeat eexists.
   }
-  rewrite Heq at 1. rewrite open_var_defs_eq, open_var_typ_eq. rewrite subst_intro_defs with (x:=x).
-  - rewrite subst_intro_typ with (x:=x).
-    + (* todo: this doesn't work, we can't use substitution for this. we need to do a mutual induction
-         and prove this from scratch. *)
-  Admitted.
+  repeat rewrite Heq.
+  assert (open_defs z ds = subst_defs x (pvar z) (open_defs x ds)) as Heq'. {
+    rewrite open_var_defs_eq. unfold pvar. rewrite* <- subst_intro_defs. repeat eexists.
+  }
+  repeat rewrite Heq'.
+  clear Heq Heq'.
+  assert (empty = subst_ctx x (pvar z) empty) as Heq. {
+    unfold subst_ctx. rewrite* map_empty.
+  }
+  rewrite Heq.
+  apply* rename_def_defs.
+  rewrite concat_empty_r. auto.
+Qed.

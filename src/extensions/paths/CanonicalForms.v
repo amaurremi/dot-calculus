@@ -116,16 +116,20 @@ Proof.
            inversions Hb; proof_recipe. { inversion Hvpr. }
            inversions Hv. pick_fresh z. assert (z \notin L) as Hz by auto.
            apply H4 in Hz. repeat eexists.
-           rewrite concat_empty_r. eauto.
-           apply open_env_last_defs; auto.
-           apply narrow_defs with (G:=G & px ~ open_typ px S).
-           assert (open_defs_p (p_sel (avar_f px) nil) ds = open_defs px ds) as -> by rewrite* open_var_defs_eq.
-           assert (open_typ_p (p_sel (avar_f px) nil) S = open_typ px S) as -> by rewrite* open_var_typ_eq.
-           apply* rename_defs. apply subenv_last; auto. apply (repl_composition_open (pvar px)) in Hrc.
-           eapply (repl_composition_open (pvar px)) in Hrc'.
-           apply subtyp_trans with (T:=open_typ px U');
-             apply repl_composition_sub in Hrc'; apply repl_composition_sub in Hrc; destruct_all;
-               repeat rewrite open_var_typ_eq in *; unfold pvar in *; auto. all: eauto.
+           +++ rewrite concat_empty_r. eauto.
+           +++ apply open_env_last_defs; auto.
+               apply narrow_defs with (G:=G & px ~ open_typ px S). {
+                 assert (open_defs_p (p_sel (avar_f px) nil) ds = open_defs px ds) as -> by rewrite* open_var_defs_eq.
+                 assert (open_typ_p (p_sel (avar_f px) nil) S = open_typ px S) as -> by rewrite* open_var_typ_eq.
+                 apply rename_defs with (x := z); auto.
+               }
+               apply subenv_last; auto. apply (repl_composition_open (pvar px)) in Hrc.
+               eapply (repl_composition_open (pvar px)) in Hrc'.
+               apply subtyp_trans with (T:=open_typ px U');
+                 apply repl_composition_sub in Hrc'; apply repl_composition_sub in Hrc; destruct_all;
+                   repeat rewrite open_var_typ_eq in *; unfold pvar in *; auto. all: auto.
+           +++ eauto.
+           +++ eauto.
         ++ left. repeat eexists. apply* weaken_ty_trm.
       + SSCase "lookup_sel_p".
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].

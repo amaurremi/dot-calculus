@@ -264,7 +264,9 @@ Proof.
       pose proof (pf_sngl_to_lft Hi' Hp) as [-> | [b [c [bs' [bs'' [U [V [-> [Hl1 [Hl2 [Hr1 Hr2]]]]]]]]]]].
       { apply pf_binds in Hp as [=]%binds_push_eq_inv; auto. }
       assert (x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T)
-        as Hdx%open_env_last_defs by (apply* rename_defs); eauto.
+        as Hdx%open_env_last_defs. {
+        apply rename_defs with (x:=z); auto.
+      }
       destruct bs'' as [|bs'h bs't].
       + rewrite app_nil_l in *. inversions Hl1. inversions Hl2.
         eapply defs_typing_sngl_rhs. apply Hdx. rewrite* open_var_typ_eq.
@@ -277,6 +279,7 @@ Proof.
         auto.
         apply Hl2.
         apply Hr2.
+      + auto.
     }
     apply pt3_exists in Hq as [? Hq'%pt2_exists]; auto.
   - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eexists; split*.

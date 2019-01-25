@@ -331,6 +331,22 @@ Proof.
   intros x y. apply typ_mutind; intros; simpls; f_equal*; apply* subst_fresh_path.
 Qed.
 
+(** - in types, declarations *)
+Lemma fresh_subst_typ_dec: forall x y,
+  (forall T : typ  , x \notin fv_path y -> x \notin fv_typ (subst_typ  x y T)) /\
+  (forall D : dec  , x \notin fv_path y -> x \notin fv_dec (subst_dec  x y D)).
+Proof.
+  intros x y. apply typ_mutind; intros; simpls; f_equal*.
+  - destruct p. destruct a; simpl; eauto. unfold subst_var_p.
+    case_if; subst.
+    + destruct y, a; simpl; eauto.
+    + simpl. intros Hin. rewrite in_singleton in Hin. false*.
+  - destruct p. destruct a; simpl; eauto. unfold subst_var_p.
+    case_if; subst.
+    + destruct y, a; simpl; eauto.
+    + simpl. intros Hin. rewrite in_singleton in Hin. false*.
+Qed.
+
 Definition subst_fresh_typ x p := proj1 (subst_fresh_typ_dec x p).
 
 (** - in terms, values, and definitions *)
