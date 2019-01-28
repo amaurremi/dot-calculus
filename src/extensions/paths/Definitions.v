@@ -75,6 +75,13 @@ with dec : Set :=
 
 Notation "'{' a '⦂' T '}'" := (dec_trm a T) (T at level 50).
 Notation "'{' A '>:' S '<:' T '}'" := (dec_typ A S T) (S at level 58).
+Notation "A '∧' B" := (typ_and A B) (at level 30).
+Notation "⊥" := typ_bot.
+Notation "⊤" := typ_top.
+Notation "'∀' T '→' U" := (typ_all T U) (at level 50).
+Notation "p '↓' A" := (typ_path p A) (at level 50).
+Notation "'μ' T" := (typ_bnd T) (at level 50).
+Notation "'{{' p '}}'" := (typ_path p).
 
 (** *** Terms
   Terms ([trm], [t], [u]), values ([val], [v]),
@@ -117,6 +124,9 @@ with defs : Set :=
 with def_rhs : Set :=
   | defp : path -> def_rhs
   | defv : val -> def_rhs.
+
+Notation "'ν' T '{' ds '}'" := (val_new T ds).
+Notation "'λ' T '→' t" := (val_lambda T t) (at level 50).
 
 Notation "'{' a ':=' t '}'" := (def_trm a t) (t at level 50).
 Notation "'{' a ':=p' p '}'" := (def_trm a (defp p)).
@@ -192,7 +202,7 @@ Fixpoint open_rec_typ (k: nat) (u: var) (T: typ): typ :=
   | typ_top        => typ_top
   | typ_bot        => typ_bot
   | typ_rcd D      => typ_rcd (open_rec_dec k u D)
-  | typ_and T1 T2  => typ_and (open_rec_typ k u T1) (open_rec_typ k u T2)
+  | T1 ∧ T2        => open_rec_typ k u T1 ∧ open_rec_typ k u T2
   | typ_path p L   => typ_path (open_rec_path k u p) L
   | typ_bnd T      => typ_bnd (open_rec_typ (S k) u T)
   | typ_all T1 T2  => typ_all (open_rec_typ k u T1) (open_rec_typ (S k) u T2)
@@ -269,7 +279,7 @@ Fixpoint open_rec_typ_p (k: nat) (u: path) (T: typ): typ :=
   | typ_top        => typ_top
   | typ_bot        => typ_bot
   | typ_rcd D      => typ_rcd (open_rec_dec_p k u D)
-  | typ_and T1 T2  => typ_and (open_rec_typ_p k u T1) (open_rec_typ_p k u T2)
+  | T1 ∧ T2        => open_rec_typ_p k u T1 ∧ open_rec_typ_p k u T2
   | typ_path p L   => typ_path (open_rec_path_p k u p) L
   | typ_bnd T      => typ_bnd (open_rec_typ_p (S k) u T)
   | typ_all T1 T2  => typ_all (open_rec_typ_p k u T1) (open_rec_typ_p (S k) u T2)
@@ -326,7 +336,7 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 Fixpoint numpaths T :=
   match T with
   | typ_rcd D => numpathsD D
-  | typ_and T1 T2 => numpaths T1 + numpaths T2
+  | T1 ∧ T2 => numpaths T1 + numpaths T2
   | typ_path _ _ => 1
   | typ_bnd T => numpaths T
   | typ_all T U => numpaths T + numpaths U
@@ -345,10 +355,10 @@ Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
     repl_typ n p q (typ_rcd D1) (typ_rcd D2)
 | rand1: forall p q T1 T2 U n,
     repl_typ n p q T1 T2 ->
-    repl_typ n p q (typ_and T1 U) (typ_and T2 U)
+    repl_typ n p q (T1 ∧ U) (T2 ∧ U)
 | rand2: forall p q T1 T2 U n,
     repl_typ n p q T1 T2 ->
-    repl_typ (numpaths U + n) p q (typ_and U T1) (typ_and U T2)
+    repl_typ (numpaths U + n) p q (U ∧ T1) (U ∧ T2)
 | rpath: forall p q bs A,
     repl_typ 0 p q (typ_path p••bs A) (typ_path q••bs A)
 | rbnd: forall p q T1 T2 n,
@@ -397,7 +407,7 @@ Fixpoint fv_typ (T: typ) : vars :=
   | typ_top        => \{}
   | typ_bot        => \{}
   | typ_rcd D      => fv_dec D
-  | typ_and T U    => (fv_typ T) \u (fv_typ U)
+  | T ∧ U          => (fv_typ T) \u (fv_typ U)
   | typ_path p L   => fv_path p
   | typ_bnd T      => fv_typ T
   | typ_all T1 T2  => (fv_typ T1) \u (fv_typ T2)
@@ -469,7 +479,7 @@ with record_typ : typ -> fset label -> Prop :=
   record_dec D ->
   l = label_of_dec D ->
   l \notin ls ->
-  record_typ (typ_and T (typ_rcd D)) (union ls \{l})
+  record_typ (T ∧ typ_rcd D) (union ls \{l})
 
 (** ** Inert types
        A type is inert if it is either a dependent function type, or a recursive type
@@ -497,10 +507,10 @@ Inductive record_has: typ -> dec -> Prop :=
     record_has (typ_rcd D) D
 | rh_andl : forall T U D,
     record_has T D ->
-    record_has (typ_and T U) D
+    record_has (T ∧ U) D
 | rh_andr : forall T U D,
     record_has U D ->
-    record_has (typ_and T U) D.
+    record_has (T ∧ U) D.
 
 (** A [record_type] is a [record_typ] with an unspecified set of labels. The meaning
     of [record_type] is an intersection of type/field declarations with distinct labels. *)
@@ -615,7 +625,7 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
 | ty_and_intro : forall G p T U,
     G ⊢ trm_path p : T ->
     G ⊢ trm_path p : U ->
-    G ⊢ trm_path p : typ_and T U
+    G ⊢ trm_path p : T ∧ U
 
 (** [G ⊢ t: T]   #<br>#
     [G ⊢ T <: U] #<br>#
@@ -678,7 +688,7 @@ with ty_defs : var -> fields -> ctx -> defs -> typ -> Prop :=
     x; bs; G ⊢ ds :: T ->
     x; bs; G ⊢ d : D ->
     defs_hasnt ds (label_of_def d) ->
-    x; bs; G ⊢ defs_cons ds d :: typ_and T (typ_rcd D)
+    x; bs; G ⊢ defs_cons ds d :: T ∧ typ_rcd D
 where "x ';' bs ';' G '⊢' ds '::' T" := (ty_defs x bs G ds T)
 
 (** ** Subtyping [ G ⊢ T <: U] *)
@@ -707,11 +717,11 @@ with subtyp : ctx -> typ -> typ -> Prop :=
 
 (** [G ⊢ T /\ U <: T] *)
 | subtyp_and11: forall G T U,
-    G ⊢ typ_and T U <: T
+    G ⊢ T ∧ U <: T
 
 (** [G ⊢ T /\ U <: U] *)
 | subtyp_and12: forall G T U,
-    G ⊢ typ_and T U <: U
+    G ⊢ T ∧ U <: U
 
 (** [G ⊢ S <: T]       #<br>#
     [G ⊢ S <: U]       #<br>#
@@ -720,7 +730,7 @@ with subtyp : ctx -> typ -> typ -> Prop :=
 | subtyp_and2: forall G S T U,
     G ⊢ S <: T ->
     G ⊢ S <: U ->
-    G ⊢ S <: typ_and T U
+    G ⊢ S <: T ∧ U
 
 (** [G ⊢ T <: U]           #<br>#
     [――――――――――――――――――――] #<br>#
