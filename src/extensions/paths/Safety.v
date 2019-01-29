@@ -46,7 +46,7 @@ Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 Lemma pf_sngl G x bs T U a :
   inert G ->
   G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
-  exists S V, G ⊢! pvar x : typ_bnd S ⪼ V.
+  exists S V, G ⊢! pvar x : μ S ⪼ V.
 Proof.
   intros Hi Hp. gen G x a T U. induction bs; introv Hi; introv Hp.
   - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
@@ -55,7 +55,7 @@ Proof.
 Qed.
 
 Lemma def_typing_sngl_rhs z bs G a t q :
-  z; bs; G ⊢ {a := t} : {a ⦂ typ_sngl q} ->
+  z; bs; G ⊢ {a := t} : {a ⦂ {{ q }}} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
   intros Hd. dependent induction Hd; eauto.
@@ -63,7 +63,7 @@ Qed.
 
 Lemma defs_typing_sngl_rhs z bs G ds T a q :
   z; bs; G ⊢ ds :: T ->
-  record_has T {a ⦂ typ_sngl q} ->
+  record_has T {a ⦂ {{ q }}} ->
   exists T, G ⊢ trm_path q : T.
 Proof.
   induction 1; intros Hr.
@@ -77,7 +77,7 @@ Inductive lookup_fields_typ : var -> typ -> list trm_label -> typ -> Prop :=
 | lft_empty : forall x T,
     x ==> T =nil=> T
 | lft_cons : forall T bs U x a S,
-    x ==> T =bs=> typ_bnd U ->
+    x ==> T =bs=> μ U ->
     record_has (open_typ_p (p_sel (avar_f x) bs) U) {a ⦂ S} ->
     x ==> T =a::bs=> S
 
@@ -86,7 +86,7 @@ where "x '==>' T '=' bs '=>' U" := (lookup_fields_typ x T bs U).
 Hint Constructors lookup_fields_typ.
 
 Lemma inert_record_has T p a U :
-  inert_typ (typ_bnd T) ->
+  inert_typ (μ T) ->
   record_has (open_typ_p p T) {a ⦂ U} ->
   inert_sngl U.
 Proof.
@@ -100,8 +100,8 @@ Qed.
 
 Lemma lft_inert x T bs U :
   inert_typ T ->
-  x ==> T =bs=> typ_bnd U ->
-  inert_typ (typ_bnd U).
+  x ==> T =bs=> μ U ->
+  inert_typ (μ U).
 Proof.
   intros Hi Hl. gen x U. induction bs; introv Hl; inversions Hl; eauto.
   specialize (IHbs _ _ H3).
@@ -123,7 +123,7 @@ Qed.
 
 Lemma lft_typ_all_inv x S bs cs V T U:
   inert_typ S ->
-  x ==> S =bs=> typ_all T U ->
+  x ==> S =bs=> ∀(T) U ->
   x ==> S =cs++bs=> V ->
   cs = nil.
 Proof.
@@ -136,7 +136,7 @@ Qed.
 
 Lemma lft_typ_sngl_inv x S bs p cs V :
   inert_typ S ->
-  x ==> S =bs=> typ_sngl p ->
+  x ==> S =bs=> {{ p }} ->
   x ==> S =cs++bs=> V ->
   cs = nil.
 Proof.
@@ -150,8 +150,8 @@ Qed.
 Lemma lfs_defs_typing : forall cs z bs G ds T S U,
   z; bs; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
   inert_typ S ->
-  z ==> S =bs=> typ_bnd T ->
-  z ==> S =cs++bs=> typ_bnd U ->
+  z ==> S =bs=> μ T ->
+  z ==> S =cs++bs=> μ U ->
   exists ds', z; (cs++bs); G ⊢ ds' :: open_typ_p (p_sel (avar_f z) (cs++bs)) U.
 Proof.
   induction cs; introv Hds Hin Hl1 Hl2.
@@ -165,10 +165,10 @@ Qed.
 Lemma def_typing_rhs z bs G d a q U S cs T b V :
   z; bs; G ⊢ d : {b ⦂ V} ->
   inert_typ S ->
-  z ==> S =bs=> typ_bnd T ->
+  z ==> S =bs=> μ T ->
   record_has (open_typ_p (p_sel (avar_f z) bs) T) {b ⦂ V} ->
-  z ==> S =cs++b::bs=> typ_bnd U ->
-  record_has (open_typ_p (p_sel (avar_f z) (cs++b::bs)) U) {a ⦂ typ_sngl q} ->
+  z ==> S =cs++b::bs=> μ U ->
+  record_has (open_typ_p (p_sel (avar_f z) (cs++b::bs)) U) {a ⦂ {{ q }}} ->
   exists W, G ⊢ trm_path q : W.
 Proof.
   intros Hds Hin Hl1 Hrd Hl2 Hr. inversions Hds.
@@ -179,7 +179,7 @@ Proof.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
   - Case "def_new".
     pose proof (ty_def_new _ eq_refl H6 H7).
-    assert (z ==> S =b::bs=> typ_bnd T0) as Hl1'. {
+    assert (z ==> S =b::bs=> μ T0) as Hl1'. {
         eapply lft_cons. eauto. eauto.
     }
     pose proof (lfs_defs_typing _ H7 Hin Hl1' Hl2) as [ds' Hds'].
@@ -195,11 +195,11 @@ Qed.
 Lemma defs_typing_rhs z bs G ds T a q U S cs T' b V :
   z; bs; G ⊢ ds :: T ->
   inert_typ S ->
-  z ==> S =bs=> typ_bnd T' ->
+  z ==> S =bs=> μ T' ->
   record_has (open_typ_p (p_sel (avar_f z) bs) T') {b ⦂ V} ->
   record_has T {b ⦂ V} ->
-  z ==> S =cs++b::bs=> typ_bnd U ->
-  record_has (open_typ_p (p_sel (avar_f z) (cs++b::bs)) U) {a ⦂ typ_sngl q} ->
+  z ==> S =cs++b::bs=> μ U ->
+  record_has (open_typ_p (p_sel (avar_f z) (cs++b::bs)) U) {a ⦂ {{ q }}} ->
   exists V, G ⊢ trm_path q : V.
 Proof.
   intros Hds Hin Hl1 Hr1 Hr2 Hl2 Hr.
@@ -212,13 +212,13 @@ Proof.
 Qed.
 
 Lemma pf_sngl_to_lft G x T bs W V :
-  inert (G & x ~ typ_bnd T) ->
-  G & x ~ typ_bnd T ⊢! p_sel (avar_f x) bs : W ⪼ V ->
+  inert (G & x ~ μ T) ->
+  G & x ~ (μ T) ⊢! p_sel (avar_f x) bs : W ⪼ V ->
   bs = nil \/
   exists b c bs' bs'' U V,
     bs = c :: bs' /\
     bs = bs'' ++ b :: nil /\
-    x ==> typ_bnd T =bs'=> typ_bnd U /\
+    x ==> (μ T) =bs'=> (μ U) /\
     record_has (open_typ x T) {b ⦂ V} /\
     record_has (open_typ_p (p_sel (avar_f x) bs') U) {c ⦂ W}.
 Proof.
@@ -248,19 +248,19 @@ Lemma val_typing G x v T :
         wf_env (G & x ~ T').
 Proof.
   intros Hi Hwf Hv Hx. dependent induction Hv; eauto.
-  - exists (typ_all T U). repeat split*. constructor; eauto. introv Hp.
-    assert (binds x (typ_all T U) (G & x ~ typ_all T U)) as Hb by auto. apply pf_bind in Hb; auto.
+  - exists (∀(T) U). repeat split*. constructor; eauto. introv Hp.
+    assert (binds x (∀(T) U) (G & x ~ ∀(T) U)) as Hb by auto. apply pf_bind in Hb; auto.
     destruct bs as [|b bs].
     + apply pf_binds in Hp; auto. apply binds_push_eq_inv in Hp as [=].
     + apply pf_sngl in Hp as [? [? [=]%pf_binds%binds_push_eq_inv]]; auto.
-  - exists (typ_bnd T). assert (inert_typ (typ_bnd T)) as Hin. {
+  - exists (μ T). assert (inert_typ (μ T)) as Hin. {
       apply ty_new_intro_p in H. apply* pfv_inert.
     }
     repeat split*. pick_fresh z. assert (z \notin L) as Hz by auto.
     specialize (H z Hz). assert (z # G) as Hz' by auto.
     constructor*. introv Hp.
-    assert (exists W, G & x ~ typ_bnd T ⊢ trm_path q : W) as [W Hq]. {
-      assert (inert (G & x ~ typ_bnd T)) as Hi' by eauto.
+    assert (exists W, G & x ~ (μ T) ⊢ trm_path q : W) as [W Hq]. {
+      assert (inert (G & x ~ μ T)) as Hi' by eauto.
       pose proof (pf_sngl_to_lft Hi' Hp) as [-> | [b [c [bs' [bs'' [U [V [-> [Hl1 [Hl2 [Hr1 Hr2]]]]]]]]]]].
       { apply pf_binds in Hp as [=]%binds_push_eq_inv; auto. }
       assert (x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T)
@@ -342,7 +342,7 @@ Proof.
   induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
     match goal with
-    | [Hp: _ ⊢ trm_path _ : typ_all _ _ |- _] =>
+    | [Hp: _ ⊢ trm_path _ : ∀(_) _ |- _] =>
         pose proof (canonical_forms_fun Hi Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
         inversions Hred
     end.

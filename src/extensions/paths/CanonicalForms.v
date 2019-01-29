@@ -46,12 +46,12 @@ Lemma object_typing G x bs ds T a t V :
   x; bs; G ⊢ ds :: T ->
   defs_has ds {a := t} ->
   record_has T {a ⦂ V} ->
-  (exists U u, t = defv (val_lambda U u) /\ G ⊢ deftrm t : V) \/
-  (exists U ds', t = defv (val_new U ds') /\
+  (exists U u, t = defv (λ(U) u) /\ G ⊢ deftrm t : V) \/
+  (exists U ds', t = defv (ν(U) ds') /\
             x; (a :: bs); G ⊢ open_defs_p (p_sel (avar_f x) (a :: bs)) ds' ::
                                  open_typ_p (p_sel (avar_f x) (a :: bs)) U /\
-            V = typ_bnd U) \/
-  (exists q S, t = defp q /\ V = typ_sngl q /\ G ⊢ trm_path q : S).
+            V = μ U) \/
+  (exists q S, t = defp q /\ V = {{ q }} /\ G ⊢ trm_path q : S).
 Proof.
   intros Hi Hds Hdh Hr.
   destruct (record_has_ty_defs Hds Hr) as [? [Hdh' Hdt]].
@@ -80,18 +80,18 @@ Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
     s ⟦ p ⟼ t ⟧ ->
     G ⊢! p : T ⪼ U ->
     p = p_sel (avar_f px) pbs ->
-    (exists S u, t = defv (val_lambda S u) /\ G ⊢ deftrm t : T) \/
+    (exists S u, t = defv (λ(S) u) /\ G ⊢ deftrm t : T) \/
     (exists S ds W T' G1 G2 pT,
-        t = defv (val_new S ds) /\
-        T = typ_bnd T' /\
+        t = defv (ν(S) ds) /\
+        T = μ T' /\
         G = G1 & px ~ pT & G2 /\
         px ; pbs; G ⊢ open_defs_p p ds :: open_typ_p p S /\
         G1 ⊩ S ⟿ W ⬳ T') \/
     (exists q r r' G1 G2 pT,
         t = defp q /\
-        T = typ_sngl r /\
+        T = {{ r }} /\
         G = G1 & px ~ pT & G2 /\
-        (r = r' \/ G1 ⊢!!! r : typ_sngl r') /\ (q = r' \/ G1 ⊢!!! q : typ_sngl r')).
+        (r = r' \/ G1 ⊢!!! r : {{ r' }}) /\ (q = r' \/ G1 ⊢!!! q : {{ r' }})).
 Proof.
   introv Hi Hwf Hwt. gen p px pbs t T U.
   (** induction on well-formedness **)
@@ -202,18 +202,18 @@ Lemma lookup_step_preservation_prec2 G s p px pbs t T :
     s ⟦ p ⟼ t ⟧ ->
     G ⊢!! p : T ->
     p = p_sel (avar_f px) pbs ->
-    (exists S U u, t = defv (val_lambda S u) /\ G ⊢ deftrm t : U /\ G ⊢! p : U ⪼ T) \/
+    (exists S U u, t = defv (λ(S) u) /\ G ⊢ deftrm t : U /\ G ⊢! p : U ⪼ T) \/
     (exists S ds W U G1 G2 pT,
-        t = defv (val_new S ds) /\
-        G ⊢! p : typ_bnd U ⪼ T /\
+        t = defv (ν(S) ds) /\
+        G ⊢! p : μ U ⪼ T /\
         G = G1 & px ~ pT & G2 /\
         px ; pbs; G ⊢ open_defs_p p ds :: open_typ_p p S /\
         G1 ⊩ S ⟿ W ⬳ U) \/
     (exists q r r' G1 G2 pT,
         t = defp q /\
-        T = typ_sngl r /\
+        T = {{ r }} /\
         G = G1 & px ~ pT & G2 /\
-        (r = r' \/ G1 ⊢!!! r : typ_sngl r') /\ (r' = q \/ G1 ⊢!!! q : typ_sngl r')).
+        (r = r' \/ G1 ⊢!!! r : {{ r' }}) /\ (r' = q \/ G1 ⊢!!! q : {{ r' }})).
 Proof.
   introv Hi Hwf Hwt Hs Hp Heq. gen s t px pbs. induction Hp; introv Hwt; introv Hs; introv Heq.
   - destruct (lookup_step_preservation_prec1 Hi Hwf Hwt Hs H Heq)
@@ -263,9 +263,9 @@ Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     s ⟦ p ⟼ t ⟧ ->
     G ⊢!!! p : T ->
     inert_typ T ->
-    (exists S U, T = typ_all S U /\ G ⊢ deftrm t : typ_all S U) \/
-    (exists U, T = typ_bnd U /\
-          ((exists S ds px pbs W, t = defv (val_new S ds) /\
+    (exists S U, T = ∀(S) U /\ G ⊢ deftrm t : ∀(S) U) \/
+    (exists U, T = μ U /\
+          ((exists S ds px pbs W, t = defv (ν(S) ds) /\
                                p = p_sel (avar_f px) pbs /\
                                px; pbs; G ⊢ open_defs_p p ds :: open_typ_p p S /\
                                G ⊩ S ⟿ W ⬳ U) \/
@@ -324,8 +324,8 @@ Lemma lookup_step_preservation_prec3_fun G s p T S t :
   wf_env G ->
   well_typed G s ->
   s ⟦ p ⟼ t ⟧ ->
-  G ⊢!!! p : typ_all T S ->
-  G ⊢ deftrm t : typ_all T S.
+  G ⊢!!! p : ∀(T) S ->
+  G ⊢ deftrm t : ∀(T) S.
 Proof.
   intros Hi Hwf Hwt Hs Hp.
   destruct (lookup_step_preservation_inert_prec3 Hi Hwf Hwt Hs Hp) as
@@ -411,10 +411,10 @@ Lemma sngl_path_lookup1 G s p q U :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  G ⊢! p : typ_sngl q ⪼ U ->
+  G ⊢! p : {{ q }} ⪼ U ->
            exists r r', s ⟦ p ⟼ defp r ⟧ /\
-                   (r = r' \/ G ⊢!!! r : typ_sngl r') /\
-                   (q = r' \/ G ⊢!!! q : typ_sngl r').
+                   (r = r' \/ G ⊢!!! r : {{ r' }}) /\
+                   (q = r' \/ G ⊢!!! q : {{ r' }}).
 Proof.
   intros Hi Hwf Hwt Hp. destruct (typ_to_lookup1 Hi Hwf Hwt Hp) as [t Hs].
   pose proof (typed_paths_named (precise_to_general Hp)) as [px [pbs ->]].
@@ -436,11 +436,11 @@ Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     wf_env G ->
     well_typed G s ->
     s ⟦ p ⟼ t ⟧ ->
-    G ⊢!!! p : typ_sngl q ->
-    G ⊢! q : typ_all Q1 Q2 ⪼ Q3 ->
+    G ⊢!!! p : {{ q }} ->
+    G ⊢! q : ∀(Q1) Q2 ⪼ Q3 ->
     exists r r', t = defp r /\
-            (q = r' \/ G ⊢!!! q : typ_sngl r') /\
-            (r = r' \/ G ⊢!!! r : typ_sngl r').
+            (q = r' \/ G ⊢!!! q : {{ r' }}) /\
+            (r = r' \/ G ⊢!!! r : {{ r' }}).
 Proof.
   introv Hi Hwf Hwt Hs Hp. gen t.
   pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs Heq]].
@@ -521,7 +521,7 @@ Lemma lookup_same_var_same_type G s x bs cs T:
   well_typed G s ->
   s ⟦ p_sel (avar_f x) bs ⟼ defp (p_sel (avar_f x) cs) ⟧ ->
   G ⊢!! p_sel (avar_f x) bs : T ->
-  T = typ_sngl (p_sel (avar_f x) cs).
+  T = {{ p_sel (avar_f x) cs }}.
 Proof.
   intros Hi Hwf Hwt. gen x bs cs T. induction Hwt; introv Hs Ht.
   - Case "s is empty".
@@ -560,7 +560,7 @@ Lemma typed_path_lookup_same_var2 G s y bs cs :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  G ⊢!! p_sel (avar_f y) bs : typ_sngl (p_sel (avar_f y) cs) ->
+  G ⊢!! p_sel (avar_f y) bs : {{ p_sel (avar_f y) cs }} ->
   s ⟦ p_sel (avar_f y) bs ⟼ defp (p_sel (avar_f y) cs) ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. pose proof (typ_to_lookup2 Hi Hwf Hwt Hp) as [t Hs].
@@ -589,7 +589,7 @@ Lemma typed_path_lookup_same_var3 G s y bs cs :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  G ⊢!!! p_sel (avar_f y) bs : typ_sngl (p_sel (avar_f y) cs) ->
+  G ⊢!!! p_sel (avar_f y) bs : {{ p_sel (avar_f y) cs }} ->
   s ⟦ defp (p_sel (avar_f y) bs) ⟼* defp (p_sel (avar_f y) cs) ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. dependent induction Hp.
@@ -618,15 +618,15 @@ Lemma prev_var_exists G p q px pbs qx qbs:
   wf_env G ->
   p = p_sel (avar_f px) pbs ->
   q = p_sel (avar_f qx) qbs ->
-  G ⊢!!! p : typ_sngl q ->
+  G ⊢!!! p : {{ q }} ->
   px <> qx ->
   exists p' cs q' ds rx,
     rx <> px /\
     p' = p_sel (avar_f px) cs /\
     q' = p_sel (avar_f rx) ds /\
-    (p = p' \/ G ⊢!!! p : typ_sngl p') /\
-    G ⊢!! p' : typ_sngl q' /\
-    (q' = q \/ G ⊢!!! q' : typ_sngl q).
+    (p = p' \/ G ⊢!!! p : {{ p' }}) /\
+    G ⊢!! p' : {{ q' }} /\
+    (q' = q \/ G ⊢!!! q' : {{ q }}).
 Proof.
   intros Hi Hwf -> -> Hp Hn. dependent induction Hp.
   - repeat eexists; eauto.
@@ -645,8 +645,8 @@ Lemma typed_path_lookup_helper G s p r S T V :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  G ⊢!!! p : typ_sngl r ->
-  G ⊢! r : typ_all S T ⪼ V->
+  G ⊢!!! p : {{ r }} ->
+  G ⊢! r : ∀(S) T ⪼ V->
   s ⟦ defp p ⟼* defp r ⟧.
 Proof.
   intros Hi Hwf Hwt. gen p r S T V. induction Hwt; introv Hp Hr.
@@ -723,8 +723,8 @@ Qed.
 
 Lemma last_path G p T U :
   inert G ->
-  G ⊢!!! p : typ_all T U ->
-  G ⊢!! p : typ_all T U \/ exists q, G ⊢!!! p: typ_sngl q /\ G ⊢!! q : typ_all T U.
+  G ⊢!!! p : ∀(T) U ->
+  G ⊢!! p : ∀(T) U \/ exists q, G ⊢!!! p: {{ q }} /\ G ⊢!! q : ∀(T) U.
 Proof.
   intros Hi Hp. dependent induction Hp; eauto.
   specialize (IHHp _ _ Hi eq_refl) as [Hq | [r [Hq Hr]]]; eauto.
@@ -734,7 +734,7 @@ Lemma typed_path_lookup3 G s p T U :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  G ⊢!!! p: typ_all T U ->
+  G ⊢!!! p: ∀(T) U ->
   exists v, s ∋ (p, v).
 Proof.
   intros Hi Hwf Hwt Hp.
@@ -762,13 +762,13 @@ Qed.
 
 (** * Lemmas to Prove Canonical Forms for Functions *)
 
-Lemma lookup_preservation_typ_all : forall G s t u T S,
+Lemma lookup_preservation_forall : forall G s t u T S,
     inert G ->
     wf_env G ->
     well_typed G s ->
     star (lookup_step s) t u ->
-    G ⊢ deftrm t : typ_all S T ->
-    G ⊢ deftrm u: typ_all S T.
+    G ⊢ deftrm t : ∀(S) T ->
+    G ⊢ deftrm u: ∀(S) T.
 Proof.
   introv Hi Hwf Hwt Hl Hp. dependent induction Hl; auto.
   assert (exists q, a = defp q) as [q ->] by (inversions H; eauto).
@@ -776,21 +776,21 @@ Proof.
   apply repl_to_precise_typ_all in Hp as [S' [T' [? [Hpr' [? ?]]]]]; auto.
   apply IHHl.
   pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt H Hpr') as Hb.
-  apply ty_sub with (T:=typ_all S' T'); auto; fresh_constructor; apply* tight_to_general.
+  apply ty_sub with (T:=∀(S') T'); auto; fresh_constructor; apply* tight_to_general.
 Qed.
 
 Lemma corresponding_types_fun: forall G s p S T,
     inert G ->
     wf_env G ->
     well_typed G s ->
-    G ⊢!!! p: typ_all S T ->
+    G ⊢!!! p: ∀(S) T ->
     (exists v, s ∋ (p, v) /\
-            G ⊢ trm_val v : typ_all S T).
+            G ⊢ trm_val v : ∀(S) T).
 Proof.
   introv Hi Hwf Hwt Hp.
   destruct (typed_path_lookup3 Hi Hwf Hwt Hp) as [v Hs].
   inversions Hs.
-  lets Ht: (lookup_preservation_typ_all Hi Hwf Hwt H1 (precise_to_general3 Hp)). eauto.
+  lets Ht: (lookup_preservation_forall Hi Hwf Hwt H1 (precise_to_general3 Hp)). eauto.
 Qed.
 
 (** [forall] to [G(x)]        #<br>#
@@ -803,9 +803,9 @@ Qed.
     [forall fresh y, G, y: T ⊢ U'^y <: U^y] *)
 Lemma path_typ_all_to_binds: forall G p T U,
     inert G ->
-    G ⊢ trm_path p : typ_all T U ->
+    G ⊢ trm_path p : ∀(T) U ->
     (exists L T' U',
-        G ⊢!!! p : typ_all T' U' /\
+        G ⊢!!! p : ∀(T') U' /\
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_typ y U') <: (open_typ y U))).
 Proof.
@@ -827,9 +827,9 @@ Qed.
     [forall fresh y, G, y: T ⊢ t^y: U^y] *)
 Lemma val_typ_all_to_lambda: forall G v T U,
     inert G ->
-    G ⊢ trm_val v : typ_all T U ->
+    G ⊢ trm_val v : ∀(T) U ->
     (exists L T' t,
-        v = val_lambda T' t /\
+        v = λ(T') t /\
         G ⊢ T <: T' /\
         (forall y, y \notin L -> G & y ~ T ⊢ (open_trm y t) : open_typ y U)).
 Proof.
@@ -854,8 +854,8 @@ Lemma canonical_forms_fun: forall G s p T U,
     inert G ->
     wf_env G ->
     well_typed G s ->
-    G ⊢ trm_path p : typ_all T U ->
-                   (exists L T' t, s ∋ (p, val_lambda T' t) /\
+    G ⊢ trm_path p : ∀(T) U ->
+                   (exists L T' t, s ∋ (p, λ(T') t) /\
                     G ⊢ T <: T' /\
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.

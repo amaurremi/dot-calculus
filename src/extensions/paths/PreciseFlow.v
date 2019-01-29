@@ -12,7 +12,7 @@ Require Import Sequences.
 Require Import Coq.Program.Equality List.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
-Definition is_sngl T := exists p, T = typ_sngl p.
+Definition is_sngl T := exists p, T = {{ p }}.
 Definition inert_sngl T := inert_typ T \/ is_sngl T.
 
 Ltac invert_repl :=
@@ -29,33 +29,33 @@ Ltac invert_repl :=
            inversions H
          | [H: repl_typ _ _ _ _ (typ_rcd _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_and _ _) _ |- _ ] =>
+         | [H: repl_typ _ _ _ (_ ∧ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_and _ _) |- _ ] =>
+         | [H: repl_typ _ _ _ _ (_ ∧ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_bnd _) _ |- _ ] =>
+         | [H: repl_typ _ _ _ (μ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_bnd _) |- _ ] =>
+         | [H: repl_typ _ _ _ _ (μ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_all _ _) _ |- _ ] =>
+         | [H: repl_typ _ _ _ (∀(_) _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_all _ _) |- _ ] =>
+         | [H: repl_typ _ _ _ _ (∀(_) _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_path _ _) _ |- _ ] =>
+         | [H: repl_typ _ _ _ (_ ↓ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_path _ _) |- _ ] =>
+         | [H: repl_typ _ _ _ _ (_ ↓ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ typ_top _ |- _ ] =>
+         | [H: repl_typ _ _ _ ⊤ _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ typ_top |- _ ] =>
+         | [H: repl_typ _ _ _ _ ⊤ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ typ_bot _ |- _ ] =>
+         | [H: repl_typ _ _ _ ⊥ _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ typ_bot |- _ ] =>
+         | [H: repl_typ _ _ _ _ ⊥ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_sngl _) _ |- _ ] =>
+         | [H: repl_typ _ _ _ {{ _ }} _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_sngl _) |- _ ] =>
+         | [H: repl_typ _ _ _ _ {{ _ }} |- _ ] =>
            inversions H
     end.
 
@@ -90,7 +90,7 @@ Inductive ty_val_p : ctx -> val -> typ -> Prop :=
 | ty_all_intro_p : forall L G T t U,
     (forall x, x \notin L ->
       G & x ~ T ⊢ open_trm x t : open_typ x U) ->
-    G ⊢!v val_lambda T t : typ_all T U
+    G ⊢!v λ(T) t : ∀(T) U
 
 (** [x; []; G, x: T^x ⊢ ds^x: T^x]       #<br>#
     [x fresh]                               #<br>#
@@ -99,7 +99,7 @@ Inductive ty_val_p : ctx -> val -> typ -> Prop :=
 | ty_new_intro_p
      : forall (L : fset var) (G : env typ) (T : typ) (ds : defs),
        (forall x : var, x \notin L -> x; nil; G & x ~ open_typ x T ⊢ open_defs x ds :: open_typ x T) ->
-       G ⊢!v val_new T ds : typ_bnd T
+       G ⊢!v ν(T)ds : μ T
 
 where "G '⊢!v' v ':' T" := (ty_val_p G v T).
 
@@ -146,21 +146,21 @@ Inductive precise_flow : ctx -> path -> typ -> typ -> Prop :=
     [――――――――――――――――――] #<br>#
     [G ⊢! p: T ⪼ U^x]       *)
   | pf_open : forall p G T U,
-      G ⊢! p: T ⪼ typ_bnd U ->
+      G ⊢! p: T ⪼ μ U ->
       G ⊢! p: T ⪼ open_typ_p p U
 
 (** [G ⊢! p: T ⪼ U1 /\ U2]   #<br>#
     [――――――――――――――――――――]   #<br>#
     [G ⊢! p: T ⪼ U1]        *)
   | pf_and1 : forall p G T U1 U2,
-      G ⊢! p: T ⪼ typ_and U1 U2 ->
+      G ⊢! p: T ⪼ U1 ∧ U2 ->
       G ⊢! p: T ⪼ U1
 
 (** [G ⊢! p: T ⪼ U1 /\ U2]   #<br>#
     [――――――――――――――――――――]   #<br>#
     [G ⊢! p: T ⪼ U2]        *)
   | pf_and2 : forall p G T U1 U2,
-      G ⊢! p: T ⪼ typ_and U1 U2 ->
+      G ⊢! p: T ⪼ U1 ∧ U2 ->
       G ⊢! p: T ⪼ U2
 
 where "G '⊢!' p ':' T '⪼' U" := (precise_flow G p T U).
@@ -230,8 +230,8 @@ Proof.
 Qed.
 
 Lemma pf_forall_U : forall G p T U S,
-    G ⊢! p: typ_all T U ⪼ S ->
-    S = typ_all T U.
+    G ⊢! p: ∀(T) U ⪼ S ->
+    S = ∀(T) U.
 Proof.
   introv Pf. dependent induction Pf; eauto;
                try (repeat specialize (IHPf _ _ eq_refl); destruct_all; inversion IHPf);
@@ -277,7 +277,7 @@ Hint Resolve pf_inert.
 (** See [inert_typ_bnd_record] *)
 Lemma pf_rcd_T : forall G p T U,
     inert G ->
-    G ⊢! p: typ_bnd T ⪼ U ->
+    G ⊢! p: μ T ⪼ U ->
     record_type T.
 Proof.
   introv Hi Pf. apply pf_inert in Pf; inversions Pf; eauto. inversion* H. destruct_all. inversions H.
@@ -288,8 +288,8 @@ Qed.
      or a record type. *)
 Lemma pf_rec_rcd_U : forall G p T U,
     inert G ->
-    G ⊢! p: typ_bnd T ⪼ U->
-    U = typ_bnd T \/ record_type U.
+    G ⊢! p: μ T ⪼ U->
+    U = μ T \/ record_type U.
 Proof.
   introv Hi Pf.
   dependent induction Pf; try solve [left*].
@@ -306,8 +306,8 @@ Proof.
 Qed.
 
 Lemma pf_sngl_U: forall G p q U,
-    G ⊢! p : typ_sngl q ⪼ U->
-    U = typ_sngl q.
+    G ⊢! p : {{ q }} ⪼ U->
+    U = {{ q }}.
 Proof.
   introv Hp. dependent induction Hp; eauto; try (specialize (IHHp _ eq_refl); inversion IHHp).
 Qed.
@@ -315,8 +315,8 @@ Qed.
 (** If [x]'s precise type is [mu(x: U)], then [G(x) = mu(x: U)] *)
 Lemma pf_bnd_T: forall G p T U,
     inert G ->
-    G ⊢! p: T ⪼ typ_bnd U ->
-    T = typ_bnd U.
+    G ⊢! p: T ⪼ μ U ->
+    T = μ U.
 Proof.
   introv Hi Pf.
   lets HT: (pf_inert Hi Pf).
@@ -328,8 +328,8 @@ Qed.
 
 Lemma pf_sngl_T: forall G p q T,
     inert G ->
-    G ⊢! p : T ⪼ typ_sngl q ->
-    T = typ_sngl q.
+    G ⊢! p : T ⪼ {{ q }} ->
+    T = {{ q }}.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto.
   destruct U; inversions x. lets H: (pf_bnd_T Hi Hp). subst.
@@ -345,7 +345,7 @@ Qed.
 Lemma pf_bnd_T2: forall G p T D,
     inert G ->
     G ⊢! p: T ⪼ typ_rcd D ->
-    exists U, T = typ_bnd U.
+    exists U, T = μ U.
 Proof.
   introv Hi Pf.
   lets HT: (pf_inert Hi Pf).
@@ -367,8 +367,8 @@ Qed.
     then [G(x)] is the same function type. *)
 Lemma pf_forall_T : forall p G S T U,
     inert G ->
-    G ⊢! p: T ⪼ typ_all S U->
-    T = typ_all S U.
+    G ⊢! p: T ⪼ ∀(S) U->
+    T = ∀(S) U.
 Proof.
   introv Hi Pf.
   lets Hiu: (pf_inert Hi Pf).
@@ -391,8 +391,8 @@ Qed.
 (** See [pf_lambda_T]. *)
 Lemma binds_forall : forall x G S T U,
     inert G ->
-    G ⊢! pvar x : U ⪼ typ_all S T ->
-    binds x (typ_all S T) G.
+    G ⊢! pvar x : U ⪼ ∀(S) T ->
+    binds x (∀(S) T) G.
 Proof. Abort. (*
   introv Hi Htyp. lets H: (pf_forall_T Hi Htyp). subst. destruct_all; subst.
   repeat eexists. apply* pf_binds.
@@ -402,7 +402,7 @@ Qed.*)
     cannot be bottom. *)
 Lemma pf_bot : forall G p T,
     inert G ->
-    G ⊢! p: T ⪼ typ_bot ->
+    G ⊢! p: T ⪼ ⊥ ->
     False.
 Proof.
   introv Hi Pf.
@@ -416,7 +416,7 @@ Qed.
     a variable cannot be type selection. *)
 Lemma pf_psel : forall G T p q A,
     inert G ->
-    G ⊢! p: T ⪼ typ_path q A ->
+    G ⊢! p: T ⪼ q ↓ A ->
     False.
 Proof.
   introv Hi Pf.
@@ -430,9 +430,9 @@ Qed.
 (** If [G(x) = mu(T)], and [G ⊢! p: ... /\ D /\ ...], then [T^x = ... /\ D /\ ...]. *)
 Lemma pf_record_has_T : forall p G T T' D,
     inert G ->
-    G ⊢! p: typ_bnd T ⪼ T' ->
+    G ⊢! p: μ T ⪼ T' ->
     record_has T' D ->
-    (*original_path G p (typ_bnd T) T' q ->
+    (*original_path G p (μ T) T' q ->
     record_has (open_typ_p q T) D.*)
     record_has (open_typ_p p T) D.
 Proof.
@@ -445,7 +445,7 @@ Qed.
     then [S^x = ... /\ D /\ ...]. *)
 Lemma pf_record_has_U: forall S G p D,
     inert G ->
-    G ⊢! p: typ_bnd S ⪼ typ_rcd D ->
+    G ⊢! p: μ S ⪼ typ_rcd D ->
     record_has (open_typ_p p S) D.
 Proof.
   introv Hi Pf.
@@ -458,8 +458,8 @@ Qed.
     then [T1 = T2]. *)
 Lemma pf_dec_typ_unique : forall G p T A T1 T2,
     inert G ->
-    G ⊢! p: typ_bnd T ⪼ typ_rcd {A >: T1 <: T1} ->
-    G ⊢! p: typ_bnd T ⪼ typ_rcd {A >: T2 <: T2} ->
+    G ⊢! p: μ T ⪼ typ_rcd {A >: T1 <: T1} ->
+    G ⊢! p: μ T ⪼ typ_rcd {A >: T2 <: T2} ->
     T1 = T2.
 Proof.
   introv Hi Pf1 Pf2.
@@ -534,7 +534,7 @@ Qed.
 Lemma pf_path_sel: forall G p a T U,
     inert G ->
     G ⊢! p•a : T ⪼ U ->
-    exists V W, G ⊢! p: typ_bnd V ⪼ typ_rcd {a ⦂ W}.
+    exists V W, G ⊢! p: μ V ⪼ typ_rcd {a ⦂ W}.
 Proof.
   introv Hi Hp. dependent induction Hp; try simpl_dot; eauto.
   destruct (pf_bnd_T2 Hi Hp) as [V Heq]. subst. eauto.

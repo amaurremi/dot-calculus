@@ -66,11 +66,11 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [――――――――――――――――――――――]   #<br>#
     [G ⊢## p: forall(S')T']            *)
 | ty_all_inv : forall G T1 T2 S1 S2 L p,
-  G ⊢## p : typ_all S1 T1 ->
+  G ⊢## p : ∀(S1) T1 ->
   G ⊢# S2 <: S1 ->
   (forall y, y \notin L ->
    G & y ~ S2 ⊢ open_typ y T1 <: open_typ y T2) ->
-  G ⊢## p : typ_all S2 T2
+  G ⊢## p : ∀(S2) T2
 
 (** [G ⊢## p : T]     #<br>#
     [G ⊢## p : U]     #<br>#
@@ -79,37 +79,37 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
 | ty_and_inv : forall G p S1 S2,
   G ⊢## p : S1 ->
   G ⊢## p : S2 ->
-  G ⊢## p : typ_and S1 S2
+  G ⊢## p : S1 ∧ S2
 
 (** [G ⊢## p: T]   #<br>#
     [―――――――――――――] #<br>#
     [G ⊢## p: top]     *)
 | ty_top_inv : forall G p T,
   G ⊢## p : T ->
-  G ⊢## p : typ_top
+  G ⊢## p : ⊤
 
 (* replacement rules: recursive types, selection types, singleton types *)
 
 | ty_rec_pq_inv : forall G p q r T T' n U,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
-    G ⊢## r : typ_bnd T ->
+    G ⊢## r : μ T ->
     repl_typ n p q T T' ->
-    G ⊢## r : typ_bnd T'
+    G ⊢## r : μ T'
 
 | ty_sel_pq_inv : forall G p q r r' r'' A n U,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q: U ->
-    G ⊢## r : typ_path r' A ->
-    repl_typ n p q (typ_path r' A) (typ_path r'' A) ->
-    G ⊢## r : typ_path r'' A
+    G ⊢## r : r'↓A ->
+    repl_typ n p q (r'↓A) (r''↓A) ->
+    G ⊢## r : r''↓A
 
 | ty_sngl_pq_inv : forall G p q r r' r'' n U,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
-    G ⊢## r : typ_sngl r' ->
-    repl_typ n p q (typ_sngl r') (typ_sngl r'') ->
-    G ⊢## r : typ_sngl r''
+    G ⊢## r : {{ r' }} ->
+    repl_typ n p q {{ r'}} {{ r'' }} ->
+    G ⊢## r : {{ r'' }}
 
 where "G '⊢##' p ':' T" := (ty_path_inv G p T).
 
@@ -117,7 +117,7 @@ Hint Constructors ty_path_inv.
 
 Lemma repl_sub: forall G p q T U n V,
     repl_typ n p q T U ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }} ->
     G ⊢!! q : V ->
     G ⊢# U <: T.
 Proof.
@@ -140,9 +140,9 @@ Ltac solve_repl_sub :=
     [G ⊢# T'^y <: T^y], where [y] is fresh. *)
 Lemma invertible_to_precise_typ_all: forall G p S T,
   inert G ->
-  G ⊢## p : typ_all S T ->
+  G ⊢## p : ∀(S) T ->
   exists S' T' L,
-    G ⊢!!! p : typ_all S' T' /\
+    G ⊢!!! p : ∀(S') T' /\
     G ⊢# S <: S' /\
     (forall y,
         y \notin L ->
@@ -180,7 +180,7 @@ Lemma invertible_repl_closure_helper :
       record_dec D -> forall G p q r D' n U,
       inert G ->
       G ⊢!!! p: typ_rcd D ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : U ->
       repl_dec n q r D D' ->
       G ⊢## p: typ_rcd D') /\
@@ -188,7 +188,7 @@ Lemma invertible_repl_closure_helper :
       record_typ U ls -> forall G p q r U' n V,
       inert G ->
       G ⊢!!! p: U ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : V ->
       repl_typ n q r U U' ->
       G ⊢## p: U') /\
@@ -196,7 +196,7 @@ Lemma invertible_repl_closure_helper :
       inert_typ U -> forall G p q r U' n V,
       inert G ->
       G ⊢!!! p: U ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : V ->
       repl_typ n q r U U' ->
       G ⊢## p: U').
@@ -222,7 +222,7 @@ Qed.
 Lemma invertible_repl_closure : forall G p q r T T' n U,
     inert G ->
     G ⊢## p : T ->
-    G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+    G ⊢! q : {{ r }} ⪼ {{ r }} ->
     G ⊢!! r : U ->
     repl_typ n q r T T' ->
     G ⊢## p : T'.
@@ -268,14 +268,14 @@ Proof.
   - Case "ty_rec_pq_inv".
     invert_repl. eauto.
   - Case "ty_sel_pq_inv".
-    assert (exists r''', T' = typ_path r''' A) as [r''' Heq]. {
+    assert (exists r''', T' = r'''↓A) as [r''' Heq]. {
       invert_repl. eauto.
     } subst.
     destruct (repl_prefixes_sel Hrep) as [bs [He1 He2]]. subst.
     destruct (repl_prefixes_sel H1) as [cs [He1 He2]]. subst.
     specialize (IHHp Hi _ _ H _ _ H1). eauto.
   - Case "ty_sngl_qp_inv".
-    assert (exists r''', T' = typ_sngl r''') as [r''' Heq]. {
+    assert (exists r''', T' = {{ r'''}}) as [r''' Heq]. {
       invert_repl. eauto.
     } subst.
     destruct (repl_prefixes_sngl Hrep) as [bs [-> ->]].
@@ -284,7 +284,7 @@ Qed.
 
 Lemma invertible_bot : forall G p,
     inert G ->
-    G ⊢## p: typ_bot -> False.
+    G ⊢## p: ⊥ -> False.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto.
   dependent induction H; eauto.
@@ -294,7 +294,7 @@ Qed.
 
 Lemma invertible_and : forall G p T U,
     inert G ->
-    G ⊢## p: typ_and T U ->
+    G ⊢## p: T ∧ U ->
     G ⊢## p: T /\ G ⊢## p: U.
 Proof.
   introv Hi Hp. dependent induction Hp; auto.
@@ -304,9 +304,9 @@ Qed.
 
 Lemma invertible_bnd : forall G p T,
     inert G ->
-    G ⊢## p: typ_bnd T ->
+    G ⊢## p: μ T ->
     G ⊢## p: open_typ_p p T \/
-             (exists q U, G ⊢!!! p: typ_sngl q /\ G ⊢!!! q : U /\ G ⊢## p: open_typ_p q T).
+             (exists q U, G ⊢!!! p: {{ q }} /\ G ⊢!!! q : U /\ G ⊢## p: open_typ_p q T).
 Proof.
   introv Hi Hp. dependent induction Hp; auto.
   - destruct (pt3_bnd Hi H) as [Hp | [q [U [Hp1 [Hq Hp2]]]]]. left*. right. repeat eexists; eauto.
@@ -320,7 +320,7 @@ Qed.
 Lemma path_sel_inv: forall G p A T q,
     inert G ->
     G ⊢!!! p : typ_rcd {A >: T <: T} ->
-    G ⊢## q : typ_path p A ->
+    G ⊢## q : p↓A ->
     G ⊢## q : T.
 Proof.
   introv Hi Hp Hq. dependent induction Hq.
@@ -346,8 +346,8 @@ Proof.
 Qed.
 
 Lemma inv_to_precise_sngl_repl_comp: forall G p q,
-    G ⊢## p: typ_sngl q ->
-    exists r, G ⊢!!! p: typ_sngl r /\ G ⊢ r ⟿' q.
+    G ⊢## p: {{ q }} ->
+    exists r, G ⊢!!! p: {{ r }} /\ G ⊢ r ⟿' q.
 Proof.
   introv Hp.
   dependent induction Hp.
@@ -360,9 +360,9 @@ Qed.
 
 Lemma inv_to_precise_sngl: forall G p q U,
     inert G ->
-    G ⊢## p: typ_sngl q ->
+    G ⊢## p: {{ q }} ->
     G ⊢!!! q : U ->
-    exists r, G ⊢!!! p: typ_sngl r /\ (r = q \/ G ⊢!!! r: typ_sngl q).
+    exists r, G ⊢!!! p: {{ r }} /\ (r = q \/ G ⊢!!! r: {{ q }}).
 Proof.
   introv Hi Hp Hq. destruct (inv_to_precise_sngl_repl_comp Hp) as [r [Hpr Hrc]].
   exists r. split*. clear Hp.
@@ -387,11 +387,11 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
   G ⊢##v v : T
 
 | ty_all_invv : forall G T1 T2 S1 S2 L v,
-  G ⊢##v v : typ_all S1 T1 ->
+  G ⊢##v v : ∀(S1) T1 ->
   G ⊢# S2 <: S1 ->
   (forall y, y \notin L ->
    G & y ~ S2 ⊢ open_typ y T1 <: open_typ y T2) ->
-  G ⊢##v v : typ_all S2 T2
+  G ⊢##v v : ∀(S2) T2
 
 (** [G ⊢## p : T]     #<br>#
     [G ⊢## p : U]     #<br>#
@@ -400,23 +400,23 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
 | ty_and_invv : forall G v S1 S2,
   G ⊢##v v : S1 ->
   G ⊢##v v : S2 ->
-  G ⊢##v v : typ_and S1 S2
+  G ⊢##v v : S1 ∧ S2
 
 (** [G ⊢## p: T]   #<br>#
     [―――――――――――――] #<br>#
     [G ⊢## p: top]     *)
 | ty_top_invv : forall G v T,
   G ⊢##v v : T ->
-  G ⊢##v v : typ_top
+  G ⊢##v v : ⊤
 
 (* replacement rules: recursive types, selection types, singleton types *)
 
 | ty_rec_pq_invv : forall G p q v T T' n U,
-    G ⊢! p : typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
-    G ⊢##v v : typ_bnd T ->
+    G ⊢##v v : μ T ->
     repl_typ n p q T T' ->
-    G ⊢##v v : typ_bnd T'
+    G ⊢##v v : μ T'
 
 where "G '⊢##v' v ':' T" := (ty_val_inv G v T).
 
@@ -428,7 +428,7 @@ Lemma invertible_repl_closure_v_helper :
       record_dec D -> forall G v q r D' n T,
       inert G ->
       G ⊢!v v: typ_rcd D ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : T ->
       repl_dec n q r D D' ->
       G ⊢##v v: typ_rcd D') /\
@@ -436,7 +436,7 @@ Lemma invertible_repl_closure_v_helper :
       record_typ U ls -> forall G v q r U' n T,
       inert G ->
       G ⊢!v v: U ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : T ->
       repl_typ n q r U U' ->
       G ⊢##v v: U') /\
@@ -444,7 +444,7 @@ Lemma invertible_repl_closure_v_helper :
       inert_typ U -> forall G v q r U' n T,
       inert G ->
       G ⊢!v v: U ->
-      G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+      G ⊢! q : {{ r }} ⪼ {{ r }} ->
       G ⊢!! r : T ->
       repl_typ n q r U U' ->
       G ⊢##v v: U').
@@ -470,7 +470,7 @@ Qed.
 Lemma invertible_repl_closure_v : forall G v q r T T' n U,
     inert G ->
     G ⊢##v v : T ->
-    G ⊢! q : typ_sngl r ⪼ typ_sngl r ->
+    G ⊢! q : {{ r }} ⪼ {{ r }} ->
     G ⊢!! r : U ->
     repl_typ n q r T T' ->
     G ⊢##v v : T'.
@@ -508,7 +508,7 @@ Qed.
 Lemma path_sel_inv_v: forall G p A T v,
     inert G ->
     G ⊢!!! p : typ_rcd {A >: T <: T} ->
-    G ⊢##v v : typ_path p A ->
+    G ⊢##v v : p↓A ->
     G ⊢##v v : T.
 Proof.
   introv Hi Hp Hv. inversions Hv.

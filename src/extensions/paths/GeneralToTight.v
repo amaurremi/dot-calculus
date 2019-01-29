@@ -101,8 +101,8 @@ Qed.
 Lemma sel_replacement: forall G p A S U,
     inert G ->
     G ⊢# trm_path p : typ_rcd {A >: S <: U} ->
-    (G ⊢# typ_path p A <: U /\
-     G ⊢# S <: typ_path p A).
+    (G ⊢# p↓A <: U /\
+     G ⊢# S <: p↓A).
 Proof.
   introv Hi Hty.
   pose proof (replacement_closure Hi Hty) as Hinv.
@@ -123,7 +123,7 @@ Qed.
 
 Lemma sngl_replacement: forall G p q n T U S,
     inert G ->
-    G ⊢# trm_path p: typ_sngl q ->
+    G ⊢# trm_path p: {{ q }} ->
     G ⊢# trm_path q : S ->
     repl_typ n p q T U ->
     G ⊢# T <: U /\ G ⊢# U <: T.
@@ -213,25 +213,25 @@ Ltac proof_recipe :=
     ((apply (replacement_closure Hi) in Hg) || (apply (replacement_closure_v Hi) in Hg));
     try lets Hok: (inert_ok Hi);
     try match goal with
-        | [ Hr: ?G ⊢// _ : typ_all _ _,
+        | [ Hr: ?G ⊢// _ : ∀(_) _,
             Hok: ok ?G |- _ ] =>
           destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
         | [ Hr: ?G ⊢// _ : typ_rcd _ |- _ ] =>
           destruct (repl_to_precise_fld Hi Hr) as [Spr [Hpr Hspr]]
-        | [ Hr: ?G ⊢// _ : typ_sngl ?q,
+        | [ Hr: ?G ⊢// _ : {{ ?q }},
             Hq: ?G ⊢!! ?q : _ |- _ ] =>
           destruct (repl_to_precise_sngl Hi Hr Hq) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]
-        | [ Hrv: ?G ⊢//v _ : typ_bnd _ |- _ ] =>
+        | [ Hrv: ?G ⊢//v _ : μ _ |- _ ] =>
           apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
           apply (invertible_to_precise_obj Hi) in Hrv as [U'' [Hrv Hrc']];
           try match goal with
-              | [ Hv: _ ⊢!v val_new ?T _ : typ_bnd ?U |- _ ] =>
+              | [ Hv: _ ⊢!v val_new ?T _ : μ ?U |- _ ] =>
                 assert (T = U) as <- by (inversion Hv; subst*)
               end
-        | [ Hrv: ?G ⊢//v _ : typ_all _ _ |- _ ] =>
+        | [ Hrv: ?G ⊢//v _ : ∀(_) _ |- _ ] =>
           inversions Hrv;
           match goal with
-          | [ Hrv: ?G ⊢##v _ : typ_all _ _,
+          | [ Hrv: ?G ⊢##v _ : ∀(_) _,
               Hok: ok ?G |- _ ] =>
             apply invertible_val_to_precise_lambda in Hrv as [L1 [S1 [T1 [Hvpr [HS1 HS2]]]]]; auto
           end

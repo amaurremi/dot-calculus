@@ -236,7 +236,7 @@ Proof.
     unfolds subst_var.
     remember (p_sel (avar_f p_x) p_bs) as p.
     eapply ty_def_new; eauto.
-    * replace (typ_bnd (subst_typ x0 p T)) with (subst_typ x0 p (typ_bnd T)) by reflexivity.
+    * replace (μ (subst_typ x0 p T)) with (subst_typ x0 p (μ T)) by reflexivity.
       apply inert_subst. apply i.
     * simpl. case_if*.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.

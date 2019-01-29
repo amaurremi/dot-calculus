@@ -77,14 +77,14 @@ Definition subst_path (z: var) (u: path) (p: path) : path :=
 (** Substitution on types and declarations: [T[u/z]] and [D[u/z]]. *)
 Fixpoint subst_typ (z: var) (u: path) (T: typ) { struct T } : typ :=
   match T with
-  | typ_top        => typ_top
-  | typ_bot        => typ_bot
+  | ⊤        => ⊤
+  | ⊥        => ⊥
   | typ_rcd D      => typ_rcd (subst_dec z u D)
   | T1 ∧ T2        => subst_typ z u T1 ∧ subst_typ z u T2
-  | typ_path q L    => typ_path (subst_path z u q) L
-  | typ_bnd T      => typ_bnd (subst_typ z u T)
-  | typ_all T U    => typ_all (subst_typ z u T) (subst_typ z u U)
-  | typ_sngl p     => typ_sngl (subst_path z u p)
+  | q ↓ L          => subst_path z u q ↓ L
+  | μ T            => μ (subst_typ z u T)
+  | ∀(T) U         => ∀ (subst_typ z u T) subst_typ z u U
+  | {{ p }}        => {{ subst_path z u p }}
   end
 with subst_dec (z: var) (u: path) (D: dec) { struct D } : dec :=
   match D with
@@ -103,8 +103,8 @@ Fixpoint subst_trm (z: var) (u: path) (t: trm) : trm :=
   end
 with subst_val (z: var) (u: path) (v: val) : val :=
   match v with
-  | val_new T ds     => val_new (subst_typ z u T) (subst_defs z u ds)
-  | val_lambda T t   => val_lambda (subst_typ z u T) (subst_trm z u t)
+  | ν(T) ds  => ν(subst_typ z u T) subst_defs z u ds
+  | λ(T) t   => λ(subst_typ z u T) subst_trm z u t
   end
 with subst_def (z: var) (u: path) (d: def) : def :=
   match d with
@@ -775,19 +775,19 @@ Lemma open_env_rules:
   (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    G1 & x ~ typ_bnd S & G2 ⊢ t : T) /\
+    G1 & x ~ (μ S) & G2 ⊢ t : T) /\
   (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    z; bs; G1 & x ~ typ_bnd S & G2 ⊢ d : D) /\
+    z; bs; G1 & x ~ (μ S) & G2 ⊢ d : D) /\
   (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    z; bs; G1 & x ~ typ_bnd S & G2 ⊢ ds :: T) /\
+    z; bs; G1 & x ~ (μ S) & G2 ⊢ ds :: T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
     ok G ->
-    G1 & x ~ typ_bnd S & G2 ⊢ T <: U).
+    G1 & x ~ (μ S) & G2 ⊢ T <: U).
 Proof.
   apply rules_mutind; intros; subst; simpl; auto;
     try (fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc); eauto.
@@ -801,7 +801,7 @@ Qed.
 Lemma open_env_last_defs z bs G x T ds U :
   ok (G & x ~ open_typ x T) ->
   z ; bs ; G & x ~ open_typ x T ⊢ ds :: U ->
-  z ; bs ; G & x ~ typ_bnd T ⊢ ds :: U.
+  z ; bs ; G & x ~ (μ T) ⊢ ds :: U.
 Proof.
   intros Hok Hds. erewrite <- concat_empty_r at 1. apply* open_env_rules.
   rewrite* concat_empty_r.

@@ -18,9 +18,9 @@ Inductive precise_typing2: ctx -> path -> typ -> Prop :=
     G ⊢! p : T ⪼ U ->
     G ⊢!! p: U
 | pt2_sngl_trans : forall G p q a U,
-    G ⊢!! p : typ_sngl q ->
+    G ⊢!! p : {{ q }} ->
     G ⊢!! q•a : U ->
-    G ⊢!! p•a : typ_sngl q•a
+    G ⊢!! p•a : {{ q•a }}
 where "G '⊢!!' p ':' T" := (precise_typing2 G p T).
 
 Inductive precise_typing3: ctx -> path -> typ -> Prop :=
@@ -28,7 +28,7 @@ Inductive precise_typing3: ctx -> path -> typ -> Prop :=
     G ⊢!! p : T ->
     G ⊢!!! p: T
 | pt3_sngl_trans : forall G p q T,
-    G ⊢!! p : typ_sngl q ->
+    G ⊢!! p : {{ q }} ->
     G ⊢!!! q : T ->
     G ⊢!!! p : T
 where "G '⊢!!!' p ':' T" := (precise_typing3 G p T).
@@ -50,21 +50,21 @@ Proof.
 Qed.
 
 Lemma pt2_and_destruct1: forall G p T U,
-    G ⊢!! p: typ_and T U ->
+    G ⊢!! p: T ∧ U ->
     G ⊢!! p: T.
 Proof.
   introv Hp. dependent induction Hp; eauto.
 Qed.
 
 Lemma pt2_and_destruct2: forall G p T U,
-    G ⊢!! p: typ_and T U ->
+    G ⊢!! p: T ∧ U ->
     G ⊢!! p: U.
 Proof.
   introv Hp. dependent induction Hp; eauto.
 Qed.
 
 Lemma pt3_and_destruct1: forall G p T U,
-    G ⊢!!! p: typ_and T U ->
+    G ⊢!!! p: T ∧ U ->
     G ⊢!!! p: T.
 Proof.
   introv Hp. dependent induction Hp; eauto. constructor.
@@ -72,7 +72,7 @@ Proof.
 Qed.
 
 Lemma pt3_and_destruct2: forall G p T U,
-    G ⊢!!! p: typ_and T U ->
+    G ⊢!!! p: T ∧ U ->
     G ⊢!!! p: U.
 Proof.
   introv Hp. dependent induction Hp; eauto. constructor.
@@ -100,20 +100,20 @@ Qed.
 
 Lemma pt2_psel: forall G p q A,
     inert G ->
-    G ⊢!! p : typ_path q A -> False.
+    G ⊢!! p : q ↓ A -> False.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto. apply* pf_psel.
 Qed.
 
 Lemma pt3_psel: forall G p q A,
     inert G ->
-    G ⊢!!! p : typ_path q A -> False.
+    G ⊢!!! p : q ↓ A -> False.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto. apply* pt2_psel.
 Qed.
 
 Lemma pt3_trans: forall G p q a U,
-    G ⊢!! p : typ_sngl q ->
+    G ⊢!! p : {{ q }}->
     G ⊢!!! q•a : U ->
     G ⊢!!! p•a : U.
 Proof.
@@ -121,7 +121,7 @@ Proof.
 Qed.
 
 Lemma pt3_trans2: forall G p q a U,
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }}->
     G ⊢!!! q•a : U ->
     G ⊢!!! p•a : U.
 Proof.
@@ -142,9 +142,9 @@ Qed.
 
 Lemma path_elim_prec: forall G p q a T,
     inert G ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     G ⊢!!! q•a : T ->
-    G ⊢!!! p•a : typ_sngl q•a.
+    G ⊢!!! p•a : {{ q•a }}.
 Proof.
   introv Hi Hp Hq.
   gen a T. dependent induction Hp; introv Hq.
@@ -165,22 +165,22 @@ Proof.
     * inversions H0. destruct_all. apply* pf_sngl_T.
   - destruct (pf_path_sel _ _ Hi Hp1) as [V [W Hp]].
     lets Hpa: (pf_fld Hp). lets Heq: (pf_T_unique Hi Hp1 Hpa). subst.
-    assert (inert_sngl (typ_sngl q)) as His'. { right. eexists. auto. }
+    assert (inert_sngl {{ q }}) as His'. { right. eexists. auto. }
     specialize (IHHp2_1 Hi His' _ _ Hp). inversion IHHp2_1.
 Qed.
 
 Lemma pf_pt2_sngl: forall G p T U q,
     inert G ->
     G ⊢! p: T ⪼ U ->
-    G ⊢!! p: typ_sngl q ->
-    T = typ_sngl q.
+    G ⊢!! p: {{ q }}->
+    T = {{ q }}.
 Proof.
   introv Hi Hp1 Hp2. apply* pf_pt2. right. eexists. auto.
 Qed.
 
 Lemma field_elim_q0: forall G p q a T,
     inert G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     G ⊢!! p•a : T ->
     exists U, G ⊢!! q•a: U.
 Proof.
@@ -195,7 +195,7 @@ Qed.
 
 Lemma field_elim_q0': forall G p q a T T',
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢! p•a : T ⪼ T' ->
     exists U, G ⊢!! q•a: U.
 Proof.
@@ -207,7 +207,7 @@ Qed.
 
 Lemma pf_pt2_sngl_invert G p q a T U :
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢! p•a : T ⪼ U ->
     False.
 Proof.
@@ -222,9 +222,9 @@ Qed.
 
 Lemma pt2_sngl_exists: forall G p q T,
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢!! p: T ->
-    exists q', T = typ_sngl q'.
+    exists q', T = {{ q' }}.
 Proof.
   introv Hi Hp Ht. gen T. dependent induction Hp; introv Ht; eauto.
   - lets ->: (pf_sngl_T Hi H). dependent induction Ht; eauto.
@@ -235,8 +235,8 @@ Qed.
 
 Lemma pt2_sngl_unique: forall G p q1 q2,
     inert G ->
-    G ⊢!! p: typ_sngl q1 ->
-    G ⊢!! p: typ_sngl q2 ->
+    G ⊢!! p: {{ q1 }} ->
+    G ⊢!! p: {{ q2 }} ->
     q1 = q2.
 Proof.
   introv Hi Hp. gen q2. dependent induction Hp; introv Ht; eauto.
@@ -252,9 +252,9 @@ Qed.
 
 Lemma pt2_sngl_unique' G p q T :
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢!! p: T ->
-    T = typ_sngl q.
+    T = {{ q }}.
 Proof.
   introv Hi Hp Hpt. destruct (pt2_sngl_exists Hi Hp Hpt) as [q' ->]. f_equal.
   eauto using pt2_sngl_unique.
@@ -262,7 +262,7 @@ Qed.
 
 Lemma field_elim_q: forall G p q a T,
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢!! p•a : T ->
     exists U, G ⊢!! q•a: U.
 Proof.
@@ -273,7 +273,7 @@ Proof.
     * apply* field_elim_q0'.
     * unfold sel_fields in x. destruct p0, p. inversions x.
       lets Hxbs: (pt2_sngl_trans _ Hp Hq0).
-      assert (inert_sngl (typ_sngl q)) as His. {
+      assert (inert_sngl {{ q }}) as His. {
         right. eexists. eauto.
       }
       simpl in *.
@@ -283,7 +283,7 @@ Qed.
 
 Lemma field_elim_q2: forall G p q a T,
     inert G ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     G ⊢!! p•a : T ->
     exists U, G ⊢!!! q•a: U.
 Proof.
@@ -295,7 +295,7 @@ Qed.
 
 Lemma field_elim_q3: forall G p q a T,
     inert G ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     G ⊢!!! p•a : T ->
     exists U, G ⊢!!! q•a: U.
 Proof.
@@ -310,9 +310,9 @@ Qed.
 
 Lemma pt3_field_elim_p: forall G p q a U,
     inert G ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     G ⊢!!! p • a : U ->
-    G ⊢!!! p • a : typ_sngl q • a.
+    G ⊢!!! p • a : {{ q•a }}.
 Proof.
   introv Hi Hpq Hpa. destruct (field_elim_q3 _ Hi Hpq Hpa) as [T Hqa].
   apply* path_elim_prec.
@@ -336,7 +336,7 @@ Proof.
 Qed.
 
 Lemma pt3_sngl_trans3: forall G p q T,
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     G ⊢!!! q: T ->
     G ⊢!!! p : T.
 Proof.
@@ -345,9 +345,9 @@ Qed.
 
 Lemma pt3_field_trans: forall G p q bs T,
     inert G ->
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }}->
     G ⊢!!! q••bs : T ->
-    G ⊢!!! p••bs : typ_sngl q••bs.
+    G ⊢!!! p••bs : {{ q••bs }}.
 Proof.
   introv Hi Hp Hq. gen T q. induction bs; introv Hp Hq;
                               unfolds sel_fields; destruct q, p; simpls; auto.
@@ -358,7 +358,7 @@ Qed.
 
 Lemma pt3_field_trans': forall G p q bs T,
     inert G ->
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }}->
     G ⊢!!! q••bs : T ->
     G ⊢!!! p••bs : T.
 Proof.
@@ -448,7 +448,7 @@ Inductive wf_env : ctx -> Prop :=
 | wfe_push G x T :
     wf_env G ->
     x # G ->
-    (forall bs q, G & x ~ T ⊢! p_sel (avar_f x) bs : typ_sngl q ⪼ typ_sngl q ->
+    (forall bs q, G & x ~ T ⊢! p_sel (avar_f x) bs : {{ q }}⪼ {{ q }}->
              exists U, G & x ~ T ⊢!! q : U) ->
     wf_env (G & x ~ T).
 
@@ -477,7 +477,7 @@ Hint Resolve wf_env_prefix wf_env_prefix_one.
 
 Lemma pt2_var_sngl G x p :
   inert G ->
-  G ⊢!! pvar x : typ_sngl p ->
+  G ⊢!! pvar x : {{ p }}->
   False.
 Proof.
   intros Hi Hp. dependent induction Hp; try simpl_dot.
@@ -488,7 +488,7 @@ Qed.
 Lemma pf_strengthen_one_helper G y bs T x q :
   inert (G & x ~ T) ->
   wf_env G ->
-  G & x ~ T ⊢! p_sel (avar_f y) bs : typ_sngl q ⪼ typ_sngl q ->
+  G & x ~ T ⊢! p_sel (avar_f y) bs : {{ q }}⪼ {{ q }}->
   x <> y ->
   exists U, G ⊢!! q : U.
 Proof.
@@ -514,9 +514,9 @@ Qed.
 Lemma pt2_strengthen_one_helper G y bs T x q :
   inert (G & x ~ T) ->
   wf_env G ->
-  G & x ~ T ⊢!! p_sel (avar_f y) bs : typ_sngl q ->
+  G & x ~ T ⊢!! p_sel (avar_f y) bs : {{ q }}->
   x <> y ->
-  G ⊢!! p_sel (avar_f y) bs : typ_sngl q /\ exists S, G ⊢!! q : S.
+  G ⊢!! p_sel (avar_f y) bs : {{ q }}/\ exists S, G ⊢!! q : S.
 Proof.
   intros Hi Hwf Ht Hn. dependent induction Ht.
   - split. econstructor. apply* pf_strengthen.
@@ -555,7 +555,7 @@ Qed.
 Lemma sngl_typed G p q :
     inert G ->
     wf_env G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     exists T, G ⊢!! q: T.
 Proof.
   intros Hi Hwf Hp. gen p q.
@@ -569,7 +569,7 @@ Qed.
 Lemma sngl_typed2 : forall G p q,
     inert G ->
     wf_env G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     exists T, G ⊢!! q: T.
 Proof.
   introv Hi Hwf Hpq. dependent induction Hpq; eauto.
@@ -579,7 +579,7 @@ Qed.
 Lemma sngl_typed3 : forall G p q,
     inert G ->
     wf_env G ->
-    G ⊢!!! p: typ_sngl q ->
+    G ⊢!!! p: {{ q }}->
     exists T, G ⊢!!! q: T.
 Proof.
   introv Hi Hwf Hp. dependent induction Hp; eauto.
@@ -673,9 +673,9 @@ Qed.
 
 Lemma pt3_trans_trans: forall G p q bs T,
     inert G ->
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }}->
     G ⊢!!! p••bs : T ->
-    G ⊢!!! p••bs : typ_sngl q••bs.
+    G ⊢!!! p••bs : {{ q••bs }}.
 Proof.
   introv Hi Hp Hpbs. gen p q T.
   induction bs; introv Hp; introv Hpbs; unfolds sel_fields; destruct p, q; simpls; auto.
@@ -685,7 +685,7 @@ Qed.
 
 Lemma pf_sngl_fld_elim: forall G p q a T U,
     inert G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     G ⊢! p•a : T ⪼ U ->
     False.
 Proof.
@@ -695,7 +695,7 @@ Qed.
 
 Lemma pf_sngl_flds_elim: forall G p q T U bs,
     inert G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     G ⊢! p••bs : T ⪼ U ->
     bs = nil.
 Proof.
@@ -710,7 +710,7 @@ Qed.
 
 Lemma pt2_bnd : forall G p T,
     inert G ->
-    G ⊢!! p: typ_bnd T ->
+    G ⊢!! p: μ T ->
     G ⊢!! p: open_typ_p p T.
 Proof.
   introv Hi Hp. dependent induction Hp; eauto.
@@ -725,9 +725,9 @@ Qed.
 
 Lemma pt3_bnd : forall G p T,
     inert G ->
-    G ⊢!!! p: typ_bnd T ->
+    G ⊢!!! p: μ T ->
     G ⊢!!! p: open_typ_p p T \/
-              (exists q U, G ⊢!!! p: typ_sngl q /\ G ⊢!! q : U /\ G ⊢!!! p: open_typ_p q T).
+              (exists q U, G ⊢!!! p: {{ q }}/\ G ⊢!! q : U /\ G ⊢!!! p: open_typ_p q T).
 Proof.
   introv Hi Hp. dependent induction Hp.
   - left. constructor. apply* pt2_bnd.
@@ -738,9 +738,9 @@ Qed.
 
 Lemma pf_pt2_trans_inv_mult : forall G p q bs T,
     inert G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     G ⊢!! p •• bs : T ->
-    T = typ_sngl q •• bs.
+    T = {{ q••bs }}.
 Proof.
   introv Hi Hp Hpbs. gen T. induction bs; introv Hpbs.
   - repeat rewrite field_sel_nil in *. apply pt2 in Hp. apply eq_sym. apply eq_sym.
@@ -754,23 +754,23 @@ Qed.
 
 Lemma pf_pt3_trans_inv_mult : forall G p q T,
     inert G ->
-    G ⊢!! p: typ_sngl q ->
+    G ⊢!! p: {{ q }}->
     G ⊢!!! p : T ->
     inert_typ T \/ record_type T ->
     G ⊢!!! q : T.
 Proof.
   introv Hi Hpq Hp Hr. gen q. induction Hp; introv Hpq.
   - constructor.
-    assert (inert_sngl (typ_sngl q)) as His. {
+    assert (inert_sngl {{ q }}) as His. {
       right. eexists. eauto.
     }
     lets ->: (pt2_sngl_unique' Hi Hpq H). destruct Hr.
     inversion His. inversion H1. inversion H0. inversion H0. inversion H1.
   - specialize (IHHp Hi Hr).
-    assert (inert_sngl (typ_sngl q)) as His1. {
+    assert (inert_sngl {{ q }}) as His1. {
       right. eexists. eauto.
     }
-    assert (inert_sngl (typ_sngl q0)) as His2. {
+    assert (inert_sngl {{ q0 }}) as His2. {
       right. eexists. eauto.
     }
     lets Heq: (pt2_sngl_unique' Hi Hpq H). inversions Heq. eauto.
@@ -778,7 +778,7 @@ Qed.
 
 Lemma pf_pt3_trans_inv_mult' : forall G p q T bs,
     inert G ->
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
     G ⊢!!! p •• bs : T ->
     inert_typ T \/ record_type T ->
     G ⊢!!! q •• bs : T.
@@ -799,7 +799,7 @@ Proof.
     lets Hu: (pf_T_unique Hi H0 H). subst.
     destruct (pf_bnd_T2 Hi H0) as [V Heq]. subst.
     apply* pf_dec_typ_unique.
-  - clear IHHp3. apply pt2 in Hp1. assert (inert_sngl (typ_sngl q)) as His. {
+  - clear IHHp3. apply pt2 in Hp1. assert (inert_sngl {{ q }}) as His. {
       right. eexists. eauto.
     }
     lets Hu: (pt2_sngl_unique' Hi H Hp1). inversion Hu.
@@ -809,7 +809,7 @@ Qed.
 
 Definition typed_repl_comp_qp G T1 T2 :=
   exists p q n U,
-    G ⊢! p: typ_sngl q ⪼ typ_sngl q /\
+    G ⊢! p: {{ q }}⪼ {{ q }}/\
     G ⊢!! q : U /\
     repl_typ n q p T1 T2.
 
@@ -817,12 +817,12 @@ Definition repl_composition_qp G := star (typed_repl_comp_qp G).
 
 Notation "G '⊢' T '⟿' U" := (repl_composition_qp G U T) (at level 40, T at level 59).
 (*Notation "G '⊢' T '⬳' U" := (repl_composition_qp G T U) (at level 40, T at level 59).*)
-Notation "G '⊢' p '⟿'' q" := (G ⊢ typ_sngl p ⟿ typ_sngl q) (at level 40, p at level 59).
-(*Notation "G '⊢p' p '⬳' q" := (G ⊢ typ_sngl p ⬳ typ_sngl q) (at level 40, p at level 59).*)
+Notation "G '⊢' p '⟿'' q" := (G ⊢ {{ p }}⟿ {{ q }}) (at level 40, p at level 59).
+(*Notation "G '⊢p' p '⬳' q" := (G ⊢ {{ p }}⬳ {{ q) (at level 40, p at level 59).*)
 
 Lemma repl_comp_sngl_inv1 : forall G T p,
-    G ⊢ typ_sngl p ⟿ T ->
-    exists q, T = typ_sngl q.
+    G ⊢ {{ p }} ⟿ T ->
+    exists q, T = {{ q }}.
 Proof.
   introv Hr. dependent induction Hr; eauto.
   specialize (IHHr _ eq_refl). destruct_all. subst.
@@ -830,8 +830,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_sngl_inv2 : forall G T p,
-    G ⊢ T ⟿ typ_sngl p ->
-    exists q, T = typ_sngl q.
+    G ⊢ T ⟿ {{ p }}->
+    exists q, T = {{ q }}.
 Proof.
   introv Hr. dependent induction Hr; eauto.
   inversions H. destruct_all. invert_repl.
@@ -839,8 +839,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd_inv1 G T U :
-  G ⊢ typ_bnd U ⟿ T ->
-  exists S, T = typ_bnd S.
+  G ⊢ μ U ⟿ T ->
+  exists S, T = μ S.
 Proof.
   introv Hr. dependent induction Hr; eauto.
   specialize (IHHr _ eq_refl). destruct_all. subst.
@@ -848,8 +848,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd_inv2 G T U :
-  G ⊢ T ⟿ typ_bnd U ->
-  exists S, T = typ_bnd S.
+  G ⊢ T ⟿ μ U ->
+  exists S, T = μ S.
 Proof.
   introv Hr. dependent induction Hr; eauto.
   inversions H. destruct_all. invert_repl.
@@ -857,13 +857,13 @@ Proof.
 Qed.
 
 Lemma repl_comp_bnd': forall G T T',
-    G ⊢ typ_bnd T ⟿ typ_bnd T' ->
+    G ⊢ μ T ⟿ μ T' ->
     G ⊢ T ⟿ T'.
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
   - destruct H as [?[?[?[?[?[? Hr']]]]]].
-    assert (exists V, b = typ_bnd V) as [V ->]. {
+    assert (exists V, b = μ V) as [V ->]. {
       inversions Hr'. eauto.
     }
     apply star_trans with (b:=V). apply star_one. econstructor. repeat eexists. apply H. inversion* H0.
@@ -925,8 +925,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_typ_and1 G T U S :
-  G ⊢ S ⟿ typ_and T U ->
-  exists T' U', S = typ_and T' U' /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
+  G ⊢ S ⟿ T ∧ U ->
+  exists T' U', S = T' ∧ U' /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
@@ -936,8 +936,8 @@ Proof.
 Qed.
 
 Lemma repl_comp_typ_and2 G T U S :
-  G ⊢ typ_and T U ⟿ S ->
-  exists T' U', S = typ_and T' U' /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
+  G ⊢ T ∧ U ⟿ S ->
+  exists T' U', S = T' ∧ U' /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
@@ -1045,7 +1045,7 @@ Proof.
   destruct (repl_comp_sngl_inv1 Hr) as [p Heq]. subst.
   destruct H as [p' [q' [n [V [Hp' [Hq' Hr']]]]]].
   specialize (IHHr _ _ Hi eq_refl eq_refl _ _ Hq). destruct IHHr as [T Hpa].
-  assert (G ⊢!!! p : typ_sngl r) as Hpr. {
+  assert (G ⊢!!! p : {{ r }}) as Hpr. {
     clear Hq Hr. inversions Hr'. gen p' a T. induction bs; introv Hpa; introv Hq.
     repeat rewrite field_sel_nil in *. eauto.
     destruct (pt3_backtrack _ _ Hq) as [T1 Ht1]. rewrite proj_rewrite' in *.
@@ -1064,7 +1064,7 @@ Proof.
   introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hqa; eauto. inversions H.
   rename x into p.
   destruct H0 as [q' [n [V [Hp [Hq Hr']]]]].
-  assert (exists q', b = typ_sngl q') as [q'' Heq] by inversion* Hr'.
+  assert (exists q', b = {{ q' }}) as [q'' Heq] by inversion* Hr'.
   subst. specialize (IHHr _ _ Hi eq_refl eq_refl). invert_repl. apply* IHHr. clear IHHr Hr.
   gen q' a U. induction bs; intros; simpls.
   - repeat rewrite field_sel_nil in *. apply* pt3_trans2.
@@ -1079,11 +1079,11 @@ Lemma repl_composition_fld_elim: forall G p q a T,
 Proof.
   introv Hi Hr. gen T. dependent induction Hr; introv Hpa.
   - apply star_refl.
-  - assert (exists p', b = typ_sngl p') as [p' Heq]. {
+  - assert (exists p', b = {{ p' }}) as [p' Heq]. {
       dependent induction H; destruct_all; eauto. inversions H1. eauto.
     } subst.
     specialize (IHHr _ _ Hi eq_refl eq_refl).
-    destruct H as [p'' [q' [n [S [Hpq [Hq Hr']]]]]]. apply star_trans with (b:=typ_sngl p' • a).
+    destruct H as [p'' [q' [n [S [Hpq [Hq Hr']]]]]]. apply star_trans with (b:={{ p'•a }}).
     * apply star_one. inversions Hr'. repeat eexists; eauto.
       repeat rewrite <- proj_rewrite' in *.
       apply* rsngl.
@@ -1093,8 +1093,8 @@ Qed.
 Lemma pt23_invert : forall G p q T,
     inert G ->
     G ⊢!! p : T ->
-    G ⊢!!! p : typ_sngl q ->
-    exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+    G ⊢!!! p : {{ q }}->
+    exists q', {{ q' }} = T /\ (q = q' \/ G ⊢!!! q' : {{ q }}).
 Proof.
   introv Hi Hp Hpq. gen T. dependent induction Hpq; introv Hp.
   - exists q. split*.
@@ -1105,8 +1105,8 @@ Qed.
 Lemma pt3_invert : forall G p q T,
     inert G ->
     G ⊢!!! p : T ->
-    G ⊢!!! p : typ_sngl q ->
-    G ⊢!!! q: T \/ exists q', typ_sngl q' = T /\ (q = q' \/ G ⊢!!! q' : typ_sngl q).
+    G ⊢!!! p : {{ q }}->
+    G ⊢!!! q: T \/ exists q', {{ q' }} = T /\ (q = q' \/ G ⊢!!! q' : {{ q }}).
 Proof.
   introv Hi Hp Hpq. gen q. dependent induction Hp; introv Hpq.
   - right. apply* pt23_invert.
@@ -1115,7 +1115,7 @@ Qed.
 
 Lemma pt3_var_sngl G x p :
   inert G ->
-  G ⊢!!! pvar x : typ_sngl p ->
+  G ⊢!!! pvar x : {{ p }}->
   False.
 Proof.
   intros Hi Hp. dependent induction Hp; false* pt2_var_sngl.
@@ -1124,7 +1124,7 @@ Qed.
 Lemma pf_inert_pt2_sngl_false G p q T U :
   inert G ->
   G ⊢! p : T ⪼ U ->
-  G ⊢!! p : typ_sngl q ->
+  G ⊢!! p : {{ q }}->
   inert_typ T ->
   False.
 Proof.
@@ -1136,7 +1136,7 @@ Qed.
 Lemma pf_inert_pt3_sngl_false G p q T U :
   inert G ->
   G ⊢! p : T ⪼ U ->
-  G ⊢!!! p : typ_sngl q ->
+  G ⊢!!! p : {{ q }}->
   inert_typ T ->
   False.
 Proof.
@@ -1147,7 +1147,7 @@ Qed.
 Lemma pt3_inert_pt2_sngl_invert G p q T :
   inert G ->
   G ⊢!!! p : T ->
-  G ⊢!! p : typ_sngl q ->
+  G ⊢!! p : {{ q }}->
   inert_typ T ->
   G ⊢!!! q : T.
 Proof.
@@ -1159,7 +1159,7 @@ Qed.
 Lemma pt3_inert_sngl_invert G p q T :
   inert G ->
   G ⊢!!! p : T ->
-  G ⊢!!! p : typ_sngl q ->
+  G ⊢!!! p : {{ q }}->
   inert_typ T ->
   G ⊢!!! q : T.
 Proof.
@@ -1249,10 +1249,10 @@ Lemma repl_comp_to_prec': forall G G' p q T,
     wf_env (G & G') ->
     G ⊢ p ⟿' q ->
     G & G' ⊢!!! p: T ->
-    p = q \/ G ⊢!!! p: typ_sngl q.
+    p = q \/ G ⊢!!! p: {{ q }}.
 Proof.
   introv Hi Hwf Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
-  assert (exists r, b = typ_sngl r) as [r Heq].
+  assert (exists r, b = {{ r }}) as [r Heq].
   { inversion H as [? [? [? [? [_ [? Hr']]]]]]. inversion* Hr'. }
   subst.
   specialize (IHHr _ _ Hi Hwf eq_refl eq_refl). destruct (IHHr _ Hp). subst.
@@ -1275,7 +1275,7 @@ Lemma repl_comp_to_prec: forall G p q T,
     wf_env G ->
     G ⊢ p ⟿' q ->
     G ⊢!!! p: T ->
-    p = q \/ G ⊢!!! p: typ_sngl q.
+    p = q \/ G ⊢!!! p: {{ q }}.
 Proof.
   introv Hi Hwf Hp Hpt. assert (G = G & empty) as Heq by rewrite* concat_empty_r.
   rewrite Heq in Hpt. apply* repl_comp_to_prec'. rewrite* concat_empty_r. rewrite Heq in Hwf. auto.
@@ -1288,7 +1288,7 @@ Lemma repl_comp_typed : forall G p q T,
     exists U, G ⊢!!! p: U.
 Proof.
   introv Hi Hr Hq. gen T. dependent induction Hr; introv Hq; eauto.
-  assert (exists q', b = typ_sngl q') as [q' Heq].
+  assert (exists q', b = {{ q' }}) as [q' Heq].
   { inversion H as [x [y [n [S [_ [? H0]]]]]]. inversion* H0. }
   subst.
   destruct H as [r [r' [n [? [H2 [? H3]]]]]].

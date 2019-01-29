@@ -40,14 +40,14 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
 | ty_all_intro_t : forall G t T U L,
     (forall x, x \notin L ->
       G & x ~ T ⊢ open_trm x t : open_typ x U) ->
-    G ⊢# trm_val (val_lambda T t) : typ_all T U
+    G ⊢# trm_val (λ(T) t) : ∀(T) U
 
 (** [G ⊢# p: forall(S)T]  #<br>#
     [G ⊢# q: S]      #<br>#
     [―――――――――――――――] #<br>#
     [G ⊢ p q: T^q]    *)
 | ty_all_elim_t : forall G p q S T,
-    G ⊢# trm_path p : typ_all S T ->
+    G ⊢# trm_path p : ∀(S) T ->
     G ⊢# trm_path q : S ->
     G ⊢# trm_app p q : open_typ_p q T
 
@@ -58,7 +58,7 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
 | ty_new_intro_t : forall G ds T L,
     (forall z, z \notin L ->
       z; nil; G & (z ~ open_typ z T) ⊢ open_defs z ds :: open_typ z T) ->
-    G ⊢# trm_val (val_new T ds) : typ_bnd T
+    G ⊢# trm_val (ν(T) ds) : μ T
 
 (** [G ⊢# p: {a: T}] #<br>#
     [―――――――――――――]   #<br>#
@@ -83,27 +83,27 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     [―――――――――――――――] #<br>#
     [G ⊢# p: T]            *)
 | ty_sngl_t : forall G p q T,
-    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# trm_path p : {{ q }} ->
     G ⊢# trm_path q : T ->
     G ⊢# trm_path p : T
 
 | ty_path_elim_t : forall G p q a T,
-    G ⊢# trm_path p : typ_sngl q ->
+    G ⊢# trm_path p : {{ q }} ->
     G ⊢# trm_path q • a : T ->
-    G ⊢# trm_path p • a : typ_sngl q • a
+    G ⊢# trm_path p • a : {{ q•a }}
 
 (** [G ⊢# p: T^p]   #<br>#
     [――――――――――――] #<br>#
     [G ⊢# p: mu(T)]     *)
 | ty_rec_intro_t : forall G p T,
     G ⊢# trm_path p : open_typ_p p T ->
-    G ⊢# trm_path p : typ_bnd T
+    G ⊢# trm_path p : μ T
 
 (** [G ⊢# p: mu(T)] #<br>#
     [――――――――――――] #<br>#
     [G ⊢# p: T^p]   *)
 | ty_rec_elim_t : forall G p T,
-    G ⊢# trm_path p : typ_bnd T ->
+    G ⊢# trm_path p : μ T ->
     G ⊢# trm_path p : open_typ_p p T
 
 (** [G ⊢# p: T]     #<br>#
@@ -113,7 +113,7 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
 | ty_and_intro_t : forall G p T U,
     G ⊢# trm_path p : T ->
     G ⊢# trm_path p : U ->
-    G ⊢# trm_path p : typ_and T U
+    G ⊢# trm_path p : T ∧ U
 
 (** [G ⊢# t: T]    #<br>#
     [G ⊢# T <: U]  #<br>#
@@ -130,11 +130,11 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 
 (** [G ⊢# T <: top] *)
 | subtyp_top_t: forall G T,
-    G ⊢# T <: typ_top
+    G ⊢# T <: ⊤
 
 (** [G ⊢# bot <: T] *)
 | subtyp_bot_t: forall G T,
-    G ⊢# typ_bot <: T
+    G ⊢# ⊥ <: T
 
 (** [G ⊢# T <: T] *)
 | subtyp_refl_t: forall G T,
@@ -151,11 +151,11 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 
 (** [G ⊢# T /\ U <: T] *)
 | subtyp_and11_t: forall G T U,
-    G ⊢# typ_and T U <: T
+    G ⊢# T ∧ U <: T
 
 (** [G ⊢# T /\ U <: U] *)
 | subtyp_and12_t: forall G T U,
-    G ⊢# typ_and T U <: U
+    G ⊢# T ∧ U <: U
 
 (** [G ⊢# S <: T]       #<br>#
     [G ⊢# S <: U]       #<br>#
@@ -164,7 +164,7 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
 | subtyp_and2_t: forall G S T U,
     G ⊢# S <: T ->
     G ⊢# S <: U ->
-    G ⊢# S <: typ_and T U
+    G ⊢# S <: T ∧ U
 
 (** [G ⊢# T <: U]           #<br>#
     [――――――――――――――――――――――] #<br>#
@@ -183,13 +183,13 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
 | subtyp_sngl_pq_t : forall G p q T T' n U,
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
     repl_typ n p q T T' ->
     G ⊢# T <: T'
 
 | subtyp_sngl_qp_t : forall G p q T T' n U,
-    G ⊢!!! p : typ_sngl q ->
+    G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
     repl_typ n q p T T' ->
     G ⊢# T <: T'
@@ -199,14 +199,14 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     [G ⊢# T <: p.A]         *)
 | subtyp_sel2_t: forall G p A T ,
     G ⊢!!! p : typ_rcd { A >: T <: T } ->
-    G ⊢# T <: typ_path p A
+    G ⊢# T <: p ↓ A
 
 (** [G ⊢! p: {A: T..T}] #<br>#
     [――――――――――――――――――] #<br>#
     [G ⊢# p.A <: T]         *)
 | subtyp_sel1_t: forall G p A T,
     G ⊢!!! p : typ_rcd { A >: T <: T } ->
-    G ⊢# typ_path p A <: T
+    G ⊢# p↓A <: T
 
 (** [G ⊢# S2 <: S1]                #<br>#
     [G, x: S2 ⊢ T1^x <: T2^x]       #<br>#
@@ -217,7 +217,7 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# S2 <: S1 ->
     (forall x, x \notin L ->
        G & x ~ S2 ⊢ open_typ x T1 <: open_typ x T2) ->
-    G ⊢# typ_all S1 T1 <: typ_all S2 T2
+    G ⊢# ∀(S1) T1 <: ∀(S2) T2
 where "G '⊢#' T '<:' U" := (subtyp_t G T U).
 
 Hint Constructors ty_trm_t subtyp_t.

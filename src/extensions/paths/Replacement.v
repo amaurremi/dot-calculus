@@ -95,7 +95,7 @@ Qed.
 
 Lemma repl_star_and1: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
-    repl_repeat_typ p q (typ_and T1 U) (typ_and T2 U).
+    repl_repeat_typ p q (T1 ∧ U) (T2 ∧ U).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -106,10 +106,10 @@ Qed.
 
 Lemma repl_star_and2: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
-    repl_repeat_typ p q (typ_and U T1) (typ_and U T2).
+    repl_repeat_typ p q (U ∧ T1) (U ∧ T2).
 Proof.
   introv Hs. dependent induction Hs.
-  apply star_refl. apply star_trans with (b:=typ_and U b). apply star_one.
+  apply star_refl. apply star_trans with (b:=U ∧ b). apply star_one.
   unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
@@ -117,7 +117,7 @@ Qed.
 
 Lemma repl_star_bnd : forall T1 T2 p q,
     repl_repeat_typ p q T1 T2 ->
-    repl_repeat_typ p q (typ_bnd T1) (typ_bnd T2).
+    repl_repeat_typ p q (μ T1) (μ T2).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -128,7 +128,7 @@ Qed.
 
 Lemma repl_star_all1: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
-    repl_repeat_typ p q (typ_all T1 U) (typ_all T2 U).
+    repl_repeat_typ p q (∀(T1) U) (∀(T2) U).
 Proof.
   introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
@@ -139,10 +139,10 @@ Qed.
 
 Lemma repl_star_all2: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
-    repl_repeat_typ p q (typ_all U T1) (typ_all U T2).
+    repl_repeat_typ p q (∀(U) T1) (∀(U) T2).
 Proof.
   introv Hs. dependent induction Hs.
-  apply star_refl. apply star_trans with (b:=typ_all U b). apply star_one.
+  apply star_refl. apply star_trans with (b:=∀(U) b). apply star_one.
   unfolds repl_some_typ.
   destruct_all. repeat eexists. constructor*.
   eauto.
@@ -516,14 +516,14 @@ Proof.
 Qed.
 
 Lemma repl_prefixes_sngl: forall n p q p' q',
-    repl_typ n p q (typ_sngl p') (typ_sngl q') ->
+    repl_typ n p q {{ p' }} {{ q' }} ->
     exists bs, p' = p •• bs /\ q' = q •• bs.
 Proof.
   introv Hr. inversions Hr. eauto.
 Qed.
 
 Lemma repl_prefixes_sel: forall n p q p' q' A,
-    repl_typ n p q (typ_path p' A) (typ_path q' A) ->
+    repl_typ n p q (p' ↓ A) (q' ↓ A) ->
     exists bs, p' = p •• bs /\ q' = q •• bs.
 Proof.
   introv Hr. inversions Hr. eauto.
@@ -568,11 +568,11 @@ Proof.
 Qed.
 
 Lemma repl_intro_sngl: forall p q,
-    repl_typ 0 p q (typ_sngl p) (typ_sngl q).
+    repl_typ 0 p q {{ p }} {{ q }}.
 Proof.
   intros p q.
-  replace (typ_sngl p) with (typ_sngl p •• nil).
-  replace (typ_sngl q) with (typ_sngl q •• nil).
+  replace {{ p }} with {{ p •• nil }}.
+  replace {{ q }} with {{ q •• nil }}.
   - auto.
   - destruct q. reflexivity.
   - destruct p. reflexivity.
