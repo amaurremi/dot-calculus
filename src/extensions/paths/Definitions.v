@@ -131,6 +131,7 @@ Notation "'λ' '(' T ')' t" := (val_lambda T t) (at level 50).
 Notation "'{' a ':=' t '}'" := (def_trm a t) (t at level 50).
 Notation "'{' a ':=p' p '}'" := (def_trm a (defp p)).
 Notation "'{' a ':=v' v '}'" := (def_trm a (defv v)).
+Notation "'{' A '⦂=' T '}'" := (def_typ A T).
 
 (** Shorthand definitions for variables and field selections *)
 Definition pavar (x: avar) := p_sel x nil.
