@@ -691,17 +691,6 @@ Proof.
     eapply replacement_subtyping_closure. auto. apply H. auto.
 Qed.
 
-Lemma repl_to_precise_sngl G p q T :
-  inert G ->
-  G ⊢// p : {{ q }} ->
-  G ⊢!! q : T ->
-  exists q2 q3, G ⊢!!! p : {{ q3 }} /\ (q = q2 \/ G ⊢!!! q : {{ q2 }}) /\ (q2 = q3 \/ G ⊢!!! q3 : {{ q2 }}).
-Proof.
-  intros Hi Hp Hq.
-  pose proof (repl_to_invertible_sngl Hi Hp Hq) as [r [S [Hpi [Hq' [-> | Hpr]]]]];
-    pose proof (inv_to_precise_sngl Hi Hpi (pt3 Hq')) as [q2 [Hpq [-> | ?]]]; repeat eexists; eauto.
-Qed.
-
 (** Replacement typing for values *)
 Reserved Notation "G '⊢//v' v ':' T" (at level 40, v at level 59).
 Inductive ty_replv : ctx -> val -> typ -> Prop :=

@@ -191,9 +191,6 @@ Ltac proof_recipe :=
         | [ Hr: ?G ⊢// _ : ∀(_) _,
             Hok: ok ?G |- _ ] =>
           destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
-        | [ Hr: ?G ⊢// _ : {{ ?q }},
-            Hq: ?G ⊢!! ?q : _ |- _ ] =>
-          destruct (repl_to_precise_sngl Hi Hr Hq) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]
         | [ Hrv: ?G ⊢//v _ : μ _ |- _ ] =>
           apply (repl_to_invertible_obj Hi) in Hrv as [U' [Hrv Hrc]];
           apply (invertible_to_precise_obj Hi) in Hrv as [U'' [Hrv Hrc']];
