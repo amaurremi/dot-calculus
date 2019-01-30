@@ -63,7 +63,7 @@ Definition t :=
 Lemma list_typing :
   empty ⊢ t : μ ListObjType.
 Proof.
-  fresh_constructor. repeat apply ty_defs_cons; auto; try rewrite concat_empty_l.
+  fresh_constructor. repeat apply ty_defs_cons; auto.
   - Case "Nil".
     constructor. fresh_constructor. simpl. repeat case_if.
     unfold open_trm, open_typ. simpl. repeat case_if.
@@ -135,10 +135,7 @@ Proof.
            eapply ty_sub.
            {
              rewrite HeqG.
-             constructor*. rewrite <- concat_assoc.
-             apply binds_concat_left_ok.
-             { rewrite concat_assoc. repeat apply* ok_push. rewrite <- concat_empty_l. apply* ok_push. }
-             apply binds_single_eq.
+             constructor*.
            }
            eapply subtyp_trans; apply subtyp_and11.
       * eapply ty_sub. apply Hpy1. apply subtyp_typ; auto.
@@ -198,11 +195,8 @@ Proof.
            *** apply subtyp_and11.
            *** eapply subtyp_trans. apply subtyp_and12. apply subtyp_typ. auto.
                eapply subtyp_sel2. apply* weaken_ty_trm. rewrite HeqG. repeat apply* ok_push.
-               rewrite <- concat_empty_l. apply* ok_push.
         ** rewrite HeqG in *.
-           eapply subtyp_sel2. eapply ty_sub. constructor*. repeat rewrite <- concat_assoc.
-           apply* binds_concat_left_ok. repeat rewrite concat_assoc. repeat apply* ok_push.
-           rewrite <- concat_empty_l. apply* ok_push. apply binds_single_eq.
+           eapply subtyp_sel2. eapply ty_sub. constructor*.
            eapply subtyp_trans. apply subtyp_and11. eapply subtyp_and11.
       * eapply ty_sub. apply Hpy1. apply subtyp_typ; auto.
   - simpl. repeat case_if. unfold defs_hasnt. simpl. repeat case_if. auto.
