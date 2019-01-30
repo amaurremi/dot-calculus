@@ -1,4 +1,4 @@
-Require Import Definitions Binding.
+Require Import Definitions Binding Weakening.
 Require Import List.
 
 Section ListExample.
@@ -191,12 +191,19 @@ Proof.
       * apply ty_sub with (T:=μ ListType (p_sel (avar_f z) nil)).
         ** rewrite Heqpy0 in *. apply ty_rec_intro. unfold open_typ_p. simpl. case_if.
            apply ty_and_intro.
-           { apply ty_and_intro.
-             - apply (ty_sub Hpy1). eauto.
-             - admit.
-           }
-           admit.
-        ** rewrite HeqG in *. admit.
+           { apply ty_and_intro; auto. apply (ty_sub Hpy1). eauto. }
+           eapply ty_sub. apply Hpy3.
+           constructor. fresh_constructor.
+           unfold open_typ. simpl. apply subtyp_and2.
+           *** apply subtyp_and11.
+           *** eapply subtyp_trans. apply subtyp_and12. apply subtyp_typ. auto.
+               eapply subtyp_sel2. apply* weaken_ty_trm. rewrite HeqG. repeat apply* ok_push.
+               rewrite <- concat_empty_l. apply* ok_push.
+        ** rewrite HeqG in *.
+           eapply subtyp_sel2. eapply ty_sub. constructor*. repeat rewrite <- concat_assoc.
+           apply* binds_concat_left_ok. repeat rewrite concat_assoc. repeat apply* ok_push.
+           rewrite <- concat_empty_l. apply* ok_push. apply binds_single_eq.
+           eapply subtyp_trans. apply subtyp_and11. eapply subtyp_and11.
       * eapply ty_sub. apply Hpy1. apply subtyp_typ; auto.
   - simpl. repeat case_if. unfold defs_hasnt. simpl. repeat case_if. auto.
 Qed.
