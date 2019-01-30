@@ -194,7 +194,6 @@ Proof.
         apply* weaken_ty_defs. all: eauto.
       + right. right. repeat eexists. rewrite concat_assoc. all: eauto.
 Qed.
-
 Lemma lookup_step_preservation_prec2 G s p px pbs t T :
     inert G ->
     wf_env G ->
@@ -255,7 +254,6 @@ Proof.
                                   [[? [? [? [? [? [? [? [? [[=]%pf_sngl_T [[=] [HH [HHH ?]]]]]]]]]]]] |
                                    [? [? [? [? [? [? [[=] ?]]]]]]]]]; auto.
 Qed.
-
 Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     inert G ->
     wf_env G ->
@@ -318,7 +316,6 @@ Proof.
       eapply pt3_sngl_trans3. repeat apply* pt3_weaken.
       apply* pt3_inert_sngl_invert. repeat apply* pt3_weaken.
 Qed.
-
 Lemma lookup_step_preservation_prec3_fun G s p T S t :
   inert G ->
   wf_env G ->
@@ -333,7 +330,6 @@ Proof.
 Qed.
 
 (** * Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
-
 Lemma typ_to_lookup1 G s p T U :
   inert G ->
   wf_env G ->
@@ -376,7 +372,6 @@ Proof.
       apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) (wf_env_prefix Hwf) _ _ _ Hp) as [t Hs].
       eexists. apply* lookup_step_weaken_one.
 Qed.
-
 Lemma typ_to_lookup2 G s p T :
   inert G ->
   wf_env G ->
@@ -396,7 +391,6 @@ Proof.
     + pose proof (pf_sngl_T Hi Hp') as [=].
     + eauto.
 Qed.
-
 Lemma typ_to_lookup3 G s p T :
   inert G ->
   wf_env G ->
@@ -406,7 +400,6 @@ Lemma typ_to_lookup3 G s p T :
 Proof.
   intros Hi Hwf Hwt Hp. induction Hp; apply* typ_to_lookup2.
 Qed.
-
 Lemma sngl_path_lookup1 G s p q U :
   inert G ->
   wf_env G ->
@@ -430,7 +423,6 @@ Proof.
     + split*. split. left*. right. repeat apply* pt3_weaken.
     + split*. split; right; repeat apply* pt3_weaken.
 Qed.
-
 Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     wf_env G ->

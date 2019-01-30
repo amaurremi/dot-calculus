@@ -67,6 +67,10 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     G ⊢# trm_path p : typ_rcd {a ⦂ T} ->
     G ⊢# trm_path p • a : T
 
+| ty_rec_intro_t : forall G p a T,
+    G ⊢# trm_path p•a : T ->
+    G ⊢# trm_path p : typ_rcd { a ⦂ T }
+
 (** [G ⊢# t: T]             #<br>#
     [G, x: T ⊢ u^x: U]       #<br>#
     [x fresh]                #<br>#
@@ -95,7 +99,7 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
 (** [G ⊢# p: T^p]   #<br>#
     [――――――――――――] #<br>#
     [G ⊢# p: mu(T)]     *)
-| ty_rec_intro_t : forall G p T,
+| ty_rcd_intro_t : forall G p T,
     G ⊢# trm_path p : open_typ_p p T ->
     G ⊢# trm_path p : μ T
 

@@ -206,6 +206,11 @@ Proof.
   - Case "ty_new_elim".
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
     destruct p0. apply sel_fields_subst. auto.
+  - Case "ty_rcd_intro".
+    assert (subst_path x p p0 • a = (subst_path x p p0) • a) as Heq. {
+      destruct p0. apply sel_fields_subst.
+    }
+    specialize (H _ _ _ eq_refl H1 H2 H3). rewrite Heq in H. eauto.
   - Case "ty_let".
     fresh_constructor.
     subst_open_fresh.

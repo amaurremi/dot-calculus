@@ -65,31 +65,6 @@ Proof.
   apply* sel_premise_inv.
 Qed.
 
-Lemma sel_premise_fld_inv: forall G p a U,
-  inert G ->
-  G ⊢## p : typ_rcd {a ⦂ U} ->
-  exists T,
-    G ⊢!!! p : typ_rcd {a ⦂ T} /\
-    G ⊢# T <: U.
-Proof.
-  introv Hi Hp.
-  dependent induction Hp.
-  - repeat eexists; eauto.
-  - specialize (IHHp _ _ Hi eq_refl) as [S [Hp' Hs]].
-    repeat eexists; eauto.
-Qed.
-
-Lemma sel_premise_fld: forall G p a U,
-  inert G ->
-  G ⊢// p : typ_rcd {a ⦂ U} ->
-  exists T,
-    G ⊢!!! p : typ_rcd {a ⦂ T} /\
-    G ⊢# T <: U.
-Proof.
-  introv HG Hr. dependent induction Hr.
-  apply* sel_premise_fld_inv.
-Qed.
-
 (** * Sel-<: Replacement
     This lemma corresponds to Lemma 3.4 in the paper.
 
@@ -117,8 +92,8 @@ Lemma tight_to_prec_exists G p T :
   G ⊢# trm_path p : T ->
   exists U, G ⊢!! p : U.
 Proof.
-  intros Hi Hp. pose proof (replacement_closure Hi Hp). clear Hp.
-  dependent induction H; eauto. dependent induction H; eauto. dependent induction H; eauto.
+  intros Hi Hp. pose proof (replacement_closure Hi Hp).
+  apply repl_to_inv in H as [? ?]. apply inv_to_prec in H as [? ?]. apply* pt2_exists.
 Qed.
 
 Lemma sngl_replacement: forall G p q n T U S,
@@ -216,8 +191,6 @@ Ltac proof_recipe :=
         | [ Hr: ?G ⊢// _ : ∀(_) _,
             Hok: ok ?G |- _ ] =>
           destruct (repl_to_precise_typ_all Hi Hr) as [Spr [Tpr [Lpr [Hpr [Hspr1 Hspr2]]]]]
-        | [ Hr: ?G ⊢// _ : typ_rcd _ |- _ ] =>
-          destruct (repl_to_precise_fld Hi Hr) as [Spr [Hpr Hspr]]
         | [ Hr: ?G ⊢// _ : {{ ?q }},
             Hq: ?G ⊢!! ?q : _ |- _ ] =>
           destruct (repl_to_precise_sngl Hi Hr Hq) as [q2 [q3 [Hpq3 [[-> | Hqq2] [-> | Hq3q2]]]]]

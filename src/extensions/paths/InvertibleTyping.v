@@ -88,6 +88,10 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢## p : T ->
   G ⊢## p : ⊤
 
+| ty_rcd_intro_inv : forall G p a T,
+    G ⊢## p•a : T ->
+    G ⊢## p : typ_rcd { a ⦂ T }
+
 (* replacement rules: recursive types, selection types, singleton types *)
 
 | ty_rec_pq_inv : forall G p q r T T' n U,
@@ -266,6 +270,8 @@ Proof.
   - Case "ty_top_inv".
     invert_repl.
   - Case "ty_rec_pq_inv".
+    invert_repl. eauto.
+  - Case "ty_rcd_intro_inv".
     invert_repl. eauto.
   - Case "ty_sel_pq_inv".
     assert (exists r''', T' = r'''↓A) as [r''' Heq]. {
