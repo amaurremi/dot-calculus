@@ -297,7 +297,7 @@ Ltac lookup_eq :=
 
 Ltac invert_red :=
   match goal with
-  | [Hr: (_, _) |=> (_, _) |- _] => inversions Hr
+  | [Hr: (_, _) |-> (_, _) |- _] => inversions Hr
   end.
 
 Ltac solve_IH :=
@@ -305,11 +305,11 @@ Ltac solve_IH :=
   | [IH: well_typed _ _ ->
          inert _ ->
          wf_env _ ->
-         forall t', (_, _) |=> (_, _) -> _,
+         forall t', (_, _) |-> (_, _) -> _,
        Wt: well_typed _ _,
        In: inert _,
        Wf: wf_env _,
-       Hr: (_, _) |=> (_, ?t') |- _] =>
+       Hr: (_, _) |-> (_, ?t') |- _] =>
     specialize (IH Wt In Wf t' Hr); destruct_all
   end;
   match goal with
@@ -367,20 +367,11 @@ Ltac solve_let :=
     [exists G', inert G']        #<br>#
     [s': G, G']             #<br>#
     [G, G' ⊢ t': T]         *)
-
-(** [s: G]                  #<br>#
-    [inert G]               #<br>#
-    [(s, t) |-> (s', t')]   #<br>#
-    [G ⊢ t: T]              #<br>#
-    [―――――――――――――――――――]   #<br>#
-    [exists G', inert G']        #<br>#
-    [s': G, G']             #<br>#
-    [G, G' ⊢ t': T]         *)
 Lemma preservation_helper: forall G s t s' t' T,
     well_typed G s ->
     inert G ->
     wf_env G ->
-    (s, t) |=> (s', t') ->
+    (s, t) |-> (s', t') ->
     G ⊢ t : T ->
     exists G', inert G' /\
           wf_env (G & G') /\
@@ -390,15 +381,38 @@ Proof.
   introv Hwt Hi Hwf Hred Ht. gen t'.
   induction Ht; intros; try solve [invert_red].
   - Case "ty_all_elim".
-    match goal with
-    | [Hp: _ ⊢ trm_path _ : ∀(_) _ |- _] =>
-        pose proof (canonical_forms_fun Hi Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
-        inversions Hred
-    end.
-    lookup_eq.
-    exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
-    pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ; eauto. eauto. eauto.
+    proof_recipe. proof_recipe.
+    pose proof (repl_to_general Ht2) as Hg. inversions Hred.
+    + pose proof (lookup_step_preservation_inert_prec3 Hi Hwf Hwt H0 Hpr (inert_typ_all _ _))
+        as [[T' [U' [[= -> ->] Hr]]] | [? [[=]]]].
+      pick_fresh y. assert (y \notin Lpr) as FrL by auto.
+      specialize (Hspr2 y FrL).
+      exists (@empty typ). rewrite concat_empty_r. repeat split; eauto.
+      eapply ty_sub. econstructor. apply Hr. apply ty_sub with (T:=S).
+      auto.
+      apply* tight_to_general.
+      eapply subst_rules with (x:=y) (p:=q) (G2:=empty) in Hspr2.
+      do 2 rewrite <- subst_intro_typ in Hspr2. unfold subst_ctx in Hspr2.
+      rewrite map_empty, concat_empty_r in *. eauto.
+      all: try rewrite concat_empty_r; eauto; try solve_names. unfold subst_ctx.
+      rewrite subst_fresh_typ, map_empty, concat_empty_r. auto. auto.
+    + pose proof (lookup_step_preservation_inert_prec3 Hi Hwf Hwt H0 Hpr (inert_typ_all _ _))
+        as [[T' [U' [[= -> ->] Hr]]] | [? [[=]]]].
+      exists (@empty typ). rewrite concat_empty_r. repeat split; eauto.
+      proof_recipe. inversions Hvpr. pick_fresh z. assert (z \notin L) as Hz by auto. specialize (H2 _ Hz).
+      apply ty_sub with (T:=open_typ_p q T1).
+      apply renaming_typ with (z:=z) (U:=S1); auto.
+      apply ty_sub with (T:=T'); auto. apply ty_sub with (T:=S); auto. apply* tight_to_general.
+      assert (z \notin L1) as Hz' by auto. specialize (HS2 _ Hz').
+      assert (z \notin Lpr) as Hz'' by auto. specialize (Hspr2 _ Hz'').
+      eapply subst_rules with (x:=z) (p:=q) (G2:=empty) in HS2; auto.
+      eapply subst_rules with (x:=z) (p:=q) (G2:=empty) in Hspr2; auto.
+      do 2 rewrite <- subst_intro_typ in *. unfold subst_ctx in *.
+      rewrite map_empty, concat_empty_r in *.
+      eapply subtyp_trans with (T:=open_typ_p q U').
+      all: try rewrite concat_empty_r; eauto; try solve_names. all: unfold subst_ctx.
+      all: try (rewrite subst_fresh_typ, map_empty, concat_empty_r). all: auto.
+      eapply ty_sub. eauto. apply* tight_to_general.
   - Case "ty_let".
     destruct t; try solve [solve_let].
      + SCase "[t = (let x = v in u)] where v is a value".
@@ -427,6 +441,7 @@ Proof.
     end.
 Qed.
 
+
 (** ** Preservation Theorem *)
 
 (** [⊢ (s, t): T]           #<br>#
@@ -435,7 +450,7 @@ Qed.
     [⊢ (s', t'): T]         *)
 Theorem preservation : forall s s' t t' T,
     ⊢ (s, t) : T ->
-    (s, t) |=> (s', t') ->
+    (s, t) |-> (s', t') ->
     ⊢ (s', t') : T.
 Proof.
   introv Ht Hr. destruct Ht as [* Hi Hwf Hwt Ht].
@@ -469,12 +484,17 @@ Ltac solve_let_prog :=
     or [exists s', t'] such that [(s, t) |-> (s', t')] *)
 Theorem progress: forall s t T,
     ⊢ (s, t) : T ->
-    norm_form t \/ exists s' t', (s, t) |=> (s', t').
+    norm_form t \/ exists s' t', (s, t) |-> (s', t').
 Proof.
   introv Ht. inversion Ht as [G s' t' T' Hi Hwf Hwt HT]. subst.
   induction HT; unfold tvar; eauto.
   - Case "ty_all_elim".
-    pose proof (canonical_forms_fun Hi Hwf Hwt HT1). destruct_all. right*.
+    proof_recipe. proof_recipe. right*.
+    pose proof (typ_to_lookup3 Hi Hwf Hwt Hpr) as [t Hl].
+    pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt Hl Hpr).
+    destruct t; simpl in *; proof_recipe.
+    + repeat eexists. eauto.
+    + inversions Hvpr. repeat eexists; eauto.
   - Case "ty_let".
     right. destruct t; try solve [solve_let_prog].
     pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
@@ -488,8 +508,8 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   inert G ->
   wf_env G ->
   well_typed G s1 ->
-  star red' (s1, t1) (s2, t2) ->
-  (exists s3 t3, (s2, t2) |=> (s3, t3)) \/ norm_form t2.
+  star red (s1, t1) (s2, t2) ->
+  (exists s3 t3, (s2, t2) |-> (s3, t3)) \/ norm_form t2.
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
   - assert (⊢ (s2, t2) : T) as Ht' by eauto.
@@ -502,8 +522,8 @@ Qed.
 
 Theorem safety t u s T :
   empty ⊢ t : T ->
-  star red' (empty, t) (s, u) ->
-  (exists s' u', (s, u) |=> (s', u')) \/ norm_form u.
+  star red (empty, t) (s, u) ->
+  (exists s' u', (s, u) |-> (s', u')) \/ norm_form u.
 Proof.
   intros Ht Hr. apply* safety_helper. constructor.
 Qed.

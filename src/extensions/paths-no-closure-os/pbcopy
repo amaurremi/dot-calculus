@@ -1,0 +1,17 @@
+Γ', Γ : env typ
+
+
+
+
+
+Γ, Γ' ⊢!! (x.bs).b : q.type
+
+Γ, Γ' ⊢!! q.a : U
+Γ ⊢!! (x.bs).b : q.type
+∀ T, Γ ⊢!! q : T -> Γ ⊢!! q.a : U
+inert (Γ, Γ')
+wf_env Γ
+
+Γ ⊢!! (x.bs).b : T
+
+Γ ⊢!! x.bs : W
