@@ -286,4 +286,6 @@ Proof.
                  remember G' as G
                end.
                eapply ty_sub.
-               **** constructor*. eapply subtyp_sel2. constructor*.
+               **** rewrite HeqG. constructor*.
+               **** eapply subtyp_sel1. rewrite proj_rewrite. constructor. eapply ty_sub.
+                    rewrite HeqG. constructor*.
