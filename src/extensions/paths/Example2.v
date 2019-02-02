@@ -36,17 +36,17 @@ Notation DottyCorePackage tpe_lower tpe_upper symb_lower symb_upper :=
   (typ_rcd {types ⦂ μ(typesType tpe_lower tpe_upper)} ∧
    typ_rcd {symbols ⦂ μ(symbolsType symb_lower symb_upper)}).
 
-Notation DottyCorePackage_typ := (DottyCorePackage ⊥ ⊤ ⊥ ⊤).
-Notation DottyCorePackage_impl := (DottyCorePackage TpeImpl TpeImpl SymbolImpl SymbolImpl).
+Notation DottyCoreAbstract := (DottyCorePackage ⊥ ⊤ ⊥ ⊤).
+Notation DottyCoreTight := (DottyCorePackage TpeImpl TpeImpl SymbolImpl SymbolImpl).
 
 Definition t := (trm_val
-(ν(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
+(ν(typ_rcd {DottyCore >: μ DottyCoreAbstract <: μ DottyCoreAbstract} ∧
    typ_rcd {dottyCore ⦂ Lazy (super ↓ DottyCore)})
   defs_nil Λ
-  {DottyCore ⦂= μ DottyCorePackage_typ} Λ
+  {DottyCore ⦂= μ DottyCoreAbstract} Λ
   {dottyCore :=
      lazy (trm_let
-            (trm_val (ν(DottyCorePackage_impl)
+            (trm_val (ν(DottyCoreTight)
                        defs_nil Λ
                        {types :=
                           defv (ν(typesType TpeImpl TpeImpl)
@@ -75,7 +75,7 @@ Definition t := (trm_val
             (trm_path this))})).
 
 Notation T :=
-  (μ(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
+  (μ(typ_rcd {DottyCore >: μ DottyCoreAbstract <: μ DottyCoreAbstract} ∧
      typ_rcd {dottyCore ⦂ Lazy (super ↓ DottyCore)})).
 
 Lemma compiler_typecheck :
