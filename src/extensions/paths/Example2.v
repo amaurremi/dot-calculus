@@ -4,9 +4,6 @@ Require Import List.
 Notation this := (p_sel (avar_b 0) nil).
 Notation super := (p_sel (avar_b 1) nil).
 Notation ssuper := (p_sel (avar_b 2) nil).
-Notation sssuper := (p_sel (avar_b 3) nil).
-Notation ssssuper := (p_sel (avar_b 4) nil).
-Notation sssssuper := (p_sel (avar_b 5) nil).
 
 Notation lazy t := (defv (λ(⊤) t)).
 Notation Lazy T := (∀(⊤) T).
@@ -16,26 +13,31 @@ Notation "d1 'Λ' d2" := (defs_cons d1 d2) (at level 40).
 Section CompilerExample.
 
 Variables DottyCore Tpe Symbol : typ_label.
-Variable dottyCore types typeRef symbols symbol symb tpe tpeFld symbolFld : trm_label.
+Variables dottyCore types typeRef symbols symbol symb tpe denotation srcPos : trm_label.
 
-Notation id := (λ(⊤)this).
-Notation TpeInst := (μ(typ_rcd {tpeFld ⦂ Lazy ⊤})).
-Notation SymbolInst := (μ(typ_rcd {symbolFld ⦂ Lazy ⊤})).
+Notation id := (λ(⊤)trm_path this).
+Notation Id := (∀(⊤)⊤).
+Notation TpeImpl := (μ(typ_rcd {denotation ⦂ Id})).
+Notation SymbolImpl := (μ(typ_rcd {srcPos ⦂ Id})).
 
 Hypothesis TS: types <> symbols.
-Hypothesis ST: symb <> tpeFld.
-Hypothesis TS': tpe <> symbolFld.
+Hypothesis ST: symb <> denotation.
+Hypothesis TS': tpe <> srcPos.
 
+Notation typesType tpe_lower tpe_upper :=
+  (typ_rcd {Tpe >: tpe_lower <: tpe_upper} ∧
+     typ_rcd {typeRef ⦂ ∀(super•symbols↓Symbol)
+                         (super↓Tpe ∧ (typ_rcd {symb ⦂ ssuper•symbols↓Symbol}))}).
+Notation symbolsType symb_lower symb_upper :=
+  (typ_rcd {Symbol >: symb_lower <: symb_upper} ∧
+   typ_rcd {symbol ⦂ ∀(super•types↓Tpe)
+                      (super↓Symbol ∧ (typ_rcd {tpe ⦂ ssuper•types↓Tpe}))}).
 Notation DottyCorePackage tpe_lower tpe_upper symb_lower symb_upper :=
-  (typ_rcd {types ⦂ μ(typ_rcd {Tpe >: tpe_lower <: tpe_upper} ∧
-                      typ_rcd {typeRef ⦂ ∀(super•symbols↓Symbol)
-                                          (super↓Tpe ∧ (typ_rcd {symb ⦂ ssuper•symbols↓Symbol}))})} ∧
-   typ_rcd {symbols ⦂ μ(typ_rcd {Symbol >: symb_lower <: symb_upper} ∧
-                        typ_rcd {symbol ⦂ ∀(super•types↓Tpe)
-                                           (super↓Symbol ∧ (typ_rcd {tpe ⦂ ssuper•types↓Tpe}))})}).
+  (typ_rcd {types ⦂ μ(typesType tpe_lower tpe_upper)} ∧
+   typ_rcd {symbols ⦂ μ(symbolsType symb_lower symb_upper)}).
 
 Notation DottyCorePackage_typ := (DottyCorePackage ⊥ ⊤ ⊥ ⊤).
-Notation DottyCorePackage_impl := (DottyCorePackage TpeInst TpeInst SymbolInst SymbolInst).
+Notation DottyCorePackage_impl := (DottyCorePackage TpeImpl TpeImpl SymbolImpl SymbolImpl).
 
 Definition t := (trm_val
 (ν(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
@@ -47,33 +49,29 @@ Definition t := (trm_val
             (trm_val (ν(DottyCorePackage_impl)
                        defs_nil Λ
                        {types :=
-                          defv (ν(typ_rcd {Tpe >: TpeInst <: TpeInst} ∧
-                                  typ_rcd {typeRef ⦂ ∀(super•symbols↓Symbol)
-                                                      (super↓Tpe ∧ (typ_rcd {symb ⦂ ssuper•symbols↓Symbol}))})
+                          defv (ν(typesType TpeImpl TpeImpl)
                                  defs_nil Λ
-                                 {Tpe ⦂= TpeInst} Λ
+                                 {Tpe ⦂= TpeImpl} Λ
                                  {typeRef :=
                                     defv (λ(super•symbols↓Symbol)
                                            (trm_let
                                               (trm_val (ν(typ_rcd {symb ⦂ ({{ super }}) } ∧
-                                                          typ_rcd {tpeFld ⦂ Lazy ⊤})
+                                                          typ_rcd {denotation ⦂ Id})
                                                          defs_nil Λ
                                                          {symb := defp super} Λ
-                                                         {tpeFld := lazy (trm_path this)})) (trm_path this))) }) } Λ
+                                                         {denotation := defv id})) (trm_path this))) }) } Λ
                        {symbols :=
-                          defv (ν(typ_rcd {Symbol >: SymbolInst <: SymbolInst} ∧
-                                  typ_rcd {symbol ⦂ ∀(super•types↓Tpe)
-                                                     (super↓Symbol ∧ (typ_rcd {tpe ⦂ ssuper•types↓Tpe}))})
+                          defv (ν(symbolsType SymbolImpl SymbolImpl)
                                  defs_nil Λ
-                                 {Symbol ⦂= SymbolInst} Λ
+                                 {Symbol ⦂= SymbolImpl} Λ
                                  {symbol :=
                                     defv (λ(super•types↓Tpe)
                                            (trm_let
                                               (trm_val (ν(typ_rcd {tpe ⦂ {{ super }}} ∧
-                                                          typ_rcd {symbolFld ⦂ Lazy ⊤})
+                                                          typ_rcd {srcPos ⦂ Id})
                                                          defs_nil Λ
                                                          {tpe := defp super} Λ
-                                                         {symbolFld := lazy (trm_path this)})) (trm_path this)))})}))
+                                                         {srcPos := defv id})) (trm_path this)))})}))
             (trm_path this))})).
 
 Notation T :=
