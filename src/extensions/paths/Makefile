@@ -1,4 +1,4 @@
-FILES=Safety.v
+FILES=Safety.v Example1.v Example2.v
 OBJECTS=$(FILES:.v=.vo)
 
 LEROYDIR=../../../lib/leroy
