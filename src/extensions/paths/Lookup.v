@@ -35,7 +35,7 @@ Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
     [s ⟦ p.a ⟼ q.a ⟧ ]          *)
 | lookup_sel_p : forall s p q a,
     s ⟦ p ⟼ defp q ⟧ ->
-    s ⟦ p • a ⟼ defp (q • a) ⟧
+    s ⟦ p•a ⟼ defp (q•a) ⟧
 
 (** [s ⟦ p ⟼ ν(T)...{a = t}... ⟧ ]   #<br>#
     [――――――――――――――――――――――]         #<br>#

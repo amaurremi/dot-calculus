@@ -1,15 +1,6 @@
 Require Import Definitions Binding Weakening.
 Require Import List.
 
-Section ListExample.
-
-Variables A List : typ_label.
-Variables Nil Cons head tail : trm_label.
-
-Hypothesis NC: Nil <> Cons.
-Hypothesis HT: head <> tail.
-
-
 Notation this := (p_sel (avar_b 0) nil).
 Notation super := (p_sel (avar_b 1) nil).
 Notation ssuper := (p_sel (avar_b 2) nil).
@@ -20,13 +11,21 @@ Notation sssssuper := (p_sel (avar_b 5) nil).
 Notation lazy t := (defv (λ(⊤) t)).
 Notation Lazy T := (∀(⊤) T).
 
+Notation "d1 'Λ' d2" := (defs_cons d1 d2) (at level 40).
+
+Section ListExample.
+
+Variables A List : typ_label.
+Variables Nil Cons head tail : trm_label.
+
+Hypothesis NC: Nil <> Cons.
+Hypothesis HT: head <> tail.
+
 Notation ListTypeA list_level A_lower A_upper A_level :=
   (typ_rcd { A >: A_lower <: A_upper } ∧
    typ_rcd { head ⦂ Lazy (super↓A) } ∧
    typ_rcd { tail ⦂ Lazy (list_level↓List ∧ typ_rcd { A >: ⊥ <: A_level↓A }) }).
 Notation ListType list_level := (ListTypeA list_level ⊥ ⊤ super).
-
-Notation "d1 'Λ' d2" := (defs_cons d1 d2) (at level 40).
 
 Notation ListObjType :=
   (typ_rcd { List >: μ (ListType ssuper) <: μ (ListType ssuper) } ∧
@@ -203,3 +202,88 @@ Proof.
 Qed.
 
 End ListExample.
+
+
+Section CompilerExample.
+
+Variables DottyCore Tpe Symbol : typ_label.
+Variable dottyCore types typeRef symbols symbol symb tpe : trm_label.
+
+Notation id := (λ(⊤)this).
+Notation Id := (∀(⊤)⊤).
+
+Hypothesis TS: types <> symbols.
+
+Notation DottyCorePackage tpe_lower tpe_upper symb_lower symb_upper :=
+  (typ_rcd {types ⦂ μ(typ_rcd {Tpe >: tpe_lower <: tpe_upper} ∧
+                      typ_rcd {typeRef ⦂ ∀(super•symbols↓Symbol)
+                                          (this↓Tpe ∧ (typ_rcd {symb ⦂ super•symbols↓Symbol}))})} ∧
+   typ_rcd {symbols ⦂ μ(typ_rcd {Symbol >: symb_lower <: symb_upper} ∧
+                        typ_rcd {symbol ⦂ ∀(super•types↓Tpe)
+                                           (this↓Symbol ∧ (typ_rcd {tpe ⦂ super•types↓Tpe}))})}).
+
+Notation DottyCorePackage_typ := (DottyCorePackage ⊥ ⊤ ⊥ ⊤).
+Notation DottyCorePackage_impl := (DottyCorePackage Id Id Id Id).
+
+Notation t' := (trm_val
+  (ν(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
+     typ_rcd {dottyCore ⦂ Lazy (μ DottyCorePackage_typ)})
+    defs_nil Λ
+    {DottyCore ⦂= μ DottyCorePackage_typ} Λ
+    {dottyCore := lazy (trm_let
+                          (trm_val (ν(DottyCorePackage_impl)
+                                     defs_nil Λ
+                                     {types := defv (ν(typ_rcd {Tpe >: Id <: Id} ∧
+                                                       typ_rcd {typeRef ⦂ ∀(super•symbols↓Symbol)
+                                                                           (this↓Tpe ∧ (typ_rcd {symb ⦂ super•symbols↓Symbol}))})
+                                                      defs_nil Λ
+                                                      {Tpe ⦂= Id} Λ
+                                                      {typeRef := defv (λ(super•symbols↓Symbol)
+                                                                         (trm_let
+                                                                            (trm_val (ν(typ_rcd {symb ⦂ ({{ super }}) })
+                                                                                       defs_nil Λ
+                                                                                       {symb := defp super})) (trm_path this))) }) } Λ
+                                     {symbols := defv (ν(typ_rcd {Symbol >: Id <: Id} ∧
+                                                         typ_rcd {symbol ⦂ ∀(super•types↓Tpe)
+                                                                            (this↓Symbol ∧ (typ_rcd {tpe ⦂ super•types↓Tpe}))})
+                                                        defs_nil Λ
+                                                        {Symbol ⦂= Id} Λ
+                                                        {symbol := defv (λ(super•types↓Tpe)
+                                                                          (trm_let
+                                                                             (trm_val (ν(typ_rcd {tpe ⦂ {{ super }}})
+                                                                                        defs_nil Λ
+                                                                                        {tpe := defp super})) (trm_path this)))})}))
+                          (trm_path this))})).
+
+Notation T' :=
+  (μ(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
+     typ_rcd {dottyCore ⦂ Lazy (μ DottyCorePackage_typ)})).
+
+Lemma compiler_typecheck :
+  empty ⊢ t' : T'.
+Proof.
+  fresh_constructor. repeat apply ty_defs_cons; auto.
+  - Case "dottyCore".
+    unfold open_defs, open_typ. simpl. repeat case_if.
+    constructor. fresh_constructor.
+    unfold open_trm, open_typ. simpl. repeat case_if.
+    fresh_constructor.
+    + fresh_constructor.
+      unfold open_defs, open_typ. simpl. repeat case_if.
+      apply ty_defs_cons.
+      * SCase "types".
+        apply ty_defs_one. eapply ty_def_new; eauto.
+        { econstructor. constructor*. simpl.
+          repeat rewrite proj_rewrite. simpl. apply notin_singleton. intros [=]. }
+        unfold open_defs_p, open_typ_p. simpl. apply ty_defs_cons; auto.
+        ** SSCase "typeRef".
+           constructor.
+           repeat case_if. fresh_constructor. unfold open_trm, open_typ. simpl. repeat case_if. fresh_constructor.
+           *** fresh_constructor. unfold open_defs, open_typ. simpl. apply ty_defs_one.
+               econstructor.
+               match goal with
+               | H: _ |- ?G' ⊢ _ : _ =>
+                 remember G' as G
+               end.
+               eapply ty_sub.
+               **** constructor*. eapply subtyp_sel2. constructor*.
