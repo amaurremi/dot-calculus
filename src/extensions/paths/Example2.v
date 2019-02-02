@@ -41,7 +41,7 @@ Notation DottyCorePackage_impl := (DottyCorePackage TpeImpl TpeImpl SymbolImpl S
 
 Definition t := (trm_val
 (ν(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
-   typ_rcd {dottyCore ⦂ Lazy (μ DottyCorePackage_typ)})
+   typ_rcd {dottyCore ⦂ Lazy (super ↓ DottyCore)})
   defs_nil Λ
   {DottyCore ⦂= μ DottyCorePackage_typ} Λ
   {dottyCore :=
@@ -76,7 +76,7 @@ Definition t := (trm_val
 
 Notation T :=
   (μ(typ_rcd {DottyCore >: μ DottyCorePackage_typ <: μ DottyCorePackage_typ} ∧
-     typ_rcd {dottyCore ⦂ Lazy (μ DottyCorePackage_typ)})).
+     typ_rcd {dottyCore ⦂ Lazy (super ↓ DottyCore)})).
 
 Lemma compiler_typecheck :
   empty ⊢ t : T.
@@ -245,7 +245,21 @@ Proof.
         remember G' as G; remember T0' as T0
       end.
       assert (binds y0 T0 (G & y0 ~ T0)) as Hb%ty_var by auto.
-      rewrite HeqT0 in Hb. apply ty_rec_elim in Hb. apply ty_rec_intro.
+      rewrite HeqT0 in Hb. apply ty_rec_elim in Hb.
+      eapply ty_sub. 2: {
+        repeat rewrite <- concat_assoc in HeqG.
+        rewrite concat_empty_l in HeqG.
+        match goal with
+        | H: G = z ~ ?Tz' & _ |- _ =>
+          remember Tz' as Tz
+        end.
+        assert (binds z Tz (G & y0 ~ T0)) as Hz%ty_var. {
+          rewrite HeqG. repeat eapply binds_concat_left; auto. apply binds_single_eq.
+        }
+        eapply subtyp_sel2. unfold tvar in Hz. rewrite HeqTz in Hz.
+        eapply ty_sub. apply Hz. eauto.
+      }
+      apply ty_rec_intro.
       unfold open_typ_p in *. simpl in *. repeat case_if.
       match goal with
       | H: _ ⊢ trm_path (pvar y0) : ?U' ∧ ?U'' |- _ =>
