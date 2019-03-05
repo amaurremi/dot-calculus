@@ -242,7 +242,7 @@ Proof.
     remember (p_sel (avar_f p_x) p_bs) as p.
     eapply ty_def_new; eauto.
     * replace (μ (subst_typ x0 p T)) with (subst_typ x0 p (μ T)) by reflexivity.
-      apply inert_subst. apply i.
+      apply tight_bounds_subst. eauto.
     * simpl. case_if*.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
@@ -404,8 +404,8 @@ Proof.
   - constructor.
   - pose proof (rename_ty_trm H0 t0 H1).
     constructor*.
-  - specialize (H _ _ _ _ eq_refl H1 H2). simpl in *. apply* ty_def_new. eapply inert_subst in i. eauto.
-    clear t.
+  - specialize (H _ _ _ _ eq_refl H1 H2). simpl in *. apply* ty_def_new.
+    eapply tight_bounds_subst in t. eauto.
     rewrite subst_open_commut_defs_p in H; try repeat eexists.
     rewrite subst_open_commut_typ_p in H; try repeat eexists.
     unfold subst_path, subst_avar, subst_var_p in H. case_if.

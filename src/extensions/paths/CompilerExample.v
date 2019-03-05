@@ -73,7 +73,7 @@ Proof.
       apply ty_defs_cons; crush.
       * SCase "types".
         apply ty_defs_one. eapply ty_def_new; eauto.
-        { econstructor. constructor*. simpl. apply notin_singleton. intros [=]. }
+        { econstructor. constructor*. simpl. auto. }
         crush. apply ty_defs_cons; crush.
 
         constructor. fresh_constructor. crush. fresh_constructor.
@@ -134,8 +134,7 @@ Proof.
                  unfold open_typ_p in Hy0. simpl in *. eapply ty_sub.
                  apply Hy0. eauto.
       * eapply ty_def_new; eauto.
-        { repeat econstructor. simpl. intros Hin.
-          rewrite in_singleton in Hin. inversion Hin. }
+        { repeat econstructor. }
         crush. apply ty_defs_cons; crush.
         constructor. fresh_constructor. crush.
         fresh_constructor.

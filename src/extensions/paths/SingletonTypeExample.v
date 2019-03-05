@@ -105,4 +105,4 @@ Proof.
       * apply ty_rec_intro. crush. apply ty_and_intro; eauto.
 Qed.
 
-End CompilerExample.
+End SingletonTypeExample.

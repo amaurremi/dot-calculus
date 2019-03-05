@@ -123,41 +123,15 @@ Proof.
   eassumption.
 Qed.
 
-(** The type of definitions is a record type. *)
-Lemma ty_defs_record_type : forall z bs G ds T,
-    z; bs; G ⊢ ds :: T ->
-    record_type T.
-Proof.
-  intros. induction H; destruct D;
-    repeat match goal with
-        | [ H: record_type _ |- _ ] =>
-          destruct H
-        | [ Hd: _; _; _ ⊢ _ : { _ >: _ <: _ } |- _ ] =>
-          inversions Hd
-        | [ Hd: _; _; _ ⊢ _ : { _ ⦂ _ } |- _ ] =>
-          inversions Hd
-    end;
-    match goal with
-    | [ ls: fset label,
-        t: trm_label |- _ ] =>
-      exists (ls \u \{ label_trm t })
-    | [ ls: fset label,
-        t: typ_label |- _ ] =>
-      exists (ls \u \{ label_typ t })
-    | [ t: trm_label |- _ ] =>
-      exists \{ label_trm t }
-    | [ t: typ_label |- _ ] =>
-      exists \{ label_typ t }
-    end;
-    constructor*; try constructor; apply (hasnt_notin H); eauto.
-Qed.
-
-
 Ltac invert_open :=
   match goal with
   | [ H: _ = open_rec_typ _ _ ?T' |- _ ] =>
     destruct T'; inversions* H
   | [ H: _ = open_rec_dec _ _ ?D' |- _ ] =>
+    destruct D'; inversions* H
+  | [ H: _ = open_rec_typ_p _ _ ?T' |- _ ] =>
+    destruct T'; inversions* H
+  | [ H: _ = open_rec_dec_p _ _ ?D' |- _ ] =>
     destruct D'; inversions* H
   end.
 
@@ -183,6 +157,49 @@ Proof.
   - destruct t0; inversions H3. eauto.
   - constructor*. rewrite* <- open_dec_preserves_label.
   - invert_open. simpls. destruct_notin. constructor*. eauto. rewrite* <- open_dec_preserves_label.
+Qed.
+
+Lemma record_open_tight:
+  (forall D, record_dec D ->
+        forall p k D',
+          tight_bounds_dec D' ->
+          D = open_rec_dec_p k p D' ->
+          record_dec D') /\
+  (forall T ls , record_typ T ls ->
+            forall p k T',
+              tight_bounds T' ->
+              T = open_rec_typ_p k p T' ->
+              record_typ T' ls) /\
+  (forall T, inert_typ T ->
+        forall p k T',
+          tight_bounds T' ->
+          T = open_rec_typ_p k p T' ->
+          inert_typ T').
+Proof.
+  apply rcd_mutind; intros; invert_open; simpls; subst; eauto.
+  - destruct t0; inversions H3. eauto.
+  - constructor*. rewrite* <- open_dec_preserves_label_p.
+  - invert_open. simpls. destruct_notin. constructor*. eauto. rewrite* <- open_dec_preserves_label_p.
+Qed.
+
+Lemma ty_defs_record_type_helper :
+  (forall z bs G d D, z; bs; G ⊢ d : D -> record_dec D) /\
+  (forall z bs G ds T, z; bs; G ⊢ ds :: T -> record_type T).
+Proof.
+  apply ty_def_mutind; intros; subst; eauto.
+  - simpl in t. econstructor. destruct H as [ls H].
+    pose proof ((proj32 record_open_tight) _ _ H _ _ _ t eq_refl).
+    eauto.
+  - destruct H as [? ?]. econstructor. econstructor; eauto.
+    pose proof (hasnt_notin t H d0). inversions t0; eauto.
+Qed.
+
+(** The type of definitions is a record type. *)
+Lemma ty_defs_record_type: forall z bs G ds T,
+    z; bs; G ⊢ ds :: T ->
+    record_type T.
+Proof.
+  intros. apply* ty_defs_record_type_helper.
 Qed.
 
 (** If [T] is a record type with labels [ls], and [T = ... /\ D /\ ...],

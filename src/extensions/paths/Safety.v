@@ -179,7 +179,7 @@ Proof.
     rewrite app_nil_l in *.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
   - Case "def_new".
-    pose proof (ty_def_new _ eq_refl H6 H7).
+    pose proof (ty_def_new _ _ eq_refl H6 H7).
     assert (z ==> S =b::bs=> μ T0) as Hl1'. {
         eapply lft_cons. eauto. eauto.
     }

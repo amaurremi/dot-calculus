@@ -528,6 +528,19 @@ Inductive inert : ctx -> Prop :=
 
 (** * Typing Rules *)
 
+Fixpoint tight_bounds T :=
+  match T with
+  | typ_rcd D => tight_bounds_dec D
+  | U ∧ V     => tight_bounds U /\ tight_bounds V
+  | typ_bnd U => tight_bounds U
+  | _         => True
+  end
+with tight_bounds_dec D :=
+  match D with
+  | { a ⦂ T }       => tight_bounds T
+  | { A >: T <: U } => T = U
+  end.
+
 Reserved Notation "G '⊢' t ':' T" (at level 40, t at level 59).
 Reserved Notation "G '⊢' T '<:' U" (at level 40, T at level 59).
 Reserved Notation "x ';' bs ';' G '⊢' d ':' D"
@@ -660,7 +673,7 @@ with ty_def : var -> fields -> ctx -> def -> dec -> Prop :=
     [x; bs; G ⊢ {b = nu(T)ds}: {b: T}]    *)
  | ty_def_new : forall x bs b G ds T p,
      p = p_sel (avar_f x) bs ->
-     inert_typ (μ T) ->
+     tight_bounds (μ T) ->
      x; (b :: bs); G ⊢ open_defs_p p•b ds :: open_typ_p p•b T ->
      x; bs; G ⊢ { b :=v ν(T) ds } : { b ⦂ μ T }
 

@@ -765,6 +765,19 @@ Proof.
   introv Hi. apply* inert_subst_mut.
 Qed.
 
+Lemma tight_bounds_subst_mut :
+  (forall T, tight_bounds T -> forall x p, tight_bounds (subst_typ x p T)) /\
+  (forall D, tight_bounds_dec D -> forall x p, tight_bounds_dec (subst_dec x p D)).
+Proof.
+  apply typ_mutind; intros; subst; simpls; subst; eauto. split*.
+Qed.
+
+Lemma tight_bounds_subst x p T :
+  tight_bounds T -> tight_bounds (subst_typ x p T).
+Proof.
+  intros. apply* tight_bounds_subst_mut.
+Qed.
+
 Lemma binds_destruct: forall x {A} (v:A) (E:env A),
     binds x v E ->
     exists E1 E2, E = E1 & x ~ v & E2.
