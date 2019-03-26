@@ -500,12 +500,16 @@ Proof.
     dependent induction H; eauto.
 Qed.
 
-Theorem safety t u s T :
+Definition diverges := infseq red'.
+
+Theorem safety t T :
   empty ⊢ t : T ->
-  star red' (empty, t) (s, u) ->
-  (exists s' u', (s, u) |=> (s', u')) \/ norm_form u.
+  diverges (empty, t) \/ (exists s u, star red' (empty, t) (s, u) /\ norm_form u).
 Proof.
-  intros Ht Hr. apply* safety_helper. constructor.
+  intros Ht.
+  pose proof (infseq_or_finseq red' (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
+  right. eapply safety_helper in Ht as [[? [? Hr']] | ?]; eauto; try solve [constructor].
+  false* Hn.
 Qed.
 
 End Safety.
