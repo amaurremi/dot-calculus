@@ -489,11 +489,13 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   wf_env G ->
   well_typed G s1 ->
   star red' (s1, t1) (s2, t2) ->
-  (exists s3 t3, (s2, t2) |=> (s3, t3)) \/ norm_form t2.
+  (exists s3 t3 G3, (s2, t2) |=> (s3, t3) /\ G3 ⊢ t3 : T /\ well_typed G3 s3) \/
+  (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\ well_typed G2 s2).
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
-  - assert (⊢ (s2, t2) : T) as Ht' by eauto.
-    destruct (progress Ht'); eauto.
+  - assert (⊢ (s2, t2) : T) as Ht' by eauto. apply progress in Ht'; destruct_all; eauto.
+    left. exists x x0. pose proof (preservation_helper Hwt Hi Hwf H Ht) as [G' [_ [_ [Hwt' Ht']]]].
+    exists (G & G'). repeat split*.
   - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
     assert (⊢ (s1, t1) : T) as Ht1 by eauto.
     lets Hpr: (preservation Ht1 H). inversions Hpr.
@@ -504,12 +506,14 @@ Definition diverges := infseq red'.
 
 Theorem safety t T :
   empty ⊢ t : T ->
-  diverges (empty, t) \/ (exists s u, star red' (empty, t) (s, u) /\ norm_form u).
+  diverges (empty, t) \/ (exists s u G, star red' (empty, t) (s, u) /\ norm_form u /\ G ⊢ u : T /\ well_typed G s).
 Proof.
   intros Ht.
   pose proof (infseq_or_finseq red' (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
-  right. eapply safety_helper in Ht as [[? [? Hr']] | ?]; eauto; try solve [constructor].
-  false* Hn.
+  right. epose proof (safety_helper Ht inert_empty wfe_empty well_typed_empty Hr)
+    as [[s' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' Hwt]]]]; try solve [constructor]; eauto.
+  - false* Hn.
+  - repeat eexists; eauto.
 Qed.
 
 End Safety.
