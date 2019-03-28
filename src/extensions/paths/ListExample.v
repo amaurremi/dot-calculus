@@ -16,7 +16,7 @@ Notation ListType list_level := (ListTypeA list_level ⊥ ⊤ super).
 
 Notation ListObjType :=
   (typ_rcd { List >: μ (ListType ssuper) <: μ (ListType ssuper) } ∧
-   typ_rcd { Nil  ⦂ ∀(typ_rcd { A >: ⊥ <: ⊤ }) (super↓List ∧ (typ_rcd { A >: ⊥ <: this↓A })) } ∧
+   typ_rcd { Nil  ⦂ ∀(typ_rcd { A >: ⊥ <: ⊤ }) (super↓List ∧ (typ_rcd { A >: ⊥ <: ⊥ })) } ∧
    typ_rcd { Cons ⦂ ∀(typ_rcd { A >: ⊥ <: ⊤ })                       (* x: {A} *)
                     ∀(this↓A)                                        (* y: x.A *)
                     ∀(ssuper↓List ∧ typ_rcd { A >: ⊥ <: super↓A })   (* ys: sci.List ∧ {A <: x.A} *)
@@ -27,9 +27,9 @@ Definition t :=
             defs_nil Λ
             { List ⦂= μ (ListType ssuper) } Λ
             { Nil := defv (λ(typ_rcd { A >: ⊥ <: ⊤ })
-                            let_trm (trm_val (ν(ListTypeA sssuper (super↓A) (super↓A) super)
+                            let_trm (trm_val (ν(ListTypeA sssuper ⊥ ⊥ super)
                                                defs_nil Λ
-                                               { A ⦂= super↓A } Λ
+                                               { A ⦂= ⊥ } Λ
                                                { head := defv (λ(⊤) trm_app super•head this) } Λ
                                                { tail := defv (λ(⊤) trm_app super•tail this) }))) } Λ
             { Cons := defv (λ(typ_rcd { A >: ⊥ <: ⊤ })
@@ -80,7 +80,7 @@ Proof.
      remember_ctx G.
      unfold open_trm. simpl. case_if.
      remember (p_sel (avar_f y0) nil) as py0.
-     assert (G ⊢ trm_path py0 : typ_rcd {A >: p_sel (avar_f y) nil ↓ A <: p_sel (avar_f y) nil ↓ A}) as Hpy1. {
+     assert (G ⊢ trm_path py0 : typ_rcd {A >: ⊥ <: ⊥}) as Hpy1. {
        rewrite Heqpy0, HeqG.
        eapply ty_sub. apply ty_rec_elim. constructor*. crush.
        eapply subtyp_trans; apply subtyp_and11.
