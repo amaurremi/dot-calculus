@@ -80,6 +80,14 @@ where "G '⊢//' p ':' T" := (ty_repl G p T).
 
 Hint Constructors ty_repl.
 
+Lemma repl_to_inv_typ_all : forall G p S T,
+  inert G ->
+  G ⊢// p : ∀(S) T ->
+  G ⊢## p : ∀(S) T.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto.
+Qed.
+
 Lemma repl_to_precise_typ_all: forall G p S T,
   inert G ->
   G ⊢// p : ∀(S) T ->
@@ -90,7 +98,7 @@ Lemma repl_to_precise_typ_all: forall G p S T,
         y \notin L ->
             G & y ~ S ⊢ open_typ y T' <: open_typ y T).
 Proof.
-  introv Hi Hinv. dependent induction Hinv. apply* invertible_to_precise_typ_all.
+  introv Hi Hp. apply repl_to_inv_typ_all in Hp; auto. apply* invertible_to_precise_typ_all.
 Qed.
 
 Lemma repl_bot : forall G p,
