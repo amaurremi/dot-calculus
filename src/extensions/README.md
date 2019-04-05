@@ -22,10 +22,10 @@ Other requirements are:
   be installed through 
 
     ```
-    opam install coq-tlc
+    opam install coq-tlc.20181116
     ```
 
-To compile the proof, run
+To compile the proof, navigate to the unzipped archive directory and run
 
     cd proof
     make
@@ -92,9 +92,9 @@ The Coq proof is split up into the following modules:
   * [ExampleTactics.v](paths/proof/ExampleTactics.v]: Helper tactics to prove
     the above examples.
     
-The following figure shows a dependency graph between the Coq modules:
+<!--The following figure shows a dependency graph between the Coq modules:-->
 
-![Dependency graph](paths/doc/graph.png)
+<!--![Dependency graph](paths/doc/graph.png)-->
 
 #### Paper Correspondence
 

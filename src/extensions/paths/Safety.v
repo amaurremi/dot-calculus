@@ -574,3 +574,5 @@ Proof.
   pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
   false* Hirr.
 Qed.
+
+End PathSafety.
