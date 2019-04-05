@@ -19,7 +19,11 @@ run in a unix-like environment.
 Other requirements are:
   * make
   * the [`TLC`](https://gitlab.inria.fr/charguer/tlc) library which can 
-  be installed through `opam install coq-tlc`
+  be installed through 
+
+    ```
+    opam install coq-tlc
+    ```
 
 To compile the proof, run
 
