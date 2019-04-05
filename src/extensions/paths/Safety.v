@@ -517,3 +517,60 @@ Proof.
 Qed.
 
 End Safety.
+
+Section PathSafety.
+
+Lemma lookup_step_pres G p T q s :
+  inert G ->
+  wf_env G ->
+  well_typed G s ->
+  G ⊢!!! p : T ->
+  s ⟦ p ⟼ defp q ⟧ ->
+  exists U, G ⊢!!! q : U.
+Proof.
+  intros Hi Hwf Hwt Hp Hl.
+  apply pt2_exists in Hp as [U Hp].
+  pose proof (named_lookup_step Hl) as [x [bs Heq]].
+  pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hl Hp Heq)
+    as [[? [? [? [[=] ?]]]] |
+        [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
+         [r' [r [G1 [G2 [pT [S [[= ->] [-> [-> [[-> | Hr] [-> | Hr']]]]]]]]]]]]].
+  - apply sngl_typed2 in Hp as [U Hr]; eauto.
+  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l.
+  - apply sngl_typed3 in Hr as [U Hr]; eauto.
+    eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l. do 2 apply* inert_prefix.
+  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l.
+Qed.
+
+Lemma lookup_pres G p T q s :
+  inert G ->
+  wf_env G ->
+  well_typed G s ->
+  G ⊢!!! p : T ->
+  s ⟦ defp p ⟼* defp q ⟧ ->
+  exists U, G ⊢!!! q : U.
+Proof.
+  intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
+  destruct b.
+  - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
+  - apply lookup_val_inv in Hl as [=].
+Qed.
+
+Lemma path_safety G p T s :
+  inert G ->
+  wf_env G ->
+  well_typed G s ->
+  G ⊢ trm_path p : T ->
+  (exists v, s ∋ (p, v)) \/ infseq (lookup_step s) (defp p).
+Proof.
+  intros Hi Hwf Hwt Hp.
+  proof_recipe. apply repl_prec_exists in Hp as [U Hp].
+  pose proof (infseq_or_finseq (lookup_step s) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
+  left. destruct t; eauto.
+  pose proof (lookup_pres Hi Hwf Hwt Hp Hl) as [S Hq].
+  pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
+  false* Hirr.
+Qed.
