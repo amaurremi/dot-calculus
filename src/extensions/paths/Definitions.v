@@ -608,11 +608,10 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
       G & x ~ T ⊢ open_trm x u : U) ->
     G ⊢ trm_let t u : U
 
-(*| ty_let_sngl L G p u T U :
-  G ⊢ trm_path p : T ->
-  (forall x, x \notin L ->
-      G & x ~ {{ p }} ⊢ open_trm x u : U) ->
-    G ⊢ trm_let (trm_path p) u : U*)
+| ty_let_sngl G p u T U :
+    G ⊢ trm_path p : T ->
+    G ⊢ open_trm_p p u : U ->
+    G ⊢ trm_let (trm_path p) u : U
 
 (** [G ⊢ p: q.type]   #<br>#
     [G ⊢ q: T]        #<br>#

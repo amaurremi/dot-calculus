@@ -419,6 +419,9 @@ Proof.
       repeat invert_red.
       exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
       apply* renaming_fresh.
+  - Case "ty_let_sngl"%string.
+    repeat invert_red.
+      exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
   - Case "ty_sub"%string.
     solve_IH.
     match goal with

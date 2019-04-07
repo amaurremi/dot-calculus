@@ -226,6 +226,9 @@ Proof.
           rewrite <- B, concat_assoc; unfold subst_ctx;
           auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
+  - Case "ty_let_sngl"%string.
+    eapply ty_let_sngl; eauto.
+    rewrite <- subst_open_commut_trm_p; eauto.
   - Case "ty_path_elim"%string.
     destruct p0, q.
     rewrite sel_fields_subst.
