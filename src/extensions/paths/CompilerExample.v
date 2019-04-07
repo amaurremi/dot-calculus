@@ -1,4 +1,5 @@
 Require Import ExampleTactics.
+Require Import String.
 
 Section CompilerExample.
 
@@ -66,12 +67,12 @@ Lemma compiler_typecheck :
   empty ⊢ t : T.
 Proof.
   fresh_constructor. repeat apply ty_defs_cons; crush.
-  - Case "dottyCore".
+  - Case "dottyCore"%string.
     constructor. fresh_constructor. crush.
     fresh_constructor.
     + fresh_constructor. crush.
       apply ty_defs_cons; crush.
-      * SCase "types".
+      * SCase "types"%string.
         apply ty_defs_one. eapply ty_def_new; eauto.
         { econstructor. constructor*. simpl. auto. }
         crush. apply ty_defs_cons; crush.

@@ -67,7 +67,6 @@ Proof.
           | [ H : _ ⪯ _ |- _ ] => destruct (subenv_implies_ok H)
           end;
           fresh_constructor].
-  - Case "ty_var".
     induction H; auto. apply binds_push_inv in b; destruct_all; subst.
     apply ty_sub with (T:=T0); auto. apply* weaken_subtyp.
     apply* weaken_ty_trm.

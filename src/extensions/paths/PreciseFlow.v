@@ -9,7 +9,7 @@
 Set Implicit Arguments.
 
 Require Import Sequences.
-Require Import Coq.Program.Equality List.
+Require Import Coq.Program.Equality List String.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
 Definition is_sngl T := exists p, T = {{ p }}.
@@ -478,9 +478,9 @@ Lemma pf_T_unique: forall G p T1 T2 U1 U2,
     T1 = T2.
 Proof.
   introv Hi Hp1. gen T2 U2. induction Hp1; introv Hp2; eauto.
-  - Case "pf_bind".
+  - Case "pf_bind"%string.
     apply (pf_binds Hi) in Hp2. eapply binds_functional. apply H0. auto.
-  - Case "pf_fld".
+  - Case "pf_fld"%string.
     gen U T. dependent induction Hp2; introv Hp IH; try simpl_dot; eauto.
     * rename a2 into x. rename f0 into bs. clear IHHp2.
       destruct (pf_bnd_T2 Hi Hp) as [S Heq]. subst. lets Hr: (pf_rcd_T Hi Hp).

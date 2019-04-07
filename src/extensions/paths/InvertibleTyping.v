@@ -9,7 +9,7 @@
 
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality List.
+Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Definitions Binding Narrowing PreciseFlow PreciseTyping RecordAndInertTypes Replacement
                Subenvironments Substitution TightTyping Weakening.
@@ -235,16 +235,16 @@ Lemma invertible_repl_closure : forall G p q r T T' n U,
 Proof.
   introv Hi Hp Hqr Hr Hrep. gen q r T' n U.
   induction Hp; introv Hq; introv Hrep; introv Hr'.
-  - Case "ty_precise_inv".
+  - Case "ty_precise_inv"%string.
     destruct (pt3_inertsngl Hi H) as [[Hin | Hs] | Hr].
     * inversions Hin.
       ** apply* invertible_repl_closure_helper.
       ** invert_repl. eauto.
     * inversions Hs. invert_repl. eauto.
     * inversions Hr. eapply (proj32 invertible_repl_closure_helper); eauto.
-  - Case "ty_dec_trm_inv".
+  - Case "ty_dec_trm_inv"%string.
     invert_repl. eapply ty_dec_trm_inv. eauto. eapply subtyp_trans_t. apply H. eauto.
-  - Case "ty_dec_typ_inv".
+  - Case "ty_dec_typ_inv"%string.
     invert_repl; eapply ty_dec_typ_inv.
     * apply Hp; eapply subtyp_trans_t.
     * apply repl_swap in H9. eapply subtyp_trans_t. apply* subtyp_sngl_qp_t. eauto.
@@ -252,7 +252,7 @@ Proof.
     * apply Hp.
     * auto.
     * eapply subtyp_trans_t. apply H0. eauto.
-  - Case "ty_all_inv".
+  - Case "ty_all_inv"%string.
     invert_repl.
     + eapply ty_all_inv with (L:=L \u dom G).
       * apply Hp.
@@ -267,22 +267,22 @@ Proof.
         eapply repl_open_var in H7; try solve_names. eapply subtyp_sngl_pq.
         apply* weaken_ty_trm. eapply precise_to_general. apply Hq.
         apply* weaken_ty_trm. apply* precise_to_general2. apply H7.
-  - Case "ty_and_inv".
+  - Case "ty_and_inv"%string.
     invert_repl; eauto.
-  - Case "ty_top_inv".
+  - Case "ty_top_inv"%string.
     invert_repl.
-  - Case "ty_rec_pq_inv".
+  - Case "ty_rec_pq_inv"%string.
     invert_repl. eauto.
-  - Case "ty_rcd_intro_inv".
+  - Case "ty_rcd_intro_inv"%string.
     invert_repl. eauto.
-  - Case "ty_sel_pq_inv".
+  - Case "ty_sel_pq_inv"%string.
     assert (exists r''', T' = r'''↓A) as [r''' Heq]. {
       invert_repl. eauto.
     } subst.
     destruct (repl_prefixes_sel Hrep) as [bs [He1 He2]]. subst.
     destruct (repl_prefixes_sel H1) as [cs [He1 He2]]. subst.
     specialize (IHHp Hi _ _ H _ _ H1). eauto.
-  - Case "ty_sngl_qp_inv".
+  - Case "ty_sngl_qp_inv"%string.
     assert (exists r''', T' = {{ r'''}}) as [r''' Heq]. {
       invert_repl. eauto.
     } subst.
@@ -332,9 +332,9 @@ Lemma path_sel_inv: forall G p A T q,
     G ⊢## q : T.
 Proof.
   introv Hi Hp Hq. dependent induction Hq.
-  - Case "ty_precise_inv".
+  - Case "ty_precise_inv"%string.
     false* pt3_psel.
-  - Case "ty_sel_pq_inv".
+  - Case "ty_sel_pq_inv"%string.
     destruct (repl_prefixes_sel H1) as [bs [Heq1 Heq2]].
     subst.
     lets Hh: (pt3_field_trans' _ Hi (pt3 (pt2 H)) Hp).
@@ -485,12 +485,12 @@ Lemma invertible_repl_closure_v : forall G v q r T T' n U,
 Proof.
   introv Hi Hv Hqr Hr Hrep. gen q r T' n U.
   induction Hv; introv Hq; introv Hr; introv Hrep.
-  - Case "ty_precise_invv".
+  - Case "ty_precise_invv"%string.
     lets Ht: (pfv_inert H).
     inversions Ht.
     * apply* invertible_repl_closure_v_helper.
     * invert_repl; eauto.
-  - Case "ty_all_invv".
+  - Case "ty_all_invv"%string.
     invert_repl.
     + eapply ty_all_invv with (L:=L \u dom G).
       * apply Hv.
@@ -505,11 +505,11 @@ Proof.
         apply* weaken_ty_trm. eapply precise_to_general. apply Hq. eapply weaken_ty_trm.
         apply* precise_to_general2. eauto.
         apply H7.
-  - Case "ty_and_invv".
+  - Case "ty_and_invv"%string.
     invert_repl; eauto.
-  - Case "ty_top_invv".
+  - Case "ty_top_invv"%string.
     invert_repl.
-  - Case "ty_rec_pq_invv".
+  - Case "ty_rec_pq_invv"%string.
     invert_repl. eauto.
 Qed.
 

@@ -1,4 +1,5 @@
 Require Import ExampleTactics.
+Require Import String.
 
 Section ListExample.
 
@@ -45,13 +46,13 @@ Lemma list_typing :
   empty ⊢ t : μ ListObjType.
 Proof.
   fresh_constructor. repeat apply ty_defs_cons; crush.
-  - Case "Nil".
+  - Case "Nil"%string.
     constructor. fresh_constructor. crush.
     (* ⊢ let result = ν(ListType){A}{head}{tail} in result : List ∧ {A <:} *)
     fresh_constructor.
     + (* ⊢ ν(ListType){A}{head}{tail} in result : μ(ListType) *)
       fresh_constructor. repeat apply ty_defs_cons; crush.
-      * SCase "head".
+      * SCase "head"%string.
         constructor. fresh_constructor. crush.
         assert (p_sel (avar_f y0) nil ↓ A = open_typ_p (p_sel (avar_f y1) nil) (p_sel (avar_f y0) nil ↓ A))
           as Heq by crush.
@@ -64,7 +65,7 @@ Proof.
         ** eapply ty_sub.
            { constructor*. }
            auto.
-      * SCase "tail".
+      * SCase "tail"%string.
         constructor. fresh_constructor. crush.
         assert ((p_sel (avar_f z) nil ↓ List) ∧ typ_rcd {A >: ⊥ <: p_sel (avar_f y0) nil ↓ A} =
                 open_typ_p (p_sel (avar_f y1) nil)
@@ -113,18 +114,18 @@ Proof.
           }
           eapply subtyp_trans; apply subtyp_and11.
      * eapply ty_sub. apply Hpy1. apply subtyp_typ; auto.
-  - Case "Cons".
+  - Case "Cons"%string.
     constructor. do 4 (fresh_constructor; crush).
     (* ⊢ let result = ν(ListType){A}{head}{tail} in result : List ∧ {A <:} *)
     + (* ⊢ ν(ListType){A}{head}{tail} in result : μ(ListType) *)
       fresh_constructor. repeat apply ty_defs_cons; crush.
-      * SCase "head".
+      * SCase "head"%string.
         constructor. fresh_constructor. crush.
         eapply ty_sub.
         { constructor*. }
         eapply subtyp_sel2. eapply ty_sub.
         constructor*. eapply subtyp_trans. apply subtyp_and11. eauto.
-      * SCase "tail".
+      * SCase "tail"%string.
         constructor. fresh_constructor. crush.
         apply ty_and_intro.
         ** eapply ty_sub. constructor*. eauto.

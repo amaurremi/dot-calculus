@@ -9,7 +9,7 @@
 
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality List.
+Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Definitions Binding.
 
@@ -52,9 +52,9 @@ Proof.
     try solve [simpl; assert (numpaths U = numpaths (open_rec_typ_p n0 r0 U))
                  as Hn by apply* numpaths_open;
                rewrite* Hn].
-  - Case "rpath".
+  - Case "rpath"%string.
     simpl. repeat rewrite field_sel_open. repeat rewrite open_named_path; auto.
-  - Case "rsngl".
+  - Case "rsngl"%string.
     simpl. repeat rewrite field_sel_open. repeat rewrite open_named_path; auto.
 Qed.
 

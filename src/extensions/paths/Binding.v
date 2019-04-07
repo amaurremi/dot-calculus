@@ -8,8 +8,10 @@
 
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality List.
-Require Import Definitions LocalClosure.
+Require Import Coq.Program.Equality List String.
+Require Import Definitions.
+
+Close Scope string_scope.
 
 Ltac simpl_dot :=
   match goal with
@@ -320,9 +322,9 @@ Lemma subst_fresh_path : forall x q p,
     subst_path x q p = p.
 Proof.
   intros. destruct p as [[n | z] bs]; simpls.
-  - Case "p = (avar_b n).bs".
+  - Case "p = (avar_b n).bs"%string.
     rewrite* app_nil_r.
-  - Case "p = (avar_f z).bs".
+  - Case "p = (avar_f z).bs"%string.
     unfold subst_var_p. apply notin_singleton in H. case_if.
     simpl. rewrite* app_nil_r.
 Qed.
@@ -808,7 +810,7 @@ Lemma open_env_rules:
 Proof.
   apply rules_mutind; intros; subst; simpl; auto;
     try (fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc); eauto.
-  - Case "ty_var".
+  - Case "ty_var"%string.
     destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
     + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
       apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.

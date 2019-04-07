@@ -6,7 +6,7 @@
 
 Set Implicit Arguments.
 
-Require Import List Coq.Program.Equality.
+Require Import List Coq.Program.Equality String.
 Require Import Definitions Binding Replacement Weakening.
 
 Ltac subst_open_fresh :=
@@ -145,7 +145,7 @@ Proof.
   simpl in *; autounfold;
   try assert (named_path p) as Hn by apply* typed_paths_named;
   eauto 4.
-  - Case "ty_var".
+  - Case "ty_var"%string.
     cases_if.
     + apply binds_middle_eq_inv in b; subst*. destruct* p.
     + eapply subst_fresh_ctx in H1.
@@ -153,7 +153,7 @@ Proof.
       constructor. rewrite <- H1.
       unfold subst_ctx. rewrite <- map_concat.
       apply binds_map; auto.
-  - Case "ty_all_intro".
+  - Case "ty_all_intro"%string.
     fresh_constructor.
     subst_open_fresh.
     destruct p as [p_x p_bs].
@@ -171,7 +171,7 @@ Proof.
             rewrite <- B, concat_assoc; unfold subst_ctx;
               auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
-  - Case "ty_new_intro".
+  - Case "ty_new_intro"%string.
     fresh_constructor.
     subst_open_fresh.
     match goal with
@@ -203,15 +203,15 @@ Proof.
     simpl in Frz. eauto.
     assert (z <> x) as Hneq0 by eauto.
     case_if; eauto.
-  - Case "ty_new_elim".
+  - Case "ty_new_elim"%string.
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
     destruct p0. apply sel_fields_subst. auto.
-  - Case "ty_rcd_intro".
+  - Case "ty_rcd_intro"%string.
     assert (subst_path x p p0 • a = (subst_path x p p0) • a) as Heq. {
       destruct p0. apply sel_fields_subst.
     }
     specialize (H _ _ _ eq_refl H1 H2 H3). rewrite Heq in H. eauto.
-  - Case "ty_let".
+  - Case "ty_let"%string.
     fresh_constructor.
     subst_open_fresh.
     match goal with
@@ -226,14 +226,14 @@ Proof.
           rewrite <- B, concat_assoc; unfold subst_ctx;
           auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
-  - Case "ty_path_elim".
+  - Case "ty_path_elim"%string.
     destruct p0, q.
     rewrite sel_fields_subst.
     rewrite sel_fields_subst.
     eapply ty_path_elim; try (rewrite <- sel_fields_subst); auto.
-  - Case "ty_rec_intro".
+  - Case "ty_rec_intro"%string.
     constructor. rewrite* <- subst_open_commut_typ_p.
-  - Case "ty_def_new".
+  - Case "ty_def_new"%string.
     specialize (H _ _ _ _ _ _ eq_refl H1 H2 H3 eq_refl H5 eq_refl).
     assert (named_path (p_sel (avar_f p_x) p_bs)) as Hn by repeat eexists.
     rewrite* subst_open_commut_defs_p in H.
@@ -247,27 +247,27 @@ Proof.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
       case_if*. simpl. rewrite app_nil_r. reflexivity.
-  - Case "ty_def_path".
+  - Case "ty_def_path"%string.
     subst_tydef_solver.
     case_if. apply* ty_def_path.
     apply* inert_subst.
-  - Case "ty_defs_one".
+  - Case "ty_defs_one"%string.
     apply ty_defs_one.
     eapply H; eauto.
-  - Case "ty_defs_cons".
+  - Case "ty_defs_cons"%string.
     apply ty_defs_cons.
     * eapply H; eauto.
     * eapply H0; eauto.
     * eapply subst_defs_hasnt_label. apply d0.
-  - Case "subtyp_sngl_pq".
+  - Case "subtyp_sngl_pq"%string.
     subst_tydef_solver.
     eapply subtyp_sngl_pq; eauto.
     eapply repl_typ_subst. apply r.
-  - Case "subtyp_sngl_qp".
+  - Case "subtyp_sngl_qp"%string.
     subst_tydef_solver.
     eapply subtyp_sngl_qp; eauto.
     eapply repl_typ_subst. apply r.
-  - Case "subtyp_all".
+  - Case "subtyp_all"%string.
     subst_tydef_solver.
     eapply (@subtyp_all (L \u \{ x } \u (dom (G1 & (subst_ctx x p G2)) \u (dom (G1 & x ~ S & G2))))). eauto.
     intros x0 Hx0.

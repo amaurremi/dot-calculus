@@ -1,2 +1,0 @@
--R . compiler -R ../lf LF
-Sequences.v Semantics.v

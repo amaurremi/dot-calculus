@@ -9,7 +9,7 @@
 
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality List.
+Require Import Coq.Program.Equality List String.
 Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrowing PreciseTyping
         Replacement ReplacementTyping RecordAndInertTypes Substitution Subenvironments TightTyping
         Weakening.
@@ -96,17 +96,17 @@ Proof.
   introv Hi Hwf Hwt. gen p px pbs t T U.
   (** induction on well-formedness **)
   induction Hwt; introv Hs Hp Heq.
-  - Case "G is empty".
+  - Case "G is empty"%string.
     false* lookup_empty.
-  - Case "G is not empty".
+  - Case "G is not empty"%string.
     pose proof (typed_paths_named (precise_to_general Hp)) as [px' [bs ->]].
     destruct (classicT (x = px')) as [-> | Hn].
-    * SCase "x = px".
+    * SCase "x = px"%string.
       (** induction on ⟦⟼⟧ **)
       gen T U T0 px pbs.
       dependent induction Hs; introv Hwf Hi Hv; introv Hp; introv [= -> <-];
         try simpl_dot; try rewrite proj_rewrite in *.
-      + SSCase "lookup_var".
+      + SSCase "lookup_var"%string.
         apply binds_push_eq_inv in H1 as ->.
         lets Hb: (pf_binds Hi Hp). pose proof (binds_push_eq_inv Hb) as ->.
         apply binds_inert in Hb; auto.
@@ -131,14 +131,14 @@ Proof.
            +++ eauto.
            +++ eauto.
         ++ left. repeat eexists. apply* weaken_ty_trm.
-      + SSCase "lookup_sel_p".
+      + SSCase "lookup_sel_p"%string.
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ Hwt IHHwt _ H0 H JMeq_refl eq_refl _ Hwf Hi Hv _ _ Hp' _ _ eq_refl)
           as [[? [? [[=] ?]]] |
               [[? [? [? [? [? [? [? [[=]]]]]]]]] |
                [? [? [? [? [? [? [[= ->] [-> [[= ->] ?]]]]]]]]]]].
         apply pf_sngl_U in Hp'. inversion Hp'.
-      + SSCase "lookup_sel_v".
+      + SSCase "lookup_sel_v"%string.
         destruct (pf_invert_fld _ _ Hp) as [V Hp'].
         specialize (IHHs _ _ _ Hwt IHHwt _ H0 H JMeq_refl eq_refl _ Hwf Hi Hv _ _ Hp' _ _ eq_refl)
           as [[? [? [[=] ?]]] |
@@ -182,7 +182,7 @@ Proof.
              pose proof (repl_comp_to_prec' Hi Hwf Hrc1' Hp3)
              as [<- | Hpr']; clear Hrc1' Hrc2';
                repeat eexists; try rewrite concat_empty_r; eauto.
-    * SCase "x <> x0".
+    * SCase "x <> x0"%string.
       apply pf_strengthen in Hp; auto. apply lookup_strengthen_one in Hs; auto.
       inversions Heq.
       specialize (IHHwt (inert_prefix Hi) (wf_env_prefix Hwf) _ _ _ _ _ _ Hs Hp eq_refl)
@@ -343,7 +343,7 @@ Proof.
   - pose proof (typed_paths_named (precise_to_general Hp)) as [y [bs ->]].
     (* later when we figure out how to make env closed *)
     destruct (classicT (x = y)) as [-> | Hn].
-    * SCase "x = y".
+    * SCase "x = y"%string.
       (** induction on ⟦⊢!⟧ **)
       dependent induction Hp; try simpl_dot.
       + eexists. apply* lookup_var.
@@ -368,7 +368,7 @@ Proof.
       + eauto.
       + eauto.
       + eauto.
-    * SCase "x <> y".
+    * SCase "x <> y"%string.
       apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) (wf_env_prefix Hwf) _ _ _ Hp) as [t Hs].
       eexists. apply* lookup_step_weaken_one.
 Qed.
@@ -516,11 +516,11 @@ Lemma lookup_same_var_same_type G s x bs cs T:
   T = {{ p_sel (avar_f x) cs }}.
 Proof.
   intros Hi Hwf Hwt. gen x bs cs T. induction Hwt; introv Hs Ht.
-  - Case "s is empty".
+  - Case "s is empty"%string.
     false* lookup_empty.
-  - Case "G is not empty".
+  - Case "G is not empty"%string.
     destruct (classicT (x = x0)) as [<- | Hn].
-    + SCase "x = x0".
+    + SCase "x = x0"%string.
       pose proof (lookup_step_preservation_prec2 Hi Hwf (well_typed_push Hwt H H0 H1) Hs Ht eq_refl)
         as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
             [[S' [ds [W [U' [G1 [G2 [pT [[=] [Hp' [Heq [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
@@ -536,7 +536,7 @@ Proof.
             [? [S Hb]%precise_to_general3%typing_implies_bound].
         false binds_fresh_inv; eauto. apply* inert_prefix. apply* wf_env_prefix.
       * false binds_fresh_inv; eauto.
-    + SCase "x <> x0".
+    + SCase "x <> x0"%string.
       apply pt2_strengthen_one in Ht; auto.
       apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix. apply* wf_env_prefix.
 Qed.
@@ -642,13 +642,13 @@ Lemma typed_path_lookup_helper G s p r S T V :
   s ⟦ defp p ⟼* defp r ⟧.
 Proof.
   intros Hi Hwf Hwt. gen p r S T V. induction Hwt; introv Hp Hr.
-  - Case "G is empty".
+  - Case "G is empty"%string.
     apply precise_to_general in Hr. false* typing_empty_false.
-  - Case "G is not empty".
+  - Case "G is not empty"%string.
     destruct p as [x' bs].
     pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs [= -> ->]]].
     destruct (classicT (x = px)) as [-> | Hn].
-    + SCase "x = px".
+    + SCase "x = px"%string.
       lets Hwt': (well_typed_push Hwt H H0 H1).
       pose proof (typ_to_lookup3 Hi Hwf Hwt' Hp) as [t Hlt].
       pose proof (lookup_step_preservation_sngl_prec3 Hi Hwf Hwt' Hlt Hp Hr)
@@ -705,7 +705,7 @@ Proof.
           ** false (pf_inert_pt3_sngl_false Hi' Hr Contra); auto.
           ** apply* IHHwt.
           ** apply (pt3_sngl_trans3 Hrc2) in Hqt. apply* IHHwt.
-    + SCase "x <> px".
+    + SCase "x <> px"%string.
       apply pt3_strengthen_one in Hp; auto. apply lookup_weaken.
       { apply* ok_push. apply* wt_to_ok_s. }
       pose proof (inert_prefix Hi) as Hi'. pose proof (wf_env_prefix Hwf) as Hwf'.

@@ -1,10 +1,12 @@
 Set Implicit Arguments.
 
-Require Import Coq.Program.Equality List.
+Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
         OperationalSemantics PreciseTyping RecordAndInertTypes ReplacementTyping
         Subenvironments Substitution TightTyping Weakening.
+
+Close Scope string_scope.
 
 Module Safety.
 (** * Well-typedness *)
@@ -173,12 +175,12 @@ Lemma def_typing_rhs z bs G d a q U S cs T b V :
   exists W, G ⊢ trm_path q : W.
 Proof.
   intros Hds Hin Hl1 Hrd Hl2 Hr. inversions Hds.
-  - Case "def_all".
+  - Case "def_all"%string.
     eapply lft_cons in Hl1; eauto.
     pose proof (lft_typ_all_inv _ Hin Hl1 Hl2) as ->.
     rewrite app_nil_l in *.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
-  - Case "def_new".
+  - Case "def_new"%string.
     pose proof (ty_def_new _ _ eq_refl H6 H7).
     assert (z ==> S =b::bs=> μ T0) as Hl1'. {
         eapply lft_cons. eauto. eauto.
@@ -186,7 +188,7 @@ Proof.
     pose proof (lfs_defs_typing _ H7 Hin Hl1' Hl2) as [ds' Hds'].
     pose proof (record_has_ty_defs Hds' Hr) as [d [Hdh Hd]].
     inversions Hd. eauto.
-  - Case "def_path".
+  - Case "def_path"%string.
     eapply lft_cons in Hl1; eauto.
     pose proof (lft_typ_sngl_inv _ Hin Hl1 Hl2) as ->.
     rewrite app_nil_l in *.
@@ -226,11 +228,11 @@ Proof.
   intros Hi Hp. dependent induction Hp; eauto.
   simpl_dot. right. specialize (IHHp _ _ _ _ Hi JMeq_refl eq_refl)
     as [-> | [b [c [bs' [bs'' [S [V [-> [Hl [Hl2 [Hr1 Hr2]]]]]]]]]]].
-  - Case "pf_bind".
+  - Case "pf_bind"%string.
     pose proof (pf_binds Hi Hp) as ->%binds_push_eq_inv. repeat eexists; eauto.
     simpl. rewrite app_nil_l. eauto. rewrite open_var_typ_eq. eapply pf_record_has_T; eauto.
     apply* pf_record_has_T.
-  - Case "pf_fld".
+  - Case "pf_fld"%string.
     pose proof (pf_bnd_T2 Hi Hp) as [W ->].
     rewrite Hl.
     exists b a. eexists. exists (a :: bs''). repeat eexists; eauto.
@@ -389,7 +391,7 @@ Lemma preservation_helper: forall G s t s' t' T,
 Proof.
   introv Hwt Hi Hwf Hred Ht. gen t'.
   induction Ht; intros; try solve [invert_red].
-  - Case "ty_all_elim".
+  - Case "ty_all_elim"%string.
     match goal with
     | [Hp: _ ⊢ trm_path _ : ∀(_) _ |- _] =>
         pose proof (canonical_forms_fun Hi Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
@@ -399,9 +401,9 @@ Proof.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
     eapply renaming_typ; eauto. eauto. eauto.
-  - Case "ty_let".
+  - Case "ty_let"%string.
     destruct t; try solve [solve_let].
-     + SCase "[t = (let x = v in u)] where v is a value".
+     + SCase "[t = (let x = v in u)] where v is a value"%string.
       repeat invert_red.
       match goal with
         | [Hn: ?x # ?s |- _] =>
@@ -413,11 +415,11 @@ Proof.
       ** constructor~. apply (precise_to_general_v Hv).
       ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. constructor*. apply* weaken_subtyp.
-    + SCase "[t = (let x = p in u)] where a is p variable".
+    + SCase "[t = (let x = p in u)] where a is p variable"%string.
       repeat invert_red.
       exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
       apply* renaming_fresh.
-  - Case "ty_sub".
+  - Case "ty_sub"%string.
     solve_IH.
     match goal with
     | [Hs: _ ⊢ _ <: _,
@@ -473,9 +475,9 @@ Theorem progress: forall s t T,
 Proof.
   introv Ht. inversion Ht as [G s' t' T' Hi Hwf Hwt HT]. subst.
   induction HT; unfold tvar; eauto.
-  - Case "ty_all_elim".
+  - Case "ty_all_elim"%string.
     pose proof (canonical_forms_fun Hi Hwf Hwt HT1). destruct_all. right*.
-  - Case "ty_let".
+  - Case "ty_let"%string.
     right. destruct t; try solve [solve_let_prog].
     pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
 Qed.
