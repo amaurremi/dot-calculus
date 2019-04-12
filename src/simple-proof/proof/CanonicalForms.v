@@ -178,7 +178,9 @@ Proof.
   inversions Hinv. inversions H.
   pick_fresh z. assert (z \notin L) as Hz by auto.
   specialize (H3 z Hz).
-  assert (G /- open_defs x ds :: open_typ x T) as Hds by apply* renaming_def.
+  assert (G /- open_defs x ds :: open_typ x T) as Hds. {
+    apply* renaming_def; eauto.
+  }
   destruct (record_has_ty_defs Hds Hr) as [d [Hh Hd]]. inversions Hd.
   exists t ds. split*.
 Qed.

@@ -6,8 +6,7 @@
 
 Set Implicit Arguments.
 
-Require Import TLC.LibLN.
-Require Import Coq.Program.Equality.
+Require Import Coq.Program.Equality String.
 Require Import Definitions Subenvironments Weakening.
 
 (** * Narrowing Lemma *)
@@ -69,7 +68,7 @@ Proof.
           end;
           fresh_constructor].
 
-  Case "ty_var".
+  Case "ty_var"%string.
   induction H; auto;
   match goal with
   | [ H : binds _ _ (_ & _) |- _ ] =>

@@ -1,17 +1,9 @@
 FILES=Safety.v
 OBJECTS=$(FILES:.v=.vo)
 
-LEROYDIR=../../../lib/leroy
-LFDIR=../../../lib/lf
 DOCDIR=doc
 
-LEROYSRC=$(LEROYDIR)
-LEROYNAME=compiler
-
-LFSRC=$(LFDIR)
-LFNAME=LF
-
-COQINCLUDE=-R $(LFSRC) $(LFNAME) -R $(LEROYSRC) $(LEROYNAME) -R . \"\"
+COQINCLUDE=-R . \"\"
 COQMAKEFILE=$(COQBIN)coq_makefile
 
 PROOFMAKEFILE=Makefile.coq
@@ -45,18 +37,6 @@ doc: $(DOCDIR)/toc.html
 
 all doc clean: $(PROOFMAKEFILE)
 %vo: $(PROOFMAKEFILE)
-
-#################
-# Leroy Library #
-#################
-
-all: $(LEROYNAME)
-doc: $(LEROYNAME)
-proofs: $(LEROYNAME)
-%vo: $(LEROYNAME)
-	  
-$(LEROYNAME): $(wildcard $(LEROYSRC)/*.v)
-	       $(MAKE) -C $(LEROYDIR)
 
 #############
 # IDE Setup #

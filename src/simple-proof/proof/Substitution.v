@@ -6,7 +6,7 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
+Require Import String.
 Require Import Definitions Binding Weakening.
 
 Ltac subst_open_fresh :=
@@ -114,7 +114,7 @@ Proof.
   introv. apply rules_mutind; intros; subst; simpl;
             try (subst_solver || rewrite subst_open_commut_typ);
             simpl in *; eauto 4.
-  - Case "ty_var".
+  - Case "ty_var"%string.
     cases_if.
     + apply binds_middle_eq_inv in b; subst; assumption.
     + eapply subst_fresh_ctx in H1.
@@ -122,10 +122,10 @@ Proof.
       constructor. rewrite <- H1.
       unfold subst_ctx. rewrite <- map_concat.
       apply binds_map; auto.
-  - Case "ty_rec_intro".
+  - Case "ty_rec_intro"%string.
     apply ty_rec_intro. fold_subst.
     rewrite subst_open_commut_typ. auto. eauto.
-  - Case "ty_defs_cons".
+  - Case "ty_defs_cons"%string.
     constructor*. rewrite <- subst_label_of_def. apply* subst_defs_hasnt.
 Qed.
 

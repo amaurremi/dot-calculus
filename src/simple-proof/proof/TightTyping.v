@@ -8,7 +8,6 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Definitions PreciseTyping.
 
 (** * Tight typing [G |-# t: T] *)

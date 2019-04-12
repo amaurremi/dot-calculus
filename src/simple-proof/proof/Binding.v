@@ -118,6 +118,7 @@ Proof.
 
   apply typ_mutind; intros; invert_open; simpl in *;
     f_equal; eauto using open_fresh_avar_injective.
+  all: (apply* H; eauto) || (apply* H0; eauto).
 Qed.
 
 (** * Variable Substitution Lemmas *)

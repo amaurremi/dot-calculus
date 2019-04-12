@@ -13,6 +13,8 @@ Set Implicit Arguments.
 Require Import TLC.LibLN.
 Require Import String.
 
+Require Export TLC.LibLN.
+
 Parameter typ_label: Set.
 Parameter trm_label: Set.
 
