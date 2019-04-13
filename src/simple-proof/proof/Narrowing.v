@@ -61,23 +61,15 @@ Lemma narrow_rules:
     G' ⪯ G ->
     G' ⊢ S <: U).
 Proof.
-  apply rules_mutind; intros; eauto 4;
-    try solve [
-          match goal with
-          | [ H : _ ⪯ _ |- _ ] => destruct (subenv_implies_ok H)
-          end;
-          fresh_constructor].
-
-  Case "ty_var"%string.
-  induction H; auto;
-  match goal with
-  | [ H : binds _ _ (_ & _) |- _ ] =>
-    apply binds_push_inv in H; destruct_all; subst
-  end;
-  [ eapply ty_sub; [eauto 2 | apply weaken_subtyp; trivial]
-  | apply weaken_ty_trm; auto].
+    apply rules_mutind; intros;
+    match goal with
+    | [ B: binds _ _ _, H : ?G' ⪯ _ |- _ ⊢ trm_var (avar_f _) : _ ] =>
+      induction H; [auto | apply binds_push_inv in B];
+        destruct_all; [ subst; eapply ty_sub | idtac];
+          eauto using ty_var, weaken_subtyp, weaken_ty_trm
+    | _ => try fresh_constructor; eauto
+    end.
 Qed.
-
 
 (** The narrowing lemma, formulated only for term typing. *)
 Lemma narrow_typing: forall G G' t T,

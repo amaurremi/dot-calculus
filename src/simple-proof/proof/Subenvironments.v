@@ -20,7 +20,6 @@ Inductive subenv: ctx -> ctx -> Prop :=
 | subenv_grow: forall G G' x T T',
     G ⪯ G' ->
     ok (G & x ~ T) ->
-    ok (G' & x ~ T') ->
     G ⊢ T <: T' ->
     G & x ~ T ⪯ G' & x ~ T'
 where "G1 ⪯ G2" := (subenv G1 G2).
@@ -66,13 +65,34 @@ Proof.
   | [ H : _ & _ ~ _ = _ & _ ~ _ |- _ ] =>
     apply eq_push_inv in H; destruct_all; subst
   end;
-  constructor; auto.
+  auto.
 Qed.
 Hint Resolve subenv_last.
 
-
-Lemma subenv_implies_ok : forall G1 G2,
-    G1 ⪯ G2 -> ok G1 /\ ok G2.
+Lemma subenv_ok_fresh : forall G G',
+    G ⪯ G' ->
+    ok G' /\ (forall x, x # G -> x # G').
 Proof.
-  intros. inversion H; split; auto.
+  introv H.
+  induction H;
+    destruct_all;
+    match goal with
+    | [H : ok (?G & ?x ~ _) |- _] =>
+      pose proof (ok_push_inv H0) as [? ?]; split; auto
+    | _ => split; auto
+    end.
 Qed.
+
+Lemma subenv_ok_l : forall G1 G2,
+    G1 ⪯ G2 -> ok G1.
+Proof.
+  introv H. induction H; auto.
+Qed.
+Hint Resolve subenv_ok_l.
+
+Lemma subenv_ok_r: forall G1 G2,
+    G1 ⪯ G2 -> ok G2.
+Proof.
+  apply subenv_ok_fresh.
+Qed.
+Hint Resolve subenv_ok_r.
