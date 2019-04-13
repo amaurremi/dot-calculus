@@ -22,7 +22,7 @@ just `x.A`.
  opam install -j4 coq-tlc
 ```
 
-To **compile the proof**, navigate to the cloned directory
+To **compile the proof**, navigate to the cloned directory and run
 
 ```
  cd src/extensions/paths
