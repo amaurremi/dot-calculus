@@ -732,18 +732,15 @@ Lemma record_has_ty_defs: forall z bs G T ds D,
   exists d, defs_has ds d /\ z; bs; G ⊢ d : D.
 Proof.
   introv Hdefs Hhas. induction Hdefs.
-  - inversion Hhas; subst. exists d. split.
-    + unfold defs_has. simpl. rewrite If_l; reflexivity.
-    + assumption.
-  - inversion Hhas; subst.
-    + destruct (IHHdefs H4) as [d' [H1 H2]].
-      exists d'. split.
-      * unfold defs_has. simpl. rewrite If_r. apply H1.
-        apply not_eq_sym. eapply defs_has_hasnt_neq; eauto.
-      * assumption.
-    + exists d. split.
-      * unfold defs_has. simpl. rewrite If_l; reflexivity.
-      * inversions* H4.
+  inversion Hhas; subst.
+  - destruct (IHHdefs H4) as [d' [H1 H2]].
+    exists d'. split.
+    * unfold defs_has. simpl. rewrite If_r. apply H1.
+      apply not_eq_sym. eapply defs_has_hasnt_neq; eauto.
+    * assumption.
+  - exists d. split.
+    * unfold defs_has. simpl. rewrite If_l; reflexivity.
+    * inversions* H4.
 Qed.
 
 Lemma inert_subst_mut:

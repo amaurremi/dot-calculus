@@ -32,8 +32,7 @@ Proof.
 
   introv Hds Hrec Hhasnt.
   inversions Hhasnt. gen ds. induction Hrec; intros; inversions Hds.
-  - inversion_def_typ; simpl in *; case_if; apply* notin_singleton.
-  - apply notin_union; split; simpl in *.
+  apply notin_union; split; simpl in *.
     + apply* IHHrec. case_if*.
     + inversion_def_typ; case_if; apply* notin_singleton.
 Qed.

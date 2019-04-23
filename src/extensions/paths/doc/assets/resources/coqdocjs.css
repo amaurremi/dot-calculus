@@ -108,7 +108,7 @@ html, body {
 @media only screen { /* no div with internal scrolling to allow printing of whole content */
     body {
         display: flex;
-        flex-direction: column 
+        flex-direction: column
     }
 
     #content {
@@ -240,6 +240,8 @@ div.goal {
 }
 
 div.doc {
+    background-color: #eee;
+    padding: 2mm;
   clear: both;
 }
 
