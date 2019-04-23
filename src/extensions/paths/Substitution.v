@@ -242,11 +242,14 @@ Proof.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
       case_if*. simpl. rewrite app_nil_r. auto.
-  - Case "ty_def_path"%string.
-    specialize (H0 _ _ _ _ _ _ eq_refl H2 H3 H4 eq_refl H6 eq_refl).
-    specialize (H _ _ _ _ _ _ eq_refl H2 H3 H4 eq_refl H6 eq_refl).
-    unfold subst_var in *. case_if.
-    constructor; eauto. apply* subst_defs_hasnt_label.
+  - Case "ty_defs_one"%string.
+    apply ty_defs_one.
+    eapply H; eauto.
+  - Case "ty_defs_cons"%string.
+    apply ty_defs_cons.
+    * eapply H; eauto.
+    * eapply H0; eauto.
+    * eapply subst_defs_hasnt_label. apply d0.
   - Case "subtyp_sngl_pq"%string.
     subst_tydef_solver.
     eapply subtyp_sngl_pq; eauto.
@@ -399,7 +402,9 @@ Proof.
     unfold subst_path, subst_avar, subst_var_p in H. case_if.
     simpl in H. rewrite List.app_nil_r in H. simpl. auto.
   - pose proof (rename_ty_trm H0 t H1). econstructor; eauto.
-  - constructor*. apply* subst_defs_hasnt_label.
+  - constructor*.
+  - specialize (H0 _ _ _ _ eq_refl H2 H3). specialize (H _ _ _ _ eq_refl H2 H3).
+    econstructor; eauto. apply* subst_defs_hasnt. rewrite* <- subst_label_of_def.
 Qed.
 
 Lemma rename_defs G x T ds z :

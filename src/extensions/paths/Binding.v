@@ -13,12 +13,12 @@ Require Import Definitions.
 
 Close Scope string_scope.
 
+(** Inverting path equalities *)
+
 Ltac simpl_dot :=
   match goal with
   | [ H: ?p • _ = p_sel _ _ |- _ ] =>
     unfold sel_field in H; destruct p; inversions H
-  | [ H: _ • _ = pvar _ |- _ ] =>
-    simpl_dot
   | [ H: pvar _ = _ • _ |- _ ] =>
     symmetry in H; simpl_dot
   | [ H: p_sel _ _ = _ • _ |- _ ] =>
@@ -35,8 +35,6 @@ Ltac simpl_dot :=
     end
   | [ H: ?p •• _ = p_sel _ _ |- _ ] =>
     unfold sel_fields in H; destruct p; inversions H
-  | [ H: _ •• _ = pvar _ |- _ ] =>
-    simpl_dot
   | [ H: pvar _ = _ •• _ |- _ ] =>
     symmetry in H; simpl_dot
   | [ H: p_sel _ _ = _ •• _ |- _ ] =>
@@ -53,49 +51,56 @@ Ltac simpl_dot :=
     end
   end.
 
-(** Substitution on variables: [a[u/z]] (substituting [z] with [u] in [a]). *)
+(** * Substitution definitions
+    - substitute a variable [z] with a variable [y] inside of a _named_ variable [x]:
+      [x[y/z]] *)
+Definition subst_var (z: var) (y: var) (x: var): var :=
+  If x = z then y else x.
 
-Definition subst_var (z: var) (u: var) (x: var): var :=
-  If x = z then u else x.
-
-Definition subst_var_p (z: var) (u: path) (x: var): path :=
-  If x = z then u else (pvar x).
+(** - substitute a variable [z] with a path [p] inside of a _named_ variable [x]:
+      [x[p/z]] *)
+Definition subst_var_p (z: var) (p: path) (x: var): path :=
+  If x = z then p else (pvar x).
 
 Hint Unfold subst_var subst_var_p.
 
-Definition subst_avar (z: var) (u: path) (a: avar) : path :=
-  match a with
+(** - substitute a variable [z] with a path [p] inside of a _locally nameless_ variable [x]:
+ [x[p/z]] *)
+Definition subst_avar (z: var) (p: path) (x: avar) : path :=
+  match x with
   | avar_b i => p_sel (avar_b i) nil
-  | avar_f x => subst_var_p z u x
+  | avar_f y => subst_var_p z p y
   end.
 
-(* p    [u / z] where p = x.bs:
-   x.bs [u / z] == x [u / z] . bs *)
-Definition subst_path (z: var) (u: path) (p: path) : path :=
+(** - substitute a variable [z] with a path [q] inside of a path [p]:
+
+    to encode [p[q / z]] where [p = x.bs], we need to compute [x.bs [q / z]],
+    which is the same as [x [q / z] . bs] *)
+Definition subst_path (z: var) (q: path) (p: path) : path :=
   match p with
-  | p_sel x bs => sel_fields (subst_avar z u x) bs
+  | p_sel x bs => sel_fields (subst_avar z q x) bs
   end.
 
-(** Substitution on types and declarations: [T[u/z]] and [D[u/z]]. *)
-Fixpoint subst_typ (z: var) (u: path) (T: typ) { struct T } : typ :=
+(** - substitution of variables with paths in types and declarations: [T[p/z]] and [D[p/z]]. *)
+Fixpoint subst_typ (z: var) (p: path) (T: typ) { struct T } : typ :=
   match T with
   | ⊤        => ⊤
   | ⊥        => ⊥
-  | typ_rcd D      => typ_rcd (subst_dec z u D)
-  | T1 ∧ T2        => subst_typ z u T1 ∧ subst_typ z u T2
-  | q ↓ L          => subst_path z u q ↓ L
-  | μ T            => μ (subst_typ z u T)
-  | ∀(T) U         => ∀ (subst_typ z u T) subst_typ z u U
-  | {{ p }}        => {{ subst_path z u p }}
+  | typ_rcd D      => typ_rcd (subst_dec z p D)
+  | T1 ∧ T2        => subst_typ z p T1 ∧ subst_typ z p T2
+  | q ↓ L          => subst_path z p q ↓ L
+  | μ T            => μ (subst_typ z p T)
+  | ∀(T) U         => ∀ (subst_typ z p T) subst_typ z p U
+  | {{ q }}        => {{ subst_path z p q }}
   end
-with subst_dec (z: var) (u: path) (D: dec) { struct D } : dec :=
+with subst_dec (z: var) (p: path) (D: dec) { struct D } : dec :=
   match D with
-  | {A >: T <: U} => {A >: subst_typ z u T <: subst_typ z u U}
-  | {a ⦂ U}        => {a ⦂ subst_typ z u U }
+  | {A >: T <: U} => {A >: subst_typ z p T <: subst_typ z p U}
+  | {a ⦂ U}        => {a ⦂ subst_typ z p U }
   end.
 
-(** Substitution on terms, values, and definitions:
-    [t[u/z]], [v[u/z]], [d[u/z]]. *)
+(** Substitution of variables with paths in terms, values, and definitions:
+    [t[p/z]], [v[p/z]], [d[p/z]]. *)
 Fixpoint subst_trm (z: var) (u: path) (t: trm) : trm :=
   match t with
   | trm_val v        => trm_val (subst_val z u v)
@@ -124,9 +129,9 @@ with subst_defrhs (z: var) (u: path) (drhs: def_rhs) : def_rhs :=
   | defv v => defv (subst_val z u v)
   end.
 
-(** Substitution on the types of a typing environment: [G[u/z]]. *)
-Definition subst_ctx (z: var) (u: path) (G: ctx) : ctx :=
-  map (subst_typ z u) G.
+(** Substitution of variables with paths in the types of a typing environment: [G[p/z]]. *)
+Definition subst_ctx (z: var) (p: path) (G: ctx) : ctx :=
+  map (subst_typ z p) G.
 
 (** ** Field selection *)
 
@@ -145,9 +150,12 @@ Proof.
   intros. destruct p, y; auto. simpl. unfold subst_var_p. case_if; simpl; auto.
 Qed.
 
-(** [p.a = x.bs]    #<br>#
-    [―――――――――――――] #<br>#
-    [bs = a :: bs'] *)
+(** [[
+p.a = x.bs
+____________
+bs = a :: bs'
+]]
+*)
 Lemma last_field : forall p a x bs,
     p • a = p_sel x bs ->
     exists bs', bs = a :: bs'.
@@ -157,6 +165,7 @@ Qed.
 
 (** * Simple Implications of Typing *)
 
+(** A path [p=x.bs] whose receiver [x] is a named variable *)
 Definition named_path p := exists x bs, p = p_sel (avar_f x) bs.
 
 (** If a variable can be typed in an environment,
@@ -277,14 +286,6 @@ Proof.
   eapply open_fresh_avar_injective; eauto.
 Qed.
 
- Ltac invert_open :=
-    match goal with
-    | [ H: _ = open_rec_typ _ _ ?T' |- _ ] =>
-       destruct T'; inversions* H
-    | [ H: _ = open_rec_dec _ _ ?D' |- _ ] =>
-       destruct D'; inversions* H
-    end.
-
 (** - types and declarations *)
 Lemma open_fresh_typ_dec_injective:
   (forall T T' k x,
@@ -298,7 +299,13 @@ Lemma open_fresh_typ_dec_injective:
     open_rec_dec k x D = open_rec_dec k x D' ->
     D = D').
 Proof.
-  apply typ_mutind; intros; invert_open; simpl in *;
+  apply typ_mutind; intros;
+    match goal with
+    | [ H: _ = open_rec_typ _ _ ?T' |- _ ] =>
+       destruct T'; inversions* H
+    | [ H: _ = open_rec_dec _ _ ?D' |- _ ] =>
+       destruct D'; inversions* H
+    end; simpl in *;
     f_equal; destruct_notin; eauto using open_fresh_avar_injective, open_fresh_path_injective.
 Qed.
 
@@ -731,16 +738,19 @@ Lemma record_has_ty_defs: forall z bs G T ds D,
   record_has T D ->
   exists d, defs_has ds d /\ z; bs; G ⊢ d : D.
 Proof.
-  introv Hdefs Hhas. induction Hdefs.
-  inversion Hhas; subst.
-  - destruct (IHHdefs H4) as [d' [H1 H2]].
-    exists d'. split.
-    * unfold defs_has. simpl. rewrite If_r. apply H1.
-      apply not_eq_sym. eapply defs_has_hasnt_neq; eauto.
-    * assumption.
-  - exists d. split.
-    * unfold defs_has. simpl. rewrite If_l; reflexivity.
-    * inversions* H4.
+   introv Hdefs Hhas. induction Hdefs.
+  - inversion Hhas; subst. exists d. split.
+    + unfold defs_has. simpl. rewrite If_l; reflexivity.
+    + assumption.
+  - inversion Hhas; subst.
+    + destruct (IHHdefs H4) as [d' [H1 H2]].
+      exists d'. split.
+      * unfold defs_has. simpl. rewrite If_r. apply H1.
+        apply not_eq_sym. eapply defs_has_hasnt_neq; eauto.
+      * assumption.
+    + exists d. split.
+      * unfold defs_has. simpl. rewrite If_l; reflexivity.
+      * inversions* H4.
 Qed.
 
 Lemma inert_subst_mut:

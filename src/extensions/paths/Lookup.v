@@ -16,7 +16,7 @@ Require Import Definitions Binding.
 
 (** * Path lookup *)
 
-(** Looking up a path in a stack (generalization of variable binding). *)
+(** Looking up a path in a store (generalization of variable binding). *)
 
 Reserved Notation "s '∋' t" (at level 40).
 Reserved Notation "s '⟦' t '⟼' u '⟧'" (at level 40).

@@ -754,16 +754,19 @@ G ⊢ t: U
     G ⊢ t : U
 where "G '⊢' t ':' T" := (ty_trm G t T)
 
-(** ** Single-definition typing [x; bs; G ⊢ d: D] *)
+(** ** Single-definition typing [x; bs; G ⊢ d: D]
+    The notation [x; bs; G ⊢ d : D] denotes the typing
+    of a definition [d] with record-type [D] under the path [x.bs]
+    (i.e. a path with receiver [x] and fields [bs]) *)
 with ty_def : var -> fields -> ctx -> def -> dec -> Prop :=
-(** [x; bs; G ⊢ {A = T}: {A: T..T}]   *)
+(** [x.bs; G ⊢ {A = T}: {A: T..T}]   *)
 | ty_def_typ : forall x bs G A T,
     x; bs; G ⊢ def_typ A T : { A >: T <: T }
 
 (** [[
 G ⊢ lambda(T)t: ∀(U)V
 _________________
-x; bs; G ⊢ {b = lambda(T)t}: {b: ∀(U)V}
+x.bs; G ⊢ {b = lambda(T)t}: {b: ∀(U)V}
 ]]
 *)
  | ty_def_all : forall x bs G T t b U V,
@@ -785,7 +788,7 @@ x.bs; G ⊢ {b = nu(T)ds}: {b: T}
 (** [[
 G ⊢ q
 _________________
-x; bs; G ⊢ {b = q}: {b: q.type}
+x.bs; G ⊢ {b = q}: {b: q.type}
 ]]
 *)
  | ty_def_path : forall x bs G q b T,
@@ -794,24 +797,27 @@ x; bs; G ⊢ {b = q}: {b: q.type}
 
 where "x ';' bs ';' G '⊢' d ':' D" := (ty_def x bs G d D)
 
-(** ** Multiple-definition typing [x; bs; G ⊢ ds :: T] *)
+(** ** Multiple-definition typing [x; bs; G ⊢ ds :: T]
+    The notation [x; bs; G ⊢ ds :: T] denotes the typing
+    of definitions [ds] with type [T] under the path [x.bs]
+    (i.e. a path with receiver [x] and fields [bs]) *)
 with ty_defs : var -> fields -> ctx -> defs -> typ -> Prop :=
 (** [[
-x; bs; G ⊢ d: D
+x.bs; G ⊢ d: D
 _________________
-x; bs; G ⊢ d ++ defs_nil : D
+x.bs; G ⊢ d ++ defs_nil : D
+]]
+*)
 | ty_defs_one : forall x bs G d D,
     x; bs; G ⊢ d : D ->
     x; bs; G ⊢ defs_cons defs_nil d :: typ_rcd D
-]]
-*)
 
 (** [[
-x; bs; G ⊢ ds :: T
-x; bs; G ⊢ d: D
+x.bs; G ⊢ ds :: T
+x.bs; G ⊢ d: D
 d \notin ds
 _________________
-x; bs; G ⊢ ds ++ d : T /\ D
+x.bs; G ⊢ ds ++ d : T /\ D
 ]]
 *)
 | ty_defs_cons : forall x bs G d ds D T,
@@ -902,12 +908,26 @@ G ⊢ {A: S1..T1} <: {A: S2..T2}
     G ⊢ T1 <: T2 ->
     G ⊢ typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
+(** [[
+G ⊢ p: q.type
+G ⊢ q
+_________________
+G ⊢ T <: T[q/p, n]
+]]
+*)
 | subtyp_sngl_pq : forall G p q T T' n U,
     G ⊢ trm_path p : {{ q }} ->
     G ⊢ trm_path q : U ->
     repl_typ n p q T T' ->
     G ⊢ T <: T'
 
+(** [[
+G ⊢ p: q.type
+G ⊢ q
+_________________
+G ⊢ T <: T[p/q, n]
+]]
+*)
 | subtyp_sngl_qp : forall G p q T T' n U,
     G ⊢ trm_path p : {{ q }} ->
     G ⊢ trm_path q : U ->
@@ -915,9 +935,9 @@ G ⊢ {A: S1..T1} <: {A: S2..T2}
     G ⊢ T <: T'
 
 (** [[
-G ⊢ x: {A: S..T}
+G ⊢ p: {A: S..T}
 _________________
-G ⊢ S <: x.A
+G ⊢ S <: p.A
 ]]
 *)
 | subtyp_sel2: forall G p A S T,
@@ -925,9 +945,9 @@ G ⊢ S <: x.A
     G ⊢ S <: (p ↓ A)
 
 (** [[
-G ⊢ x: {A: S..T}
+G ⊢ p: {A: S..T}
 _________________
-G ⊢ x.A <: T
+G ⊢ p.A <: T
 ]]
 *)
 | subtyp_sel1: forall G p A S T,
@@ -949,12 +969,12 @@ G ⊢ forall(S1)T1 <: forall(S2)T2
 where "G '⊢' T '<:' U" := (subtyp G T U).
 
 
-(** * Well-typed stacks *)
+(** * Well-typed stores *)
 
 (** The operational semantics is defined in terms of pairs [(s, t)], where
-s] is a stack and [t] is a term.
+s] is a store (runtime environment) and [t] is a term.
     Given a typing [G ⊢ (s, t): T], [well_typed] establishes a correspondence
-    between [G] and the stack [s].
+    between [G] and the store [s].
 
     We say that [s] is well-typed with respect to [G] if
     - [G = {(xi mapsto Ti) | i = 1, ..., n}]

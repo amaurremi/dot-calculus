@@ -25,14 +25,15 @@ Lemma hasnt_notin : forall x bs G ds ls l U,
     defs_hasnt ds l ->
     l \notin ls.
 Proof.
-    Ltac inversion_def_typ :=
+  Ltac inversion_def_typ :=
     match goal with
     | H: _; _; _ ⊢ _ : _ |- _ => inversions H
     end.
 
   introv Hds Hrec Hhasnt.
   inversions Hhasnt. gen ds. induction Hrec; intros; inversions Hds.
-  apply notin_union; split; simpl in *.
+  - inversion_def_typ; simpl in *; case_if; apply* notin_singleton.
+  - apply notin_union; split; simpl in *.
     + apply* IHHrec. case_if*.
     + inversion_def_typ; case_if; apply* notin_singleton.
 Qed.

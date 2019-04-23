@@ -90,7 +90,6 @@ Proof.
                  eapply ty_sub. apply ty_rec_elim. constructor.
                  eapply ty_sub. rewrite HeqG. constructor*. eauto.
                  crush.
-                 ***** eauto.
             **** constructor. fresh_constructor. crush.
         *** match goal with
             | H: _ |- _ & ?y0 ~ ?T0' & ?y1 ~ ?T1' & ?y2 ~ ?T2' ⊢ _ : _ =>
@@ -150,7 +149,6 @@ Proof.
                  constructor. apply ty_rcd_intro.
                  eapply ty_sub. apply ty_rec_elim. constructor.
                  eapply ty_sub. rewrite HeqG. constructor*. eauto. crush.
-                 ***** eauto.
             **** constructor. fresh_constructor. crush.
         *** match goal with
             | H: _ |- _ & ?y0 ~ ?T0' & ?y1 ~ ?T1' & ?y2 ~ ?T2' ⊢ _ : _ =>

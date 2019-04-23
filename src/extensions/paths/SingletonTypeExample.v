@@ -41,10 +41,8 @@ Proof.
       rewrite HeqT' in Hb. apply ty_rec_intro in Hb.
       rewrite HeqT', HeqT. crush.
       repeat apply ty_defs_cons; crush.
-      * apply ty_defs_one. econstructor. apply Hb. rewrite HeqT. econstructor.
-        econstructor; eauto. simpl. intros Hin. rewrite in_singleton in Hin. false*.
-      * econstructor. apply Hb. rewrite HeqT. econstructor.
-        econstructor; eauto. simpl. intros Hin. rewrite in_singleton in Hin. false*.
+      * apply ty_defs_one. econstructor. apply Hb.
+      * econstructor. apply Hb.
     + crush.
       match goal with
         | [H: _ |- _ & z ~ ?Tz' & _ ~ _ & y0 ~ ?Ty0' ⊢ _ : _ ] =>

@@ -31,7 +31,7 @@ Proof.
   intros. induction H; auto.
 Qed.
 
-(** The typing of a term with a stack *)
+(** The typing of a term with a store *)
 Inductive sta_trm_typ : sta * trm -> typ -> Prop :=
 | sta_trm_typ_c : forall G s t T,
     inert G ->
@@ -70,8 +70,8 @@ Lemma defs_typing_sngl_rhs z bs G ds T a q :
   exists T, G ⊢ trm_path q : T.
 Proof.
   induction 1; intros Hr.
-  destruct D; inversions Hr. inversions H. eauto. inversion H5. eauto. inversions H5.
-  inversions H0. eauto.
+  - destruct D; inversions Hr. inversions H. eauto.
+  - inversions Hr; auto. inversions H5. inversions H0. eauto.
 Qed.
 
 Reserved Notation "x '==>' T '=' bs '=>' U" (at level 40, T at level 20).
@@ -207,10 +207,11 @@ Lemma defs_typing_rhs z bs G ds T a q U S cs T' b V :
 Proof.
   intros Hds Hin Hl1 Hr1 Hr2 Hl2 Hr.
   gen S a q U cs T' b V. dependent induction Hds; introv Hin; introv Hl1; introv Hl2; introv Hr Hr1 Hr2.
-  specialize (IHHds _ Hin _ _ _ _ _ Hl1 _ Hl2 Hr _ Hr1).
-  inversions Hr2; auto.
-  inversions H4. clear IHHds.
-  eapply def_typing_rhs; eauto.
+  - inversions Hr2. eapply def_typing_rhs; eauto.
+  - specialize (IHHds _ Hin _ _ _ _ _ Hl1 _ Hl2 Hr _ Hr1).
+    inversions Hr2; auto.
+    inversions H4. clear IHHds.
+    eapply def_typing_rhs; eauto.
 Qed.
 
 Lemma pf_sngl_to_lft G x T bs W V :
