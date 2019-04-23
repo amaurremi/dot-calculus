@@ -1,3 +1,6 @@
+.DS_Store
 Makefile.coq
 Makefile.coq-e
-_CoqProject
+Makefile.coq.conf
+.coqdeps.d
+doc/*.html
