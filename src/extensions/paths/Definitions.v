@@ -4,12 +4,11 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This proof uses the
-    #<a href="http://www.chargueraud.org/softs/tlc/">TLC</a>#
-    Coq library by Arthur Chargueraud. *)
-
 Set Implicit Arguments.
 
+(** This proof uses the
+    #<a href="http://www.chargueraud.org/softs/tlc/">TLC</a>#
+    meta-theory library by Arthur Chargueraud. *)
 Require Export TLC.LibLN.
 Require Import TLC.LibOption.
 Require Import List String.
@@ -37,10 +36,11 @@ Inductive label: Set :=
 | label_trm: trm_label -> label.
 
 (** The fields of a path in reverse order.
-    E.g. for a path x.a1.a2...an, a list [an, ..., a2, a1]. *)
+    E.g. for a path [x. a1. a2... a_n], a list [a_n, ..., a2, a1]. *)
 Definition fields := list trm_label.
 
-(** todo *)
+(** A path, [x.a1.a2...a_n], represented through its receiver [x] and reversed list of fields
+ [a_n, ..., a_2, a_1] *)
 Inductive path :=
   | p_sel : avar -> fields ->  path.
 
@@ -134,7 +134,7 @@ Notation "'{' a ':=v' v '}'" := (def_trm a (defv v)).
 Notation "'{' A '⦂=' T '}'" := (def_typ A T).
 
 (** Shorthand definitions for variables and field selections *)
-Definition pavar (x: avar) := p_sel x nil.
+Notation pavar (x: avar) := p_sel x nil.
 Definition pvar (x: var) := p_sel (avar_f x) nil.
 Definition tvar (x: var) := trm_path (pvar x).
 Definition sel_field (p : path) (b : trm_label) :=
