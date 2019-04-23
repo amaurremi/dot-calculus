@@ -134,9 +134,9 @@ Notation "'{' a ':=v' v '}'" := (def_trm a (defv v)).
 Notation "'{' A '⦂=' T '}'" := (def_typ A T).
 
 (** Shorthand definitions for variables and field selections *)
-Notation pavar (x: avar) := p_sel x nil.
-Definition pvar (x: var) := p_sel (avar_f x) nil.
-Definition tvar (x: var) := trm_path (pvar x).
+Notation pavar x := (p_sel x nil).
+Notation pvar x := (p_sel (avar_f x) nil).
+Notation  tvar x := (trm_path (pvar x)).
 Definition sel_field (p : path) (b : trm_label) :=
   match p with
   | p_sel x bs => p_sel x (b :: bs)
@@ -147,8 +147,6 @@ Definition sel_fields (p : path) (bs : list trm_label) :=
   end.
 Notation "p '•' a" := (sel_field p a) (at level 5).
 Notation "p '••' bs" := (sel_fields p bs) (at level 5).
-
-Hint Unfold pavar pvar tvar.
 
 (** Helper functions to retrieve labels of declarations and definitions *)
 
@@ -607,11 +605,6 @@ Inductive ty_trm : ctx -> trm -> typ -> Prop :=
     (forall x, x \notin L ->
       G & x ~ T ⊢ open_trm x u : U) ->
     G ⊢ trm_let t u : U
-
-| ty_let_sngl G p u T U :
-    G ⊢ trm_path p : T ->
-    G ⊢ open_trm_p p u : U ->
-    G ⊢ trm_let (trm_path p) u : U
 
 (** [G ⊢ p: q.type]   #<br>#
     [G ⊢ q: T]        #<br>#

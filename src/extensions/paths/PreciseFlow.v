@@ -176,7 +176,6 @@ Lemma precise_to_general_h: forall G p T U,
     G ⊢ trm_path p: T /\ G ⊢ trm_path p: U.
 Proof.
   intros. induction H; intros; subst; destruct_all; eauto.
-  split; constructor*.
 Qed.
 
 (** Precise typing implies general typing. *)

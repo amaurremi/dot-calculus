@@ -10,9 +10,10 @@ If you want to understand the DOT safety proof, or are interested in creating yo
 This repo contains:
 - the [simple DOT safety proof](https://github.com/amaurremi/dot-calculus/tree/master/src/simple-proof)
 - extensions of DOT with:
-  * expanded type paths (adding type selections on _full paths_ of the form `p.A` instead of `x.A`, where `p` is a path and `x` is a variable)
-  ([proof](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/paths))
-  * mutation (adding _mutable references_ to DOT)
+  * *paths* of arbitrary length (adding type selections on _full paths_ of the form `p.A` instead of `x.A`, where `p` is a path and `x` is a variable)
+  ([proof](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/paths)
+  | [technical report](https://arxiv.org/abs/1904.07298v1))
+  * *mutation* (adding _mutable references_ to DOT)
   ([proof](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/mutation) | [technical report](https://arxiv.org/abs/1611.07610))
-  * initialization order (developing a sound _initialization order_)
+  * *initialization* order (developing a sound _initialization order_)
   ([proof in progress](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/initialization))

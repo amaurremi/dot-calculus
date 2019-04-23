@@ -231,7 +231,7 @@ Proof.
   - Case "pf_bind"%string.
     pose proof (pf_binds Hi Hp) as ->%binds_push_eq_inv. repeat eexists; eauto.
     simpl. rewrite app_nil_l. eauto. rewrite open_var_typ_eq. eapply pf_record_has_T; eauto.
-    apply* pf_record_has_T.
+    eapply pf_record_has_T; eauto.
   - Case "pf_fld"%string.
     pose proof (pf_bnd_T2 Hi Hp) as [W ->].
     rewrite Hl.
@@ -414,14 +414,11 @@ Proof.
       ** rewrite <- concat_empty_l. constructor~.
       ** constructor~. apply (precise_to_general_v Hv).
       ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
-         intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. constructor*. apply* weaken_subtyp.
+         intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. apply* weaken_subtyp.
     + SCase "[t = (let x = p in u)] where a is p variable"%string.
       repeat invert_red.
       exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
       apply* renaming_fresh.
-  - Case "ty_let_sngl"%string.
-    repeat invert_red.
-      exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
   - Case "ty_sub"%string.
     solve_IH.
     match goal with
@@ -477,7 +474,7 @@ Theorem progress: forall s t T,
     norm_form t \/ exists s' t', (s, t) |=> (s', t').
 Proof.
   introv Ht. inversion Ht as [G s' t' T' Hi Hwf Hwt HT]. subst.
-  induction HT; unfold tvar; eauto.
+  induction HT; eauto.
   - Case "ty_all_elim"%string.
     pose proof (canonical_forms_fun Hi Hwf Hwt HT1). destruct_all. right*.
   - Case "ty_let"%string.

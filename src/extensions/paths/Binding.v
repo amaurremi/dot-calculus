@@ -18,7 +18,7 @@ Ltac simpl_dot :=
   | [ H: ?p • _ = p_sel _ _ |- _ ] =>
     unfold sel_field in H; destruct p; inversions H
   | [ H: _ • _ = pvar _ |- _ ] =>
-    unfold pvar in H; simpl_dot
+    simpl_dot
   | [ H: pvar _ = _ • _ |- _ ] =>
     symmetry in H; simpl_dot
   | [ H: p_sel _ _ = _ • _ |- _ ] =>
@@ -36,7 +36,7 @@ Ltac simpl_dot :=
   | [ H: ?p •• _ = p_sel _ _ |- _ ] =>
     unfold sel_fields in H; destruct p; inversions H
   | [ H: _ •• _ = pvar _ |- _ ] =>
-    unfold pvar in H; simpl_dot
+    simpl_dot
   | [ H: pvar _ = _ •• _ |- _ ] =>
     symmetry in H; simpl_dot
   | [ H: p_sel _ _ = _ •• _ |- _ ] =>
@@ -177,7 +177,7 @@ Lemma typed_paths_named: forall G p T,
     named_path p.
 Proof.
   intros. destruct p.
-  dependent induction H; eauto; unfolds named_path, pvar; try solve [repeat eexists].
+  dependent induction H; eauto; unfolds named_path; try solve [repeat eexists].
   - destruct (last_field _ _ x) as [bs' Hbs]. subst. destruct p.
     specialize (IHty_trm _ _ eq_refl). destruct_all. inversions x. inversions H0. repeat eexists.
   - simpl in *.
@@ -811,7 +811,7 @@ Proof.
   apply rules_mutind; intros; subst; simpl; auto;
     try solve [fresh_constructor; rewrite <- concat_assoc; (apply* H || apply* H0); rewrite* concat_assoc]; eauto.
   - Case "ty_var"%string.
-    destruct (classicT (x=x0)) as [-> | Hn]; unfold tvar, pvar.
+    destruct (classicT (x=x0)) as [-> | Hn].
     + apply binds_middle_eq_inv in b; subst*. rewrite open_var_typ_eq.
       apply ty_rec_elim. constructor. apply* binds_middle_eq. apply* ok_middle_inv_r.
     + constructor. apply binds_subst in b; auto. apply* binds_weaken. apply* ok_middle_change.

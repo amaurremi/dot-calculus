@@ -91,7 +91,7 @@ Proof.
                  eapply ty_sub. rewrite HeqG. constructor*. eauto.
                  crush.
                  ***** eauto.
-            **** constructor. fresh_constructor. crush. constructor*.
+            **** constructor. fresh_constructor. crush.
         *** match goal with
             | H: _ |- _ & ?y0 ~ ?T0' & ?y1 ~ ?T1' & ?y2 ~ ?T2' ⊢ _ : _ =>
               remember T0' as T0; remember T1' as T1; remember T2' as T2
@@ -151,7 +151,7 @@ Proof.
                  eapply ty_sub. apply ty_rec_elim. constructor.
                  eapply ty_sub. rewrite HeqG. constructor*. eauto. crush.
                  ***** eauto.
-            **** constructor. fresh_constructor. crush. constructor*.
+            **** constructor. fresh_constructor. crush.
         *** match goal with
             | H: _ |- _ & ?y0 ~ ?T0' & ?y1 ~ ?T1' & ?y2 ~ ?T2' ⊢ _ : _ =>
               remember T0' as T0; remember T1' as T1; remember T2' as T2
@@ -210,7 +210,7 @@ Proof.
         assert (binds z Tz (G & y0 ~ T0)) as Hz%ty_var. {
           rewrite HeqG. repeat eapply binds_concat_left; auto. apply binds_single_eq.
         }
-        eapply subtyp_sel2. unfold tvar in Hz. rewrite HeqTz in Hz.
+        eapply subtyp_sel2. rewrite HeqTz in Hz.
         eapply ty_sub. apply Hz. eauto.
       }
       apply ty_rec_intro.
@@ -223,7 +223,7 @@ Proof.
       * assert (G & y0 ~ T0 ⊢ tvar y0 : S) as Ht. {
           rewrite HeqS, HeqT0. eapply ty_sub. apply Hb. rewrite HeqS. eauto.
         }
-        rewrite HeqS in Ht. unfold tvar in Ht. apply ty_rcd_intro.
+        rewrite HeqS in Ht. apply ty_rcd_intro.
         apply ty_new_elim in Ht. apply ty_rec_intro. apply ty_rec_elim in Ht.
         unfold open_typ_p in *. simpl in *. case_if.
         apply ty_and_intro.
@@ -236,7 +236,7 @@ Proof.
       * assert (G & y0 ~ T0 ⊢ tvar y0 : U) as Ht. {
           rewrite HeqU, HeqT0. eapply ty_sub. apply Hb. rewrite HeqU. eauto.
         }
-        rewrite HeqU in Ht. unfold tvar in Ht. apply ty_rcd_intro.
+        rewrite HeqU in Ht. apply ty_rcd_intro.
         apply ty_new_elim in Ht. apply ty_rec_intro. apply ty_rec_elim in Ht.
         unfold open_typ_p in *. simpl in *. case_if.
         apply ty_and_intro.

@@ -29,7 +29,7 @@ Ltac subst_fresh_solver :=
   | [ H: forall z, z \notin ?L -> forall G, _
       |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
     assert (subst_ctx x p G2 & z ~ subst_typ x p V = subst_ctx x p (G2 & z ~ V)) as B
-        by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
+        by (unfold subst_ctx; rewrite map_concat, map_single; auto);
     rewrite <- concat_assoc; rewrite B;
     subst_open_fresh;
     rewrite* <- subst_open_commut_trm_p;
@@ -161,7 +161,7 @@ Proof.
     | [ H: forall z, z \notin ?L -> forall G, _
         |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
       assert (subst_ctx x p G2 & z ~ subst_typ x p V = subst_ctx x p (G2 & z ~ V)) as B
-          by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
+          by (unfold subst_ctx; rewrite map_concat, map_single; auto);
         rewrite <- concat_assoc; rewrite B;
           subst_open_fresh;
           rewrite* <- subst_open_commut_trm_p;
@@ -185,7 +185,7 @@ Proof.
     rewrite* <- subst_open_commut_defs_p.
     assert (subst_ctx x p G2 & z ~ subst_typ x p (open_typ_p (pvar z) T) =
     subst_ctx x p (G2 & z ~ open_typ_p (pvar z) T)) as Heq
-    by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity).
+    by (unfold subst_ctx; rewrite map_concat, map_single; auto).
     rewrite <- concat_assoc. rewrite Heq.
     destruct p as [p_x p_bs].
     assert (exists p_x0, p_x = avar_f p_x0) as Heq'. {
@@ -218,7 +218,7 @@ Proof.
     | [ H: forall z, z \notin ?L -> forall G, _
       |- context [_ & subst_ctx ?x ?p ?G2 & ?z ~ subst_typ ?x ?p ?V] ] =>
       assert (subst_ctx x p G2 & z ~ subst_typ x p V = subst_ctx x p (G2 & z ~ V)) as B
-      by (unfold subst_ctx; rewrite map_concat, map_single; reflexivity);
+      by (unfold subst_ctx; rewrite map_concat, map_single; auto);
       rewrite <- concat_assoc; rewrite B;
         rewrite* <- subst_open_commut_trm_p;
       rewrite <- open_var_trm_eq;
@@ -226,9 +226,6 @@ Proof.
           rewrite <- B, concat_assoc; unfold subst_ctx;
           auto using weaken_ty_trm, ok_push, ok_concat_map
     end.
-  - Case "ty_let_sngl"%string.
-    eapply ty_let_sngl; eauto.
-    rewrite <- subst_open_commut_trm_p; eauto.
   - Case "ty_path_elim"%string.
     destruct p0, q.
     rewrite sel_fields_subst.
@@ -244,12 +241,12 @@ Proof.
     unfolds subst_var.
     remember (p_sel (avar_f p_x) p_bs) as p.
     eapply ty_def_new; eauto.
-    * replace (μ (subst_typ x0 p T)) with (subst_typ x0 p (μ T)) by reflexivity.
+    * replace (μ (subst_typ x0 p T)) with (subst_typ x0 p (μ T)) by auto.
       apply tight_bounds_subst. eauto.
     * simpl. case_if*.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
-      case_if*. simpl. rewrite app_nil_r. reflexivity.
+      case_if*. simpl. rewrite app_nil_r. auto.
   - Case "ty_def_path"%string.
     subst_tydef_solver.
     case_if. apply* ty_def_path.
@@ -283,7 +280,7 @@ Proof.
     replace (G1 & subst_ctx x p G2 & x0 ~ subst_typ x p S2)
     with (G1 & subst_ctx x p (G2 & x0 ~ S2)).
     * eapply H0.
-      + rewrite concat_assoc. reflexivity.
+      + rewrite concat_assoc. auto.
       + rewrite concat_assoc. constructor.
         apply H2. auto.
       + apply H3.
@@ -292,7 +289,7 @@ Proof.
         apply weaken_ty_trm.
         apply H4. constructor; auto.
     * unfold subst_ctx. rewrite map_push.
-      rewrite concat_assoc. reflexivity.
+      rewrite concat_assoc. auto.
 Qed.
 
 (** The substitution lemma for term typing.
@@ -432,11 +429,11 @@ Proof.
   assert (G & x ~ open_typ x T = G & x ~ open_typ x T & empty) as Heq' by rewrite* concat_empty_r.
   rewrite Heq. rewrite Heq' in Hx. clear Heq Heq'.
   assert (open_typ z T = subst_typ x (pvar z) (open_typ x T)) as Heq. {
-    rewrite open_var_typ_eq. unfold pvar. rewrite* <- subst_intro_typ. repeat eexists.
+    rewrite open_var_typ_eq. rewrite* <- subst_intro_typ. repeat eexists.
   }
   repeat rewrite Heq.
   assert (open_defs z ds = subst_defs x (pvar z) (open_defs x ds)) as Heq'. {
-    rewrite open_var_defs_eq. unfold pvar. rewrite* <- subst_intro_defs. repeat eexists.
+    rewrite open_var_defs_eq. rewrite* <- subst_intro_defs. repeat eexists.
   }
   repeat rewrite Heq'.
   clear Heq Heq'.

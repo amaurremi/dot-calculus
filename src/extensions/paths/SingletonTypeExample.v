@@ -38,7 +38,7 @@ Proof.
       end.
       assert (binds y0 T G) as Hb%ty_var by rewrite* HeqG.
       assert (T = open_typ_p (pvar y0) T) as HeqT' by rewrite* HeqT.
-      rewrite HeqT' in Hb. apply ty_rec_intro in Hb. unfold pvar in Hb.
+      rewrite HeqT' in Hb. apply ty_rec_intro in Hb.
       rewrite HeqT', HeqT. crush.
       repeat apply ty_defs_cons; crush.
       * apply ty_defs_one. econstructor. apply Hb. rewrite HeqT. econstructor.
@@ -92,7 +92,6 @@ Proof.
       }
       rewrite proj_rewrite. apply ty_rec_elim in Hy. unfold open_typ_p in *. simpl in *. case_if.
       pose proof (ty_sub Hy (subtyp_and11 _ _ _)) as Hy'.
-      unfold pvar in *.
       eapply ty_sub in Hy'.
       2: {
         eapply subtyp_sel1. rewrite HeqT1 in Hb. simpl in *. case_if. apply weaken_ty_trm.

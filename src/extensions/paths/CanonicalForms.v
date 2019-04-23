@@ -127,7 +127,7 @@ Proof.
                eapply (repl_composition_open (pvar px)) in Hrc'.
                apply subtyp_trans with (T:=open_typ px U');
                  apply repl_composition_sub in Hrc'; apply repl_composition_sub in Hrc; destruct_all;
-                   repeat rewrite open_var_typ_eq in *; unfold pvar in *; auto. all: auto.
+                   repeat rewrite open_var_typ_eq in *; auto. all: auto.
            +++ eauto.
            +++ eauto.
         ++ left. repeat eexists. apply* weaken_ty_trm.
@@ -694,7 +694,6 @@ Proof.
       pose proof (wf_env_prefix Hwf) as Hwf'.
       apply pf_strengthen in Hr; auto. clear Hrc' Hst Hp'q' Hp.
       destruct Hq'q as [[= -> ->] | Hq'q%pt3_strengthen_one]; destruct Hrc1 as [<- | Hrc1]; destruct Hrc2 as [[= ->] | Hrc2]; subst; auto;
-        [ apply* star_refl | ..];
         try solve [apply* IHHwt; try solve [false (pf_inert_pt3_sngl_false Hi' Hr Hrc1); auto]].
         * apply* IHHwt. apply* pt3_sngl_trans3.
         * pose proof (pt3_invert Hi' Hrc1 Hq'q) as [Contra | [q' [[= ->] [[= <-] | Hqt]]]].

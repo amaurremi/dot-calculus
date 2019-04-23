@@ -147,7 +147,6 @@ Proof.
          inversions Hs. invert_repl. eauto.
        + SSCase "ty_precise_inv_3"%string.
          inversion Hst as [x Hx].
-         (* inversions Hx; subst; invert_repl. *)
          generalize dependent T'.
          dependent induction Hx; introv Hr; subst; invert_repl.
          ++ apply ty_inv_r. destruct D2.
@@ -193,16 +192,17 @@ Proof.
            assert (Hts : G ⊢ T3 <: S2).
            { apply tight_to_general.
            apply repl_swap in H8. eauto. }
-           constructor; eauto. (* narrowing *)
+           constructor; eauto.
        + eapply ty_all_inv with (L := L \u (dom G)).
          * eauto.
          * assumption.
          * introv Hy. eapply subtyp_trans.
            apply* H1. eapply repl_open_var in H8.
-           ** eapply subtyp_sngl_qp; eauto.
+           ** eapply subtyp_sngl_qp.
               apply precise_to_general in Hq.
-              apply weaken_ty_trm; eauto.
-              apply weaken_ty_trm; auto. apply* precise_to_general2.
+              apply weaken_ty_trm. apply Hq. eauto.
+              apply weaken_ty_trm. apply* precise_to_general2. eauto.
+              eauto.
            ** solve_names.
            ** apply precise_to_general_h in Hq as [Hq].
               eapply typed_paths_named. apply Hq.
@@ -793,9 +793,10 @@ Proof.
          * assumption.
          * introv Hy. eapply subtyp_trans.
            apply* H1. eapply repl_open_var in H8.
-           ** eapply subtyp_sngl_qp; eauto.
+           ** eapply subtyp_sngl_qp.
               apply precise_to_general in Hpq.
-              apply weaken_ty_trm; eauto. apply weaken_ty_trm; auto. apply* precise_to_general2.
+              apply weaken_ty_trm. apply Hpq. eauto.
+              apply weaken_ty_trm; auto. apply* precise_to_general2. eauto.
            ** solve_names.
            ** solve_names.
   - Case "ty_and_rv"%string.

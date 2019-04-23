@@ -13,6 +13,8 @@ Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Definitions Binding.
 
+Hint Constructors star.
+
 (** * Lemmas about Replacement *)
 
 Lemma repl_swap:
@@ -79,8 +81,8 @@ Qed.
 Definition repl_some_typ p q T T' := exists n, repl_typ n p q T T'.
 Definition repl_some_dec p q D D' := exists n, repl_dec n p q D D'.
 
-Definition repl_repeat_typ p q := star (repl_some_typ p q).
-Definition repl_repeat_dec p q := star (repl_some_dec p q).
+Notation repl_repeat_typ p q := (star (repl_some_typ p q)).
+Notation repl_repeat_dec p q := (star (repl_some_dec p q)).
 
 Lemma repl_star_rcd: forall p q d1 d2,
   repl_repeat_dec p q d1 d2 ->
@@ -93,59 +95,52 @@ Proof.
   eauto.
 Qed.
 
+Ltac solve_repl_star :=
+  introv Hs;
+  match goal with
+  | [ H : repl_repeat_typ _ _ _ _ |- _ ] =>
+    dependent induction H
+  end;
+  eauto;
+  match goal with
+  | [ IH : (repl_repeat_typ _ _) ?T _ |- _ ] =>
+    apply star_trans with (b:=T)
+  end;
+  [apply star_one; unfolds repl_some_typ; destruct_all; repeat eexists; constructor* |]; eauto.
+
 Lemma repl_star_and1: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
     repl_repeat_typ p q (T1 ∧ U) (T2 ∧ U).
 Proof.
-  introv Hs. dependent induction Hs.
-  apply star_refl. eapply star_trans. apply star_one.
-  unfolds repl_some_typ.
-  destruct_all. repeat eexists. constructor*.
-  eauto.
+  solve_repl_star.
 Qed.
 
 Lemma repl_star_and2: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
     repl_repeat_typ p q (U ∧ T1) (U ∧ T2).
 Proof.
-  introv Hs. dependent induction Hs.
-  apply star_refl. apply star_trans with (b:=U ∧ b). apply star_one.
-  unfolds repl_some_typ.
-  destruct_all. repeat eexists. constructor*.
-  eauto.
+  solve_repl_star.
 Qed.
 
 Lemma repl_star_bnd : forall T1 T2 p q,
     repl_repeat_typ p q T1 T2 ->
     repl_repeat_typ p q (μ T1) (μ T2).
 Proof.
-  introv Hs. dependent induction Hs.
-  apply star_refl. eapply star_trans. apply star_one.
-  unfolds repl_some_typ.
-  destruct_all. repeat eexists. constructor*.
-  eauto.
+  solve_repl_star.
 Qed.
 
 Lemma repl_star_all1: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
     repl_repeat_typ p q (∀(T1) U) (∀(T2) U).
 Proof.
-  introv Hs. dependent induction Hs.
-  apply star_refl. eapply star_trans. apply star_one.
-  unfolds repl_some_typ.
-  destruct_all. repeat eexists. constructor*.
-  eauto.
+  solve_repl_star.
 Qed.
 
 Lemma repl_star_all2: forall T1 T2 U p q,
     repl_repeat_typ p q T1 T2 ->
     repl_repeat_typ p q (∀(U) T1) (∀(U) T2).
 Proof.
-  introv Hs. dependent induction Hs.
-  apply star_refl. apply star_trans with (b:=∀(U) b). apply star_one.
-  unfolds repl_some_typ.
-  destruct_all. repeat eexists. constructor*.
-  eauto.
+  solve_repl_star.
 Qed.
 
 Lemma repl_star_typ1: forall T1 T2 U A p q,
@@ -187,18 +182,18 @@ Lemma repl_comp_open_rec:
   (forall D p q n,
       repl_repeat_dec p q (open_rec_dec_p n p D) (open_rec_dec_p n q D)).
 Proof.
-  apply typ_mutind; intros; unfolds repl_repeat_typ, repl_repeat_dec;
+  apply typ_mutind; intros;
     simpl; try solve [apply star_refl]; eauto.
-  - apply* repl_star_rcd. unfold repl_repeat_dec. eauto.
+  - apply* repl_star_rcd.
   - eapply star_trans.
-    apply* repl_star_and1. apply* H.
-    apply* repl_star_and2. apply* H0.
+    apply* repl_star_and1.
+    apply* repl_star_and2.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
     case_if; destruct q as [qx qbs]; subst. apply star_one. eexists.
     repeat rewrite proj_rewrite_mult. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
-  - apply* repl_star_bnd. unfolds repl_repeat_typ. eauto.
+  - apply* repl_star_bnd.
   - eapply star_trans. apply repl_star_all1. apply* H. apply repl_star_all2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
     case_if; destruct q as [qx qbs]; subst. apply star_one. eexists.
@@ -206,7 +201,7 @@ Proof.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - eapply star_trans. apply repl_star_typ1. apply* H. apply repl_star_typ2. apply* H0.
-  - apply* repl_star_trm. unfolds repl_repeat_typ. eauto.
+  - apply* repl_star_trm.
 Qed.
 
 Lemma repl_comp_open: forall p q T,

@@ -115,7 +115,7 @@ Proof.
           eapply subtyp_trans; apply subtyp_and11.
      * eapply ty_sub. apply Hpy1. apply subtyp_typ; auto.
   - Case "Cons"%string.
-    constructor. do 4 (fresh_constructor; crush).
+    constructor. do 3 (fresh_constructor; crush). fresh_constructor.
     (* ⊢ let result = ν(ListType){A}{head}{tail} in result : List ∧ {A <:} *)
     + (* ⊢ ν(ListType){A}{head}{tail} in result : μ(ListType) *)
       fresh_constructor. repeat apply ty_defs_cons; crush.
@@ -127,10 +127,6 @@ Proof.
         constructor*. eapply subtyp_trans. apply subtyp_and11. eauto.
       * SCase "tail"%string.
         constructor. fresh_constructor. crush.
-        apply ty_and_intro.
-        ** eapply ty_sub. constructor*. eauto.
-        ** eapply ty_sub. eapply ty_sub. constructor*. apply subtyp_and12. apply subtyp_typ.
-           auto. auto.
     + (* y2: ListType ⊢ y2: List ∧ {A<:} *)
       remember_ctx G. crush.
       remember (p_sel (avar_f y2) nil) as py0.
