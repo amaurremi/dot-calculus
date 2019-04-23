@@ -77,7 +77,7 @@ EXTRA_DIR:=$(DOCDIR)/assets
 COQDOCFLAGS:= \
   --no-externals \
   --toc --toc-depth 2 --html \
-  --index indexpage --no-lib-name --parse-comments \
+  --index indexpage --no-lib-name --parse-comments -utf8 \
   --with-header $(EXTRA_DIR)/header.html --with-footer $(EXTRA_DIR)/footer.html
 export COQDOCFLAGS
 
