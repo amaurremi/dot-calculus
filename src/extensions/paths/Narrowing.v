@@ -4,6 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Narrowing *)
+
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.

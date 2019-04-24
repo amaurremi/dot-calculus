@@ -4,6 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Canonical Forms *)
 (** This module proves the Canonical Forms Lemmas, which allow us
     to retrieve the shape of a value given its type. *)
 
@@ -575,6 +576,17 @@ Proof.
       false binds_fresh_inv; eauto.
     + pose proof (typing_implies_bound (precise_to_general3 Hrc1)) as [S Hb].
       false binds_fresh_inv; eauto.
+Qed.
+
+(** If [E(x)=v] then [E = E1, x↦v, E2] *)
+Lemma binds_destruct: forall x {A} (v:A) (E:env A),
+    binds x v E ->
+    exists E1 E2, E = E1 & x ~ v & E2.
+Proof.
+  introv Hb. induction E using env_ind. false* binds_empty_inv.
+  destruct (binds_push_inv Hb) as [[H1 H2] | [H1 H2]]; subst.
+  repeat eexists. rewrite* concat_empty_r.
+  specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
 Qed.
 
 Lemma typed_path_lookup_same_var3 G s y bs cs :

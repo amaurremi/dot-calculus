@@ -4,6 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Substitution *)
+
 Set Implicit Arguments.
 
 Require Import List Coq.Program.Equality String.
@@ -64,6 +66,20 @@ Proof.
   rewrite subst_open_commut_typ.
   - f_equal. unfold subst_var_p. case_if*.
   - apply H.
+Qed.
+
+(** Substitution preserves tight-boundness in types *)
+Lemma tight_bounds_subst_mut :
+  (forall T, tight_bounds T -> forall x p, tight_bounds (subst_typ x p T)) /\
+  (forall D, tight_bounds_dec D -> forall x p, tight_bounds_dec (subst_dec x p D)).
+Proof.
+  apply typ_mutind; intros; subst; simpls; subst; eauto. split*.
+Qed.
+
+Lemma tight_bounds_subst x p T :
+  tight_bounds T -> tight_bounds (subst_typ x p T).
+Proof.
+  intros. apply* tight_bounds_subst_mut.
 Qed.
 
 (** * Substitution Lemma *)
@@ -297,23 +313,6 @@ Proof.
   unfold subst_ctx in Ht. rewrite map_empty, concat_empty_r in Ht.
   apply Ht. rewrite* concat_empty_r. rewrite* concat_empty_r. assumption.
   unfold subst_ctx. rewrite map_empty, concat_empty_r. assumption.
-Qed.
-
-Lemma subst_ty_defs: forall z bs G x S ds T p p_x p_bs sbs,
-    z; bs; G & x ~ S ⊢ ds :: T ->
-    p = p_sel (avar_f p_x) p_bs ->
-    z <> p_x ->
-    z <> x ->
-    ok (G & x ~ S) ->
-    x \notin fv_ctx_types G ->
-    G ⊢ trm_path p : subst_typ x p S ->
-    sbs = (If z = x then p_bs ++ bs else bs) ->
-    subst_var x p_x z; sbs; G ⊢ subst_defs x p ds :: subst_typ x p T.
-Proof.
-  introv Hds Heq Hzpx Hzx Hok Hx Hp Hsbs.
-  eapply (proj43 (subst_rules p S)) with
-      (G1 := G) (G2 := empty) (x := x) (p_x := p_x) (p_bs := p_bs) (sbs := sbs) in Hds;
-    unfold subst_ctx in *; try rewrite map_empty in *; try rewrite concat_empty_r in *; auto.
 Qed.
 
 (** * Renaming  *)

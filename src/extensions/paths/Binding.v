@@ -4,6 +4,8 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Binding *)
+
 (** This module defines various helper lemmas about opening, closing, and local closure. *)
 
 Set Implicit Arguments.
@@ -314,14 +316,6 @@ Qed.
 (** The following [subst_fresh_XYZ] lemmas state that if [x] is not free
     in a symbol [Y], then [Y[z/x] = Y]. *)
 
-Lemma subst_fresh_var x y z :
-    x <> y ->
-    subst_var x z y = y.
-Proof.
-  intros Hn.
-  unfold subst_var. case_if; auto.
-Qed.
-
 (** Fresh substitution
     - in paths *)
 Lemma subst_fresh_path : forall x q p,
@@ -597,6 +591,7 @@ Proof.
   unfold subst_var_p. case_var*.
 Qed.
 
+(** - definitions *)
 Lemma subst_intro_defs x u ds : x \notin (fv_defs ds) -> named_path u ->
   open_defs_p u ds = subst_defs x u (open_defs x ds).
 Proof.
@@ -623,12 +618,6 @@ Lemma subst_label_of_def: forall x y d,
   label_of_def d = label_of_def (subst_def x y d).
 Proof.
   intros. destruct* d.
-Qed.
-
-Lemma subst_label_of_dec: forall x y D,
-  label_of_dec D = label_of_dec (subst_dec x y D).
-Proof.
-  intros. destruct* D.
 Qed.
 
 (** [l \notin labels(ds)]     #<br>#
@@ -667,6 +656,7 @@ Proof.
   reflexivity.
 Qed.
 
+(** Equalities between different representations of field selection *)
 Lemma proj_rewrite : forall x bs a,
     (p_sel x (a :: bs)) = (p_sel x bs) • a.
 Proof.
@@ -688,6 +678,7 @@ Proof.
   introv. unfold sel_fields. destruct p. auto.
 Qed.
 
+(** [q.bs^p = (q^p).bs] *)
 Lemma field_sel_open: forall p q bs n,
     open_rec_path_p n p (q •• bs) = (open_rec_path_p n p q) •• bs.
 Proof.
@@ -695,6 +686,7 @@ Proof.
                                rewrite* app_assoc.
 Qed.
 
+(** Opening does not affect named paths *)
 Lemma open_named_path : forall p q n,
     named_path p ->
     open_rec_path_p n q p = p.
@@ -702,8 +694,7 @@ Proof.
   introv Hn. inversions Hn. destruct_all. subst. simpl. destruct q. auto.
 Qed.
 
-Hint Rewrite proj_rewrite proj_rewrite_mult proj_rewrite' field_sel_nil field_sel_open.
-
+(** Paths cannot be typed in empty environments *)
 Lemma typing_empty_false: forall p T,
     empty ⊢ trm_path p: T -> False.
 Proof.
@@ -711,7 +702,7 @@ Proof.
 Qed.
 
 (** [d1 isin ds]             #<br>#
-    [label(d2) \notin ds]     #<br>#
+    [label(d2) \notin ds]    #<br>#
     [―――――――――――――――――――――]  #<br>#
     [label(d1) <> label(d2)]  *)
 Lemma defs_has_hasnt_neq: forall ds d1 d2,
@@ -753,50 +744,11 @@ Proof.
       * inversions* H4.
 Qed.
 
-Lemma inert_subst_mut:
-  (forall D, record_dec D -> forall x p,
-        record_dec (subst_dec x p D)) /\
-  (forall T ls, record_typ T ls -> forall x p,
-        record_typ (subst_typ x p T) ls) /\
-  (forall T, inert_typ T -> forall x p,
-        inert_typ (subst_typ x p T)).
-Proof.
-  apply rcd_mutind; intros; try solve [constructor*].
-  - subst. apply rt_one. apply H. apply* subst_label_of_dec.
-  - constructor*. rewrite* <- subst_label_of_dec.
-  - apply* inert_typ_bnd.
-Qed.
-
-Lemma inert_subst: forall x p T,
-    inert_typ T ->
-    inert_typ (subst_typ x p T).
-Proof.
-  introv Hi. apply* inert_subst_mut.
-Qed.
-
-Lemma tight_bounds_subst_mut :
-  (forall T, tight_bounds T -> forall x p, tight_bounds (subst_typ x p T)) /\
-  (forall D, tight_bounds_dec D -> forall x p, tight_bounds_dec (subst_dec x p D)).
-Proof.
-  apply typ_mutind; intros; subst; simpls; subst; eauto. split*.
-Qed.
-
-Lemma tight_bounds_subst x p T :
-  tight_bounds T -> tight_bounds (subst_typ x p T).
-Proof.
-  intros. apply* tight_bounds_subst_mut.
-Qed.
-
-Lemma binds_destruct: forall x {A} (v:A) (E:env A),
-    binds x v E ->
-    exists E1 E2, E = E1 & x ~ v & E2.
-Proof.
-  introv Hb. induction E using env_ind. false* binds_empty_inv.
-  destruct (binds_push_inv Hb) as [[H1 H2] | [H1 H2]]; subst.
-  repeat eexists. rewrite* concat_empty_r.
-  specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
-Qed.
-
+(** [G1, x: S^x, G2 ⊢ t: T]           #<br>#
+    [ok (G1, x: S^x, G2)]             #<br>#
+    [―――――――――――――――――――――――――]       #<br>#
+    [G1, x: μ(x: S), G2 ⊢ t: T]       #<br>#
+    [G ⊢ d: D]                        *)
 Lemma open_env_rules:
   (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->

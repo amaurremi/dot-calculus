@@ -4,6 +4,8 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Records and Inert Types *)
+
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
@@ -75,19 +77,6 @@ Proof.
   intros. induction D; simpl; reflexivity.
 Qed.
 
-Lemma open_record:
-  (forall D, record_dec D ->
-        forall x k, record_dec (open_rec_dec k x D)) /\
-  (forall T ls , record_typ T ls ->
-        forall x k, record_typ (open_rec_typ k x T) ls) /\
-  (forall T, inert_typ T ->
-        forall x k, inert_typ (open_rec_typ k x T)).
-Proof.
-  apply rcd_mutind; intros; try solve [constructor; auto;
-    try solve [erewrite open_dec_preserves_label in e; eauto]].
-  unfold open_typ. simpl. eauto.
-Qed.
-
 Lemma open_record_p:
   (forall D, record_dec D ->
         forall p k, record_dec (open_rec_dec_p k p D)) /\
@@ -99,15 +88,6 @@ Proof.
   apply rcd_mutind; intros; try solve [constructor; auto;
     try solve [erewrite open_dec_preserves_label_p in e; eauto]].
   unfold open_typ. simpl. eauto.
-Qed.
-
-(** [record_typ T]   #<br>#
-    [――――――――――――――] #<br>#
-    [record_typ T^x] *)
-Lemma open_record_typ: forall T x ls,
-  record_typ T ls -> record_typ (open_typ x T) ls.
-Proof.
-  intros. apply* open_record.
 Qed.
 
 Lemma open_record_typ_p: forall T p ls,

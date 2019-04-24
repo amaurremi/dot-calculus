@@ -1,3 +1,6 @@
+(*** Singleton-Types Example *)
+(** Encoding method chaining using singleton types *)
+
 Require Import ExampleTactics.
 
 Section SingletonTypeExample.

@@ -1,3 +1,5 @@
+(*** Type Soundness *)
+
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List String.
@@ -55,13 +57,6 @@ Proof.
   - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
     pose proof (pf_bnd_T2 Hi Hp) as [S ->]. eauto.
   - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
-Qed.
-
-Lemma def_typing_sngl_rhs z bs G a t q :
-  z; bs; G ⊢ {a := t} : {a ⦂ {{ q }}} ->
-  exists T, G ⊢ trm_path q : T.
-Proof.
-  intros Hd. dependent induction Hd; eauto.
 Qed.
 
 Lemma defs_typing_sngl_rhs z bs G ds T a q :
@@ -318,45 +313,6 @@ Ltac solve_IH :=
   | [Hi: _ & ?G' ⊢ _ : _ |- _] =>
     exists G'; repeat split; auto
   end.
-
-
-Lemma inv_to_general G p T :
-  G ⊢## p : T ->
-  G ⊢ trm_path p : T.
-Proof.
-  induction 1;
-    try match goal with
-        | [H: _ ⊢# _ <: _ |- _] => apply tight_to_general in H
-        end.
-  - apply* precise_to_general3.
-  - apply* ty_sub.
-  - eapply ty_sub. eauto. constructor. apply* tight_to_general. auto.
-  - eapply ty_sub. eauto. fresh_constructor.
-  - eauto.
-  - eauto.
-  - eauto.
-  - eapply ty_sub. eauto. apply rbnd in H2. eapply subtyp_sngl_pq. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-  - eapply ty_sub. eauto. eapply subtyp_sngl_pq. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-  - eapply ty_sub. eauto. eapply subtyp_sngl_pq. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-Qed.
-
-Lemma repl_to_general G p T :
-  G ⊢// p : T ->
-  G ⊢ trm_path p : T.
-Proof.
-  induction 1; auto.
-  - apply* inv_to_general.
-  - eapply ty_sub. eauto. eapply subtyp_sel2. apply* precise_to_general.
-  - eapply ty_sub. eauto. apply rbnd in H2. eapply subtyp_sngl_qp. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-  - eapply ty_sub. eauto. eapply subtyp_sngl_qp. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-  - eapply ty_sub. eauto. eapply subtyp_sngl_qp. apply* precise_to_general.
-    apply*  precise_to_general2. eauto.
-Qed.
 
 Ltac solve_let :=
   invert_red; solve_IH; fresh_constructor; eauto; apply* weaken_rules.

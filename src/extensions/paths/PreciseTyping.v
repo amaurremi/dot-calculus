@@ -4,7 +4,9 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module reasons about the precise types of variables in inert contexts. *)
+(*** Lemmas about Precise Typing II and III *)
+
+(** This module reasons about the precise typing ⊢!! and ⊢!!! of paths *)
 
 Set Implicit Arguments.
 
@@ -454,9 +456,6 @@ Inductive wf_env : ctx -> Prop :=
 
 Hint Constructors wf_env.
 
-Lemma wf_ok G : wf_env G -> ok G.
-Proof. intros Hwf. induction Hwf; eauto. Qed.
-
 Lemma wf_env_prefix_one G x T :
   wf_env (G & x ~ T) -> wf_env G.
 Proof.
@@ -870,38 +869,6 @@ Proof.
     inversions Hr'. eauto. apply* IHHr.
 Qed.
 
-Lemma repl_comp_typ_rcd G A T U S :
-  G ⊢ typ_rcd { A >: T <: U } ⟿ S ->
-  exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T ⟿ T' /\ G ⊢ U ⟿ U'.
-Proof.
-  intros Hr. dependent induction Hr.
-  - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[?[Hp[Hq ?]]]]]].
-    specialize (IHHr _ _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]].
-    invert_repl; repeat eexists; eauto;
-      [ apply star_trans with (b:=T') | apply star_trans with (b:=U') ];
-        auto; apply star_one; econstructor; repeat eexists; eauto.
-Qed.
-
-Lemma repl_comp_typ_rcd' G A T U S :
-  G ⊢ S ⟿ typ_rcd { A >: T <: U } ->
-  exists T' U', S = typ_rcd { A >: T' <: U' } /\ G ⊢ T' ⟿ T /\ G ⊢ U' ⟿ U.
-Proof.
-  intros Hr. dependent induction Hr.
-  - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[V[Hp[Hq Hr']]]]]].
-    invert_repl;
-      specialize (IHHr _ _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]];
-      try solve [repeat eexists; apply star_trans with (b:=T2); auto;
-                 apply star_one; econstructor; repeat eexists; eauto].
-    + repeat eexists. apply star_trans with (b:=T2). apply star_one. econstructor.
-      repeat eexists; eauto.
-      apply repl_swap in H7. eauto. auto.
-    + repeat eexists. auto. apply star_trans with (b:=T2).
-      apply star_one. econstructor. repeat eexists; eauto.
-      eauto.
-Qed.
-
 Lemma repl_comp_trm_rcd G a T S :
   G ⊢ typ_rcd { a ⦂ T } ⟿ S ->
   exists T', S = typ_rcd { a ⦂ T' } /\ G ⊢ T ⟿ T'.
@@ -1268,30 +1235,4 @@ Proof.
     * right*. apply* pt3_sngl_trans3.
       lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_env_prefix Hwf) IH). destruct Hs.
       apply* pt3_trans_trans. apply* inert_prefix.
-Qed. (* todo: rewrite above lemmas using this lemma *)
-
-Lemma repl_comp_to_prec: forall G p q T,
-    inert G ->
-    wf_env G ->
-    G ⊢ p ⟿' q ->
-    G ⊢!!! p: T ->
-    p = q \/ G ⊢!!! p: {{ q }}.
-Proof.
-  introv Hi Hwf Hp Hpt. assert (G = G & empty) as Heq by rewrite* concat_empty_r.
-  rewrite Heq in Hpt. apply* repl_comp_to_prec'. rewrite* concat_empty_r. rewrite Heq in Hwf. auto.
-Qed.
-
-Lemma repl_comp_typed : forall G p q T,
-    inert G ->
-    G ⊢ p ⟿' q ->
-    G ⊢!!! q: T ->
-    exists U, G ⊢!!! p: U.
-Proof.
-  introv Hi Hr Hq. gen T. dependent induction Hr; introv Hq; eauto.
-  assert (exists q', b = {{ q' }}) as [q' Heq].
-  { inversion H as [x [y [n [S [_ [? H0]]]]]]. inversion* H0. }
-  subst.
-  destruct H as [r [r' [n [? [H2 [? H3]]]]]].
-  destruct (repl_prefixes_sngl H3) as [bs [He1 He2]]. subst.
-  apply* IHHr. apply* pt3_field_trans'.
 Qed.

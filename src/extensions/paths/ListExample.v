@@ -1,3 +1,7 @@
+(*** List Example *)
+
+(** Encoding the recursive list library from Amin et al. (2016) *)
+
 Require Import ExampleTactics.
 Require Import String.
 

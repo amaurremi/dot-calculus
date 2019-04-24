@@ -4,15 +4,17 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module contains lemmas related to invertible typing
-    ([ty_var_inv], [|-##] and [ty_val_inv], [|-##v]). *)
+(*** Invertible (Introduction-pq) Typing *)
+
+(** This module contains lemmas related to invertible typing for paths and values
+    ([|-##] and [|-##v]). *)
 
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Definitions Binding Narrowing PreciseFlow PreciseTyping RecordAndInertTypes Replacement
-               Subenvironments Substitution TightTyping Weakening.
+               Subenvironments TightTyping Weakening.
 
 (** ** Invertible typing *)
 

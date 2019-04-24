@@ -4,6 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Weakening *)
+
 Set Implicit Arguments.
 
 Require Import Definitions.

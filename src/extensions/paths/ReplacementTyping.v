@@ -4,8 +4,10 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module contains lemmas related to invertible typing
-    ([ty_var_inv], [|-##] and [ty_val_inv], [|-##v]). *)
+(*** Replacement (Introduction-qp) Typing *)
+
+(** This module contains lemmas related to replacement typing
+    ([|-//] and [|-//v]). *)
 
 Set Implicit Arguments.
 

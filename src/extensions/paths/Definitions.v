@@ -4,6 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Definition of pDOT's abstract syntax and type system *)
+
 Set Implicit Arguments.
 
 (** This proof uses the

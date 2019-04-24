@@ -4,7 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module reasons about the precise types of variables in inert contexts. *)
+(*** Precise Typing (Elimination Typing I) *)
+(** This module reasons about the precise types ⊢! of paths and values. *)
 
 Set Implicit Arguments.
 

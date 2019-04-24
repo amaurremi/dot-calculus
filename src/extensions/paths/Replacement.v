@@ -4,6 +4,8 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(*** Path Replacement *)
+
 (** This module contains lemmas related to invertible typing
     ([ty_var_inv], [|-##] and [ty_val_inv], [|-##v]). *)
 
