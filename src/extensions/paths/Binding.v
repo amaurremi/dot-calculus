@@ -4,9 +4,7 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Binding *)
-
-(** This module defines various helper lemmas about opening, closing, and local closure. *)
+(** * Opening and Substitution Properties and Environment Reasoning *)
 
 Set Implicit Arguments.
 
@@ -53,7 +51,7 @@ Ltac simpl_dot :=
     end
   end.
 
-(** * Substitution definitions
+(** ** Substitution definitions
     - substitute a variable [z] with a variable [y] inside of a _named_ variable [x]:
       [x[y/z]] *)
 Definition subst_var (z: var) (y: var) (x: var): var :=
@@ -135,7 +133,7 @@ with subst_defrhs (z: var) (u: path) (drhs: def_rhs) : def_rhs :=
 Definition subst_ctx (z: var) (p: path) (G: ctx) : ctx :=
   map (subst_typ z p) G.
 
-(** ** Field selection *)
+(** *** Field selection *)
 
 (** [(p^q).bs = (p.bs)^q ] *)
 Lemma sel_fields_open : forall n p q bs,
@@ -165,7 +163,7 @@ Proof.
   introv Heq. destruct* p. inversion* Heq.
 Qed.
 
-(** * Simple Implications of Typing *)
+(** ** Simple Implications of Typing *)
 
 (** A path [p=x.bs] whose receiver [x] is a named variable *)
 Definition named_path p := exists x bs, p = p_sel (avar_f x) bs.
@@ -197,9 +195,9 @@ Proof.
     inversions H1. eauto.
 Qed.
 
-(** * Opening Lemmas *)
+(** ** Opening Lemmas *)
 
-(** ** Conversion between opening with paths and variables *)
+(** *** Conversion between opening with paths and variables *)
 
 Lemma open_var_path_eq : forall x p n,
     open_rec_path n x p = open_rec_path_p n (pvar x) p.
@@ -311,7 +309,7 @@ Proof.
     f_equal; destruct_notin; eauto using open_fresh_avar_injective, open_fresh_path_injective.
 Qed.
 
-(** * Variable Substitution Lemmas *)
+(** ** Variable Substitution Lemmas *)
 
 (** The following [subst_fresh_XYZ] lemmas state that if [x] is not free
     in a symbol [Y], then [Y[z/x] = Y]. *)
@@ -410,68 +408,38 @@ Qed.
     for a symbol [Z], #<br>#
     [(Z^a)[y/x] = (Z[y/x])^(a[y/x])]. *)
 
-(** Substitution commutes with opening
-    - variables *)
-Lemma subst_open_commut_avar: forall x p u y n,
+(** Substitution commutes with variable-opening
+    - variables: [(y^z)[p/x] = (y[p/x])^(z[p/x])] *)
+Lemma subst_open_commut_avar: forall x p z y n,
     named_path p ->
-    subst_avar x p (open_rec_avar n u y)
-    = open_rec_path_p n (subst_var_p x p u) (subst_avar x p y).
+    subst_avar x p (open_rec_avar n z y)
+    = open_rec_path_p n (subst_var_p x p z) (subst_avar x p y).
 Proof.
   introv Hl. unfold subst_var_p, subst_avar, open_rec_avar, subst_var_p.
-  destruct y as [n' | y]; autounfold; destruct p as [z bs]; destruct z as [m | z'];
+  destruct y as [? | ?]; autounfold; destruct p as [[? | ?] ?];
     repeat case_if; simpl; try case_if*; eauto; inversions  Hl; destruct_all; inversion H.
 Qed.
 
-(** - paths *)
-Lemma subst_open_commut_path: forall p n x q u,
+(** - paths: [(q^z)[p/x] = (q[p/x])^(z[p/x])] *)
+Lemma subst_open_commut_path: forall p n x q z,
     named_path p ->
-    subst_path x p (open_rec_path n u q)
-    = open_rec_path_p n (subst_var_p x p u) (subst_path x p q).
+    subst_path x p (open_rec_path n z q)
+    = open_rec_path_p n (subst_var_p x p z) (subst_path x p q).
 Proof.
-  introv Hl. destruct q as [z bs]. simpl. rewrite* subst_open_commut_avar. rewrite* sel_fields_open.
+  introv Hl. destruct q as [? ?]. simpl. rewrite* subst_open_commut_avar. rewrite* sel_fields_open.
 Qed.
 
-(** - types and declarations *)
-Lemma subst_open_commut_typ_dec: forall x p u,
+(** - types and declarations: [(T^z)[p/x] = (T[p/x])^(z[p/x])] *)
+Lemma subst_open_commut_typ_dec: forall x p z,
   named_path p ->
-  (forall t : typ, forall n: nat,
-     subst_typ x p (open_rec_typ n u t)
-     = open_rec_typ_p n (subst_var_p x p u) (subst_typ x p t)) /\
+  (forall T : typ, forall n: nat,
+     subst_typ x p (open_rec_typ n z T)
+     = open_rec_typ_p n (subst_var_p x p z) (subst_typ x p T)) /\
   (forall D : dec, forall n: nat,
-     subst_dec x p (open_rec_dec n u D)
-     = open_rec_dec_p n (subst_var_p x p u) (subst_dec x p D)).
+     subst_dec x p (open_rec_dec n z D)
+     = open_rec_dec_p n (subst_var_p x p z) (subst_dec x p D)).
 Proof.
   intros. apply typ_mutind; intros; simpl; f_equal*; apply* subst_open_commut_path.
-Qed.
-
-Lemma subst_open_commut_path_p: forall p n x q u,
-    named_path q ->
-    subst_path x q (open_rec_path_p n u p)
-    = open_rec_path_p n (subst_path x q u) (subst_path x q p).
-Proof.
-  introv Hl. destruct p as [z bs]. simpl.
-  unfold subst_path. destruct u. rewrite <- sel_fields_open.
-  unfold open_rec_path_p, subst_avar.
-  destruct z; simpl; destruct a; repeat case_if*;
-    unfold subst_var_p; repeat case_if;
-      destruct q; simpl; try (rewrite app_assoc || rewrite app_nil_r);
-        inversion* Hl; subst; destruct_all; inversions H;
-  unfold sel_fields; reflexivity.
-  (*inversions H0. eauto. inversions H.
-        try solve [inversion Hl; inversion* H0].*)
-Qed.
-
-Lemma subst_open_commut_typ_dec_p: forall x y u,
-  named_path y ->
-  (forall t : typ, forall n: nat,
-     subst_typ x y (open_rec_typ_p n u t)
-     = open_rec_typ_p n (subst_path x y u) (subst_typ x y t)) /\
-  (forall D : dec, forall n: nat,
-     subst_dec x y (open_rec_dec_p n u D)
-     = open_rec_dec_p n (subst_path x y u) (subst_dec x y D)).
-Proof.
-  intros. apply typ_mutind; intros; simpl; f_equal*;
-  apply* subst_open_commut_path_p.
 Qed.
 
 (** - types only *)
@@ -480,13 +448,6 @@ Lemma subst_open_commut_typ: forall x y u T,
   subst_typ x y (open_typ u T) = open_typ_p (subst_var_p x y u) (subst_typ x y T).
 Proof.
   intros. apply* subst_open_commut_typ_dec.
-Qed.
-
-Lemma subst_open_commut_typ_p: forall x y u T,
-    named_path y ->
-    subst_typ x y (open_typ_p u T) = open_typ_p (subst_path x y u) (subst_typ x y T).
-Proof.
-  intros. apply* subst_open_commut_typ_dec_p.
 Qed.
 
 (** - terms, values, definitions, and list of definitions *)
@@ -512,6 +473,64 @@ Proof.
   apply* subst_open_commut_path || apply* subst_open_commut_typ_dec.
 Qed.
 
+(** - terms only *)
+Lemma subst_open_commut_trm: forall x y u t,
+    named_path y ->
+    subst_trm x y (open_trm u t)
+    = open_trm_p (subst_var_p x y u) (subst_trm x y t).
+Proof.
+  intros. apply* subst_open_commut_trm_val_def_defs.
+Qed.
+
+(** - definitions only *)
+Lemma subst_open_commut_defs: forall x y u ds,
+    named_path y ->
+    subst_defs x y (open_defs u ds)
+    = open_defs_p (subst_var_p x y u) (subst_defs x y ds).
+Proof.
+  intros. apply* subst_open_commut_trm_val_def_defs.
+Qed.
+
+(** Substitution commutes with path-opening *)
+(** - paths: [(p^r)[q/x] = (p[q/x])^(r[q/x])] *)
+Lemma subst_open_commut_path_p: forall p n x q r,
+    named_path q ->
+    subst_path x q (open_rec_path_p n r p)
+    = open_rec_path_p n (subst_path x q r) (subst_path x q p).
+Proof.
+  introv Hl. destruct p as [z bs]. simpl.
+  unfold subst_path. destruct r. rewrite <- sel_fields_open.
+  unfold open_rec_path_p, subst_avar.
+  destruct z; simpl; destruct a; repeat case_if*;
+    unfold subst_var_p; repeat case_if;
+      destruct q; simpl; try (rewrite app_assoc || rewrite app_nil_r);
+        inversion* Hl; subst; destruct_all; inversions H;
+  unfold sel_fields; reflexivity.
+Qed.
+
+(** - types and declarations: [(T^r)[q/x] = (T[q/x])^(r[q/x])] *)
+Lemma subst_open_commut_typ_dec_p: forall x y r,
+  named_path y ->
+  (forall T : typ, forall n: nat,
+     subst_typ x y (open_rec_typ_p n r T)
+     = open_rec_typ_p n (subst_path x y r) (subst_typ x y T)) /\
+  (forall D : dec, forall n: nat,
+     subst_dec x y (open_rec_dec_p n r D)
+     = open_rec_dec_p n (subst_path x y r) (subst_dec x y D)).
+Proof.
+  intros. apply typ_mutind; intros; simpl; f_equal*;
+  apply* subst_open_commut_path_p.
+Qed.
+
+(** - types only *)
+Lemma subst_open_commut_typ_p: forall x y u T,
+    named_path y ->
+    subst_typ x y (open_typ_p u T) = open_typ_p (subst_path x y u) (subst_typ x y T).
+Proof.
+  intros. apply* subst_open_commut_typ_dec_p.
+Qed.
+
+(** - terms, values, definitions, and list of definitions *)
 Lemma subst_open_commut_trm_val_def_defs_p: forall x y u,
     named_path y ->
   (forall t : trm, forall n: nat,
@@ -535,14 +554,6 @@ Proof.
 Qed.
 
 (** - terms only *)
-Lemma subst_open_commut_trm: forall x y u t,
-    named_path y ->
-    subst_trm x y (open_trm u t)
-    = open_trm_p (subst_var_p x y u) (subst_trm x y t).
-Proof.
-  intros. apply* subst_open_commut_trm_val_def_defs.
-Qed.
-
 Lemma subst_open_commut_trm_p: forall x y u t,
     named_path y ->
     subst_trm x y (open_trm_p u t)
@@ -551,14 +562,7 @@ Proof.
   intros. apply* subst_open_commut_trm_val_def_defs_p.
 Qed.
 
-Lemma subst_open_commut_defs: forall x y u ds,
-    named_path y ->
-    subst_defs x y (open_defs u ds)
-    = open_defs_p (subst_var_p x y u) (subst_defs x y ds).
-Proof.
-  intros. apply* subst_open_commut_trm_val_def_defs.
-Qed.
-
+(** - definitions only *)
 Lemma subst_open_commut_defs_p: forall x y u ds,
     named_path y ->
     subst_defs x y (open_defs_p u ds)
@@ -599,19 +603,6 @@ Proof.
   destruct (subst_fresh_trm_val_def_defs x u) as [_ [_ [_ [Q _]]]]. rewrite* (Q ds).
   unfold subst_var_p. case_var*.
 Qed.
-
-Ltac subst_open_fresh :=
-  match goal with
-  | [ |- context [ open_typ ?z (subst_typ ?x ?p ?T) ] ] =>
-    replace (open_typ z (subst_typ x p T)) with (open_typ_p (subst_path x p (pvar z)) (subst_typ x p T)) by
-        (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_typ_eq; auto)
-    | [ |- context [ open_defs ?z (subst_defs ?x ?p ?ds) ] ] =>
-        replace (open_defs z (subst_defs x p ds)) with (open_defs_p (subst_path x p (pvar z)) (subst_defs x p ds))
-          by (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_defs_eq; auto)
-     | [ |- context [ open_trm ?z (subst_trm ?x ?p ?t) ] ] =>
-        replace (open_trm z (subst_trm x p t)) with (open_trm_p (subst_path x p (pvar z)) (subst_trm x p t))
-          by (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_trm_eq; auto)
-    end.
 
 (** Substitution preserves labels of definitions: [label(d) = label(d[y/x])] *)
 Lemma subst_label_of_def: forall x y d,
@@ -676,6 +667,51 @@ Lemma field_sel_nil: forall p,
     p •• nil = p.
 Proof.
   introv. unfold sel_fields. destruct p. auto.
+Qed.
+
+Lemma sel_field_to_fields: forall p a bs,
+  (p • a) •• bs = p •• (bs ++ (a :: nil)).
+Proof.
+  intros p a bs. destruct p eqn:Hp.
+  simpl. rewrite <- app_assoc. reflexivity.
+Qed.
+
+Lemma sel_fields_equal: forall p bs cs,
+  p •• bs = p •• cs -> bs = cs.
+Proof.
+  intros p bs cs H. destruct p.
+  unfold sel_fields. inversions H.  simpl.
+  eapply app_inv_tail. apply H1.
+Qed.
+
+Lemma app_inv_right: forall T (m n x y : list T),
+  m ++ x = n ++ y ->
+  exists l, x = l ++ y \/ y = l ++ x.
+Proof.
+  intros. generalize dependent n.
+  generalize dependent x.
+  generalize dependent y.
+  induction m as [| a m IHm]; eauto.
+  intros. destruct n.
+  * exists (a :: m). right. auto.
+  * inversions H. eauto.
+Qed.
+
+Lemma sel_sub_fields: forall p bs0 q bs1,
+  p •• bs0 = q •• bs1 ->
+  exists bs, p = q •• bs \/ q = p •• bs.
+Proof.
+  unfold sel_fields. intros.
+  destruct p. destruct q. inversions H.
+  destruct (app_inv_right bs0 bs1 f f0 H2) as [cs [H2l | H2r]];
+  exists cs; subst; eauto.
+Qed.
+
+Lemma app_sel_fields: forall p xs ys,
+  (p •• xs) •• ys = p •• (ys ++ xs).
+Proof.
+  intros. destruct p. simpl. rewrite app_assoc.
+  auto.
 Qed.
 
 (** [q.bs^p = (q^p).bs] *)
@@ -744,6 +780,7 @@ Proof.
       * inversions* H4.
 Qed.
 
+(** Closing recursive types in the environment does not affect typing: *)
 (** [G1, x: S^x, G2 ⊢ t: T]           #<br>#
     [ok (G1, x: S^x, G2)]             #<br>#
     [―――――――――――――――――――――――――]       #<br>#
@@ -776,6 +813,7 @@ Proof.
     + constructor. apply binds_subst in b; auto. apply* binds_weaken. apply* ok_middle_change.
 Qed.
 
+(** the same for definition-typing only: *)
 Lemma open_env_last_defs z bs G x T ds U :
   ok (G & x ~ open_typ x T) ->
   z ; bs ; G & x ~ open_typ x T ⊢ ds :: U ->
@@ -785,6 +823,7 @@ Proof.
   rewrite* concat_empty_r.
 Qed.
 
+(** inverting environment equalities I *)
 Lemma env_ok_inv {A} (G1 G2 G1' G2' : env A) x T T' :
   G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
   ok (G1' & x ~ T' & G2') ->
@@ -803,6 +842,7 @@ Proof.
     specialize (IHG2 _ _ _ Heq Hn) as [-> [-> ->]]. auto.
 Qed.
 
+(** inverting environment equalities II *)
 Lemma env_ok_inv' {A} (G1 G2 G1' G2' : env A) x T T' :
   G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
   ok (G1 & x ~ T & G2) ->
@@ -812,6 +852,7 @@ Proof.
   split*.
 Qed.
 
+(** A prefix of a well-typed environment is well-typed *)
 Lemma wt_prefix G1 x T G2 s :
   well_typed (G1 & x ~ T & G2) s ->
   exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).

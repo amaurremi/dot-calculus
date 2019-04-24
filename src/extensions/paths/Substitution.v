@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Substitution *)
+(** * Substitution *)
 
 Set Implicit Arguments.
 
@@ -82,7 +82,7 @@ Proof.
   intros. apply* tight_bounds_subst_mut.
 Qed.
 
-(** * Substitution Lemma *)
+(** ** Substitution Lemma *)
 (** [G1, x: S, G2 ⊢ t: T]            #<br>#
     [ok(G1, x: S, G2)]               #<br>#
     [x \notin fv(G1)]                 #<br>#
@@ -315,7 +315,7 @@ Proof.
   unfold subst_ctx. rewrite map_empty, concat_empty_r. assumption.
 Qed.
 
-(** * Renaming  *)
+(** ** Renaming  *)
 
 (** Renaming the name of the opening variable for term typing. #<br>#
     [ok G]                   #<br>#

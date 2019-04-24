@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Precise Typing (Elimination Typing I) *)
+(** * Precise Typing (Elimination Typing I) *)
 (** This module reasons about the precise types ⊢! of paths and values. *)
 
 Set Implicit Arguments.
@@ -60,9 +60,6 @@ Ltac invert_repl :=
            inversions H
     end.
 
-(* todo consistent lemma naming *)
-(* todo finish doc *)
-(** ** Precise typing *)
 (** Precise typing is used to reason about the types of paths and values.
     Precise typing does not "modify" a path's or value's type through subtyping.
     - For values, precise typing allows to only retrieve the "immediate" type of the value.
@@ -107,7 +104,7 @@ where "G '⊢!v' v ':' T" := (ty_val_p G v T).
 Hint Constructors ty_val_p.
 
 
-(** * Precise Flow *)
+(** ** Precise Flow for Paths *)
 (** We use the precise flow relation to reason about the relations between
     the precise type of a path [G |-! p: T] and the type that the variable
     is bound to in the context [G(x)=T'].#<br>#
@@ -122,8 +119,6 @@ Hint Constructors ty_val_p.
     [G ⊢! p: mu(x: {a: T} /\ {B: S..U}) ⪼ {B: S..U}]. *)
 
 Reserved Notation "G '⊢!' p ':' T '⪼' U" (at level 40, p at level 59).
-Reserved Notation "G '⊢!!' p ':' T" (at level 40, p at level 59).
-Reserved Notation "G '⊢!!!' p ':' T" (at level 40, p at level 59).
 
 Inductive precise_flow : ctx -> path -> typ -> typ -> Prop :=
 

@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Definition of pDOT's abstract syntax and type system *)
+(** * pDOT Abstract Syntax and Type System *)
 
 Set Implicit Arguments.
 
@@ -18,7 +18,7 @@ Require Import List String.
 Parameter typ_label: Set.
 Parameter trm_label: Set.
 
-(** * Abstract Syntax *)
+(** ** Abstract Syntax *)
 
 (** *** Variables ([x], [y], [z])
     The proof represents variables using the
@@ -214,7 +214,7 @@ Definition defs_has(ds: defs)(d: def) := get_def (label_of_def d) ds = Some d.
 
 Definition defs_hasnt(ds: defs)(l: label) := get_def l ds = None.
 
-(** * Opening *)
+(** ** Opening *)
 (** Opening takes a bound variable that is represented with a de Bruijn index [k]
     and replaces it by a named variable or path [u].
     The following functions define opening on paths, types, declarations, terms,
@@ -373,7 +373,7 @@ Definition open_def_p  u d := open_rec_def_p   0 u d.
 Definition open_defs_p u l := open_rec_defs_p 0 u l.
 Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 
-(** * Path Replacement *)
+(** ** Path Replacement *)
 
 (** The number of paths in a type *)
 
@@ -435,7 +435,7 @@ with repl_dec : nat -> path -> path -> dec -> dec -> Prop :=
 
 Hint Constructors repl_typ repl_dec.
 
-(** * Free variables
+(** ** Free variables
       Functions that retrieve the free variables of a symbol. *)
 
 (** Free variable in a variable. *)
@@ -580,7 +580,7 @@ Inductive inert : ctx -> Prop :=
       x # G ->
       inert (G & x ~ T).
 
-(** * Typing Rules *)
+(** ** Typing Rules *)
 
 (** The [tight_bounds] function ensures that all type declarations nested inside a
  type have equal bounds (except the ones that are inside of function types) *)
@@ -604,7 +604,7 @@ Reserved Notation "x ';' bs ';' G '⊢' d ':' D"
 Reserved Notation "x ';' bs ';' G '⊢' ds '::' D"
          (at level 40, bs at level 39, G at level 39, ds at level 59).
 
-(** ** Term typing [G ⊢ t: T] *)
+(** *** Term typing [G ⊢ t: T] *)
 Inductive ty_trm : ctx -> trm -> typ -> Prop :=
 
 (** [[
@@ -756,7 +756,7 @@ G ⊢ t: U
     G ⊢ t : U
 where "G '⊢' t ':' T" := (ty_trm G t T)
 
-(** ** Single-definition typing [x; bs; G ⊢ d: D]
+(** *** Single-definition typing [x; bs; G ⊢ d: D]
     The notation [x; bs; G ⊢ d : D] denotes the typing
     of a definition [d] with record-type [D] under the path [x.bs]
     (i.e. a path with receiver [x] and fields [bs]) *)
@@ -799,7 +799,7 @@ x.bs; G ⊢ {b = q}: {b: q.type}
 
 where "x ';' bs ';' G '⊢' d ':' D" := (ty_def x bs G d D)
 
-(** ** Multiple-definition typing [x; bs; G ⊢ ds :: T]
+(** *** Multiple-definition typing [x; bs; G ⊢ ds :: T]
     The notation [x; bs; G ⊢ ds :: T] denotes the typing
     of definitions [ds] with type [T] under the path [x.bs]
     (i.e. a path with receiver [x] and fields [bs]) *)
@@ -829,7 +829,7 @@ x.bs; G ⊢ ds ++ d : T /\ D
     x; bs; G ⊢ defs_cons ds d :: T ∧ typ_rcd D
 where "x ';' bs ';' G '⊢' ds '::' T" := (ty_defs x bs G ds T)
 
-(** ** Subtyping [ G ⊢ T <: U] *)
+(** *** Subtyping [ G ⊢ T <: U] *)
 with subtyp : ctx -> typ -> typ -> Prop :=
 
 (** [[
@@ -971,7 +971,7 @@ G ⊢ forall(S1)T1 <: forall(S2)T2
 where "G '⊢' T '<:' U" := (subtyp G T U).
 
 
-(** * Well-typed stores *)
+(** ** Well-typed stores *)
 
 (** The operational semantics is defined in terms of pairs [(s, t)], where
 s] is a store (runtime environment) and [t] is a term.
@@ -994,7 +994,7 @@ Inductive well_typed: ctx -> sta -> Prop :=
     G ⊢ trm_val v : T ->
     well_typed (G & x ~ T) (s & x ~ v).
 
-(** * Infrastructure *)
+(** ** Infrastructure *)
 
 Hint Constructors
      inert_typ inert record_has record_dec record_typ
@@ -1002,7 +1002,7 @@ Hint Constructors
 
 Hint Unfold record_type.
 
-(** ** Mutual Induction Principles *)
+(** *** Mutual Induction Principles *)
 
 Scheme typ_mut := Induction for typ Sort Prop
   with   dec_mut := Induction for dec Sort Prop.
@@ -1049,7 +1049,7 @@ Scheme ty_def_mut' := Induction for ty_def Sort Prop
   with ty_defs_mut' := Induction for ty_defs Sort Prop.
 Combined Scheme ty_def_mutind from ty_def_mut', ty_defs_mut'.
 
-(** * Tactics *)
+(** *** Tactics *)
 
 (** Tactics for generating fresh variables. *)
 

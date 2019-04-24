@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Replacement (Introduction-qp) Typing *)
+(** * Replacement (Introduction-qp) Typing *)
 
 (** This module contains lemmas related to replacement typing
     ([|-//] and [|-//v]). *)
@@ -16,8 +16,7 @@ Require Import Sequences.
 Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping RecordAndInertTypes Replacement
         Subenvironments TightTyping Weakening.
 
-(** * Replacement typing
-    Whereas invertible typing does replacment for singleton types in one direction,
+(** Whereas invertible typing does replacment for singleton types in one direction,
     replacement typing does the replacment in the other direction.
 
     Note that we can't simply define this using three rules:
@@ -279,7 +278,7 @@ Proof.
     apply repl_open with (r:= r) in H1; try solve_names. apply* replacement_repl_closure_qp.
 Qed.
 
-(*
+(**
   G ⊢// r: T[q1 / p1, n]
   G ⊢!!! p2: q2.type
   n <> m
@@ -613,6 +612,17 @@ Proof.
   apply* replacement_repl_closure_comp_typed.
 Qed.
 
+Lemma repl_intro_sngl: forall p q,
+    repl_typ 0 p q {{ p }} {{ q }}.
+Proof.
+  intros p q.
+  replace {{ p }} with {{ p •• nil }}.
+  replace {{ q }} with {{ q •• nil }}.
+  - auto.
+  - destruct* q.
+  - destruct* p.
+Qed.
+
 Lemma inv_sngl_trans: forall G p q T,
     inert G ->
     G ⊢// p : {{ q }} ->
@@ -629,7 +639,9 @@ Proof.
     * lets Hpi: (pt3_invert Hi H H0). destruct_all; subst; auto.
       ** do 2 constructor. apply* pt3_sngl_trans3.
       ** apply ty_precise_inv in Hpr'. apply ty_inv_r in Hpr'.
-         apply* replacement_repl_closure_qp3. apply* repl_intro_sngl.
+         apply* replacement_repl_closure_qp3. assert (x = x •• nil) as Heq by rewrite* field_sel_nil.
+         rewrite <- field_sel_nil at 2. rewrite Heq at 2.
+         apply* repl_intro_sngl.
     * lets Hpi: (pt3_invert Hi H H0). destruct_all; subst.
       ** do 2 constructor. do 2 apply* pt3_sngl_trans3.
       ** do 2 constructor. apply* pt3_sngl_trans3.
@@ -645,8 +657,6 @@ Proof.
   - apply* repl_top.
   - pose proof (path_elim_repl _ Hi Hpq (ty_inv_r Hq)) as Hp0a. specialize (IHHq Hi _ Hp0a). eauto.
 Qed.
-
-
 
 Lemma repl_sngl_trans: forall G p q T,
     inert G ->

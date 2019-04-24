@@ -1,3 +1,5 @@
+(** * Tactics and Notatations used in Examples *)
+
 Require Export Definitions Binding Weakening.
 Require Export List.
 

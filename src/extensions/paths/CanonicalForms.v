@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Canonical Forms *)
+(** * Canonical Forms *)
 (** This module proves the Canonical Forms Lemmas, which allow us
     to retrieve the shape of a value given its type. *)
 
@@ -22,7 +22,7 @@ Definition deftrm t : trm :=
   | defv v => trm_val v
   end.
 
-(** * Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢! p: T] imply [Γ ⊢ t: T] *)
+(** ** Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢! p: T] imply [Γ ⊢ t: T] *)
 
 Lemma repl_composition_sub G T U :
   G ⊢ T ⟿ U ->
@@ -330,7 +330,7 @@ Proof.
       [[? [? [-> Ht]]] | [? [[=] ?]]]; auto.
 Qed.
 
-(** * Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
+(** ** Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
 Lemma typ_to_lookup1 G s p T U :
   inert G ->
   wf_env G ->
@@ -763,7 +763,7 @@ Proof.
 Qed.
 
 
-(** * Lemmas to Prove Canonical Forms for Functions *)
+(** ** Lemmas to Prove Canonical Forms for Functions *)
 
 Lemma lookup_preservation_forall : forall G s t u T S,
     inert G ->
@@ -844,7 +844,7 @@ Proof.
   eapply ty_sub; eauto. eapply narrow_typing in H2; eauto.
 Qed.
 
-(** ** Canonical Forms for Functions
+(** *** Canonical Forms for Functions
 
     [inert G]              #<br>#
     [s: G]                 #<br>#

@@ -1,4 +1,4 @@
-(* The author of this library is Xavier Leroy. *)
+(** * Xavier Leroy's Sequences Library*)
 
 (** A library of relation operators defining sequences of transitions
   and useful properties about them. *)

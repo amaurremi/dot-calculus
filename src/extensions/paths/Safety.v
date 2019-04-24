@@ -1,4 +1,4 @@
-(*** Type Soundness *)
+(** * Type Soundness *)
 
 Set Implicit Arguments.
 
@@ -11,7 +11,7 @@ Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTypin
 Close Scope string_scope.
 
 Module Safety.
-(** * Well-typedness *)
+(** ** Well-typedness *)
 
 (** If [e: G], the variables in the domain of [e] are distinct. *)
 Lemma well_typed_to_ok_G: forall s G,
@@ -46,7 +46,7 @@ Hint Constructors sta_trm_typ.
 
 Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
-(** * Preservation *)
+(** ** Preservation *)
 
 Lemma pf_sngl G x bs T U a :
   inert G ->
@@ -385,7 +385,7 @@ Proof.
     end.
 Qed.
 
-(** ** Preservation Theorem *)
+(** *** Preservation Theorem *)
 
 (** [⊢ (s, t): T]           #<br>#
     [(s, t) |-> (s', t')]   #<br>#
@@ -401,7 +401,7 @@ Proof.
   apply sta_trm_typ_c with (G:=G & G'); auto. apply* inert_concat.
 Qed.
 
-(** * Progress *)
+(** ** Progress *)
 
 (** Helper tactic for proving progress *)
 Ltac solve_let_prog :=
@@ -418,7 +418,7 @@ Ltac solve_let_prog :=
         eauto; inversion IH
       end.
 
-(** ** Progress Theorem *)
+(** *** Progress Theorem *)
 
 (** [⊢ (s, t): T]           #<br>#
     [(s, t) |-> (s', t')]   #<br>#
@@ -439,7 +439,7 @@ Proof.
 Qed.
 
 
-(** * Safety *)
+(** ** Safety *)
 
 Theorem safety_helper G t1 t2 s1 s2 T :
   G ⊢ t1 : T ->
@@ -476,6 +476,7 @@ Qed.
 
 End Safety.
 
+(** ** Path-Lookup Safety *)
 Section PathSafety.
 
 Lemma lookup_step_pres G p T q s :
@@ -516,6 +517,8 @@ Proof.
   - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
   - apply lookup_val_inv in Hl as [=].
 Qed.
+
+(** *** Path-safety lemma *)
 
 Lemma path_safety G p T s :
   inert G ->

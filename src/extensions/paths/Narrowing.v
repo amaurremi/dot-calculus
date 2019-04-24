@@ -4,14 +4,13 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Narrowing *)
+(** * Narrowing Lemma *)
 
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
 Require Import Definitions Subenvironments Weakening.
 
-(** * Narrowing Lemma *)
 (** The narrowing lemma states that typing is preserved under subenvironments.
     The lemma corresponds to Lemma 3.11 in the paper.
     The proof is by mutual induction on term typing, definition typing,

@@ -3,7 +3,7 @@ Set Implicit Arguments.
 Require Import Coq.Program.Equality.
 Require Import Definitions Binding Lookup.
 
-(*** Operational Semantics *)
+(** * Operational Semantics *)
 
 Reserved Notation "t1 '|=>' t2" (at level 40, t2 at level 39).
 

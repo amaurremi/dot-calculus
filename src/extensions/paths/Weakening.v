@@ -4,13 +4,12 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Weakening *)
+(** * Weakening Lemma *)
 
 Set Implicit Arguments.
 
 Require Import Definitions.
 
-(** * Weakening Lemma *)
 (** Weakening states that typing is preserved in extended environments. *)
 
 (** [G1, G3 |- t: T]                    #<br>#
@@ -108,6 +107,7 @@ Proof.
   weaken_specialize.
 Qed.
 
+(** Weakening lemma specialized to definition-typing *)
 Lemma weaken_ty_defs: forall G1 G2 z bs ds T,
     z; bs; G1 ⊢ ds :: T ->
     ok (G1 & G2) ->

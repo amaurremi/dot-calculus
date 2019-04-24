@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Invertible (Introduction-pq) Typing *)
+(** * Invertible (Introduction-pq) Typing *)
 
 (** This module contains lemmas related to invertible typing for paths and values
     ([|-##] and [|-##v]). *)
@@ -15,8 +15,6 @@ Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Definitions Binding Narrowing PreciseFlow PreciseTyping RecordAndInertTypes Replacement
                Subenvironments TightTyping Weakening.
-
-(** ** Invertible typing *)
 
 (** The invertible-typing relation describes the possible types that a variable or value
 can be typed with in an inert context. For example, if [G] is inert, [G ⊢! x: {a: T}],
@@ -383,7 +381,7 @@ Proof.
   right. apply* pt3_sngl_trans3.
 Qed.
 
-(** Invertible typing for values *)
+(** ** Invertible typing for values *)
 
 Reserved Notation "G '⊢##v' v ':' T" (at level 40, v at level 59).
 
@@ -418,8 +416,6 @@ Inductive ty_val_inv : ctx -> val -> typ -> Prop :=
 | ty_top_invv : forall G v T,
   G ⊢##v v : T ->
   G ⊢##v v : ⊤
-
-(* replacement rules: recursive types, selection types, singleton types *)
 
 | ty_rec_pq_invv : forall G p q v T T' n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->

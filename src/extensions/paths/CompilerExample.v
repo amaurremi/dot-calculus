@@ -1,4 +1,4 @@
-(*** Compiler Example *)
+(** * Compiler Example *)
 (** This example illustrates the use of path-dependent types of length
     greater than one which allows us to encode recursion between types in
     nested modules *)

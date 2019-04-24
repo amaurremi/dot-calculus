@@ -4,19 +4,16 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module contains lemmas related to tight typing [G ⊢# t: T] *)
+(** * Tight typing ⊢#] *)
 
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
 Require Import Definitions PreciseTyping.
 
-(** * Tight typing [G |-# t: T] *)
-
 Reserved Notation "G '⊢#' t ':' T" (at level 40, t at level 59).
 Reserved Notation "G '⊢#' T '<:' U" (at level 40, T at level 59).
 
-(** *** Tight term typing [G ⊢# t: T] *)
 (** Tight typing is very similar to general typing, and could be obtained by replacing
     all occurrences of [⊢] with [⊢#], except for the following:
     - in the type selection subtyping rules Sel-<: and <:-Sel ([subtyp_sel1] and [subtyp_sel2]),
@@ -82,8 +79,8 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
       G & x ~ T ⊢ open_trm x u : U) ->
     G ⊢# trm_let t u : U
 
-(** [G ⊢# p: q.type]   #<br>#
-    [G ⊢# q: T]        #<br>#
+(** [G ⊢# p: q.type]  #<br>#
+    [G ⊢# q]          #<br>#
     [―――――――――――――――] #<br>#
     [G ⊢# p: T]            *)
 | ty_sngl_t : forall G p q T,
@@ -91,6 +88,9 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     G ⊢# trm_path q : T ->
     G ⊢# trm_path p : T
 
+(** [G ⊢# p.: T]       #<br>#
+    [――――――――――――――]   #<br>#
+    [G ⊢# p: {a: T}]        *)
 | ty_path_elim_t : forall G p q a T,
     G ⊢# trm_path p : {{ q }} ->
     G ⊢# trm_path q • a : T ->
@@ -186,27 +186,35 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     G ⊢# T1 <: T2 ->
     G ⊢# typ_rcd { A >: S1 <: T1 } <: typ_rcd { A >: S2 <: T2 }
 
+(** [G ⊢!!! p: q.type]                 #<br>#
+    [G ⊢!!! q: U]                      #<br>#
+    [――――――――――――――――――――――――――――――――] #<br>#
+    [G ⊢# T <: [T[q/p,n]]              *)
 | subtyp_sngl_pq_t : forall G p q T T' n U,
     G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
     repl_typ n p q T T' ->
     G ⊢# T <: T'
 
+(** [G ⊢!!! p: q.type]                 #<br>#
+    [G ⊢!!! q: U]                      #<br>#
+    [――――――――――――――――――――――――――――――――] #<br>#
+    [G ⊢# T <: [T[p/q,n]]              *)
 | subtyp_sngl_qp_t : forall G p q T T' n U,
     G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
     repl_typ n q p T T' ->
     G ⊢# T <: T'
 
-(** [G ⊢! p: {A: T..T}] #<br>#
-    [――――――――――――――――――] #<br>#
+(** [G ⊢!!! p: {A: T..T}] #<br>#
+    [―――――――――――――――――――] #<br>#
     [G ⊢# T <: p.A]         *)
 | subtyp_sel2_t: forall G p A T ,
     G ⊢!!! p : typ_rcd { A >: T <: T } ->
     G ⊢# T <: p ↓ A
 
-(** [G ⊢! p: {A: T..T}] #<br>#
-    [――――――――――――――――――] #<br>#
+(** [G ⊢!!! p: {A: T..T}] #<br>#
+    [―――――――――――――――――――] #<br>#
     [G ⊢# p.A <: T]         *)
 | subtyp_sel1_t: forall G p A T,
     G ⊢!!! p : typ_rcd { A >: T <: T } ->

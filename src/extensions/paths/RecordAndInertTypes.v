@@ -4,16 +4,14 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(*** Records and Inert Types *)
+(** * Reasoning About Records and Inert Types *)
 
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
 Require Import Definitions Binding.
 
-(** * Record Types *)
-
-(** ** Lemmas About Records and Record Types *)
+(** *** Lemmas About Records and Record Types *)
 
 (** [G |- ds :: U]                          #<br>#
     [U] is a record type with labels [ls]  #<br>#
@@ -40,6 +38,7 @@ Proof.
     + inversion_def_typ; case_if; apply* notin_singleton.
 Qed.
 
+(** If [ds ∋ d] then [ds^p ∋ d^p] *)
 Lemma defs_has_open ds d p :
   defs_has ds d ->
   defs_has (open_defs_p p ds) (open_def_p p d).
@@ -53,6 +52,7 @@ Proof.
     * apply* IHds.
 Qed.
 
+(** If [ds^p ∋ {a = t}] then [ds ∋ {a = _}] *)
 Lemma defs_has_open' ds p t a :
   defs_has (open_defs_p p ds) {a := t} ->
   exists u, defs_has ds {a := u}.
@@ -64,19 +64,21 @@ Proof.
     destruct d; inversions C0. simpl in C. false*.
 Qed.
 
-(** [labels(D) = labels(D^x)] *)
+(** [labels([D]) = labels([D^x])] *)
 Lemma open_dec_preserves_label: forall D x i,
   label_of_dec D = label_of_dec (open_rec_dec i x D).
 Proof.
   intros. induction D; reflexivity.
 Qed.
 
+(** labels([D]) = labels([D^p]) *)
 Lemma open_dec_preserves_label_p: forall D p i,
   label_of_dec D = label_of_dec (open_rec_dec_p i p D).
 Proof.
   intros. induction D; simpl; reflexivity.
 Qed.
 
+(** Opening preserves record-typeness and inertness *)
 Lemma open_record_p:
   (forall D, record_dec D ->
         forall p k, record_dec (open_rec_dec_p k p D)) /\
@@ -90,6 +92,7 @@ Proof.
   unfold open_typ. simpl. eauto.
 Qed.
 
+(** for record types only *)
 Lemma open_record_typ_p: forall T p ls,
   record_typ T ls -> record_typ (open_typ_p p T) ls.
 Proof.
@@ -115,6 +118,7 @@ Ltac invert_open :=
     destruct D'; inversions* H
   end.
 
+(** Closing preserves record-typeness and inertness *)
 Lemma record_open:
   (forall D, record_dec D ->
         forall x k D',
@@ -139,6 +143,7 @@ Proof.
   - invert_open. simpls. destruct_notin. constructor*. eauto. rewrite* <- open_dec_preserves_label.
 Qed.
 
+(** Closing preserves tight-typeness *)
 Lemma record_open_tight:
   (forall D, record_dec D ->
         forall p k D',
@@ -162,6 +167,7 @@ Proof.
   - invert_open. simpls. destruct_notin. constructor*. eauto. rewrite* <- open_dec_preserves_label_p.
 Qed.
 
+(** The type of definitions is a record type. *)
 Lemma ty_defs_record_type_helper :
   (forall z bs G d D, z; bs; G ⊢ d : D -> record_dec D) /\
   (forall z bs G ds T, z; bs; G ⊢ ds :: T -> record_type T).
@@ -174,7 +180,7 @@ Proof.
     pose proof (hasnt_notin t H d0). inversions t0; eauto.
 Qed.
 
-(** The type of definitions is a record type. *)
+(** for multiple-definition typing only *)
 Lemma ty_defs_record_type: forall z bs G ds T,
     z; bs; G ⊢ ds :: T ->
     record_type T.
@@ -183,7 +189,7 @@ Proof.
 Qed.
 
 (** If [T] is a record type with labels [ls], and [T = ... /\ D /\ ...],
-    then [label(D) isin ls]. *)
+    then [label(D) ∈ ls]. *)
 Lemma record_typ_has_label_in: forall T D ls,
   record_typ T ls ->
   record_has T D ->
@@ -220,6 +226,7 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
+(** If [T] is a record type then each term label can occur only once in [T] *)
 Lemma unique_rcd_trm: forall T a U1 U2,
     record_type T ->
     record_has T {a ⦂ U1} ->
@@ -241,6 +248,7 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
+(** Concatenating inert contexts yields an inert context *)
 Lemma inert_concat: forall G' G,
     inert G ->
     inert G' ->
@@ -257,6 +265,7 @@ Proof.
     eauto.
 Qed.
 
+(** Removing one element from an inert context preserves inertness. *)
 Lemma inert_prefix_one: forall G x T,
     inert (G & x ~ T) ->
     inert G.
@@ -264,6 +273,7 @@ Proof.
   introv Hi. inversions Hi. false* empty_push_inv. lets Heq: (eq_push_inv H); destruct_all; subst*.
 Qed.
 
+(** Any prefix of an inert context is inert *)
 Lemma inert_prefix G G' :
   inert (G & G') ->
   inert G.
