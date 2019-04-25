@@ -284,16 +284,7 @@ Ltac solve_let :=
   invert_red; solve_IH; fresh_constructor; eauto; apply* weaken_rules.
 
 (** [s: G]                  #<br>#
-    [inert G]               #<br>#
-    [(s, t) |-> (s', t')]   #<br>#
-    [G ⊢ t: T]              #<br>#
-    [―――――――――――――――――――]   #<br>#
-    [exists G', inert G']        #<br>#
-    [s': G, G']             #<br>#
-    [G, G' ⊢ t': T]         *)
-
-(** [s: G]                  #<br>#
-    [inert G]               #<br>#
+    [inert, wf, wt G]       #<br>#
     [(s, t) |-> (s', t')]   #<br>#
     [G ⊢ t: T]              #<br>#
     [―――――――――――――――――――]   #<br>#
@@ -408,7 +399,7 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   inert G ->
   wf_env G ->
   well_typed G s1 ->
-  star red' (s1, t1) (s2, t2) ->
+  star red (s1, t1) (s2, t2) ->
   (exists s3 t3 G3, (s2, t2) |=> (s3, t3) /\ G3 ⊢ t3 : T /\ well_typed G3 s3) \/
   (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\ well_typed G2 s2).
 Proof.
@@ -421,14 +412,14 @@ Proof.
     dependent induction H; eauto.
 Qed.
 
-Definition diverges := infseq red'.
+Definition diverges := infseq red.
 
 Theorem safety t T :
   empty ⊢ t : T ->
-  diverges (empty, t) \/ (exists s u G, star red' (empty, t) (s, u) /\ norm_form u /\ G ⊢ u : T /\ well_typed G s).
+  diverges (empty, t) \/ (exists s u G, star red (empty, t) (s, u) /\ norm_form u /\ G ⊢ u : T /\ well_typed G s).
 Proof.
   intros Ht.
-  pose proof (infseq_or_finseq red' (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
+  pose proof (infseq_or_finseq red (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
   right. epose proof (safety_helper Ht inert_empty wfe_empty well_typed_empty Hr)
     as [[s' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' Hwt]]]]; try solve [constructor]; eauto.
   - false* Hn.
