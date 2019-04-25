@@ -425,8 +425,8 @@ Proof.
   destruct repl_order_swap_mutind'; eauto.
 Qed.
 
-(** If n <> m then
-    T[q1 / p1,n][q2 / p2,m] = T[q2 / p2,m][q1 / p1,n] *)
+(** If [n ≠ m] then
+    [T[q1 / p1,n][q2 / p2,m] = T[q2 / p2,m][q1 / p1,n]] *)
 Lemma repl_order_swap: forall n p1 q1 T U V m p2 q2 U' V',
     repl_typ n p1 q1 T U ->
     repl_typ m p2 q2 U V ->

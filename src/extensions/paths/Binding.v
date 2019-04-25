@@ -852,6 +852,17 @@ Proof.
   split*.
 Qed.
 
+(** If [E(x)=v] then [E = E1, x↦v, E2] *)
+Lemma binds_destruct: forall x {A} (v:A) (E:env A),
+    binds x v E ->
+    exists E1 E2, E = E1 & x ~ v & E2.
+Proof.
+  introv Hb. induction E using env_ind. false* binds_empty_inv.
+  destruct (binds_push_inv Hb) as [[H1 H2] | [H1 H2]]; subst.
+  repeat eexists. rewrite* concat_empty_r.
+  specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
+Qed.
+
 (** A prefix of a well-typed environment is well-typed *)
 Lemma wt_prefix G1 x T G2 s :
   well_typed (G1 & x ~ T & G2) s ->
@@ -865,4 +876,32 @@ Proof.
     + rewrite concat_assoc in x. apply eq_push_inv in x as [-> [-> ->]].
       specialize (IHHwt _ _ _ _ JMeq_refl) as [w [s1 [s2 [-> Hwt']]]].
       exists w s1 (s2 & y ~ v). split*. rewrite concat_assoc. auto.
+Qed.
+
+(** The elements of a well-typed environment's domain are unique *)
+Lemma wt_to_ok_s G s :
+  well_typed G s ->
+  ok s.
+Proof.
+  induction 1; eauto.
+Qed.
+
+(** If [e: G], the variables in the domain of [e] are distinct. *)
+Lemma well_typed_to_ok_G: forall s G,
+    well_typed G s -> ok G.
+Proof.
+  intros. induction H; jauto.
+Qed.
+Hint Resolve well_typed_to_ok_G.
+
+(** [s: G]       #<br>#
+    [x ∉ dom(G)] #<br>#
+    [――――――――――] #<br>#
+    [x ∉ dom(s)] *)
+Lemma well_typed_notin_dom: forall G s x,
+    well_typed G s ->
+    x # s ->
+    x # G.
+Proof.
+  intros. induction H; auto.
 Qed.

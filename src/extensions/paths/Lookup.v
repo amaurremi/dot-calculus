@@ -4,17 +4,12 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** This module defines various helper lemmas about opening, closing, and local closure. *)
-
+(** * Runtime Configuration Lookup of Paths *)
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List.
 Require Import Sequences.
 Require Import Definitions Binding.
-
-(** * Environment Lookup *)
-
-(** * Path lookup *)
 
 (** Looking up a path in a store (generalization of variable binding). *)
 
@@ -47,8 +42,10 @@ Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 
 where "s '⟦' p '⟼' t '⟧'" := (lookup_step s (defp p) t).
 
+(** Reflexive, transitive closure of path lookup *)
 Notation "s '⟦' t '⟼*' u '⟧'" := (star (lookup_step s) t u) (at level 40).
 
+(** Path lookup that results in values *)
 Inductive lookup : sta -> path * val -> Prop :=
 | lookup_def: forall s p v,
     s ⟦ defp p ⟼* defv v ⟧ ->
@@ -58,7 +55,7 @@ where "s '∋' t" := (lookup s t).
 
 Hint Constructors lookup lookup_step.
 
-(** ** Lemmas about Environment Lookup *)
+(** *** Properties of path lookup *)
 
 Lemma lookup_empty : forall t u,
     empty ⟦ t ⟼ u ⟧ -> False.
@@ -96,21 +93,14 @@ Proof.
 Qed.
 
 Lemma named_lookup_step: forall s t p,
-        s ⟦ p ⟼ t ⟧ ->
-        exists x bs, p = p_sel (avar_f x) bs.
+    s ⟦ p ⟼ t ⟧ ->
+    exists x bs, p = p_sel (avar_f x) bs.
 Proof.
   intros. dependent induction H.
   - repeat eexists; eauto.
   - specialize (IHlookup_step _ eq_refl) as [? [? ->]]. simpl. repeat eexists; eauto.
   - specialize (IHlookup_step _ eq_refl) as [? [? ->]]. simpl. repeat eexists; eauto.
 Qed.
-
-Lemma named_path_lookup_step: forall G s t p,
-        well_typed G s ->
-        s ⟦ t ⟼ defp p ⟧ ->
-        exists x bs, p = p_sel (avar_f x) bs.
-Proof.
-  Abort.
 
 Lemma lookup_val_inv: forall s v t,
     s ⟦ defv v ⟼* t ⟧ ->
@@ -120,9 +110,9 @@ Proof.
 Qed.
 
 Lemma lookup_step_func: forall s t t1 t2,
-      s ⟦ t ⟼ t1 ⟧ ->
-      s ⟦ t ⟼ t2 ⟧ ->
-      t1 = t2.
+    s ⟦ t ⟼ t1 ⟧ ->
+    s ⟦ t ⟼ t2 ⟧ ->
+    t1 = t2.
 Proof.
   introv Hl1. gen t2. dependent induction Hl1; introv Hl2.
   - inversions Hl2; try simpl_dot. apply (binds_functional H) in H2. f_equal*.

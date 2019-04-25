@@ -4,7 +4,7 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
-(** * Substitution *)
+(** * Substitution and Renaming *)
 
 Set Implicit Arguments.
 
@@ -68,7 +68,7 @@ Proof.
   - apply H.
 Qed.
 
-(** Substitution preserves tight-boundness in types *)
+(** Substitution preserves tight-boundness in types and declaration *)
 Lemma tight_bounds_subst_mut :
   (forall T, tight_bounds T -> forall x p, tight_bounds (subst_typ x p T)) /\
   (forall D, tight_bounds_dec D -> forall x p, tight_bounds_dec (subst_dec x p D)).
@@ -76,6 +76,7 @@ Proof.
   apply typ_mutind; intros; subst; simpls; subst; eauto. split*.
 Qed.
 
+(** ...for types only *)
 Lemma tight_bounds_subst x p T :
   tight_bounds T -> tight_bounds (subst_typ x p T).
 Proof.
@@ -84,38 +85,36 @@ Qed.
 
 (** ** Substitution Lemma *)
 (** [G1, x: S, G2 ⊢ t: T]            #<br>#
-    [ok(G1, x: S, G2)]               #<br>#
     [x \notin fv(G1)]                 #<br>#
-    [G1, G2[y/x] ⊢ y: S[y/x]]       #<br>#
+    [G1, G2[p/x] ⊢ p: S[p/x]]       #<br>#
     [―――――――――――――――――――――――――――――]  #<br>#
-    [G1, G2[y/x] ⊢ t[y/x]: T[y/x]] #<br>#  #<br>#
+    [G1, G2[p/x] ⊢ t[p/x]: T[p/x]] #<br>#  #<br>#
 
     and
 
-    [G1, x: S, G2 ⊢ d: D]            #<br>#
-    [ok(G1, x: S, G2)]               #<br>#
+    [z.bs; G1, x: S, G2 ⊢ d: D]            #<br>#
     [x \notin fv(G1)]                 #<br>#
-    [G1, G2[y/x] ⊢ y: S[y/x]]       #<br>#
+    [x ≠ z]                           #<br>#
+    [G1, G2[p/x] ⊢ p: S[p/x]]       #<br>#
     [―――――――――――――――――――――――――――――]  #<br>#
-    [G1, G2[y/x] ⊢ d[y/x]: D[y/x]] #<br>#  #<br>#
+    [z.bs; G1, G2[p/x] ⊢ d[p/x]: D[p/x]] #<br>#  #<br>#
 
     and
 
-    [G1, x: S, G2 ⊢ ds: T]           #<br>#
-    [ok(G1, x: S, G2)]               #<br>#
+    [z.bs; G1, x: S, G2 ⊢ ds: T]           #<br>#
     [x \notin fv(G1)]                 #<br>#
-    [G1, G2[y/x] ⊢ y: S[y/x]]       #<br>#
+    [x ≠ z]                           #<br>#
+    [G1, G2[p/x] ⊢ p: S[p/x]]       #<br>#
     [――――――――――――――――――――――――――――――] #<br>#
-    [G1, G2[y/x] ⊢ ds[y/x]: T[y/x]] #<br>#  #<br>#
+    [z.bs; G1, G2[p/x] ⊢ ds[p/x]: T[p/x]] #<br>#  #<br>#
 
     and
 
     [G1, x: S, G2 ⊢ T <: U]           #<br>#
-    [ok(G1, x: S, G2)]                #<br>#
     [x \notin fv(G1)]                  #<br>#
-    [G1, G2[y/x] ⊢ y: S[y/x]]        #<br>#
+    [G1, G2[p/x] ⊢ p: S[p/x]]        #<br>#
     [―――――――――――――――――――――――――――――――] #<br>#
-    [G1, G2[y/x] ⊢ T[y/x] <: U[y/x]] #<br>#  #<br># *)
+    [G1, G2[p/x] ⊢ T[p/x] <: U[p/x]] #<br>#  #<br># *)
 
 (** The proof is by mutual induction on term typing, definition typing, and subtyping. *)
 Lemma subst_rules: forall p S,
@@ -125,24 +124,20 @@ Lemma subst_rules: forall p S,
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
     G1 & (subst_ctx x p G2) ⊢ subst_trm x p t : subst_typ x p T) /\
-  (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 G2 x p_x p_bs sbs,
+  (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2) ->
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
-    p = p_sel (avar_f p_x) p_bs ->
     z <> x ->
-    sbs = (If z = x then p_bs ++ bs else bs) ->
-    subst_var x p_x z; sbs; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
-  (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G1 G2 x p_x p_bs sbs,
+    z; bs; G1 & (subst_ctx x p G2) ⊢ subst_def x p d : subst_dec x p D) /\
+  (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2) ->
     x \notin fv_ctx_types G1 ->
     G1 & (subst_ctx x p G2) ⊢ trm_path p : subst_typ x p S ->
-    p = p_sel (avar_f p_x) p_bs ->
     z <> x ->
-    sbs = (If z = x then p_bs ++ bs else bs) ->
-    subst_var x p_x z; sbs; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
+    z; bs; G1 & (subst_ctx x p G2) ⊢ subst_defs x p ds :: subst_typ x p T) /\
   (forall G T U, G ⊢ T <: U -> forall G1 G2 x,
     G = G1 & x ~ S & G2 ->
     ok (G1 & x ~ S & G2) ->
@@ -206,14 +201,10 @@ Proof.
     assert (z = subst_var x p_x0 z) as Heq'. {
       unfolds subst_var; rewrite~ If_r.
     }
-    rewrite Heq' at 1.
     rewrite <- open_var_typ_eq, <- open_var_defs_eq.
     apply* H; try rewrite* concat_assoc.
     unfolds subst_ctx. rewrite map_concat. rewrite concat_assoc.
     apply* weaken_ty_trm.
-    simpl in Frz. eauto.
-    assert (z <> x) as Hneq0 by eauto.
-    case_if; eauto.
   - Case "ty_new_elim"%string.
     asserts_rewrite (subst_path x p p0 • a = (subst_path x p p0) • a).
     destruct p0. apply sel_fields_subst. auto.
@@ -245,22 +236,17 @@ Proof.
   - Case "ty_rec_intro"%string.
     constructor. rewrite* <- subst_open_commut_typ_p.
   - Case "ty_def_new"%string.
-    specialize (H _ _ _ _ _ _ eq_refl H1 H2 H3 eq_refl H5 eq_refl).
-    assert (named_path (p_sel (avar_f p_x) p_bs)) as Hn by repeat eexists.
+    specialize (H _ _ _ eq_refl H1 H2 H3 H4).
     rewrite* subst_open_commut_defs_p in H.
     rewrite* subst_open_commut_typ_p in H.
     unfolds subst_var.
-    remember (p_sel (avar_f p_x) p_bs) as p.
     eapply ty_def_new; eauto.
     * replace (μ (subst_typ x0 p T)) with (subst_typ x0 p (μ T)) by auto.
       apply tight_bounds_subst. eauto.
-    * simpl. case_if*.
+    * simpl.
       replace (p_sel (avar_f x) (b :: bs)) with (subst_path x0 p (p_sel (avar_f x) (b :: bs))); eauto.
       simpl. unfold subst_var_p.
       case_if*. simpl. rewrite app_nil_r. auto.
-  - Case "ty_defs_one"%string.
-    apply ty_defs_one.
-    eapply H; eauto.
   - Case "ty_defs_cons"%string.
     apply ty_defs_cons.
     * eapply H; eauto.
@@ -299,8 +285,7 @@ Proof.
       rewrite concat_assoc. auto.
 Qed.
 
-(** The substitution lemma for term typing.
-    This lemma corresponds to Lemma 3.14 in the paper. *)
+(** The substitution lemma for term typing. *)
 Lemma subst_ty_trm: forall p S G x t T,
     G & x ~ S ⊢ t : T ->
     ok (G & x ~ S) ->
@@ -315,16 +300,15 @@ Proof.
   unfold subst_ctx. rewrite map_empty, concat_empty_r. assumption.
 Qed.
 
-(** ** Renaming  *)
+(** Substitute a variable in the environment that is used for opening
+    with a path of the same type #<br>#
 
-(** Renaming the name of the opening variable for term typing. #<br>#
-    [ok G]                   #<br>#
     [z] fresh                #<br>#
     [G, z: U ⊢ t^z : T^z]    #<br>#
     [G ⊢ p: U]               #<br>#
     [――――――――――――――――――――――] #<br>#
     [G ⊢ t^p : T^p]         *)
-Lemma renaming_typ: forall G z T U t p,
+Lemma subst_var_path: forall G z T U t p,
     ok G ->
     z # G ->
     z \notin (fv_ctx_types G \u fv_typ U \u fv_typ T \u fv_trm t) ->
@@ -337,13 +321,13 @@ Proof.
   rewrite subst_fresh_typ. all: eauto using typed_paths_named.
 Qed.
 
-(** Renaming the name of the opening variable for term typing. #<br>#
-    [ok G]                   #<br>#
-    [z] fresh                #<br>#
-    [G, z: U ⊢ t^z : T^z]    #<br>#
-    [――――――――――――――――――――――] #<br>#
-    [G ⊢ t^x : T^x]         *)
-Lemma renaming_fresh : forall L G T u U p,
+(** Substitute a fresh opening variable with a path of the same type #<br>#
+
+    [∀ fresh x, G, x: T ⊢ u^x: U] #<br>#
+    [G ⊢ p: T]                    #<br>#
+    [――――――――――――――――――――――]      #<br>#
+    [G ⊢ u^p : U^p]         *)
+Lemma subst_fresh_var_path : forall L G T u U p,
     ok G ->
     (forall x : var, x \notin L -> G & x ~ T ⊢ open_trm x u : U) ->
     G ⊢ trm_path p : T ->
@@ -356,6 +340,14 @@ Proof.
   apply* typed_paths_named.
 Qed.
 
+(** ** Renaming *)
+
+(** Replace a variable bound in the environment with a fresh variable for typing *)
+(** [G1, z: T, G2 ⊢ t: U]                      #<br>#
+    [x] fresh                                  #<br>#
+    [―――――――――――――――――――――――――――――――――――――――]  #<br>#
+    [G1, x: T[x/z], G2[x/z] ⊢ t[x/z]: U[x/z]]
+*)
 Lemma rename_ty_trm x z G1 T G2 t U:
   z \notin fv_ctx_types G1 ->
   G1 & z ~ T & G2 ⊢ t : U ->
@@ -376,6 +368,12 @@ Proof.
   apply* ok_concat_map.
 Qed.
 
+(** Replace the this variable with a fresh variable for definition typing *)
+(** [z.bs; G1, z: T, G2 ⊢ ds: U]                      #<br>#
+    [x] fresh                                  #<br>#
+    [―――――――――――――――――――――――――――――――――――――――]  #<br>#
+    [x.bs; G1, x: T[x/z], G2[x/z] ⊢ ds[x/z]: U[x/z]]
+*)
 Lemma rename_def_defs :
   (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 T G2 x,
      G = G1 & z ~ T & G2 ->
@@ -406,6 +404,7 @@ Proof.
     econstructor; eauto. apply* subst_defs_hasnt. rewrite* <- subst_label_of_def.
 Qed.
 
+(** Replace the opening and this variable in definition typing *)
 Lemma rename_defs G x T ds z :
   x \notin fv_typ T ->
   x \notin fv_defs ds ->

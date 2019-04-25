@@ -13,18 +13,22 @@ Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List String.
 Require Import Sequences.
-Require Import Definitions Binding Narrowing PreciseFlow PreciseTyping RecordAndInertTypes Replacement
-               Subenvironments TightTyping Weakening.
+Require Import Definitions Binding Narrowing PreciseFlow
+        PreciseTyping RecordAndInertTypes Replacement
+        Subenvironments TightTyping Weakening.
 
 (** The invertible-typing relation describes the possible types that a variable or value
-can be typed with in an inert context. For example, if [G] is inert, [G ⊢! x: {a: T}],
-and [G ⊢ T <: T'], then [G ⊢## x: {a: T'}].
+can be typed with in an inert context. For example, if [G] is inert, [G ⊢!!! p: {a: T}],
+and [G ⊢ T <: T'], then [G ⊢## p: {a: T'}].
 
 The purpose of invertible typing is to be easily invertible into a precise typing relation.
 To achieve that, invertible typing avoids typing cycles that could result from, for example,
 repeated applications of recursion introduction and elimination.
 For this case, invertible typing defines only recursion introduction (whereas precise typing
-defines only recursion elimination). *)
+defines only recursion elimination). Additionally, invertible typing is closed under
+singleton-subtyping in one direction: if [Γ ⊢! p : q.type] then singleton subtyping is
+closed under replacement of [p] with [q], but not under replacement of [q] with [p], which
+is taken care by _replacement typing_ (⊢//, [ty_repl]). *)
 
 (** ** Invertible typing of paths [G ⊢## p: T] *)
 
@@ -32,7 +36,7 @@ Reserved Notation "G '⊢##' p ':' T" (at level 40, p at level 59).
 
 Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
 
-(** [G ⊢• p: qs ⪼ T]  #<br>#
+(** [G ⊢!!! p: T]     #<br>#
     [―――――――――――――――] #<br>#
     [G ⊢## p: T]     *)
 | ty_precise_inv : forall G p T,
@@ -81,19 +85,25 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢## p : S2 ->
   G ⊢## p : S1 ∧ S2
 
-(** [G ⊢## p: T]   #<br>#
+(** [G ⊢## p]   #<br>#
     [―――――――――――――] #<br>#
     [G ⊢## p: top]     *)
 | ty_top_inv : forall G p T,
   G ⊢## p : T ->
   G ⊢## p : ⊤
 
+(** [G ⊢## p.a: T]    #<br>#
+    [―――――――――――――――] #<br>#
+    [G ⊢## p: {a: T}]     *)
 | ty_rcd_intro_inv : forall G p a T,
     G ⊢## p•a : T ->
     G ⊢## p : typ_rcd { a ⦂ T }
 
-(* replacement rules: recursive types, selection types, singleton types *)
-
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢## r: μ(T)]             #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢## p: μ(T[q/p,n])]      *)
 | ty_rec_pq_inv : forall G p q r T T' n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -101,6 +111,11 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     repl_typ n p q T T' ->
     G ⊢## r : μ T'
 
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢## r: r'.A]             #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢## p: (r'.A)[q/p,n]]      *)
 | ty_sel_pq_inv : forall G p q r r' r'' A n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q: U ->
@@ -108,6 +123,11 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     repl_typ n p q (r'↓A) (r''↓A) ->
     G ⊢## r : r''↓A
 
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢## r: r'.type]          #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢## p: (r'.type)[q/p,n]]      *)
 | ty_sngl_pq_inv : forall G p q r r' r'' n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -119,27 +139,13 @@ where "G '⊢##' p ':' T" := (ty_path_inv G p T).
 
 Hint Constructors ty_path_inv.
 
-Lemma repl_sub: forall G p q T U n V,
-    repl_typ n p q T U ->
-    G ⊢!!! p: {{ q }} ->
-    G ⊢!! q : V ->
-    G ⊢# U <: T.
-Proof.
-  introv Hr Hpq Hq. apply repl_swap in Hr. eauto.
-Qed.
-
-Ltac solve_repl_sub :=
-    try (apply* tight_to_general);
-    try solve [apply* repl_sub];
-    eauto.
-
-(** *** Invertible to Precise Typing [|-## to |-!] *)
+(** *** From Invertible to Precise Typing *)
 
 (** Invertible-to-precise typing for function types: #<br>#
     [ok G]                        #<br>#
-    [G ⊢## x: forall(S)T]             #<br>#
+    [G ⊢## p: forall(S)T]             #<br>#
     [――――――――――――――――――――――――――]  #<br>#
-    [exists S', T'. G ⊢! x: forall(S')T']  #<br>#
+    [exists S', T'. G ⊢!!! p: forall(S')T']  #<br>#
     [G ⊢# S <: S']               #<br>#
     [G ⊢# T'^y <: T^y], where [y] is fresh. *)
 Lemma invertible_to_precise_typ_all: forall G p S T,
@@ -163,7 +169,31 @@ Proof.
     + eauto.
 Qed.
 
-(** ** Invertible Replacement Closure *)
+(** Invertible-to-precise typing for records:
+    [inert G]                    #<br>#
+    [G |-## p: {A: S..U}]        #<br>#
+    [――――――――――――――――――――――――――――]   #<br>#
+    [exists T. G |-## p: {A: T..T}]   #<br>#
+    [G |-# T <: U]               #<br>#
+    [G |-# S <: T]                    *)
+Lemma invertible_to_precise_rcd: forall G p A S U,
+  inert G ->
+  G ⊢## p : typ_rcd {A >: S <: U} ->
+  exists T,
+    G ⊢!!! p : typ_rcd {A >: T <: T} /\
+    G ⊢# T <: U /\
+    G ⊢# S <: T.
+Proof.
+  introv HG Hinv.
+  dependent induction Hinv.
+  - lets Hp: (pt3_dec_typ_tight HG H). subst.
+    exists U. split*.
+  - specialize (IHHinv _ _ _ HG eq_refl).
+    destruct IHHinv as [V [Hx [Hs1 Hs2]]].
+    exists V. split*.
+Qed.
+
+(** *** Invertible Replacement Closure *)
 
 Ltac solve_names :=
   match goal with
@@ -180,7 +210,23 @@ Ltac solve_names :=
       apply* typed_paths_named
   end.
 
+(** Subtyping between equivalent types *)
+Lemma repl_sub: forall G p q T U n V,
+    repl_typ n p q T U ->
+    G ⊢!!! p: {{q}} ->
+    G ⊢!! q : V ->
+    G ⊢# U <: T.
+Proof.
+  introv Hr Hpq Hq. apply repl_swap in Hr. eauto.
+Qed.
 
+Ltac solve_repl_sub :=
+    try (apply* tight_to_general);
+    try solve [apply* repl_sub];
+    eauto.
+
+(** Singleton-subtyping closure for inert and record types:
+    If [Γ ⊢!!! p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q,n]] *)
 Lemma invertible_repl_closure_helper :
   (forall D,
       record_dec D -> forall G p q r D' n U,
@@ -225,6 +271,8 @@ Proof.
     apply* ok_push.
 Qed.
 
+(** Singleton-subtyping closure for invertible typing:
+    If [Γ ⊢## p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q,n]] *)
 Lemma invertible_repl_closure : forall G p q r T T' n U,
     inert G ->
     G ⊢## p : T ->
@@ -289,6 +337,8 @@ Proof.
     destruct (repl_prefixes_sngl Hrep) as [bs [-> ->]].
     destruct* (repl_prefixes_sngl H1) as [? [? ?]].
 Qed.
+
+(** *** Properties of invertible typing *)
 
 Lemma invertible_bot : forall G p,
     inert G ->

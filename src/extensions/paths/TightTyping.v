@@ -16,8 +16,10 @@ Reserved Notation "G '⊢#' T '<:' U" (at level 40, T at level 59).
 
 (** Tight typing is very similar to general typing, and could be obtained by replacing
     all occurrences of [⊢] with [⊢#], except for the following:
-    - in the type selection subtyping rules Sel-<: and <:-Sel ([subtyp_sel1] and [subtyp_sel2]),
+    - in the type selection subtyping rules Sel-<: and <:-Sel ([subtyp_sel1], [subtyp_sel2])
       the premise is precise typing of a type declaration with equal bounds;
+    - in the singleton subtyping rules Sngl-<: and <:-Sngl ([subtyp_sngl_pq], and [subtyp_sngl_qp])
+      the premise is precise typing;
     - whenever a typing judgement in a premise extends the environment (for example, [ty_all_intro_t]),
       it is typed under general typing [⊢] and not tight typing [⊢#]. *)
 
@@ -64,6 +66,9 @@ Inductive ty_trm_t : ctx -> trm -> typ -> Prop :=
     G ⊢# trm_path p : typ_rcd {a ⦂ T} ->
     G ⊢# trm_path p • a : T
 
+(** [G ⊢# p.a: T]      #<br>#
+    [――――――――――――――]   #<br>#
+    [G ⊢# p: {a: T}]        *)
 | ty_rec_intro_t : forall G p a T,
     G ⊢# trm_path p•a : T ->
     G ⊢# trm_path p : typ_rcd { a ⦂ T }

@@ -13,7 +13,7 @@ Require Import Definitions Binding.
 
 (** *** Lemmas About Records and Record Types *)
 
-(** [G |- ds :: U]                          #<br>#
+(** [G ⊢ ds :: U]                          #<br>#
     [U] is a record type with labels [ls]  #<br>#
     [ds] are definitions with label [ls']  #<br>#
     [l \notin ls']                          #<br>#

@@ -13,9 +13,12 @@ Require Import Sequences.
 Require Import Coq.Program.Equality List String.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
+(** is [T] a singleton type? *)
 Definition is_sngl T := exists p, T = {{ p }}.
+(** is [T] an inert or singleton type? *)
 Definition inert_sngl T := inert_typ T \/ is_sngl T.
 
+(** inverting equivalent types *)
 Ltac invert_repl :=
   repeat match goal with
          | [H: repl_dec _ _ _ {_ ⦂ _} _ |- _ ] =>
@@ -103,20 +106,11 @@ where "G '⊢!v' v ':' T" := (ty_val_p G v T).
 
 Hint Constructors ty_val_p.
 
-
 (** ** Precise Flow for Paths *)
-(** We use the precise flow relation to reason about the relations between
-    the precise type of a path [G |-! p: T] and the type that the variable
-    is bound to in the context [G(x)=T'].#<br>#
-    If [G(x) = T], the [precise_flow] relation describes all the types [U] that [x] can
-    derive through precise typing ([|-!], see [ty_trm_p]).
-    If [precise_flow x G T U], then [G(x) = T] and [G |-! x: U].   #<br>#
-    For example, if [G(x) = mu(x: {a: T} /\ {B: S..U})], then we can derive the following
-    precise flows for [x]:                                                 #<br>#
-    [G ⊢! p: mu(x: {a: T} /\ {B: S..U}) ⪼ mu(x: {a: T} /\ {B: S..U}]         #<br>#
-    [G ⊢! p: mu(x: {a: T} /\ {B: S..U}) ⪼ {a: T} /\ {B: S..U}]               #<br>#
-    [G ⊢! p: mu(x: {a: T} /\ {B: S..U}) ⪼ {a: T}]                           #<br>#
-    [G ⊢! p: mu(x: {a: T} /\ {B: S..U}) ⪼ {B: S..U}]. *)
+(** We use the precise flow relation, denoted as Γ ⊢! p: T ⪼ U, to reason about the relation
+    between the actual type [T] that the environment assigns to [p], and the type [U] that can
+    be obtained form [T] through recursion and intersection eliminations.
+    We will call [T] the _environment type_, and [U] the _precise type_ of [p]. *)
 
 Reserved Notation "G '⊢!' p ':' T '⪼' U" (at level 40, p at level 59).
 
@@ -167,6 +161,7 @@ Ltac fresh_constructor_p :=
   apply_fresh ty_new_intro_p as z ||
   apply_fresh ty_all_intro_p as z; auto.
 
+(** Precise typing implies general typing for the environment and precise type of a path. *)
 Lemma precise_to_general_h: forall G p T U,
     G ⊢! p : T ⪼ U ->
     G ⊢ trm_path p: T /\ G ⊢ trm_path p: U.
@@ -175,7 +170,7 @@ Proof.
 Qed.
 
 (** Precise typing implies general typing. *)
-(** - for variables *)
+(** - for paths *)
 Lemma precise_to_general: forall G p T U,
     G ⊢! p : T ⪼ U->
     G ⊢ trm_path p: U.
@@ -191,9 +186,7 @@ Proof.
   intros. induction H; intros; subst; eauto.
 Qed.
 
-(** ** Precise Flow Lemmas *)
-
-(** The following two lemmas say that the type to which a variable is bound in an inert context is inert. *)
+(** The type to which a variable is bound in an inert context is inert. *)
 Lemma binds_inert : forall G x T,
     binds x T G ->
     inert G ->
@@ -224,6 +217,8 @@ Proof.
   end.
 Qed.
 
+(** If [p]'s environment type is a function type, then it's precise type is the same
+    function type. *)
 Lemma pf_forall_U : forall G p T U S,
     G ⊢! p: ∀(T) U ⪼ S ->
     S = ∀(T) U.
@@ -233,7 +228,8 @@ Proof.
                try (specialize (IHPf _ _ eq_refl); destruct_all; inversion H).
 Qed.
 
-(** See [binds_inert]. *)
+(** A path's environment type is either inert or a signleton type.
+    A path's precise type type is either inert, a singleton type, or a record type. *)
 Lemma pf_inertsngl : forall G p T U,
     inert G ->
     G ⊢! p: T ⪼ U ->
@@ -257,7 +253,7 @@ Proof.
               inversions Hd; inversions H0; right*.
 Qed.
 
-(** See [binds_inert]. *)
+(** In an inert context, a path's environment type is inert or a singleton type. *)
 Lemma pf_inert : forall G p T U,
     inert G ->
     G ⊢! p: T ⪼ U ->
@@ -269,7 +265,7 @@ Qed.
 
 Hint Resolve pf_inert.
 
-(** See [inert_typ_bnd_record] *)
+(** If a path's environment type is a recursive type [μ(x: T)] then [T] is a record type. *)
 Lemma pf_rcd_T : forall G p T U,
     inert G ->
     G ⊢! p: μ T ⪼ U ->
@@ -279,8 +275,8 @@ Proof.
   inversion H0.
 Qed.
 
-(** If [G(x) = mu(x: T)], then [x]'s precise type can be only [mu(x: T)]
-     or a record type. *)
+(** If a path's environment type is recursive then its precise type is the same recursive type or
+    a record type. *)
 Lemma pf_rec_rcd_U : forall G p T U,
     inert G ->
     G ⊢! p: μ T ⪼ U->
@@ -300,6 +296,8 @@ Proof.
     eexists. apply* rt_one.
 Qed.
 
+(** If a path's environment type is a singleton type then its precise type is the same
+    singleton type. *)
 Lemma pf_sngl_U: forall G p q U,
     G ⊢! p : {{ q }} ⪼ U->
     U = {{ q }}.
@@ -307,7 +305,7 @@ Proof.
   introv Hp. dependent induction Hp; eauto; try (specialize (IHHp _ eq_refl); inversion IHHp).
 Qed.
 
-(** If [x]'s precise type is [mu(x: U)], then [G(x) = mu(x: U)] *)
+(** If [p]'s precise type is a recursive type then its environment type is the same recursive type. *)
 Lemma pf_bnd_T: forall G p T U,
     inert G ->
     G ⊢! p: T ⪼ μ U ->
@@ -321,6 +319,7 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
+(** If [p]'s precise type is a singleton type then its environment type is the same singleton type. *)
 Lemma pf_sngl_T: forall G p q T,
     inert G ->
     G ⊢! p : T ⪼ {{ q }} ->
@@ -335,8 +334,7 @@ Proof.
   lets His: (pf_inertsngl Hi Hp). destruct_all; progress (repeat inversions H0); inversion H1; inversions H0.
 Qed.
 
-(** If [x]'s precise type is a field or type declaration, then [G(x)] is
-    a recursive type. *)
+(** If [p]'s precise type is a record, then its envirionment type is a recursive type. *)
 Lemma pf_bnd_T2: forall G p T D,
     inert G ->
     G ⊢! p: T ⪼ typ_rcd D ->
@@ -358,8 +356,8 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(** The following two lemmas express that if [x]'s precise type is a function type,
-    then [G(x)] is the same function type. *)
+(** The following two lemmas express that if [p]'s precise type is a function type,
+    then its environment type is the same function type. *)
 Lemma pf_forall_T : forall p G S T U,
     inert G ->
     G ⊢! p: T ⪼ ∀(S) U->
@@ -373,8 +371,7 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
-(** If [G ⊢! x: T ⪼ U] then [G(x) = T]. *)
+(** A variable [x]'s environment type is [T] then [G(x)=T]. *)
 Lemma pf_binds: forall G x T U,
     inert G ->
     G ⊢! pvar x: T ⪼ U ->
@@ -383,18 +380,7 @@ Proof.
   introv Hi Pf. dependent induction Pf; try simpl_dot; auto.
 Qed.
 
-(** See [pf_lambda_T]. *)
-Lemma binds_forall : forall x G S T U,
-    inert G ->
-    G ⊢! pvar x : U ⪼ ∀(S) T ->
-    binds x (∀(S) T) G.
-Proof. Abort. (*
-  introv Hi Htyp. lets H: (pf_forall_T Hi Htyp). subst. destruct_all; subst.
-  repeat eexists. apply* pf_binds.
-Qed.*)
-
-(** In an inert context, the precise type of a variable
-    cannot be bottom. *)
+(** In an inert context, the precise type of a path cannot be bottom. *)
 Lemma pf_bot : forall G p T,
     inert G ->
     G ⊢! p: T ⪼ ⊥ ->
@@ -407,8 +393,7 @@ Proof.
   - inversions H. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(** In an inert context, the precise type of
-    a variable cannot be type selection. *)
+(** In an inert context, the precise type of a path cannot be type selection. *)
 Lemma pf_psel : forall G T p q A,
     inert G ->
     G ⊢! p: T ⪼ q ↓ A ->
@@ -422,13 +407,12 @@ Proof.
   - destruct H as [r Heq]. subst. apply pf_sngl_U in Pf. inversion Pf.
 Qed.
 
-(** If [G(x) = mu(T)], and [G ⊢! p: ... /\ D /\ ...], then [T^x = ... /\ D /\ ...]. *)
+(** The following two lemmas say that if a path's precise type is [...∧ D ∧...]
+    then its environment type is [μ(...∧ D ∧...)] *)
 Lemma pf_record_has_T : forall p G T T' D,
     inert G ->
     G ⊢! p: μ T ⪼ T' ->
     record_has T' D ->
-    (*original_path G p (μ T) T' q ->
-    record_has (open_typ_p q T) D.*)
     record_has (open_typ_p p T) D.
 Proof.
   introv Hi Pf Hr.
@@ -436,8 +420,6 @@ Proof.
   apply pf_bnd_T in Pf; auto. inversion* Pf.
 Qed.
 
-(** If [G(x) = mu(S)] and [G ⊢! p: D], where [D] is a field or type declaration,
-    then [S^x = ... /\ D /\ ...]. *)
 Lemma pf_record_has_U: forall S G p D,
     inert G ->
     G ⊢! p: μ S ⪼ typ_rcd D ->
@@ -447,10 +429,7 @@ Proof.
   apply* pf_record_has_T.
 Qed.
 
-(** If
-    - [G ⊢! p: mu(T) ⪼ {A: T1..T1}]
-    - [G ⊢! p: mu(T) ⪼ {A: T2..T2}]
-    then [T1 = T2]. *)
+(** A path's precise type, if it is a record, has unique occurrences of each type label *)
 Lemma pf_dec_typ_unique : forall G p T A T1 T2,
     inert G ->
     G ⊢! p: μ T ⪼ typ_rcd {A >: T1 <: T1} ->
@@ -466,6 +445,7 @@ Proof.
   apply* unique_rcd_typ.
  Qed.
 
+(** A path's environment type is unique *)
 Lemma pf_T_unique: forall G p T1 T2 U1 U2,
     inert G ->
     G ⊢! p: T1 ⪼ U1 ->
@@ -487,8 +467,7 @@ Proof.
       apply* unique_rcd_trm.
 Qed.
 
-(** If a typing context is inert, then the variables in its domain are distinct. #<br>#
-    Note: [ok] is defined in [TLC.LibEnv.v]. *)
+(** If a typing context is inert, then the variables in its domain are distinct *)
 Lemma inert_ok : forall G,
     inert G ->
     ok G.
@@ -502,7 +481,7 @@ Qed.
 
 Hint Resolve inert_ok.
 
-(** If [G ⊢! p: {A: S..U}] then [S = U]. *)
+(** If a path's precise type is a type declaration then the declaration has tight bounds. *)
 Lemma pf_dec_typ_tight : forall G p T A S U,
     inert G ->
     G ⊢! p: T ⪼ typ_rcd {A >: S <: U}->
@@ -513,6 +492,8 @@ Proof.
   inversions* H1.
 Qed.
 
+(** A path [x.bs]'s precise typing in an environment [G, y: T] remains the same
+    after removing [y] from the environment, if [x ≠ y] *)
 Lemma pf_strengthen: forall G y V x bs T U,
     inert (G & y ~ V) ->
     G & y ~ V ⊢! p_sel (avar_f x) bs : T ⪼ U->
@@ -526,22 +507,18 @@ Proof.
     lets Hf: (pf_fld IHHt). eauto.
 Qed.
 
+(** If [p.a] has a precise type in an environment then [p]'s environment
+    type is a recursive type and [p] has a precise type [{a: _}] *)
 Lemma pf_path_sel: forall G p a T U,
     inert G ->
     G ⊢! p•a : T ⪼ U ->
-    exists V W, G ⊢! p: μ V ⪼ typ_rcd {a ⦂ W}.
+    exists V, G ⊢! p: μ V ⪼ typ_rcd {a ⦂ T}.
 Proof.
   introv Hi Hp. dependent induction Hp; try simpl_dot; eauto.
   destruct (pf_bnd_T2 Hi Hp) as [V Heq]. subst. eauto.
 Qed.
 
-Lemma pf_invert_fld G p a T U :
-  G ⊢! p • a : T ⪼ U ->
-  exists V, G ⊢! p : V ⪼ typ_rcd { a ⦂ T }.
-Proof.
-  intros Hp. dependent induction Hp; try simpl_dot; eauto.
-Qed.
-
+(** Weakening for precise typing with one element *)
 Lemma pf_weaken_one G p T U x V :
   ok G ->
   x # G ->
@@ -553,6 +530,7 @@ Proof.
   - apply* binds_push_neq. intros ->. eapply binds_fresh_inv; eauto.
 Qed.
 
+(** Weakening for precise typing with contexts of arbitrary length *)
 Lemma pf_weaken G G' p T U :
   ok (G & G') ->
   G ⊢! p : T ⪼ U ->

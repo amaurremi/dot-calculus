@@ -4,12 +4,13 @@
 (** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(** * Subenvironments [G1 ⪯ G2] *)
+
 Set Implicit Arguments.
 
 Require Import Definitions.
 Require Import Coq.Program.Equality.
 
-(** * Subenvironments [G1 ⪯ G2] *)
 (** [G1] is a subenvironment of [G2], denoted [G1 ⪯ G2],
     if [dom(G1) = dom(G2)] and for each [x],
     [G1 ⊢ G1(x) <: G2(x)]. *)
@@ -28,15 +29,14 @@ where "G1 ⪯ G2" := (subenv G1 G2).
 Hint Constructors subenv.
 
 (** If [ok G], then [G ⪯ G].
-    Note: [ok(G)] means that [G]'s domain consists of distinct variables.
-    [ok] is defined in [TLC.LibEnv.v] *)
+    Note: [ok(G)] means that [G]'s domain consists of distinct variables. *)
 Lemma subenv_refl : forall G, ok G -> G ⪯ G.
 Proof.
   intros G H. induction H; auto.
 Qed.
 Hint Resolve subenv_refl.
 
-(** [G' subG G]                  #<br>#
+(** [G' ⪯ G]                  #<br>#
     [ok(G', x: T)]               #<br>#
     [―――――――――――――――――――――――――――――]  #<br>#
     [G', x: T subG G, x: T]  #<br># *)
@@ -69,7 +69,6 @@ Proof.
   constructor; auto.
 Qed.
 Hint Resolve subenv_last.
-
 
 Lemma subenv_implies_ok : forall G1 G2,
     G1 ⪯ G2 -> ok G1 /\ ok G2.

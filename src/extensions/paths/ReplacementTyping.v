@@ -16,7 +16,7 @@ Require Import Sequences.
 Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping RecordAndInertTypes Replacement
         Subenvironments TightTyping Weakening.
 
-(** Whereas invertible typing does replacment for singleton types in one direction,
+(** Whereas invertible typing does replacement for singleton types in one direction,
     replacement typing does the replacment in the other direction.
 
     Note that we can't simply define this using three rules:
@@ -24,38 +24,62 @@ Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping Reco
     2) two repl subtyping rules
     The reason is that if we did that, repl typing would necessarily apply the replacement
     in all subterms of a term, whereas we want to be able to say, for example:
-    Г ⊢## p: T
-    Г ⊢// p: U
-    __________
-    Г ⊢// p: T ∧ U
-*)
+    [Г ⊢## p: T] #<br>#
+    [Г ⊢// p: U  #<br>#
+    [__________] #<br>#
+    [Г ⊢// p: T ∧ U] #<br>#
+ *)
+
+(** ** Replacement Typing for Paths *)
 
 Reserved Notation "G '⊢//' p ':' T" (at level 40, p at level 59).
 
 Inductive ty_repl : ctx -> path -> typ -> Prop :=
 
+(** [G ⊢## p: T]     #<br>#
+    [―――――――――――――――] #<br>#
+    [G ⊢// p: T]     *)
 | ty_inv_r : forall G p T,
     G ⊢## p: T ->
     G ⊢// p: T
 
+(** [G ⊢// p : T]     #<br>#
+    [G ⊢// p : U]     #<br>#
+    [――――――――――――――――] #<br>#
+    [G ⊢// p : T /\ U]      *)
 | ty_and_r : forall G p T U,
     G ⊢// p: T ->
     G ⊢// p: U ->
     G ⊢// p: T ∧ U
 
+(** [G ⊢## p : T^p]  #<br>#
+    [――――――――――――――] #<br>#
+    [G ⊢## p : μ(T)]      *)
 | ty_bnd_r : forall G p T,
     G ⊢// p: open_typ_p p T ->
     G ⊢// p: μ T
 
+(** [G ⊢// p : T]             #<br>#
+    [G ⊢! q: _ ⪼ {A: T..T}]  #<br>#
+    [―――――――――――――――――――――――] #<br>#
+    [G ⊢//p : q.A]      *)
 | ty_sel_r : forall G p T q S A,
     G ⊢// p: T ->
     G ⊢! q: S ⪼ typ_rcd {A >: T <: T} ->
     G ⊢// p: q↓A
 
+(** [G ⊢// p.a: T]    #<br>#
+    [―――――――――――――――] #<br>#
+    [G ⊢// p: {a: T}]     *)
 | ty_rcd_intro_r : forall G p a T,
     G ⊢// p•a : T ->
     G ⊢// p : typ_rcd { a ⦂ T }
 
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢// r: μ(T)]             #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢// p: μ(T[q/p,n])]      *)
 | ty_rec_qp_r : forall G p q r T T' n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -63,6 +87,11 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     repl_typ n q p T T' ->
     G ⊢// r : μ T'
 
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢// r: r'.A]             #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢// p: (r'.A)[q/p,n]]      *)
 | ty_sel_qp_r : forall G p q r r' r'' A n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -70,6 +99,11 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     repl_typ n q p (r'↓A) (r''↓A) ->
     G ⊢// r : r''↓A
 
+(** [G ⊢! p: q.type ⪼ q.type]   #<br>#
+    [G ⊢!! q]                   #<br>#
+    [G ⊢// r: r'.type]          #<br>#
+    [――――――――――――――――――――]      #<br>#
+    [G ⊢// p: (r'.type)[q/p,n]]      *)
 | ty_sngl_qp_r : forall G p q r r' r'' n U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -81,14 +115,15 @@ where "G '⊢//' p ':' T" := (ty_repl G p T).
 
 Hint Constructors ty_repl.
 
-Lemma repl_to_inv_typ_all : forall G p S T,
-  inert G ->
-  G ⊢// p : ∀(S) T ->
-  G ⊢## p : ∀(S) T.
-Proof.
-  introv Hi Hp. dependent induction Hp; eauto.
-Qed.
+(** *** From Replacement To Precise Typing *)
 
+(** Replacement-to-precise typing for function types: #<br>#
+    [ok G]                        #<br>#
+    [G ⊢// p: forall(S)T]             #<br>#
+    [――――――――――――――――――――――――――]  #<br>#
+    [exists S', T'. G ⊢!!! p: forall(S')T']  #<br>#
+    [G ⊢# S <: S']               #<br>#
+    [G ⊢# T'^y <: T^y], where [y] is fresh. *)
 Lemma repl_to_precise_typ_all: forall G p S T,
   inert G ->
   G ⊢// p : ∀(S) T ->
@@ -99,14 +134,26 @@ Lemma repl_to_precise_typ_all: forall G p S T,
         y \notin L ->
             G & y ~ S ⊢ open_typ y T' <: open_typ y T).
 Proof.
-  introv Hi Hp. apply repl_to_inv_typ_all in Hp; auto. apply* invertible_to_precise_typ_all.
+  introv Hi Hp. inversions Hp. apply* invertible_to_precise_typ_all.
 Qed.
 
-Lemma repl_bot : forall G p,
-    inert G ->
-    G ⊢// p: ⊥ -> False.
+(** Replacement-to-precise typing for records:
+    [inert G]                        #<br>#
+    [G |-// p: {A: S..U}]            #<br>#
+    [――――――――――――――――――――――――――――]   #<br>#
+    [exists T. G |-// p: {A: T..T}]       #<br>#
+    [G |-# T <: U]                   #<br>#
+    [G |-# S <: T]                    *)
+Lemma repl_to_precise_rcd: forall G p A S U,
+  inert G ->
+  G ⊢// p : typ_rcd {A >: S <: U} ->
+  exists T,
+    G ⊢!!! p : typ_rcd {A >: T <: T} /\
+    G ⊢# T <: U /\
+    G ⊢# S <: T.
 Proof.
-  introv Hi Hr. dependent induction Hr; invert_repl; eauto. false* invertible_bot.
+  introv HG Hr. dependent induction Hr.
+  apply* invertible_to_precise_rcd.
 Qed.
 
 Lemma repl_and: forall G p T U,
@@ -476,7 +523,7 @@ Proof.
   - Case "subtyp_top"%string.
     apply* repl_top.
   - Case  "subtyp_bot"%string.
-    false* repl_bot.
+    inversions Hp. false* invertible_bot.
   - Case "subtyp_and1"%string.
     apply (repl_and Hi) in Hp. destruct_all. auto.
   - Case "subtyp_and2"%string.
@@ -639,9 +686,7 @@ Proof.
     * lets Hpi: (pt3_invert Hi H H0). destruct_all; subst; auto.
       ** do 2 constructor. apply* pt3_sngl_trans3.
       ** apply ty_precise_inv in Hpr'. apply ty_inv_r in Hpr'.
-         apply* replacement_repl_closure_qp3. assert (x = x •• nil) as Heq by rewrite* field_sel_nil.
-         rewrite <- field_sel_nil at 2. rewrite Heq at 2.
-         apply* repl_intro_sngl.
+         apply* replacement_repl_closure_qp3. apply* repl_intro_sngl.
     * lets Hpi: (pt3_invert Hi H H0). destruct_all; subst.
       ** do 2 constructor. do 2 apply* pt3_sngl_trans3.
       ** do 2 constructor. apply* pt3_sngl_trans3.
@@ -1089,11 +1134,4 @@ Proof.
     * eapply star_trans. apply star_one. econstructor. repeat eexists. apply H. eauto.
       apply* repl_swap.
       apply Hrc.
-Qed.
-
-Lemma repl_to_invertible_val_sngl G p v :
-  G ⊢//v v : {{ p }} ->
-  False.
-Proof.
-  intros Hv. dependent induction Hv. dependent induction H. inversion H.
 Qed.

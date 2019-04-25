@@ -22,7 +22,7 @@ Definition deftrm t : trm :=
   | defv v => trm_val v
   end.
 
-(** ** Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢! p: T] imply [Γ ⊢ t: T] *)
+(** ** Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢!/!!/!!! p: T] imply [Γ ⊢ t: T] *)
 
 Lemma repl_composition_sub G T U :
   G ⊢ T ⟿ U ->
@@ -63,15 +63,6 @@ Proof.
     * right. left. inversions Hdt.
       simpl in *. repeat eexists; auto.
     * left. inversions Hdt. eauto.
-Qed.
-
-Lemma pt3_exists G p T :
-  inert G ->
-  G ⊢ trm_path p : T ->
-  exists U, G ⊢!!! p : U.
-Proof.
-  intros Hi Hp. apply (general_to_tight_typing Hi) in Hp.
-  apply tight_to_prec_exists in Hp as [? ?]; eauto.
 Qed.
 
 Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
@@ -133,14 +124,13 @@ Proof.
            +++ eauto.
         ++ left. repeat eexists. apply* weaken_ty_trm.
       + SSCase "lookup_sel_p"%string.
-        destruct (pf_invert_fld _ _ Hp) as [V Hp'].
+        destruct (pf_path_sel _ _ Hi Hp) as [V Hp'].
         specialize (IHHs _ _ _ Hwt IHHwt _ H0 H JMeq_refl eq_refl _ Hwf Hi Hv _ _ Hp' _ _ eq_refl)
           as [[? [? [[=] ?]]] |
               [[? [? [? [? [? [? [? [[=]]]]]]]]] |
-               [? [? [? [? [? [? [[= ->] [-> [[= ->] ?]]]]]]]]]]].
-        apply pf_sngl_U in Hp'. inversion Hp'.
+               [? [? [? [? [? [? [[= ->] [[=] ?]]]]]]]]]].
       + SSCase "lookup_sel_v"%string.
-        destruct (pf_invert_fld _ _ Hp) as [V Hp'].
+        destruct (pf_path_sel _ _ Hi Hp) as [V Hp'].
         specialize (IHHs _ _ _ Hwt IHHwt _ H0 H JMeq_refl eq_refl _ Hwf Hi Hv _ _ Hp' _ _ eq_refl)
           as [[? [? [[=] ?]]] |
               [[S [ds' [W [T'' [G1 [G2 [pT [[= -> ->] [[= ->] [Heq [Hds Hrc]]]]]]]]]]] |
@@ -195,6 +185,7 @@ Proof.
         apply* weaken_ty_defs. all: eauto.
       + right. right. repeat eexists. rewrite concat_assoc. all: eauto.
 Qed.
+
 Lemma lookup_step_preservation_prec2 G s p px pbs t T :
     inert G ->
     wf_env G ->
@@ -255,6 +246,7 @@ Proof.
                                   [[? [? [? [? [? [? [? [? [[=]%pf_sngl_T [[=] [HH [HHH ?]]]]]]]]]]]] |
                                    [? [? [? [? [? [? [[=] ?]]]]]]]]]; auto.
 Qed.
+
 Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     inert G ->
     wf_env G ->
@@ -285,7 +277,7 @@ Proof.
     * apply (pf_bnd_T Hi) in Hp' as [= ->]. eexists. split*. left. repeat eexists; eauto;
       repeat apply* repl_composition_weaken; apply* inert_ok; apply* inert_prefix.
   - inversion Hit.
-  - apply pf_sngl_T in Hp' as ->; auto. proof_recipe. false* repl_to_invertible_val_sngl.
+  - apply pf_sngl_T in Hp' as ->; auto. proof_recipe. inversions Hv. inversions H0. inversion H1.
   - apply (pf_sngl_T Hi) in Hp' as [=].
   - clear IHHp.
     assert (exists V, G ⊢!!! q' : V) as [V Hq']. {
@@ -317,6 +309,7 @@ Proof.
       eapply pt3_sngl_trans3. repeat apply* pt3_weaken.
       apply* pt3_inert_sngl_invert. repeat apply* pt3_weaken.
 Qed.
+
 Lemma lookup_step_preservation_prec3_fun G s p T S t :
   inert G ->
   wf_env G ->
@@ -373,6 +366,7 @@ Proof.
       apply pf_strengthen in Hp; auto. specialize (IHHwt (inert_prefix Hi) (wf_env_prefix Hwf) _ _ _ Hp) as [t Hs].
       eexists. apply* lookup_step_weaken_one.
 Qed.
+
 Lemma typ_to_lookup2 G s p T :
   inert G ->
   wf_env G ->
@@ -392,6 +386,7 @@ Proof.
     + pose proof (pf_sngl_T Hi Hp') as [=].
     + eauto.
 Qed.
+
 Lemma typ_to_lookup3 G s p T :
   inert G ->
   wf_env G ->
@@ -401,6 +396,7 @@ Lemma typ_to_lookup3 G s p T :
 Proof.
   intros Hi Hwf Hwt Hp. induction Hp; apply* typ_to_lookup2.
 Qed.
+
 Lemma sngl_path_lookup1 G s p q U :
   inert G ->
   wf_env G ->
@@ -424,6 +420,7 @@ Proof.
     + split*. split. left*. right. repeat apply* pt3_weaken.
     + split*. split; right; repeat apply* pt3_weaken.
 Qed.
+
 Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     wf_env G ->
@@ -542,13 +539,6 @@ Proof.
       apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix. apply* wf_env_prefix.
 Qed.
 
-Lemma wt_to_ok_s G s :
-  well_typed G s ->
-  ok s.
-Proof.
-  induction 1; eauto.
-Qed.
-
 Lemma typed_path_lookup_same_var2 G s y bs cs :
   inert G ->
   wf_env G ->
@@ -576,17 +566,6 @@ Proof.
       false binds_fresh_inv; eauto.
     + pose proof (typing_implies_bound (precise_to_general3 Hrc1)) as [S Hb].
       false binds_fresh_inv; eauto.
-Qed.
-
-(** If [E(x)=v] then [E = E1, x↦v, E2] *)
-Lemma binds_destruct: forall x {A} (v:A) (E:env A),
-    binds x v E ->
-    exists E1 E2, E = E1 & x ~ v & E2.
-Proof.
-  introv Hb. induction E using env_ind. false* binds_empty_inv.
-  destruct (binds_push_inv Hb) as [[H1 H2] | [H1 H2]]; subst.
-  repeat eexists. rewrite* concat_empty_r.
-  specialize (IHE H2). destruct_all. subst. exists x1 (x2 & x0 ~ v0). rewrite* concat_assoc.
 Qed.
 
 Lemma typed_path_lookup_same_var3 G s y bs cs :
@@ -724,15 +703,6 @@ Proof.
       apply (sngl_typed3 Hi' Hwf') in Hp as [U Ht]. apply* pf_strengthen_from_pt3.
 Qed.
 
-Lemma last_path G p T U :
-  inert G ->
-  G ⊢!!! p : ∀(T) U ->
-  G ⊢!! p : ∀(T) U \/ exists q, G ⊢!!! p: {{ q }} /\ G ⊢!! q : ∀(T) U.
-Proof.
-  intros Hi Hp. dependent induction Hp; eauto.
-  specialize (IHHp _ _ Hi eq_refl) as [Hq | [r [Hq Hr]]]; eauto.
-Qed.
-
 Lemma typed_path_lookup3 G s p T U :
   inert G ->
   wf_env G ->
@@ -761,7 +731,6 @@ Proof.
                [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]].
     eexists. constructor. eapply star_trans. apply Hs. apply* star_one.
 Qed.
-
 
 (** ** Lemmas to Prove Canonical Forms for Functions *)
 

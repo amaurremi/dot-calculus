@@ -91,6 +91,7 @@ Proof.
   intros. apply* narrow_rules.
 Qed.
 
+(** The narrowing lemma, formulated only for definition typing. *)
 Lemma narrow_defs: forall G G' ds T z bs,
     z; bs; G ⊢ ds :: T ->
     G' ⪯ G ->

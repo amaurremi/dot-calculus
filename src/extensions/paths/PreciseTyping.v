@@ -6,9 +6,11 @@
 
 (** * Precise Typing (Elimination Typing II and III) *)
 
-(** This module reasons about properties of precise typing ⊢!! and ⊢!!!
-    (only defined for paths), and about well-formedness of environments
-    which is defined through precise typing *)
+(** This module reasons about
+    - properties of precise typing ⊢!! and ⊢!!! (only defined for paths)
+    - about well-formedness of environments which is defined through precise typing
+    - about equivalent types (path replacement with well-typed paths)
+ *)
 
 Set Implicit Arguments.
 
@@ -20,6 +22,7 @@ Require Export PreciseFlow.
 Reserved Notation "G '⊢!!' p ':' T" (at level 40, p at level 59).
 Reserved Notation "G '⊢!!!' p ':' T" (at level 40, p at level 59).
 
+(** ** Precise Typing II *)
 Inductive precise_typing2: ctx -> path -> typ -> Prop :=
 | pt2: forall G p T U,
     G ⊢! p : T ⪼ U ->
@@ -30,6 +33,7 @@ Inductive precise_typing2: ctx -> path -> typ -> Prop :=
     G ⊢!! p•a : {{ q•a }}
 where "G '⊢!!' p ':' T" := (precise_typing2 G p T).
 
+(** ** Precise Typing III *)
 Inductive precise_typing3: ctx -> path -> typ -> Prop :=
 | pt3: forall G p T,
     G ⊢!! p : T ->
@@ -41,6 +45,8 @@ Inductive precise_typing3: ctx -> path -> typ -> Prop :=
 where "G '⊢!!!' p ':' T" := (precise_typing3 G p T).
 
 Hint Constructors precise_typing2 precise_typing3.
+
+(** *** Properties of ⊢!! and ⊢!!!. Relationships between ⊢!, ⊢!!, and ⊢!!! *)
 
 Lemma precise_to_general2: forall G p T,
     G ⊢!! p: T ->
@@ -170,8 +176,7 @@ Proof.
   - lets Heq: (pf_T_unique Hi Hp1 H). subst. destruct His.
     * destruct H0. apply* pf_forall_T. apply* pf_bnd_T.
     * inversions H0. destruct_all. apply* pf_sngl_T.
-  - destruct (pf_path_sel _ _ Hi Hp1) as [V [W Hp]].
-    lets Hpa: (pf_fld Hp). lets Heq: (pf_T_unique Hi Hp1 Hpa). subst.
+  - destruct (pf_path_sel _ _ Hi Hp1) as [V Hp].
     assert (inert_sngl {{ q }}) as His'. { right. eexists. auto. }
     specialize (IHHp2_1 Hi His' _ _ Hp). inversion IHHp2_1.
 Qed.
@@ -679,7 +684,32 @@ Proof.
                              eapply (pt3_inert_pt2_sngl_invert Hi Hp); eauto.
 Qed.
 
-(** * Wellformed paths and environments *)
+Lemma pt2_dec_typ_tight: forall G p A S U,
+    inert G ->
+    G ⊢!! p: typ_rcd {A >: S <: U} ->
+    S = U.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. apply* pf_dec_typ_tight.
+Qed.
+
+Lemma pt3_dec_typ_tight: forall G p A S U,
+    inert G ->
+    G ⊢!!! p: typ_rcd {A >: S <: U} ->
+    S = U.
+Proof.
+  introv Hi Hp. dependent induction Hp; eauto. apply* pt2_dec_typ_tight.
+Qed.
+
+Lemma last_path G p T U :
+  inert G ->
+  G ⊢!!! p : ∀(T) U ->
+  G ⊢!! p : ∀(T) U \/ exists q, G ⊢!!! p: {{ q }} /\ G ⊢!! q : ∀(T) U.
+Proof.
+  intros Hi Hp. dependent induction Hp; eauto.
+  specialize (IHHp _ _ Hi eq_refl) as [Hq | [r [Hq Hr]]]; eauto.
+Qed.
+
+(** ** Wellformed paths and environments *)
 
 Inductive wf_env : ctx -> Prop :=
 | wfe_empty :
@@ -774,7 +804,7 @@ Proof.
   - pose proof (pt2_to_pf Ht (or_intror Hr)) as [? Hpr]. apply pf_strengthen in Hpr; eauto.
 Qed.
 
-(** *** Typing of paths in singleton types *)
+(** *** Typing of paths that form singleton types *)
 
 (** The following lemmas state that if a path has a precise type [q.type]
     in a well-formed environment, then [q] is typeable. *)

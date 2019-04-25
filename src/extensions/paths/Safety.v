@@ -11,40 +11,6 @@ Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTypin
 Close Scope string_scope.
 
 Module Safety.
-(** ** Well-typedness *)
-
-(** If [e: G], the variables in the domain of [e] are distinct. *)
-Lemma well_typed_to_ok_G: forall s G,
-    well_typed G s -> ok G.
-Proof.
-  intros. induction H; jauto.
-Qed.
-Hint Resolve well_typed_to_ok_G.
-
-(** [s: G]       #<br>#
-    [x ∉ dom(G)] #<br>#
-    [――――――――――] #<br>#
-    [x ∉ dom(s)] *)
-Lemma well_typed_notin_dom: forall G s x,
-    well_typed G s ->
-    x # s ->
-    x # G.
-Proof.
-  intros. induction H; auto.
-Qed.
-
-(** The typing of a term with a store *)
-Inductive sta_trm_typ : sta * trm -> typ -> Prop :=
-| sta_trm_typ_c : forall G s t T,
-    inert G ->
-    wf_env G ->
-    well_typed G s ->
-    G ⊢ t : T ->
-    sta_trm_typ (s, t) T.
-
-Hint Constructors sta_trm_typ.
-
-Notation "'⊢' t ':' T" := (sta_trm_typ t T) (at level 40, t at level 59).
 
 (** ** Preservation *)
 
@@ -54,9 +20,9 @@ Lemma pf_sngl G x bs T U a :
   exists S V, G ⊢! pvar x : μ S ⪼ V.
 Proof.
   intros Hi Hp. gen G x a T U. induction bs; introv Hi; introv Hp.
-  - simpl in Hp. rewrite proj_rewrite in *. apply pf_invert_fld in Hp as [V Hp].
-    pose proof (pf_bnd_T2 Hi Hp) as [S ->]. eauto.
-  - pose proof (pf_invert_fld _ _ Hp) as [V Hp']. eauto.
+  - simpl in Hp. rewrite proj_rewrite in *. apply (pf_path_sel _ _ Hi) in Hp as [V Hp].
+    pose proof (pf_bnd_T2 Hi Hp) as [S [= ->]]. eauto.
+  - pose proof (pf_path_sel _ _ Hi Hp) as [V Hp']. eauto.
 Qed.
 
 Lemma defs_typing_sngl_rhs z bs G ds T a q :
@@ -356,7 +322,7 @@ Proof.
     lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ; eauto. eauto. eauto.
+    eapply subst_var_path; eauto. eauto. eauto.
   - Case "ty_let"%string.
     destruct t; try solve [solve_let].
      + SCase "[t = (let x = v in u)] where v is a value"%string.
@@ -369,12 +335,12 @@ Proof.
       exists (x ~ V). repeat split; auto.
       ** rewrite <- concat_empty_l. constructor~.
       ** constructor~. apply (precise_to_general_v Hv).
-      ** rewrite open_var_trm_eq. eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
+      ** rewrite open_var_trm_eq. eapply subst_fresh_var_path with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. apply* weaken_subtyp.
     + SCase "[t = (let x = p in u)] where a is p variable"%string.
       repeat invert_red.
       exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
-      apply* renaming_fresh.
+      apply* subst_fresh_var_path.
   - Case "ty_sub"%string.
     solve_IH.
     match goal with
@@ -391,32 +357,22 @@ Qed.
     [(s, t) |-> (s', t')]   #<br>#
     [―――――――――――――――――――]   #<br>#
     [⊢ (s', t'): T]         *)
-Theorem preservation : forall s s' t t' T,
-    ⊢ (s, t) : T ->
+Theorem preservation : forall G s s' t t' T,
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    G ⊢ t : T ->
     (s, t) |=> (s', t') ->
-    ⊢ (s', t') : T.
+    exists G', inert G' /\ wf_env G' /\ well_typed G' s' /\ G' ⊢ t' : T.
 Proof.
-  introv Ht Hr. destruct Ht as [* Hi Hwf Hwt Ht].
+  introv Hi Hwf Hwt Ht Hr.
   lets Hp: (preservation_helper Hwt Hi Hwf Hr Ht). destruct Hp as [G' [Hi' [Hwf' [Hwt' Ht']]]].
-  apply sta_trm_typ_c with (G:=G & G'); auto. apply* inert_concat.
+  exists (G & G'). split*. apply* inert_concat.
 Qed.
 
 (** ** Progress *)
 
 (** Helper tactic for proving progress *)
-Ltac solve_let_prog :=
-  match goal with
-      | [IH: ⊢ (?s, ?t) : ?T ->
-             inert _ ->
-             wf_env _ ->
-             well_typed _ _ -> _,
-         Hi: inert _,
-         Hwf: wf_env _,
-         Hwt: well_typed _ _ |- _] =>
-        assert (⊢ (s, t): T) as Hs by eauto;
-        specialize (IH Hs Hi Hwf Hwt) as [IH | [s' [t' Hr]]];
-        eauto; inversion IH
-      end.
 
 (** *** Progress Theorem *)
 
@@ -425,19 +381,25 @@ Ltac solve_let_prog :=
     [―――――――――――――――――――]   #<br>#
     [t] is in normal form   #<br>#
     or [exists s', t'] such that [(s, t) |-> (s', t')] *)
-Theorem progress: forall s t T,
-    ⊢ (s, t) : T ->
+Theorem progress: forall G s t T,
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    G ⊢ t : T ->
     norm_form t \/ exists s' t', (s, t) |=> (s', t').
 Proof.
-  introv Ht. inversion Ht as [G s' t' T' Hi Hwf Hwt HT]. subst.
-  induction HT; eauto.
+  introv Hi Hwf Hwt Ht.
+  induction Ht; eauto.
   - Case "ty_all_elim"%string.
-    pose proof (canonical_forms_fun Hi Hwf Hwt HT1). destruct_all. right*.
+    pose proof (canonical_forms_fun Hi Hwf Hwt Ht1). destruct_all. right*.
   - Case "ty_let"%string.
-    right. destruct t; try solve [solve_let_prog].
-    pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
+    right. destruct t; eauto.
+    + pick_fresh z. exists (s & z ~ v). eauto.
+    + specialize (IHHt Hi Hwf Hwt) as [Hn | [s' [t' Hr]]].
+      { inversion Hn. } eauto.
+    + specialize (IHHt Hi Hwf Hwt) as [Hn | [s' [t' Hr]]].
+      { inversion Hn. } eauto.
 Qed.
-
 
 (** ** Safety *)
 
@@ -451,12 +413,11 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\ well_typed G2 s2).
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
-  - assert (⊢ (s2, t2) : T) as Ht' by eauto. apply progress in Ht'; destruct_all; eauto.
-    left. exists x x0. pose proof (preservation_helper Hwt Hi Hwf H Ht) as [G' [_ [_ [Hwt' Ht']]]].
-    exists (G & G'). repeat split*.
+  - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [s' [t' Hr]]]; eauto.
+    left. pose proof (preservation_helper Hwt Hi Hwf Hr Ht) as [G' [_ [_ [Hwt' Ht']]]].
+    exists s' t' (G & G'). eauto.
   - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
-    assert (⊢ (s1, t1) : T) as Ht1 by eauto.
-    lets Hpr: (preservation Ht1 H). inversions Hpr.
+    pose proof (preservation Hi Hwf Hwt Ht H) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     dependent induction H; eauto.
 Qed.
 

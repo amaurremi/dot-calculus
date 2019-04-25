@@ -48,43 +48,6 @@ ide: _CoqProject
 _CoqProject:
 	echo $(COQINCLUDE) > _CoqProject
 
-########################
-# Library Dependencies #
-########################
-
-DPDMODALL=$(shell coqdep -sort Safety.v | sed "s|\(\./\)||g" | sed "s|\.vo||g")
-DPDFILENAME=dpdraw.dpd
-DPDDOT=$(DPDFILENAME:=.dot)
-
-DPDEXCLUDE ?=
-DPDMODULES=$(filter-out $(DPDEXCLUDE), $(DPDMODALL))
-
-DPDTEXT=Require dpdgraph.dpdgraph. Require TLC.LibLN. Require Coq.Program.Equality.
-DPDTEXT+=Require $(DPDMODULES).
-DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
-DPDTEXT+=Print FileDependGraph $(DPDMODULES).
-
-$(DPDFILENAME): $(shell coqdep -sort $(FILES))
-	echo $(DPDTEXT) | coqtop
-
-$(DPDDOT): $(DPDFILENAME)
-	dpd2dot -without-defs $<
-	dpdusage $<
-
-.PHONY: dpdraw
-dpdraw: $(DPDDOT)
-
-DPDFILTER=dpdgraph.dpd
-DPDFILDOT=$(DPDFILTER:=.dot)
-$(DPDFILDOT): $(DPDFILTER)
-	dpd2dot -without-defs $<
-
-$(DPDFILTER): $(DPDFILENAME)
-	grep -P '(kind=construct|^N: [0-9]+ "[^"]*(_ind|mutind|_mut)")' $(DPDFILENAME) | sed -e "s|^N: \([0-9][0-9]*\) .*|\1|g" | paste -sd "|" | xargs -I {} grep -P -v "^((E: ({}) )|(E: [0-9]+ ({}) )|(N: ({}) ))" $(DPDFILENAME) > $(DPDFILTER)
-
-.PHONY: dpdgraph
-dpdgraph: $(DPDFILDOT)
-
 ###################
 # Forced Rebuilds #
 ###################
