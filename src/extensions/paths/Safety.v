@@ -14,19 +14,10 @@ Close Scope string_scope.
 
 Section Safety.
 
-(** *** Preservation *)
+(** *** Reasoning about the precise type of objects *)
 
-Lemma pf_sngl G x bs T U a :
-  inert G ->
-  G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
-  exists S V, G ⊢! pvar x : μ S ⪼ V.
-Proof.
-  intros Hi Hp. gen G x a T U. induction bs; introv Hi; introv Hp.
-  - simpl in Hp. rewrite proj_rewrite in *. apply (pf_path_sel _ _ Hi) in Hp as [V Hp].
-    pose proof (pf_bnd_T2 Hi Hp) as [S [= ->]]. eauto.
-  - pose proof (pf_path_sel _ _ Hi Hp) as [V Hp']. eauto.
-Qed.
-
+(** If the rhs of a type declaration is a signleton type [q.type] then
+    [q] is well-typed *)
 Lemma defs_typing_sngl_rhs z bs G ds T a q :
   z; bs; G ⊢ ds :: T ->
   record_has T {a ⦂ {{ q }}} ->
@@ -37,8 +28,15 @@ Proof.
   - inversions Hr; auto. inversions H5. inversions H0. eauto.
 Qed.
 
+(** The [lookup_fields_typ] notation [x ==> T =bs=> U] denotes that
+    if [T] is a recursive type then we can "look up" or "go down" a path
+    [x.bs] inside of [T] yielding a type [U]. For example, if
+    [T = μ(x: {a: μ(y: {b: μ(z: ⊤)})})] then
+    [x ==> T =b,a=>⊤] *)
 Reserved Notation "x '==>' T '=' bs '=>' U" (at level 40, T at level 20).
 
+(** If [x ==> T =bs=> U] we will say that looking up the path
+    [x.bs] in [T] yields [U].*)
 Inductive lookup_fields_typ : var -> typ -> list trm_label -> typ -> Prop :=
 | lft_empty : forall x T,
     x ==> T =nil=> T
@@ -51,19 +49,9 @@ where "x '==>' T '=' bs '=>' U" := (lookup_fields_typ x T bs U).
 
 Hint Constructors lookup_fields_typ.
 
-Lemma inert_record_has T p a U :
-  inert_typ (μ T) ->
-  record_has (open_typ_p p T) {a ⦂ U} ->
-  inert_sngl U.
-Proof.
-  intros Hi Hr. dependent induction Hr.
-  - destruct T; inversions x. destruct d; inversions H0. inversions Hi. inversions H0.
-    inversions H1. left. apply* open_record_p. right. eexists. simpl. eauto.
-  - destruct T; inversions x. inversions Hi. inversions H0. apply* IHHr.
-  - destruct T; inversions x. inversions Hi. inversions H0.
-    specialize (IHHr U a p (typ_rcd D)). eauto.
-Qed.
+(** **** Properties of [lookup_fields_typ] *)
 
+(** Looking up a path inside of an inert type yields an inert type *)
 Lemma lft_inert x T bs U :
   inert_typ T ->
   x ==> T =bs=> μ U ->
@@ -74,6 +62,7 @@ Proof.
   apply (inert_record_has _ IHbs) in H5 as [Hin | [? [=]]]. auto.
 Qed.
 
+(** The [lookup_fields_typ] relation is functional. *)
 Lemma lft_unique x S bs T U :
   inert_typ S ->
   x ==> S =bs=> T ->
@@ -87,6 +76,8 @@ Proof.
     eapply unique_rcd_trm. apply* open_record_type_p. eauto. eauto.
 Qed.
 
+(** If looking up a path in [T] yields a function type then we cannot
+    look up a longer path in [T] *)
 Lemma lft_typ_all_inv x S bs cs V T U:
   inert_typ S ->
   x ==> S =bs=> ∀(T) U ->
@@ -100,6 +91,8 @@ Proof.
   pose proof (lft_unique Hin Hl1 H3) as [= <-].
 Qed.
 
+(** If looking up a path in [T] yields a singleton type then we cannot
+    look up a longer path in [T] *)
 Lemma lft_typ_sngl_inv x S bs p cs V :
   inert_typ S ->
   x ==> S =bs=> {{ p }} ->
@@ -113,6 +106,10 @@ Proof.
   pose proof (lft_unique Hin Hl1 H3) as [= <-].
 Qed.
 
+(** If the definitions [ds] that correspond to a path [p] (here, [z.bs])
+    have a type [T^p], and looking up the path [x.cs] for some [x]
+    in [T^p] yields a type [μ(U)] then nested in [ds] are some definitions
+    [ds'] such that under the path [p.cs], [ds'] can be typed with [U^p.cs]. *)
 Lemma lfs_defs_typing : forall cs z bs G ds T S U,
   z; bs; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
   inert_typ S ->
@@ -128,6 +125,10 @@ Proof.
     inversions Hd. eauto.
 Qed.
 
+(** Suppose the declaration [d] corresponding to a path [z.bs]
+    has type [{b: V}], and that [V=...∧ {a: q.type} ∧...].
+    Then [q] is well-typed.
+    *)
 Lemma def_typing_rhs z bs G d a q U S cs T b V :
   z; bs; G ⊢ d : {b ⦂ V} ->
   inert_typ S ->
@@ -158,6 +159,8 @@ Proof.
     pose proof (lft_unique Hin Hl1 Hl2) as [=].
 Qed.
 
+(** The same applies to the case where we type multiple declarations that contain
+    [{b: V}] as a record. *)
 Lemma defs_typing_rhs z bs G ds T a q U S cs T' b V :
   z; bs; G ⊢ ds :: T ->
   inert_typ S ->
@@ -177,6 +180,8 @@ Proof.
     eapply def_typing_rhs; eauto.
 Qed.
 
+(** Looking up a path inside of a variable [x]'s environment type,
+    given that we can type the path [x.bs] *)
 Lemma pf_sngl_to_lft G x T bs W V :
   inert (G & x ~ μ T) ->
   G & x ~ (μ T) ⊢! p_sel (avar_f x) bs : W ⪼ V ->
@@ -203,6 +208,8 @@ Proof.
     apply* pf_record_has_T.
 Qed.
 
+(** Every value of type [T] has a precise type that is inert, well-formed,
+    and is a subtype of [T]. *)
 Lemma val_typing G x v T :
   inert G ->
   wf_env G ->
@@ -251,6 +258,8 @@ Proof.
   - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eexists; split*.
 Qed.
 
+(** *** Preservation *)
+
 (** Helper tactics for proving Preservation *)
 
 Ltac lookup_eq :=
@@ -285,15 +294,10 @@ Ltac solve_IH :=
 Ltac solve_let :=
   invert_red; solve_IH; fresh_constructor; eauto; apply* weaken_rules.
 
-(** [s: G]                  #<br>#
-    [inert, wf, wt G]       #<br>#
-    [(s, t) |-> (s', t')]   #<br>#
-    [G ⊢ t: T]              #<br>#
-    [―――――――――――――――――――]   #<br>#
-    [exists G', inert G']        #<br>#
-    [s': G, G']             #<br>#
-    [G, G' ⊢ t': T]         *)
-Lemma preservation_helper: forall G s t s' t' T,
+(** If a term [γ|t] has type [T] and reduces to [γ'|t'] then the latter has
+    the same type [T] under an extended environment that is inert, well-typed,
+    and well-formed. *)
+Lemma preservation: forall G s t s' t' T,
     well_typed G s ->
     inert G ->
     wf_env G ->
@@ -310,7 +314,7 @@ Proof.
     match goal with
     | [Hp: _ ⊢ trm_path _ : ∀(_) _ |- _] =>
         pose proof (canonical_forms_fun Hi Hwf Hwt Hp) as [L [T' [t [Hl [Hsub Hty]]]]];
-        inversions Hred
+        invert_red
     end.
     lookup_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat split; auto.
@@ -344,31 +348,11 @@ Proof.
     end.
 Qed.
 
-(** [⊢ (s, t): T]           #<br>#
-    [(s, t) |-> (s', t')]   #<br>#
-    [―――――――――――――――――――]   #<br>#
-    [⊢ (s', t'): T]         *)
-Theorem preservation : forall G s s' t t' T,
-    inert G ->
-    wf_env G ->
-    well_typed G s ->
-    G ⊢ t : T ->
-    (s, t) ⟼ (s', t') ->
-    exists G', inert G' /\ wf_env G' /\ well_typed G' s' /\ G' ⊢ t' : T.
-Proof.
-  introv Hi Hwf Hwt Ht Hr.
-  lets Hp: (preservation_helper Hwt Hi Hwf Hr Ht). destruct Hp as [G' [Hi' [Hwf' [Hwt' Ht']]]].
-  exists (G & G'). split*. apply* inert_concat.
-Qed.
-
 (** *** Progress *)
 
-(** [⊢ (s, t): T]           #<br>#
-    [(s, t) |-> (s', t')]   #<br>#
-    [―――――――――――――――――――]   #<br>#
-    [t] is in normal form   #<br>#
-    or [exists s', t'] such that [(s, t) |-> (s', t')] *)
-Theorem progress: forall G s t T,
+(** Any well-typed term is either in normal form (i.e. a path or value) or can
+    take a reduction step. *)
+Lemma progress: forall G s t T,
     inert G ->
     wf_env G ->
     well_typed G s ->
@@ -390,6 +374,10 @@ Qed.
 
 (** *** Safety *)
 
+(** If a term [γ|t] has type [T] and reduces in a finite number of steps
+    to [γ'|t'] then the latter is either in normal form and has type [T],
+    or it can take a further step to a term [γ''|t''], where [t''] also
+    has type [T]. *)
 Lemma safety_helper G t1 t2 s1 s2 T :
   G ⊢ t1 : T ->
   inert G ->
@@ -409,16 +397,21 @@ Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
   - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [s' [t' Hr]]].
     right. exists G. eauto.
-    left. pose proof (preservation_helper Hwt Hi Hwf Hr Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
+    left. pose proof (preservation Hwt Hi Hwf Hr Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     exists s' t' (G & G'). repeat split*. apply* inert_concat.
   - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
-    pose proof (preservation Hi Hwf Hwt Ht H) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
-    dependent induction H; eauto.
+    pose proof (preservation Hwt Hi Hwf H Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
+    specialize (IHHr _ (inert_concat Hi Hi' (well_typed_to_ok_G Hwt'))).
+    eauto.
 Qed.
 
 Definition diverges := infseq red.
 Definition cyclic_path s p := infseq (lookup_step s) (defp p).
 
+(** Reducing any well-typed program (i.e. term that can be typed in an empty context)
+    results either
+    - in a normal form (i.e. path or value) in a finite number of steps,
+    - in an infinite reduction sequence. *)
 Theorem safety t T :
   empty ⊢ t : T ->
   diverges (empty, t) \/
@@ -442,60 +435,66 @@ End Safety.
 (** ** Safety wrt Path Lookup ⤳ *)
 Section PathSafety.
 
-Lemma lookup_step_pres G p T q s :
-  inert G ->
-  wf_env G ->
-  well_typed G s ->
-  G ⊢!!! p : T ->
-  s ⟦ p ⤳ defp q ⟧ ->
-  exists U, G ⊢!!! q : U.
-Proof.
-  intros Hi Hwf Hwt Hp Hl.
-  apply pt2_exists in Hp as [U Hp].
-  pose proof (named_lookup_step Hl) as [x [bs Heq]].
-  pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hl Hp Heq)
-    as [[? [? [? [[=] ?]]]] |
-        [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
-         [r' [r [G1 [G2 [pT [S [[= ->] [-> [-> [[-> | Hr] [-> | Hr']]]]]]]]]]]]].
-  - apply sngl_typed2 in Hp as [U Hr]; eauto.
-  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-    apply* ok_concat_inv_l.
-  - apply sngl_typed3 in Hr as [U Hr]; eauto.
-    eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-    apply* ok_concat_inv_l. do 2 apply* inert_prefix.
-  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-    apply* ok_concat_inv_l.
-Qed.
+  (** If a well-typed path [p] looks up to a path [q] then [q] is also well-typed. *)
+  Lemma lookup_step_pres G p T q s :
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    G ⊢!!! p : T ->
+    s ⟦ p ⤳ defp q ⟧ ->
+    exists U, G ⊢!!! q : U.
+  Proof.
+    intros Hi Hwf Hwt Hp Hl.
+    apply pt2_exists in Hp as [U Hp].
+    pose proof (named_lookup_step Hl) as [x [bs Heq]].
+    pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hl Hp Heq)
+      as [[? [? [? [[=] ?]]]] |
+          [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
+           [r' [r [G1 [G2 [pT [S [[= ->] [-> [-> [[-> | Hr] [-> | Hr']]]]]]]]]]]]].
+    - apply sngl_typed2 in Hp as [U Hr]; eauto.
+    - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+      apply* ok_concat_inv_l.
+    - apply sngl_typed3 in Hr as [U Hr]; eauto.
+      eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+      apply* ok_concat_inv_l. do 2 apply* inert_prefix.
+    - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+      apply* ok_concat_inv_l.
+  Qed.
 
-Lemma lookup_pres G p T q s :
-  inert G ->
-  wf_env G ->
-  well_typed G s ->
-  G ⊢!!! p : T ->
-  s ⟦ defp p ⤳* defp q ⟧ ->
-  exists U, G ⊢!!! q : U.
-Proof.
-  intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
-  destruct b.
-  - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
-  - apply lookup_val_inv in Hl as [=].
-Qed.
+  (** If a well-typed path [p] looks up to a path [q] in a finite number
+      of steps then [q] is also well-typed.*)
+  Lemma lookup_pres G p T q s :
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    G ⊢!!! p : T ->
+    s ⟦ defp p ⤳* defp q ⟧ ->
+    exists U, G ⊢!!! q : U.
+  Proof.
+    intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
+    destruct b.
+    - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
+    - apply lookup_val_inv in Hl as [=].
+  Qed.
 
-Lemma path_safety G p T s :
-  inert G ->
-  wf_env G ->
-  well_typed G s ->
-  G ⊢ trm_path p : T ->
-  cyclic_path s p \/ exists v, s ∋ (p, v).
-Proof.
-  intros Hi Hwf Hwt Hp.
-  proof_recipe. apply repl_prec_exists in Hp as [U Hp].
-  pose proof (infseq_or_finseq (lookup_step s) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
-  right. destruct t; eauto.
-  pose proof (lookup_pres Hi Hwf Hwt Hp Hl) as [S Hq].
-  pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
-  false* Hirr.
-Qed.
+  (** Looking up any well-typed path in the value environment results either
+    - in a value in a finite number of steps, or
+    - in an infinite sequence of lookup operations, i.e. the path is cyclic *)
+  Lemma path_safety G p T s :
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    G ⊢ trm_path p : T ->
+    cyclic_path s p \/ exists v, s ∋ (p, v).
+  Proof.
+    intros Hi Hwf Hwt Hp.
+    proof_recipe. apply repl_prec_exists in Hp as [U Hp].
+    pose proof (infseq_or_finseq (lookup_step s) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
+    right. destruct t; eauto.
+    pose proof (lookup_pres Hi Hwf Hwt Hp Hl) as [S Hq].
+    pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
+    false* Hirr.
+  Qed.
 
 End PathSafety.
 
@@ -550,6 +549,11 @@ Section ExtendedSafety.
     auto. inversion H.
   Qed.
 
+  (** Reducing any well-typed program (i.e. term that can be typed in an empty context)
+      using the extended reduction relation (that includes term reduction and path lookup)
+      results either
+      - in a value in a finite number of steps, or
+      - in an infinite reduction sequence. *)
   Theorem extended_safety t T :
     empty ⊢ t : T ->
     diverges' (empty, t) \/ exists s v, (empty, t) ↠* (s, trm_val v).

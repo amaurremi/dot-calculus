@@ -13,11 +13,6 @@ Require Import Sequences.
 Require Import Coq.Program.Equality List String.
 Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing.
 
-(** is [T] a singleton type? *)
-Definition is_sngl T := exists p, T = {{ p }}.
-(** is [T] an inert or singleton type? *)
-Definition inert_sngl T := inert_typ T \/ is_sngl T.
-
 (** inverting equivalent types *)
 Ltac invert_repl :=
   repeat match goal with
@@ -516,6 +511,19 @@ Lemma pf_path_sel: forall G p a T U,
 Proof.
   introv Hi Hp. dependent induction Hp; try simpl_dot; eauto.
   destruct (pf_bnd_T2 Hi Hp) as [V Heq]. subst. eauto.
+Qed.
+
+(** If a path [x.bs], where [bs] is nonempty, has a type
+    then [x]'s environment type is recursive. *)
+Lemma pf_sngl G x bs T U a :
+  inert G ->
+  G ⊢! (p_sel (avar_f x) bs) • a : T ⪼ U ->
+  exists S V, G ⊢! pvar x : μ S ⪼ V.
+Proof.
+  intros Hi Hp. gen G x a T U. induction bs; introv Hi; introv Hp.
+  - simpl in Hp. rewrite proj_rewrite in *. apply (pf_path_sel _ _ Hi) in Hp as [V Hp].
+    pose proof (pf_bnd_T2 Hi Hp) as [S [= ->]]. eauto.
+  - pose proof (pf_path_sel _ _ Hi Hp) as [V Hp']. eauto.
 Qed.
 
 (** Weakening for precise typing with one element *)

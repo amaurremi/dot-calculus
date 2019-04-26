@@ -5,6 +5,7 @@ Require Import Definitions Lookup Sequences.
 
 (** * Operational Semantics *)
 
+(** Term-reduction relation *)
 Reserved Notation "t1 '⟼' t2" (at level 40, t2 at level 39).
 
 Inductive red : sta * trm -> sta * trm -> Prop :=

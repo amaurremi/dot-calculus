@@ -248,6 +248,25 @@ Proof.
   - inversions H5. inversions* H9.
 Qed.
 
+(** is [T] a singleton type? *)
+Definition is_sngl T := exists p, T = {{ p }}.
+(** is [T] an inert or singleton type? *)
+Definition inert_sngl T := inert_typ T \/ is_sngl T.
+
+(** If [μ(...{a: U}...)] is inert then [U] is inert or a singleton type. *)
+Lemma inert_record_has T p a U :
+  inert_typ (μ T) ->
+  record_has (open_typ_p p T) {a ⦂ U} ->
+  inert_sngl U.
+Proof.
+  intros Hi Hr. dependent induction Hr.
+  - destruct T; inversions x. destruct d; inversions H0. inversions Hi. inversions H0.
+    inversions H1. left. apply* open_record_p. right. eexists. simpl. eauto.
+  - destruct T; inversions x. inversions Hi. inversions H0. apply* IHHr.
+  - destruct T; inversions x. inversions Hi. inversions H0.
+    specialize (IHHr U a p (typ_rcd D)). eauto.
+Qed.
+
 (** Concatenating inert contexts yields an inert context *)
 Lemma inert_concat: forall G' G,
     inert G ->
