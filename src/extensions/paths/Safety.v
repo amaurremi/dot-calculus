@@ -260,7 +260,7 @@ Ltac lookup_eq :=
 
 Ltac invert_red :=
   match goal with
-  | [Hr: (_, _) |=> (_, _) |- _] => inversions Hr
+  | [Hr: (_, _) ⤳ (_, _) |- _] => inversions Hr
   end.
 
 Ltac solve_IH :=
@@ -268,11 +268,11 @@ Ltac solve_IH :=
   | [IH: well_typed _ _ ->
          inert _ ->
          wf_env _ ->
-         forall t', (_, _) |=> (_, _) -> _,
+         forall t', (_, _) ⤳ (_, _) -> _,
        Wt: well_typed _ _,
        In: inert _,
        Wf: wf_env _,
-       Hr: (_, _) |=> (_, ?t') |- _] =>
+       Hr: (_, _) ⤳ (_, ?t') |- _] =>
     specialize (IH Wt In Wf t' Hr); destruct_all
   end;
   match goal with
@@ -295,7 +295,7 @@ Lemma preservation_helper: forall G s t s' t' T,
     well_typed G s ->
     inert G ->
     wf_env G ->
-    (s, t) |=> (s', t') ->
+    (s, t) ⤳ (s', t') ->
     G ⊢ t : T ->
     exists G', inert G' /\
           wf_env (G & G') /\
@@ -353,7 +353,7 @@ Theorem preservation : forall G s s' t t' T,
     wf_env G ->
     well_typed G s ->
     G ⊢ t : T ->
-    (s, t) |=> (s', t') ->
+    (s, t) ⤳ (s', t') ->
     exists G', inert G' /\ wf_env G' /\ well_typed G' s' /\ G' ⊢ t' : T.
 Proof.
   introv Hi Hwf Hwt Ht Hr.
@@ -377,7 +377,7 @@ Theorem progress: forall G s t T,
     wf_env G ->
     well_typed G s ->
     G ⊢ t : T ->
-    norm_form t \/ exists s' t', (s, t) |=> (s', t').
+    norm_form t \/ exists s' t', (s, t) ⤳ (s', t').
 Proof.
   introv Hi Hwf Hwt Ht.
   induction Ht; eauto.
@@ -400,7 +400,7 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   wf_env G ->
   well_typed G s1 ->
   star red (s1, t1) (s2, t2) ->
-  (exists s3 t3 G3, (s2, t2) |=> (s3, t3) /\ G3 ⊢ t3 : T /\ well_typed G3 s3) \/
+  (exists s3 t3 G3, (s2, t2) ⤳ (s3, t3) /\ G3 ⊢ t3 : T /\ well_typed G3 s3) \/
   (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\ well_typed G2 s2).
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
@@ -489,3 +489,14 @@ Proof.
 Qed.
 
 End PathSafety.
+
+Section ExtendedSafety.
+
+  Inductive extended_red : sta * trm -> sta * trm -> Prop :=
+  | er_trm
+
+
+  Theorem extended_safety G s t T :
+
+
+End ExtendedSafety.
