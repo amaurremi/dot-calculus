@@ -10,9 +10,11 @@ Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTypin
 
 Close Scope string_scope.
 
+(** ** Safety wrt Term Reduction ⟼*)
+
 Section Safety.
 
-(** ** Preservation *)
+(** *** Preservation *)
 
 Lemma pf_sngl G x bs T U a :
   inert G ->
@@ -342,8 +344,6 @@ Proof.
     end.
 Qed.
 
-(** *** Preservation Theorem *)
-
 (** [⊢ (s, t): T]           #<br>#
     [(s, t) |-> (s', t')]   #<br>#
     [―――――――――――――――――――]   #<br>#
@@ -361,11 +361,7 @@ Proof.
   exists (G & G'). split*. apply* inert_concat.
 Qed.
 
-(** ** Progress *)
-
-(** Helper tactic for proving progress *)
-
-(** *** Progress Theorem *)
+(** *** Progress *)
 
 (** [⊢ (s, t): T]           #<br>#
     [(s, t) |-> (s', t')]   #<br>#
@@ -392,14 +388,14 @@ Proof.
       { inversion Hn. } eauto.
 Qed.
 
-(** ** Safety *)
+(** *** Safety *)
 
-Theorem safety_helper G t1 t2 s1 s2 T :
+Lemma safety_helper G t1 t2 s1 s2 T :
   G ⊢ t1 : T ->
   inert G ->
   wf_env G ->
   well_typed G s1 ->
-  star red (s1, t1) (s2, t2) ->
+  (s1, t1) ⟼* (s2, t2) ->
   (exists s3 t3 G3, (s2, t2) ⟼ (s3, t3) /\
                G3 ⊢ t3 : T /\
                well_typed G3 s3 /\
@@ -421,11 +417,12 @@ Proof.
 Qed.
 
 Definition diverges := infseq red.
+Definition cyclic_path s p := infseq (lookup_step s) (defp p).
 
 Theorem safety t T :
   empty ⊢ t : T ->
   diverges (empty, t) \/
-  (exists s u G, star red (empty, t) (s, u) /\
+  (exists s u G, (empty, t) ⟼* (s, u) /\
             norm_form u /\
             G ⊢ u : T /\
             well_typed G s /\
@@ -442,7 +439,7 @@ Qed.
 
 End Safety.
 
-(** ** Path-Lookup Safety *)
+(** ** Safety wrt Path Lookup ⤳ *)
 Section PathSafety.
 
 Lemma lookup_step_pres G p T q s :
@@ -484,14 +481,12 @@ Proof.
   - apply lookup_val_inv in Hl as [=].
 Qed.
 
-(** *** Path-safety lemma *)
-
 Lemma path_safety G p T s :
   inert G ->
   wf_env G ->
   well_typed G s ->
   G ⊢ trm_path p : T ->
-  infseq (lookup_step s) (defp p) \/ exists v, s ∋ (p, v).
+  cyclic_path s p \/ exists v, s ∋ (p, v).
 Proof.
   intros Hi Hwf Hwt Hp.
   proof_recipe. apply repl_prec_exists in Hp as [U Hp].
@@ -504,8 +499,12 @@ Qed.
 
 End PathSafety.
 
+
+(** ** Extended Safety *)
+
 Section ExtendedSafety.
 
+  (** Extended reduction relation (combines term reduction ⟼ and lookup ⤳) *)
   Reserved Notation "t '↠' u" (at level 40).
 
   Inductive extended_red : sta * trm -> sta * trm -> Prop :=
@@ -519,14 +518,16 @@ Section ExtendedSafety.
 
   Hint Constructors extended_red.
 
+  (** Reflexive transitive closure of extended reduction *)
   Notation "t '↠*' u" := ((star extended_red) t u) (at level 40).
 
-  Definition subst_env x y e := map (subst_val x y) e.
+  (** Divergence of extended reduction *)
+  Definition diverges' := infseq extended_red.
 
   Lemma extend_infseq s t s' t' :
-        infseq extended_red (s, t) ->
+        diverges' (s, t) ->
         (s', t') ↠* (s, t) ->
-        infseq extended_red (s', t').
+        diverges' (s', t').
   Proof.
     intros Hinf Hr. dependent induction Hr; auto.
     destruct b. specialize (IHHr _ _ _ _ Hinf eq_refl eq_refl).
@@ -534,35 +535,24 @@ Section ExtendedSafety.
   Qed.
 
   Lemma map_red_extend s t s' t':
-    star red (s, t) (s', t') ->
-    star extended_red (s, t) (s', t').
+    (s, t) ⟼* (s', t') ->
+    (s, t) ↠* (s', t').
   Proof.
     intros Hr. dependent induction Hr; try destruct b; eauto.
   Qed.
 
   Lemma map_lookup_extend s t t':
     star (lookup_step s) t t' ->
-    star extended_red (s, deftrm t) (s, deftrm t').
+    (s, deftrm t) ↠*(s, deftrm t').
   Proof.
     intros Hr. dependent induction Hr; eauto.
     destruct a. eapply star_trans. apply star_one. apply* er_lookup.
     auto. inversion H.
   Qed.
 
- (* Lemma map_lookup_extend_inf s dt :
-    infseq (lookup_step s) dt ->
-    infseq extended_red (s, deftrm dt).
-  Proof.
-    intros.
-    apply infseq_coinduction_principle with
-        (X := fun st => exists u, st = (s, deftrm u) /\ infseq (lookup_step s) u).
-    intros st [du [-> Hinf]].
-    + inversions Hinf. destruct b. eexists; split*. econstructor. eauto. eauto.
-    + eauto.
-  *)
   Theorem extended_safety t T :
     empty ⊢ t : T ->
-    infseq extended_red (empty, t) \/ exists s v, (empty, t) ↠* (s, trm_val v).
+    diverges' (empty, t) \/ exists s v, (empty, t) ↠* (s, trm_val v).
   Proof.
     intros Ht. pose proof (safety Ht) as [Hd | [s [u [G [Hr [Hn [Hu [Hwt [Hwf Hi]]]]]]]]].
     - Case "term diverges"%string.

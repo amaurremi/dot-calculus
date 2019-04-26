@@ -1,7 +1,7 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality.
-Require Import Definitions Binding Lookup.
+Require Import Definitions Lookup Sequences.
 
 (** * Operational Semantics *)
 
@@ -33,6 +33,9 @@ Inductive red : sta * trm -> sta * trm -> Prop :=
     (s, trm_let t0 t) ⟼ (s', trm_let t0' t)
 
 where "t1 '⟼' t2" := (red t1 t2).
+
+(** Reflexive, transitive closure of reduction relation *)
+Notation "t1 '⟼*' t2" := (star red t1 t2) (at level 40).
 
 (** ** Normal forms *)
 
