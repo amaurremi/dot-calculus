@@ -69,7 +69,7 @@ Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
     inert G ->
     wf_env G ->
     well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
+    s ⟦ p ⤳ t ⟧ ->
     G ⊢! p : T ⪼ U ->
     p = p_sel (avar_f px) pbs ->
     (exists S u, t = defv (λ(S) u) /\ G ⊢ deftrm t : T) \/
@@ -94,7 +94,7 @@ Proof.
     pose proof (typed_paths_named (precise_to_general Hp)) as [px' [bs ->]].
     destruct (classicT (x = px')) as [-> | Hn].
     * SCase "x = px"%string.
-      (** induction on ⟦⟼⟧ **)
+      (** induction on ⟦⤳⟧ **)
       gen T U T0 px pbs.
       dependent induction Hs; introv Hwf Hi Hv; introv Hp; introv [= -> <-];
         try simpl_dot; try rewrite proj_rewrite in *.
@@ -190,7 +190,7 @@ Lemma lookup_step_preservation_prec2 G s p px pbs t T :
     inert G ->
     wf_env G ->
     well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
+    s ⟦ p ⤳ t ⟧ ->
     G ⊢!! p : T ->
     p = p_sel (avar_f px) pbs ->
     (exists S U u, t = defv (λ(S) u) /\ G ⊢ deftrm t : U /\ G ⊢! p : U ⪼ T) \/
@@ -251,7 +251,7 @@ Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     inert G ->
     wf_env G ->
     well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
+    s ⟦ p ⤳ t ⟧ ->
     G ⊢!!! p : T ->
     inert_typ T ->
     (exists S U, T = ∀(S) U /\ G ⊢ deftrm t : ∀(S) U) \/
@@ -314,7 +314,7 @@ Lemma lookup_step_preservation_prec3_fun G s p T S t :
   inert G ->
   wf_env G ->
   well_typed G s ->
-  s ⟦ p ⟼ t ⟧ ->
+  s ⟦ p ⤳ t ⟧ ->
   G ⊢!!! p : ∀(T) S ->
   G ⊢ deftrm t : ∀(T) S.
 Proof.
@@ -329,7 +329,7 @@ Lemma typ_to_lookup1 G s p T U :
   wf_env G ->
   well_typed G s ->
   G ⊢! p : T ⪼ U ->
-  exists t, s ⟦ p ⟼ t ⟧.
+  exists t, s ⟦ p ⤳ t ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. gen p T U. induction Hwt; introv Hp.
   (** induction on ⟦~⟧ **)
@@ -372,7 +372,7 @@ Lemma typ_to_lookup2 G s p T :
   wf_env G ->
   well_typed G s ->
   G ⊢!! p : T ->
-  exists t, s ⟦ p ⟼ t ⟧.
+  exists t, s ⟦ p ⤳ t ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. induction Hp.
   - apply* typ_to_lookup1.
@@ -392,7 +392,7 @@ Lemma typ_to_lookup3 G s p T :
   wf_env G ->
   well_typed G s ->
   G ⊢!!!p : T ->
-  exists t, s ⟦ p ⟼ t ⟧.
+  exists t, s ⟦ p ⤳ t ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. induction Hp; apply* typ_to_lookup2.
 Qed.
@@ -402,7 +402,7 @@ Lemma sngl_path_lookup1 G s p q U :
   wf_env G ->
   well_typed G s ->
   G ⊢! p : {{ q }} ⪼ U ->
-           exists r r', s ⟦ p ⟼ defp r ⟧ /\
+           exists r r', s ⟦ p ⤳ defp r ⟧ /\
                    (r = r' \/ G ⊢!!! r : {{ r' }}) /\
                    (q = r' \/ G ⊢!!! q : {{ r' }}).
 Proof.
@@ -425,7 +425,7 @@ Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     wf_env G ->
     well_typed G s ->
-    s ⟦ p ⟼ t ⟧ ->
+    s ⟦ p ⤳ t ⟧ ->
     G ⊢!!! p : {{ q }} ->
     G ⊢! q : ∀(Q1) Q2 ⪼ Q3 ->
     exists r r', t = defp r /\
@@ -509,7 +509,7 @@ Lemma lookup_same_var_same_type G s x bs cs T:
   inert G ->
   wf_env G ->
   well_typed G s ->
-  s ⟦ p_sel (avar_f x) bs ⟼ defp (p_sel (avar_f x) cs) ⟧ ->
+  s ⟦ p_sel (avar_f x) bs ⤳ defp (p_sel (avar_f x) cs) ⟧ ->
   G ⊢!! p_sel (avar_f x) bs : T ->
   T = {{ p_sel (avar_f x) cs }}.
 Proof.
@@ -544,7 +544,7 @@ Lemma typed_path_lookup_same_var2 G s y bs cs :
   wf_env G ->
   well_typed G s ->
   G ⊢!! p_sel (avar_f y) bs : {{ p_sel (avar_f y) cs }} ->
-  s ⟦ p_sel (avar_f y) bs ⟼ defp (p_sel (avar_f y) cs) ⟧.
+  s ⟦ p_sel (avar_f y) bs ⤳ defp (p_sel (avar_f y) cs) ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. pose proof (typ_to_lookup2 Hi Hwf Hwt Hp) as [t Hs].
   pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hs Hp eq_refl)
@@ -573,7 +573,7 @@ Lemma typed_path_lookup_same_var3 G s y bs cs :
   wf_env G ->
   well_typed G s ->
   G ⊢!!! p_sel (avar_f y) bs : {{ p_sel (avar_f y) cs }} ->
-  s ⟦ defp (p_sel (avar_f y) bs) ⟼* defp (p_sel (avar_f y) cs) ⟧.
+  s ⟦ defp (p_sel (avar_f y) bs) ⤳* defp (p_sel (avar_f y) cs) ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. dependent induction Hp.
   - apply star_one. apply* typed_path_lookup_same_var2.
@@ -630,7 +630,7 @@ Lemma typed_path_lookup_helper G s p r S T V :
   well_typed G s ->
   G ⊢!!! p : {{ r }} ->
   G ⊢! r : ∀(S) T ⪼ V->
-  s ⟦ defp p ⟼* defp r ⟧.
+  s ⟦ defp p ⤳* defp r ⟧.
 Proof.
   intros Hi Hwf Hwt. gen p r S T V. induction Hwt; introv Hp Hr.
   - Case "G is empty"%string.

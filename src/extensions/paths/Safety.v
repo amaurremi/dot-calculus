@@ -10,7 +10,7 @@ Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTypin
 
 Close Scope string_scope.
 
-Module Safety.
+Section Safety.
 
 (** ** Preservation *)
 
@@ -260,7 +260,7 @@ Ltac lookup_eq :=
 
 Ltac invert_red :=
   match goal with
-  | [Hr: (_, _) ⤳ (_, _) |- _] => inversions Hr
+  | [Hr: (_, _) ⟼ (_, _) |- _] => inversions Hr
   end.
 
 Ltac solve_IH :=
@@ -268,11 +268,11 @@ Ltac solve_IH :=
   | [IH: well_typed _ _ ->
          inert _ ->
          wf_env _ ->
-         forall t', (_, _) ⤳ (_, _) -> _,
+         forall t', (_, _) ⟼ (_, _) -> _,
        Wt: well_typed _ _,
        In: inert _,
        Wf: wf_env _,
-       Hr: (_, _) ⤳ (_, ?t') |- _] =>
+       Hr: (_, _) ⟼ (_, ?t') |- _] =>
     specialize (IH Wt In Wf t' Hr); destruct_all
   end;
   match goal with
@@ -295,7 +295,7 @@ Lemma preservation_helper: forall G s t s' t' T,
     well_typed G s ->
     inert G ->
     wf_env G ->
-    (s, t) ⤳ (s', t') ->
+    (s, t) ⟼ (s', t') ->
     G ⊢ t : T ->
     exists G', inert G' /\
           wf_env (G & G') /\
@@ -353,7 +353,7 @@ Theorem preservation : forall G s s' t t' T,
     wf_env G ->
     well_typed G s ->
     G ⊢ t : T ->
-    (s, t) ⤳ (s', t') ->
+    (s, t) ⟼ (s', t') ->
     exists G', inert G' /\ wf_env G' /\ well_typed G' s' /\ G' ⊢ t' : T.
 Proof.
   introv Hi Hwf Hwt Ht Hr.
@@ -377,7 +377,7 @@ Theorem progress: forall G s t T,
     wf_env G ->
     well_typed G s ->
     G ⊢ t : T ->
-    norm_form t \/ exists s' t', (s, t) ⤳ (s', t').
+    norm_form t \/ exists s' t', (s, t) ⟼ (s', t').
 Proof.
   introv Hi Hwf Hwt Ht.
   induction Ht; eauto.
@@ -400,13 +400,21 @@ Theorem safety_helper G t1 t2 s1 s2 T :
   wf_env G ->
   well_typed G s1 ->
   star red (s1, t1) (s2, t2) ->
-  (exists s3 t3 G3, (s2, t2) ⤳ (s3, t3) /\ G3 ⊢ t3 : T /\ well_typed G3 s3) \/
-  (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\ well_typed G2 s2).
+  (exists s3 t3 G3, (s2, t2) ⟼ (s3, t3) /\
+               G3 ⊢ t3 : T /\
+               well_typed G3 s3 /\
+               wf_env G3 /\
+               inert G3) \/
+  (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\
+               well_typed G2 s2 /\
+               wf_env G2 /\
+               inert G2).
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
-  - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [s' [t' Hr]]]; eauto.
-    left. pose proof (preservation_helper Hwt Hi Hwf Hr Ht) as [G' [_ [_ [Hwt' Ht']]]].
-    exists s' t' (G & G'). eauto.
+  - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [s' [t' Hr]]].
+    right. exists G. eauto.
+    left. pose proof (preservation_helper Hwt Hi Hwf Hr Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
+    exists s' t' (G & G'). repeat split*. apply* inert_concat.
   - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
     pose proof (preservation Hi Hwf Hwt Ht H) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     dependent induction H; eauto.
@@ -416,12 +424,18 @@ Definition diverges := infseq red.
 
 Theorem safety t T :
   empty ⊢ t : T ->
-  diverges (empty, t) \/ (exists s u G, star red (empty, t) (s, u) /\ norm_form u /\ G ⊢ u : T /\ well_typed G s).
+  diverges (empty, t) \/
+  (exists s u G, star red (empty, t) (s, u) /\
+            norm_form u /\
+            G ⊢ u : T /\
+            well_typed G s /\
+            wf_env G /\
+            inert G).
 Proof.
   intros Ht.
   pose proof (infseq_or_finseq red (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
   right. epose proof (safety_helper Ht inert_empty wfe_empty well_typed_empty Hr)
-    as [[s' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' Hwt]]]]; try solve [constructor]; eauto.
+    as [[s' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' [Hwt [Hwf Hi]]]]]].
   - false* Hn.
   - repeat eexists; eauto.
 Qed.
@@ -436,7 +450,7 @@ Lemma lookup_step_pres G p T q s :
   wf_env G ->
   well_typed G s ->
   G ⊢!!! p : T ->
-  s ⟦ p ⟼ defp q ⟧ ->
+  s ⟦ p ⤳ defp q ⟧ ->
   exists U, G ⊢!!! q : U.
 Proof.
   intros Hi Hwf Hwt Hp Hl.
@@ -461,7 +475,7 @@ Lemma lookup_pres G p T q s :
   wf_env G ->
   well_typed G s ->
   G ⊢!!! p : T ->
-  s ⟦ defp p ⟼* defp q ⟧ ->
+  s ⟦ defp p ⤳* defp q ⟧ ->
   exists U, G ⊢!!! q : U.
 Proof.
   intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
@@ -477,12 +491,12 @@ Lemma path_safety G p T s :
   wf_env G ->
   well_typed G s ->
   G ⊢ trm_path p : T ->
-  (exists v, s ∋ (p, v)) \/ infseq (lookup_step s) (defp p).
+  infseq (lookup_step s) (defp p) \/ exists v, s ∋ (p, v).
 Proof.
   intros Hi Hwf Hwt Hp.
   proof_recipe. apply repl_prec_exists in Hp as [U Hp].
   pose proof (infseq_or_finseq (lookup_step s) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
-  left. destruct t; eauto.
+  right. destruct t; eauto.
   pose proof (lookup_pres Hi Hwf Hwt Hp Hl) as [S Hq].
   pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
   false* Hirr.
@@ -492,11 +506,99 @@ End PathSafety.
 
 Section ExtendedSafety.
 
+  Reserved Notation "t '↠' u" (at level 40).
+
   Inductive extended_red : sta * trm -> sta * trm -> Prop :=
-  | er_trm
+  | er_red s s' t t':
+      (s, t) ⟼ (s', t') ->
+      (s, t) ↠ (s', t')
+  | er_lookup s p t:
+      s ⟦ p ⤳ t ⟧ ->
+      (s, trm_path p) ↠ (s, deftrm t)
+  where "t ↠ u" := (extended_red t u).
 
+  Hint Constructors extended_red.
 
-  Theorem extended_safety G s t T :
+  Notation "t '↠*' u" := ((star extended_red) t u) (at level 40).
 
+  Definition subst_env x y e := map (subst_val x y) e.
+
+  Lemma extend_infseq s t s' t' :
+        infseq extended_red (s, t) ->
+        (s', t') ↠* (s, t) ->
+        infseq extended_red (s', t').
+  Proof.
+    intros Hinf Hr. dependent induction Hr; auto.
+    destruct b. specialize (IHHr _ _ _ _ Hinf eq_refl eq_refl).
+    econstructor. apply H. auto.
+  Qed.
+
+  Lemma map_red_extend s t s' t':
+    star red (s, t) (s', t') ->
+    star extended_red (s, t) (s', t').
+  Proof.
+    intros Hr. dependent induction Hr; try destruct b; eauto.
+  Qed.
+
+  Lemma map_lookup_extend s t t':
+    star (lookup_step s) t t' ->
+    star extended_red (s, deftrm t) (s, deftrm t').
+  Proof.
+    intros Hr. dependent induction Hr; eauto.
+    destruct a. eapply star_trans. apply star_one. apply* er_lookup.
+    auto. inversion H.
+  Qed.
+
+ (* Lemma map_lookup_extend_inf s dt :
+    infseq (lookup_step s) dt ->
+    infseq extended_red (s, deftrm dt).
+  Proof.
+    intros.
+    apply infseq_coinduction_principle with
+        (X := fun st => exists u, st = (s, deftrm u) /\ infseq (lookup_step s) u).
+    intros st [du [-> Hinf]].
+    + inversions Hinf. destruct b. eexists; split*. econstructor. eauto. eauto.
+    + eauto.
+  *)
+  Theorem extended_safety t T :
+    empty ⊢ t : T ->
+    infseq extended_red (empty, t) \/ exists s v, (empty, t) ↠* (s, trm_val v).
+  Proof.
+    intros Ht. pose proof (safety Ht) as [Hd | [s [u [G [Hr [Hn [Hu [Hwt [Hwf Hi]]]]]]]]].
+    - Case "term diverges"%string.
+      left. inversions Hd. inversions H0. apply infseq_step with (b:=b); destruct b; auto.
+      destruct b0. econstructor. apply er_red. apply H1.
+      apply infseq_coinduction_principle with
+          (X := fun st => exists s1 t1,
+                    st = (s1, t1) /\ infseq red (s1, t1)).
+      intros st [s' [t' [-> Hinf]]].
+      + inversions Hinf. destruct b. eexists; split*.
+      + eauto.
+    - Case "term evaluates to normal form"%string.
+      inversions Hn.
+      + SCase "term evaluates to a path"%string.
+        pose proof (path_safety Hi Hwf Hwt Hu) as [Hd | Hn].
+        * SSCase "path lookup diverges"%string.
+          left. assert (infseq extended_red (s, trm_path p)). {
+            clear Hwf Hwt Hr Hu Ht Hi G T t.
+            apply infseq_coinduction_principle with
+                (X := fun st => exists u, st = (s, deftrm u) /\ infseq (lookup_step s) u).
+            + intros st [du [-> Hinf]].
+              inversions Hinf. destruct b, du; try solve [inversion H].
+              eexists; split*; apply* er_lookup.
+              inversions H0. inversion H1.
+            + eexists. split*. simpl. auto.
+          }
+          assert (star extended_red (empty, t) (s, trm_path p)). {
+            apply* map_red_extend.
+          }
+          apply* extend_infseq.
+        * SSCase "path looks up to value"%string.
+          destruct Hn as [v Hv]. right. exists s v.
+          eapply star_trans. eapply map_red_extend. eauto.
+          inversions Hv. apply map_lookup_extend in H1. eauto.
+      + SCase "term evaluates to a value"%string.
+        right. exists s v. apply* map_red_extend.
+  Qed.
 
 End ExtendedSafety.

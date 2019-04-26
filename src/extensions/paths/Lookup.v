@@ -14,41 +14,41 @@ Require Import Definitions Binding.
 (** Looking up a path in a store (generalization of variable binding). *)
 
 Reserved Notation "s '∋' t" (at level 40).
-Reserved Notation "s '⟦' t '⟼' u '⟧'" (at level 40).
+Reserved Notation "s '⟦' t '⤳' u '⟧'" (at level 40).
 
 Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 
 (** [s(x) = v ]   #<br>#
     [―――――――――]   #<br>#
-    [s[x ⟼ v]]   *)
+    [s[x ⤳ v]]   *)
 | lookup_var : forall s x v,
     binds x v s ->
-    s ⟦ pvar x ⟼ defv v ⟧
+    s ⟦ pvar x ⤳ defv v ⟧
 
-(** [s ⟦ p ⟼ q ⟧ ]              #<br>#
+(** [s ⟦ p ⤳ q ⟧ ]              #<br>#
     [――――――――――――――――――――――]    #<br>#
-    [s ⟦ p.a ⟼ q.a ⟧ ]          *)
+    [s ⟦ p.a ⤳ q.a ⟧ ]          *)
 | lookup_sel_p : forall s p q a,
-    s ⟦ p ⟼ defp q ⟧ ->
-    s ⟦ p•a ⟼ defp (q•a) ⟧
+    s ⟦ p ⤳ defp q ⟧ ->
+    s ⟦ p•a ⤳ defp (q•a) ⟧
 
-(** [s ⟦ p ⟼ ν(T)...{a = t}... ⟧ ]   #<br>#
+(** [s ⟦ p ⤳ ν(T)...{a = t}... ⟧ ]   #<br>#
     [――――――――――――――――――――――]         #<br>#
-    [s ⟦ p.a ⟼ t ⟧ ]                 *)
+    [s ⟦ p.a ⤳ t ⟧ ]                 *)
 | lookup_sel_v : forall s p a t T ds,
-    s ⟦ p ⟼ defv (val_new T ds) ⟧ ->
+    s ⟦ p ⤳ defv (val_new T ds) ⟧ ->
     defs_has ds { a := t } ->
-    s ⟦ p•a ⟼ open_defrhs_p p t ⟧
+    s ⟦ p•a ⤳ open_defrhs_p p t ⟧
 
-where "s '⟦' p '⟼' t '⟧'" := (lookup_step s (defp p) t).
+where "s '⟦' p '⤳' t '⟧'" := (lookup_step s (defp p) t).
 
 (** Reflexive, transitive closure of path lookup *)
-Notation "s '⟦' t '⟼*' u '⟧'" := (star (lookup_step s) t u) (at level 40).
+Notation "s '⟦' t '⤳*' u '⟧'" := (star (lookup_step s) t u) (at level 40).
 
 (** Path lookup that results in values *)
 Inductive lookup : sta -> path * val -> Prop :=
 | lookup_def: forall s p v,
-    s ⟦ defp p ⟼* defv v ⟧ ->
+    s ⟦ defp p ⤳* defv v ⟧ ->
     s ∋ (p, v)
 
 where "s '∋' t" := (lookup s t).
@@ -58,7 +58,7 @@ Hint Constructors lookup lookup_step.
 (** *** Properties of path lookup *)
 
 Lemma lookup_empty : forall t u,
-    empty ⟦ t ⟼ u ⟧ -> False.
+    empty ⟦ t ⤳ u ⟧ -> False.
 Proof.
   intros. dependent induction H; eauto. false* binds_empty_inv.
 Qed.
@@ -70,9 +70,9 @@ Ltac solve_lookup :=
   end.
 
 Lemma lookup_strengthen_one: forall s y v x bs t,
-    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
+    s & y ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
     y <> x ->
-    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+    s ⟦ p_sel (avar_f x) bs ⤳ t ⟧.
 Proof.
   introv Hl Hn. dependent induction Hl; try solve_lookup.
   constructor. eapply binds_push_neq_inv; eauto.
@@ -81,8 +81,8 @@ Qed.
 Lemma lookup_strengthen s s1 s2 x v bs t :
   ok s ->
   s = s1 & x ~ v & s2 ->
-  s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
-  s1 & x ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+  s ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
+  s1 & x ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧.
 Proof.
   intros Hok -> Hs. induction s2 using env_ind.
   - rewrite concat_empty_r in Hs; auto.
@@ -93,7 +93,7 @@ Proof.
 Qed.
 
 Lemma named_lookup_step: forall s t p,
-    s ⟦ p ⟼ t ⟧ ->
+    s ⟦ p ⤳ t ⟧ ->
     exists x bs, p = p_sel (avar_f x) bs.
 Proof.
   intros. dependent induction H.
@@ -103,15 +103,15 @@ Proof.
 Qed.
 
 Lemma lookup_val_inv: forall s v t,
-    s ⟦ defv v ⟼* t ⟧ ->
+    s ⟦ defv v ⤳* t ⟧ ->
     t = defv v.
 Proof.
   introv Hs. dependent induction Hs. auto. inversion H.
 Qed.
 
 Lemma lookup_step_func: forall s t t1 t2,
-    s ⟦ t ⟼ t1 ⟧ ->
-    s ⟦ t ⟼ t2 ⟧ ->
+    s ⟦ t ⤳ t1 ⟧ ->
+    s ⟦ t ⤳ t2 ⟧ ->
     t1 = t2.
 Proof.
   introv Hl1. gen t2. dependent induction Hl1; introv Hl2.
@@ -145,9 +145,9 @@ Proof.
 Qed.
 
 Lemma lookup_step_weaken_one : forall s x bs v y t,
-    s ⟦ p_sel (avar_f x) bs ⟼ t ⟧ ->
+    s ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
     y # s ->
-    s & y ~ v ⟦ p_sel (avar_f x) bs ⟼ t ⟧.
+    s & y ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧.
 Proof.
   introv Hp Hn. dependent induction Hp; try solve_lookup.
   constructor. apply* binds_push_neq. intro. subst. eapply binds_fresh_inv; eauto.
@@ -155,8 +155,8 @@ Qed.
 
 Lemma lookup_step_weaken s p t s' :
   ok (s & s') ->
-  s ⟦ p ⟼ t ⟧ ->
-  s & s' ⟦ p ⟼ t ⟧.
+  s ⟦ p ⤳ t ⟧ ->
+  s & s' ⟦ p ⤳ t ⟧.
 Proof.
   intros Hok Hs. induction s' using env_ind.
   - rewrite concat_empty_r in *; auto.
@@ -166,9 +166,9 @@ Proof.
 Qed.
 
 Lemma lookup_weaken_one : forall s x bs v y t,
-    s ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧ ->
+    s ⟦ defp (p_sel (avar_f x) bs) ⤳* t ⟧ ->
     y # s ->
-    s & y ~ v ⟦ defp (p_sel (avar_f x) bs) ⟼* t ⟧.
+    s & y ~ v ⟦ defp (p_sel (avar_f x) bs) ⤳* t ⟧.
 Proof.
   introv Hl Hn. gen y. dependent induction Hl; introv Hn.
   - apply star_refl.
@@ -183,8 +183,8 @@ Qed.
 
 Lemma lookup_weaken s t1 t2 s' :
   ok (s & s') ->
-  s ⟦ t1 ⟼* t2 ⟧ ->
-  s & s' ⟦ t1 ⟼* t2 ⟧.
+  s ⟦ t1 ⤳* t2 ⟧ ->
+  s & s' ⟦ t1 ⤳* t2 ⟧.
 Proof.
   intros Hok Hs. induction s' using env_ind.
   - rewrite concat_empty_r in *; auto.
