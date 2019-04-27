@@ -138,7 +138,7 @@
 <td><a href="indexpage.html#library_L">L</a></td>
 <td>M</td>
 <td><a href="indexpage.html#library_N">N</a></td>
-<td><a href="indexpage.html#library_O">O</a></td>
+<td>O</td>
 <td><a href="indexpage.html#library_P">P</a></td>
 <td>Q</td>
 <td><a href="indexpage.html#library_R">R</a></td>
@@ -615,9 +615,9 @@
 <a href="Narrowing.html#narrow_subtyping">narrow_subtyping</a> [lemma, in <a href="Narrowing.html">Narrowing</a>]<br/>
 <a href="Narrowing.html#narrow_typing">narrow_typing</a> [lemma, in <a href="Narrowing.html">Narrowing</a>]<br/>
 <a href="Narrowing.html#narrow_rules">narrow_rules</a> [lemma, in <a href="Narrowing.html">Narrowing</a>]<br/>
-<a href="OperationalSemantics.html#nf_val">nf_val</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#nf_path">nf_path</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#norm_form">norm_form</a> [inductive, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#nf_val">nf_val</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#nf_path">nf_path</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#norm_form">norm_form</a> [inductive, in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Definitions.html#numpaths">numpaths</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#numpathsD">numpathsD</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Replacement.html#numpaths_open">numpaths_open</a> [lemma, in <a href="Replacement.html">Replacement</a>]<br/>
@@ -680,7 +680,6 @@
 <a href="Definitions.html#open_rec_path">open_rec_path</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#open_rec_avar">open_rec_avar</a> [definition, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Substitution.html#open_typ_subst">open_typ_subst</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
-<a href="OperationalSemantics.html">OperationalSemantics</a> [library]<br/>
 <br/><br/><a name="global_P"></a><h2>P </h2>
 <a href="Definitions.html#path">path</a> [inductive, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Safety.html#PathSafety">PathSafety</a> [section, in <a href="Safety.html">Safety</a>]<br/>
@@ -843,11 +842,12 @@
 <a href="Definitions.html#record_has">record_has</a> [inductive, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#record_typ">record_typ</a> [inductive, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#record_dec">record_dec</a> [inductive, in <a href="Definitions.html">Definitions</a>]<br/>
-<a href="OperationalSemantics.html#red">red</a> [inductive, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_let_tgt">red_let_tgt</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_let_path">red_let_path</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_let_val">red_let_val</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_app">red_app</a> [constructor, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#red">red</a> [inductive, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html">Reduction</a> [library]<br/>
+<a href="Reduction.html#red_let_tgt">red_let_tgt</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_let_path">red_let_path</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_let_val">red_let_val</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_app">red_app</a> [constructor, in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Substitution.html#rename_defs">rename_defs</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
 <a href="Substitution.html#rename_def_defs">rename_def_defs</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
 <a href="Substitution.html#rename_ty_trm">rename_ty_trm</a> [lemma, in <a href="Substitution.html">Substitution</a>]<br/>
@@ -1280,6 +1280,8 @@
 <a href="Definitions.html#7a630e21245026e1b75685a10a5ca45a">_ ∧ _</a> [notation, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="InvertibleTyping.html#3592546c6d4926a7d0b92c881bbf3785">_ ⊢##v _ : _</a> [notation, in <a href="InvertibleTyping.html">InvertibleTyping</a>]<br/>
 <a href="InvertibleTyping.html#73b11c120860bd23cb2b9718d29e8cd0">_ ⊢## _ : _</a> [notation, in <a href="InvertibleTyping.html">InvertibleTyping</a>]<br/>
+<a href="Reduction.html#4e97cf452882dc3f98e0131fef8d7935">_ ⟼* _</a> [notation, in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83">_ ⟼ _</a> [notation, in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Lookup.html#c47b99a8858a8fdd619fdfff097f423f">_ ∋ _</a> [notation, in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9">_ ⟦ _ ⤳* _ ⟧</a> [notation, in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b">_ ⟦ _ ⤳ _ ⟧</a> [notation, in <a href="Lookup.html">Lookup</a>]<br/>
@@ -1294,8 +1296,6 @@
 <a href="PreciseTyping.html#c7ef41c91aa73ea0925fafe08ac00851">_ ⊢ _ ⟿ _</a> [notation, in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
 <a href="PreciseTyping.html#531d18a606e4c8b57e11df3af3b1ece8">_ ⊢!!! _ : _</a> [notation, in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
 <a href="PreciseTyping.html#eb1918df832a03c95bc5e667bbcce5b5">_ ⊢!! _ : _</a> [notation, in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
-<a href="OperationalSemantics.html#4e97cf452882dc3f98e0131fef8d7935">_ ⟼* _</a> [notation, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#6a0a2cd1c1d834551a7de9c07376fb83">_ ⟼ _</a> [notation, in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
 <a href="Definitions.html#614b1fe1c75ca54dab731572dbb52671">{ _ ⦂= _ }</a> [notation, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#bf15e09ab2c4c3f7e80e9698ff456e97">{ _ :=v _ }</a> [notation, in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#086e0deac9b1a881b31f67b1df838558">{ _ :=p _ }</a> [notation, in <a href="Definitions.html">Definitions</a>]<br/>
@@ -1331,6 +1331,8 @@
 <a href="Definitions.html#7a630e21245026e1b75685a10a5ca45a">_ ∧ _</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="InvertibleTyping.html#3592546c6d4926a7d0b92c881bbf3785">_ ⊢##v _ : _</a> [in <a href="InvertibleTyping.html">InvertibleTyping</a>]<br/>
 <a href="InvertibleTyping.html#73b11c120860bd23cb2b9718d29e8cd0">_ ⊢## _ : _</a> [in <a href="InvertibleTyping.html">InvertibleTyping</a>]<br/>
+<a href="Reduction.html#4e97cf452882dc3f98e0131fef8d7935">_ ⟼* _</a> [in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83">_ ⟼ _</a> [in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Lookup.html#c47b99a8858a8fdd619fdfff097f423f">_ ∋ _</a> [in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9">_ ⟦ _ ⤳* _ ⟧</a> [in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b">_ ⟦ _ ⤳ _ ⟧</a> [in <a href="Lookup.html">Lookup</a>]<br/>
@@ -1345,8 +1347,6 @@
 <a href="PreciseTyping.html#c7ef41c91aa73ea0925fafe08ac00851">_ ⊢ _ ⟿ _</a> [in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
 <a href="PreciseTyping.html#531d18a606e4c8b57e11df3af3b1ece8">_ ⊢!!! _ : _</a> [in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
 <a href="PreciseTyping.html#eb1918df832a03c95bc5e667bbcce5b5">_ ⊢!! _ : _</a> [in <a href="PreciseTyping.html">PreciseTyping</a>]<br/>
-<a href="OperationalSemantics.html#4e97cf452882dc3f98e0131fef8d7935">_ ⟼* _</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#6a0a2cd1c1d834551a7de9c07376fb83">_ ⟼ _</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
 <a href="Definitions.html#614b1fe1c75ca54dab731572dbb52671">{ _ ⦂= _ }</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#bf15e09ab2c4c3f7e80e9698ff456e97">{ _ :=v _ }</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#086e0deac9b1a881b31f67b1df838558">{ _ :=p _ }</a> [in <a href="Definitions.html">Definitions</a>]<br/>
@@ -1418,13 +1418,12 @@
 <a href="Lookup.html">Lookup</a> <br/>
 <br/><br/><a name="library_N"></a><h2>N </h2>
 <a href="Narrowing.html">Narrowing</a> <br/>
-<br/><br/><a name="library_O"></a><h2>O </h2>
-<a href="OperationalSemantics.html">OperationalSemantics</a> <br/>
 <br/><br/><a name="library_P"></a><h2>P </h2>
 <a href="PreciseFlow.html">PreciseFlow</a> <br/>
 <a href="PreciseTyping.html">PreciseTyping</a> <br/>
 <br/><br/><a name="library_R"></a><h2>R </h2>
 <a href="RecordAndInertTypes.html">RecordAndInertTypes</a> <br/>
+<a href="Reduction.html">Reduction</a> <br/>
 <a href="Replacement.html">Replacement</a> <br/>
 <a href="ReplacementTyping.html">ReplacementTyping</a> <br/>
 <br/><br/><a name="library_S"></a><h2>S </h2>
@@ -1912,8 +1911,8 @@
 <a href="Lookup.html#lookup_sel_p">lookup_sel_p</a> [in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Lookup.html#lookup_var">lookup_var</a> [in <a href="Lookup.html">Lookup</a>]<br/>
 <br/><br/><a name="constructor_N"></a><h2>N </h2>
-<a href="OperationalSemantics.html#nf_val">nf_val</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#nf_path">nf_path</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#nf_val">nf_val</a> [in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#nf_path">nf_path</a> [in <a href="Reduction.html">Reduction</a>]<br/>
 <br/><br/><a name="constructor_P"></a><h2>P </h2>
 <a href="PreciseFlow.html#pf_and2">pf_and2</a> [in <a href="PreciseFlow.html">PreciseFlow</a>]<br/>
 <a href="PreciseFlow.html#pf_and1">pf_and1</a> [in <a href="PreciseFlow.html">PreciseFlow</a>]<br/>
@@ -1938,10 +1937,10 @@
 <a href="Definitions.html#rd_trm_sngl">rd_trm_sngl</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rd_trm">rd_trm</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rd_typ">rd_typ</a> [in <a href="Definitions.html">Definitions</a>]<br/>
-<a href="OperationalSemantics.html#red_let_tgt">red_let_tgt</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_let_path">red_let_path</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_let_val">red_let_val</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
-<a href="OperationalSemantics.html#red_app">red_app</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#red_let_tgt">red_let_tgt</a> [in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_let_path">red_let_path</a> [in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_let_val">red_let_val</a> [in <a href="Reduction.html">Reduction</a>]<br/>
+<a href="Reduction.html#red_app">red_app</a> [in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Definitions.html#rh_andr">rh_andr</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rh_andl">rh_andl</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#rh_one">rh_one</a> [in <a href="Definitions.html">Definitions</a>]<br/>
@@ -2092,7 +2091,7 @@
 <a href="Lookup.html#lookup_step">lookup_step</a> [in <a href="Lookup.html">Lookup</a>]<br/>
 <a href="Safety.html#lookup_fields_typ">lookup_fields_typ</a> [in <a href="Safety.html">Safety</a>]<br/>
 <br/><br/><a name="inductive_N"></a><h2>N </h2>
-<a href="OperationalSemantics.html#norm_form">norm_form</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#norm_form">norm_form</a> [in <a href="Reduction.html">Reduction</a>]<br/>
 <br/><br/><a name="inductive_P"></a><h2>P </h2>
 <a href="Definitions.html#path">path</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Sequences.html#plus">plus</a> [in <a href="Sequences.html">Sequences</a>]<br/>
@@ -2103,7 +2102,7 @@
 <a href="Definitions.html#record_has">record_has</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#record_typ">record_typ</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#record_dec">record_dec</a> [in <a href="Definitions.html">Definitions</a>]<br/>
-<a href="OperationalSemantics.html#red">red</a> [in <a href="OperationalSemantics.html">OperationalSemantics</a>]<br/>
+<a href="Reduction.html#red">red</a> [in <a href="Reduction.html">Reduction</a>]<br/>
 <a href="Definitions.html#repl_dec">repl_dec</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <a href="Definitions.html#repl_typ">repl_typ</a> [in <a href="Definitions.html">Definitions</a>]<br/>
 <br/><br/><a name="inductive_S"></a><h2>S </h2>
@@ -2439,7 +2438,7 @@
 <td><a href="indexpage.html#library_L">L</a></td>
 <td>M</td>
 <td><a href="indexpage.html#library_N">N</a></td>
-<td><a href="indexpage.html#library_O">O</a></td>
+<td>O</td>
 <td><a href="indexpage.html#library_P">P</a></td>
 <td>Q</td>
 <td><a href="indexpage.html#library_R">R</a></td>

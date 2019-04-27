@@ -7,7 +7,7 @@ Set Implicit Arguments.
 Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
-        OperationalSemantics PreciseTyping RecordAndInertTypes ReplacementTyping
+        Reduction PreciseTyping RecordAndInertTypes ReplacementTyping
         Subenvironments Substitution TightTyping Weakening.
 
 Close Scope string_scope.
