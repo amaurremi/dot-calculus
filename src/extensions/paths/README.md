@@ -97,6 +97,27 @@ with cofinite quantification
 in which free variables are represented as named variables,
 and bound variables are represented as de Bruijn indices.
 
+| Definition/Theorem | In paper | File          | Paper notation                                                                         | Proof notations                                                                      | Name in proof |
+|--------------------|----------|---------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|---------------|
+| Abstract Syntax    | Figure 1 | Definitions.v |                                                                                        |                                                                                      |               |
+| - variable         | Figure 1 | Definitions.v |                                                                                        |                                                                                      | avar          |
+| - term member      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | trm_label     |
+| - type member      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | typ_label     |
+| - path             | Figure 1 | Definitions.v | p.a <br>p.b̅                                                                            | p•a <br>p••b                                                                         | path          |
+| - term             | Figure 1 | Definitions.v |                                                                                        |                                                                                      | trm           |
+| - stable term      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | def_rhs       |
+| - value            | Figure 1 | Definitions.v | ν(x: T)ds <br>λ(x: T)t                                                                 | ν(T)ds <br>λ(T)t                                                                     | val           |
+| - definition       | Figure 1 | Definitions.v | {a = t} <br>{A = T}                                                                    | {a := t} {A ⦂= T}                                                                    | def           |
+| - type             | Figure 1 | Definitions.v | {a: T} <br>{A: T..U} <br>∀(x: T)U <br>p.A <br>p.type <br>μ(x: T) <br>T ∧ U <br>⊤ <br>⊥ | {a ⦂ T} <br>{A >: T <: U} <br>∀(T)U <br>p↓A <br>{{p}} <br>μ(T) <br>T ∧ U <br>⊤ <br>⊥ | typ           |
+| Type System        | Figure 2 | Definitions.v |                                                                                        |                                                                                      |               |
+| term typing        | Figure 2 | Definitions.v | Γ ⊢ t: T                                                                               | Γ ⊢ t : T                                                                            |               |
+| definition typing  | Figure 2 | Definitions.v | p; Γ ⊢ d: T                                                                            | x; bs; Γ ⊢ d : T x; bs; Γ ⊢ d :: T                                                   |               |
+| tight bounds       | Figure 2 | Definitions.v |                                                                                        |                                                                                      |               |
+| subtyping          | Figure 2 | Definitions.v | Γ ⊢ T <: U                                                                             | Γ ⊢ T <: U                                                                           |               |
+
+
+
+
 - pDOT's **abstract syntax** (Figure 1)
     is defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
     - variable: `avar`
