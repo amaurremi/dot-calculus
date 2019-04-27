@@ -401,7 +401,7 @@ Proof.
     right. exists G. eauto.
     left. pose proof (preservation Hwt Hi Hwf Hr Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     exists γ' t' (G & G'). repeat split*. apply* inert_concat.
-  - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
+  - destruct b as [γ12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
     pose proof (preservation Hwt Hi Hwf H Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     specialize (IHHr _ (inert_concat Hi Hi' (well_typed_to_ok_G Hwt'))).
     eauto.
@@ -523,8 +523,8 @@ Section ExtendedSafety.
       left. inversions Hd. inversions H0. apply infseq_step with (b:=b); destruct b; auto.
       destruct b0. econstructor. apply er_red. apply H1.
       apply infseq_coinduction_principle with
-          (X := fun st => exists s1 t1,
-                    st = (s1, t1) /\ infseq red (s1, t1)).
+          (X := fun st => exists γ1 t1,
+                    st = (γ1, t1) /\ infseq red (γ1, t1)).
       intros st [γ' [t' [-> Hinf]]].
       + inversions Hinf. destruct b. eexists; split*.
       + eauto.
