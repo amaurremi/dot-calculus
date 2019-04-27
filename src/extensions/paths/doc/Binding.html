@@ -249,13 +249,13 @@ Substitution of variables with paths in the types of a typing environment: <span
 
 <div class="paragraph"> </div>
 
- Opening does not affect the last fields of a path: <span class="inlinecode">(<span class="id" title="var">p</span>^<span class="id" title="var">q</span>).<span class="id" title="var">bs</span></span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">p.bs</span>)^<span class="id" title="var">q</span></span> <span class="inlinecode"></span> 
+ Opening does not affect the last fields of a path: <span class="inlinecode"><span class="id" title="var">q</span>ᵖ.<span class="id" title="var">bs</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">q.bs</span>ᵖ</span> <span class="inlinecode"></span> 
 </div>
 <div class="code">
-<span class="id" title="keyword">Lemma</span> <a name="sel_fields_open"><span class="id" title="lemma">sel_fields_open</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">bs</span>,<br/>
-&nbsp;&nbsp;<a class="idref" href="Definitions.html#sel_fields"><span class="id" title="definition">sel_fields</span></a> (<a class="idref" href="Definitions.html#open_rec_path_p"><span class="id" title="definition">open_rec_path_p</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#q"><span class="id" title="variable">q</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_path_p"><span class="id" title="definition">open_rec_path_p</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> (<a class="idref" href="Definitions.html#sel_fields"><span class="id" title="definition">sel_fields</span></a> <a class="idref" href="Binding.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a>).<br/>
+<span class="id" title="keyword">Lemma</span> <a name="sel_fields_open"><span class="id" title="lemma">sel_fields_open</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span> <span class="id" title="var">q</span> <span class="id" title="var">p</span> <span class="id" title="var">bs</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#sel_fields"><span class="id" title="definition">sel_fields</span></a> (<a class="idref" href="Definitions.html#open_rec_path_p"><span class="id" title="definition">open_rec_path_p</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a>) <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_path_p"><span class="id" title="definition">open_rec_path_p</span></a> <a class="idref" href="Binding.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Binding.html#q"><span class="id" title="variable">q</span></a> (<a class="idref" href="Definitions.html#sel_fields"><span class="id" title="definition">sel_fields</span></a> <a class="idref" href="Binding.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Binding.html#bs"><span class="id" title="variable">bs</span></a>).<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">q</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">p</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">a</span>. <span class="id" title="var">case_if</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">auto</span>. <span class="id" title="tactic">rewrite</span>× <span class="id" title="lemma">app_assoc</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">p</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">q</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">a</span>. <span class="id" title="var">case_if</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">auto</span>. <span class="id" title="tactic">rewrite</span>× <span class="id" title="lemma">app_assoc</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">auto</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
 
@@ -290,7 +290,7 @@ If <span class="inlinecode"><span class="id" title="var">p.a</span></span> <span
 </div>
 
 <div class="doc">
-The same for a different notation of field selection: <span class="inlinecode"><span class="id" title="var">q.bs</span>^<span class="id" title="var">p</span></span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">q</span>^<span class="id" title="var">p</span>).<span class="id" title="var">bs</span></span> 
+The same for a different notation of field selection: <span class="inlinecode"><span class="id" title="var">q.bs</span>ᵖ</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">q</span>ᵖ.<span class="id" title="var">bs</span></span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="field_sel_open"><span class="id" title="lemma">field_sel_open</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">bs</span> <span class="id" title="var">n</span>,<br/>
@@ -469,7 +469,7 @@ Paths cannot be typed in empty environments
 <div class="doc">
 The following <span class="inlinecode"><span class="id" title="var">open_fresh_XYZ_injective</span></span> lemmas state that given two
     symbols (variables, types, terms, etc.) <span class="inlinecode"><span class="id" title="var">X</span></span> and <span class="inlinecode"><span class="id" title="var">Y</span></span> and a variable <span class="inlinecode"><span class="id" title="var">z</span></span>,
-    if <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">X</span>)</span> and <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">Y</span>)</span>, then <span class="inlinecode"><span class="id" title="var">X</span>^<span class="id" title="var">z</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span>^<span class="id" title="var">z</span></span> implies <span class="inlinecode"><span class="id" title="var">X</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span></span>. 
+    if <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">X</span>)</span> and <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">Y</span>)</span>, then <span class="inlinecode"><span class="id" title="var">X</span>ᶻ</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span>ᶻ</span> implies <span class="inlinecode"><span class="id" title="var">X</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Y</span></span>. 
 <div class="paragraph"> </div>
 
 <ul class="doclist">
@@ -677,7 +677,7 @@ If <span class="inlinecode"><span class="id" title="var">x</span></span> <span c
 </div>
 
 <div class="doc">
-If <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>)</span> then <span class="inlinecode"><span class="id" title="var">G</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">G</span></span> 
+If <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">fv</span>(<span class="id" title="var">G</span>)</span> then <span class="inlinecode"><span class="id" title="var">G</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">G</span></span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="subst_fresh_ctx"><span class="id" title="lemma">subst_fresh_ctx</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">G</span>,<br/>
@@ -700,12 +700,12 @@ If <span class="inlinecode"><span class="id" title="var">x</span></span> <span c
 <div class="doc">
 The following lemmas state that substitution commutes with opening:
     for a symbol <span class="inlinecode"><span class="id" title="var">Z</span></span>, <br>
-    <span class="inlinecode">(<span class="id" title="var">Z</span>^<span class="id" title="var">a</span>)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">Z</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">a</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>])</span>. 
+    <span class="inlinecode">(<span class="id" title="var">Z</span>ᵃ)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Z</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span><sup>a[y/x]</sup>. 
 <div class="paragraph"> </div>
 
  Substitution commutes with variable-opening
 <ul class="doclist">
-<li> variables: <span class="inlinecode">(<span class="id" title="var">y</span>^<span class="id" title="var">z</span>)[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">y</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">z</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])</span> 
+<li> variables: <span class="inlinecode"><span class="id" title="var">y</span>ᶻ[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">y</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span><sup>z[p/x]</sup> 
 </li>
 </ul>
 
@@ -726,7 +726,7 @@ The following lemmas state that substitution commutes with opening:
 
 <div class="doc">
 <ul class="doclist">
-<li> paths: <span class="inlinecode">(<span class="id" title="var">q</span>^<span class="id" title="var">z</span>)[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">q</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">z</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])</span> 
+<li> paths: <span class="inlinecode"><span class="id" title="var">q</span>ᶻ[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">q</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span><sup>z[p/x]</sup> 
 </li>
 </ul>
 
@@ -745,7 +745,7 @@ The following lemmas state that substitution commutes with opening:
 
 <div class="doc">
 <ul class="doclist">
-<li> types and declarations: <span class="inlinecode">(<span class="id" title="var">T</span>^<span class="id" title="var">z</span>)[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">T</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">z</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>])</span> 
+<li> types and declarations: <span class="inlinecode"><span class="id" title="var">T</span>ᶻ[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">T</span>[<span class="id" title="var">p</span>/<span class="id" title="var">x</span>]</span><sup>z[p/x]</sup> 
 </li>
 </ul>
 
@@ -857,7 +857,7 @@ The following lemmas state that substitution commutes with opening:
 
 <div class="doc">
 Substitution commutes with path-opening <ul class="doclist">
-<li> paths: <span class="inlinecode">(<span class="id" title="var">p</span>^<span class="id" title="var">r</span>)[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">p</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">r</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>])</span> 
+<li> paths: <span class="inlinecode"><span class="id" title="var">p</span>ʳ[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">p</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span><sup>r[q/x]</sup> 
 </li>
 </ul>
 
@@ -883,7 +883,7 @@ Substitution commutes with path-opening <ul class="doclist">
 
 <div class="doc">
 <ul class="doclist">
-<li> types and declarations: <span class="inlinecode">(<span class="id" title="var">T</span>^<span class="id" title="var">r</span>)[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">T</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>])^(<span class="id" title="var">r</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>])</span> 
+<li> types and declarations: <span class="inlinecode"><span class="id" title="var">T</span>ʳ[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">T</span>[<span class="id" title="var">q</span>/<span class="id" title="var">x</span>]</span><sup>r[q/x]</sup> 
 </li>
 </ul>
 
@@ -998,7 +998,7 @@ Substitution commutes with path-opening <ul class="doclist">
 The following lemmas state that opening a symbol with a variable <span class="inlinecode"><span class="id" title="var">y</span></span>
     is the same as opening the symbol with another variable <span class="inlinecode"><span class="id" title="var">x</span></span> and
     substituting <span class="inlinecode"><span class="id" title="var">x</span></span> with <span class="inlinecode"><span class="id" title="var">y</span></span>: <br>
-    <span class="inlinecode"><span class="id" title="var">Z</span>^<span class="id" title="var">y</span></span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">Z</span>^<span class="id" title="var">x</span>)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
+    <span class="inlinecode"><span class="id" title="var">Z</span>ʸ</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="var">Z</span>ˣ)[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
 <div class="paragraph"> </div>
 
  Substitution after opening
@@ -1072,7 +1072,7 @@ Substitution preserves labels of definitions: <span class="inlinecode"><span cla
 </div>
 
 <div class="doc">
-If <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>)</span> then <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">\<span class="id" title="var">notin</span></span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
+If <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>)</span> then <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">labels</span>(<span class="id" title="var">ds</span>[<span class="id" title="var">y</span>/<span class="id" title="var">x</span>]</span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="subst_defs_hasnt"><span class="id" title="lemma">subst_defs_hasnt</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> <span class="id" title="var">ds</span>,<br/>
@@ -1249,7 +1249,7 @@ If <span class="inlinecode"><span class="id" title="var">G</span></span> <span c
 
 <div class="doc">
 Closing recursive types in the environment does not affect typing:
-    if <span class="inlinecode"><span class="id" title="var">G1</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">S</span>^<span class="id" title="var">x</span>,</span> <span class="inlinecode"><span class="id" title="var">G2</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span> then  <span class="inlinecode"><span class="id" title="var">G1</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">μ</span>(<span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">S</span>),</span> <span class="inlinecode"><span class="id" title="var">G2</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span>,
+    if <span class="inlinecode"><span class="id" title="var">G1</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">S</span>ˣ,</span> <span class="inlinecode"><span class="id" title="var">G2</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span> then  <span class="inlinecode"><span class="id" title="var">G1</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">μ</span>(<span class="id" title="var">x</span>:</span> <span class="inlinecode"><span class="id" title="var">S</span>),</span> <span class="inlinecode"><span class="id" title="var">G2</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">t</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span>,
     and the same holds for definition typing and subtyping. 
 </div>
 <div class="code">
@@ -1361,9 +1361,11 @@ If <span class="inlinecode"><span class="id" title="var">E</span>(<span class="i
 A prefix of a well-typed environment is well-typed 
 </div>
 <div class="code">
-<span class="id" title="keyword">Lemma</span> <a name="wt_prefix"><span class="id" title="lemma">wt_prefix</span></a> <span class="id" title="var">G1</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span> <span class="id" title="var">G2</span> <span class="id" title="var">s</span> :<br/>
-&nbsp;&nbsp;<a class="idref" href="Definitions.html#well_typed"><span class="id" title="inductive">well_typed</span></a> (<a class="idref" href="Binding.html#G1"><span class="id" title="variable">G1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#G2"><span class="id" title="variable">G2</span></a>) <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">→</span><br/>
-&nbsp;&nbsp;<span class="id" title="notation">∃</span> <span class="id" title="var">v</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span><span class="id" title="notation">,</span> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#s1"><span class="id" title="variable">s1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="notation">∧</span> <a class="idref" href="Definitions.html#well_typed"><span class="id" title="inductive">well_typed</span></a> (<a class="idref" href="Binding.html#G1"><span class="id" title="variable">G1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>) (<a class="idref" href="Binding.html#s1"><span class="id" title="variable">s1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a>).<br/>
+<span class="id" title="keyword">Lemma</span> <a name="wt_prefix"><span class="id" title="lemma">wt_prefix</span></a> <span class="id" title="var">G1</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span> <span class="id" title="var">G2</span> <span class="id" title="var">γ</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Definitions.html#3d0e0e057bcbfdd590f754a27815747e"><span class="id" title="notation">⫶</span></a> <a class="idref" href="Binding.html#G1"><span class="id" title="variable">G1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#G2"><span class="id" title="variable">G2</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">∃</span> <span class="id" title="var">v</span> <span class="id" title="var">γ1</span> <span class="id" title="var">γ2</span><span class="id" title="notation">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Binding.html#93b6893d965d0ff85791b6f6272b83f6"><span class="id" title="variable">γ1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#f5211f18560f264a76f44a118d98e2f1"><span class="id" title="variable">γ2</span></a> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#93b6893d965d0ff85791b6f6272b83f6"><span class="id" title="variable">γ1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#v"><span class="id" title="variable">v</span></a> <a class="idref" href="Definitions.html#3d0e0e057bcbfdd590f754a27815747e"><span class="id" title="notation">⫶</span></a> <a class="idref" href="Binding.html#G1"><span class="id" title="variable">G1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Binding.html#T"><span class="id" title="variable">T</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hwt</span>. <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">Hwt</span>.<br/>
 &nbsp;&nbsp;- <span class="id" title="var">false</span>× <span class="id" title="lemma">empty_middle_inv</span>.<br/>
@@ -1382,9 +1384,9 @@ A prefix of a well-typed environment is well-typed
 The elements of a well-typed environment's domain are unique 
 </div>
 <div class="code">
-<span class="id" title="keyword">Lemma</span> <a name="wt_to_ok_s"><span class="id" title="lemma">wt_to_ok_s</span></a> <span class="id" title="var">G</span> <span class="id" title="var">s</span> :<br/>
-&nbsp;&nbsp;<a class="idref" href="Definitions.html#well_typed"><span class="id" title="inductive">well_typed</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">→</span><br/>
-&nbsp;&nbsp;<span class="id" title="inductive">ok</span> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a>.<br/>
+<span class="id" title="keyword">Lemma</span> <a name="9010ed482d18614b421f3281efc61255"><span class="id" title="lemma">wt_to_ok_γ</span></a> <span class="id" title="var">G</span> <span class="id" title="var">γ</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Definitions.html#3d0e0e057bcbfdd590f754a27815747e"><span class="id" title="notation">⫶</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<span class="id" title="inductive">ok</span> <a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">eauto</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
@@ -1396,8 +1398,9 @@ The elements of a well-typed environment's domain are unique
 If <span class="inlinecode"><span class="id" title="var">e</span>:</span> <span class="inlinecode"><span class="id" title="var">G</span></span>, the variables in the domain of <span class="inlinecode"><span class="id" title="var">e</span></span> are distinct. 
 </div>
 <div class="code">
-<span class="id" title="keyword">Lemma</span> <a name="well_typed_to_ok_G"><span class="id" title="lemma">well_typed_to_ok_G</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">s</span> <span class="id" title="var">G</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#well_typed"><span class="id" title="inductive">well_typed</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">→</span> <span class="id" title="inductive">ok</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>.<br/>
+<span class="id" title="keyword">Lemma</span> <a name="well_typed_to_ok_G"><span class="id" title="lemma">well_typed_to_ok_G</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">G</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Definitions.html#3d0e0e057bcbfdd590f754a27815747e"><span class="id" title="notation">⫶</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">ok</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="var">jauto</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
@@ -1407,12 +1410,12 @@ If <span class="inlinecode"><span class="id" title="var">e</span>:</span> <span 
 </div>
 
 <div class="doc">
-If <span class="inlinecode"><span class="id" title="var">s</span>:</span> <span class="inlinecode"><span class="id" title="var">G</span></span> and <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">dom</span>(<span class="id" title="var">G</span>)</span> then <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">dom</span>(<span class="id" title="var">s</span>)</span> 
+If <span class="inlinecode"><span class="id" title="var">s</span>:</span> <span class="inlinecode"><span class="id" title="var">G</span></span> and <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">dom</span>(<span class="id" title="var">G</span>)</span> then <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">dom</span>(<span class="id" title="var">γ</span>)</span> 
 </div>
 <div class="code">
-<span class="id" title="keyword">Lemma</span> <a name="well_typed_notin_dom"><span class="id" title="lemma">well_typed_notin_dom</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">G</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#well_typed"><span class="id" title="inductive">well_typed</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">→</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Binding.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="notation">→</span><br/>
+<span class="id" title="keyword">Lemma</span> <a name="well_typed_notin_dom"><span class="id" title="lemma">well_typed_notin_dom</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">G</span> <span class="id" title="var">γ</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Definitions.html#3d0e0e057bcbfdd590f754a27815747e"><span class="id" title="notation">⫶</span></a> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Binding.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Binding.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Binding.html#G"><span class="id" title="variable">G</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">auto</span>.<br/>

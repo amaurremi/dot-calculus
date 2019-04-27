@@ -1,7 +1,3 @@
-(** printing |-#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
-(** printing |-##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
-(** printing |-##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
-(** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
 (** * pDOT Abstract Syntax and Type System *)
@@ -38,11 +34,11 @@ Inductive label: Set :=
 | label_trm: trm_label -> label.
 
 (** The fields of a path in reverse order.
-    E.g. for a path [x. a1. a2... a_n], a list [a_n, ..., a2, a1]. *)
+    E.g. for a path [x. a1. a2... aₙ], a list [aₙ, ..., a2, a1]. *)
 Definition fields := list trm_label.
 
-(** A path, [x.a1.a2...a_n], represented through its receiver [x] and reversed list of fields
- [a_n, ..., a_2, a_1] *)
+(** A path, [x.a1.a2...aₙ], represented through its receiver [x] and reversed list of fields
+ [aₙ, ..., a_2, a_1] *)
 Inductive path :=
   | p_sel : avar -> fields ->  path.
 
@@ -789,7 +785,7 @@ x.bs; G ⊢ {b = nu(T)ds}: {b: T}
 
 (** [[
 G ⊢ q
-_________________
+_____________________________
 x.bs; G ⊢ {b = q}: {b: q.type}
 ]]
 *)
@@ -806,7 +802,7 @@ where "x ';' bs ';' G '⊢' d ':' D" := (ty_def x bs G d D)
 with ty_defs : var -> fields -> ctx -> defs -> typ -> Prop :=
 (** [[
 x.bs; G ⊢ d: D
-_________________
+___________________________
 x.bs; G ⊢ d ++ defs_nil : D
 ]]
 *)
@@ -817,8 +813,8 @@ x.bs; G ⊢ d ++ defs_nil : D
 (** [[
 x.bs; G ⊢ ds :: T
 x.bs; G ⊢ d: D
-d \notin ds
-_________________
+d ∉ ds
+__________________________
 x.bs; G ⊢ ds ++ d : T /\ D
 ]]
 *)
@@ -985,20 +981,23 @@ s] is a store (runtime environment) and [t] is a term.
 
     We say that [e] is well-typed with respect to [G], denoted as [s: G]. *)
 
+Reserved Notation "γ '⫶' G" (at level 40).
+
 Inductive well_typed: ctx -> sta -> Prop :=
-| well_typed_empty: well_typed empty empty
-| well_typed_push: forall G s x T v,
-    well_typed G s ->
+| well_typed_empty: empty ⫶ empty
+| well_typed_push: forall G γ x T v,
+    γ ⫶ G ->
     x # G ->
-    x # s ->
+    x # γ ->
     G ⊢ trm_val v : T ->
-    well_typed (G & x ~ T) (s & x ~ v).
+    γ & x ~ v ⫶ G & x ~ T
+where "γ ⫶ G" := (well_typed G γ).
 
 (** ** Infrastructure *)
 
 Hint Constructors
      inert_typ inert record_has record_dec record_typ
-     ty_trm ty_def ty_defs subtyp.
+     ty_trm ty_def ty_defs subtyp well_typed.
 
 Hint Unfold record_type.
 

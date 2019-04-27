@@ -3,3 +3,4 @@ Makefile.coq
 Makefile.coq-e
 Makefile.coq.conf
 .coqdeps.d
+doc/graph.png

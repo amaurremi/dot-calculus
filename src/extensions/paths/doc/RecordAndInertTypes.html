@@ -81,7 +81,7 @@
 </div>
 
 <div class="doc">
-If <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span></span> then <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="id" title="var">p</span></span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span>^<span class="id" title="var">p</span></span> 
+If <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span></span> then <span class="inlinecode"><span class="id" title="var">ds</span>ᵖ</span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span>ᵖ</span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="defs_has_open"><span class="id" title="lemma">defs_has_open</span></a> <span class="id" title="var">ds</span> <span class="id" title="var">d</span> <span class="id" title="var">p</span> :<br/>
@@ -101,7 +101,7 @@ If <span class="inlinecode"><span class="id" title="var">ds</span></span> <span 
 </div>
 
 <div class="doc">
-If <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="id" title="var">p</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t</span>}</span> then <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">_</span>}</span> 
+If <span class="inlinecode"><span class="id" title="var">ds</span>ᵖ</span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t</span>}</span> then <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">_</span>}</span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="defs_has_open'"><span class="id" title="lemma">defs_has_open'</span></a> <span class="id" title="var">ds</span> <span class="id" title="var">p</span> <span class="id" title="var">t</span> <span class="id" title="var">a</span> :<br/>
@@ -119,7 +119,7 @@ If <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="
 </div>
 
 <div class="doc">
-<span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>^<span class="id" title="var">x</span>])</span> 
+<span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>ˣ])</span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="open_dec_preserves_label"><span class="id" title="lemma">open_dec_preserves_label</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">D</span> <span class="id" title="var">x</span> <span class="id" title="var">i</span>,<br/>
@@ -132,7 +132,7 @@ If <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="
 </div>
 
 <div class="doc">
-Opening preserves the labels of a definition: <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>^<span class="id" title="var">p</span>])</span> 
+Opening preserves the labels of a definition: <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>ᵖ])</span> 
 </div>
 <div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="open_dec_preserves_label_p"><span class="id" title="lemma">open_dec_preserves_label_p</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">D</span> <span class="id" title="var">p</span> <span class="id" title="var">i</span>,<br/>

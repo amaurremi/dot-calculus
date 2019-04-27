@@ -1,7 +1,3 @@
-(** printing ⊢#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
-(** printing ⊢##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
-(** printing ⊢##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
-(** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
 (** * Reasoning About Records and Inert Types *)
@@ -34,7 +30,7 @@ Proof.
     + inversion_def_typ; case_if; apply* notin_singleton.
 Qed.
 
-(** If [ds ∋ d] then [ds^p ∋ d^p] *)
+(** If [ds ∋ d] then [dsᵖ ∋ dᵖ] *)
 Lemma defs_has_open ds d p :
   defs_has ds d ->
   defs_has (open_defs_p p ds) (open_def_p p d).
@@ -48,7 +44,7 @@ Proof.
     * apply* IHds.
 Qed.
 
-(** If [ds^p ∋ {a = t}] then [ds ∋ {a = _}] *)
+(** If [dsᵖ ∋ {a = t}] then [ds ∋ {a = _}] *)
 Lemma defs_has_open' ds p t a :
   defs_has (open_defs_p p ds) {a := t} ->
   exists u, defs_has ds {a := u}.
@@ -60,14 +56,14 @@ Proof.
     destruct d; inversions C0. simpl in C. false*.
 Qed.
 
-(** [labels([D]) = labels([D^x])] *)
+(** [labels([D]) = labels([Dˣ])] *)
 Lemma open_dec_preserves_label: forall D x i,
   label_of_dec D = label_of_dec (open_rec_dec i x D).
 Proof.
   intros. induction D; reflexivity.
 Qed.
 
-(** Opening preserves the labels of a definition: [labels([D]) = labels([D^p])] *)
+(** Opening preserves the labels of a definition: [labels([D]) = labels([Dᵖ])] *)
 Lemma open_dec_preserves_label_p: forall D p i,
   label_of_dec D = label_of_dec (open_rec_dec_p i p D).
 Proof.

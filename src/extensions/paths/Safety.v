@@ -1,3 +1,5 @@
+(** remove printing ~ *)
+
 (** * Type Soundness *)
 
 Set Implicit Arguments.
@@ -5,7 +7,7 @@ Set Implicit Arguments.
 Require Import Coq.Program.Equality List String.
 Require Import Sequences.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Lookup Narrowing
-        OperationalSemantics PreciseTyping RecordAndInertTypes ReplacementTyping
+        Reduction PreciseTyping RecordAndInertTypes ReplacementTyping
         Subenvironments Substitution TightTyping Weakening.
 
 Close Scope string_scope.
@@ -107,9 +109,9 @@ Proof.
 Qed.
 
 (** If the definitions [ds] that correspond to a path [p] (here, [z.bs])
-    have a type [T^p], and looking up the path [x.cs] for some [x]
-    in [T^p] yields a type [μ(U)] then nested in [ds] are some definitions
-    [ds'] such that under the path [p.cs], [ds'] can be typed with [U^p.cs]. *)
+    have a type [Tᵖ], and looking up the path [x.cs] for some [x]
+    in [Tᵖ] yields a type [μ(U)] then nested in [ds] are some definitions
+    [ds'] such that under the path [p.cs], [ds'] can be typed with [U]#<sup>p.cs</sup>#. *)
 Lemma lfs_defs_typing : forall cs z bs G ds T S U,
   z; bs; G ⊢ ds :: open_typ_p (p_sel (avar_f z) bs) T ->
   inert_typ S ->
@@ -212,13 +214,13 @@ Qed.
     and is a subtype of [T]. *)
 Lemma val_typing G x v T :
   inert G ->
-  wf_env G ->
+  wf G ->
   G ⊢ trm_val v : T ->
   x # G ->
   exists T', G ⊢!v v : T' /\
         G ⊢ T' <: T /\
         inert_typ T' /\
-        wf_env (G & x ~ T').
+        wf (G & x ~ T').
 Proof.
   intros Hi Hwf Hv Hx. dependent induction Hv; eauto.
   - exists (∀(T) U). repeat split*. constructor; eauto. introv Hp.
@@ -276,13 +278,13 @@ Ltac invert_red :=
 
 Ltac solve_IH :=
   match goal with
-  | [IH: well_typed _ _ ->
+  | [IH: _ ⫶ _ ->
          inert _ ->
-         wf_env _ ->
+         wf _ ->
          forall t', (_, _) ⟼ (_, _) -> _,
-       Wt: well_typed _ _,
+       Wt: _ ⫶ _,
        In: inert _,
-       Wf: wf_env _,
+       Wf: wf _,
        Hr: (_, _) ⟼ (_, ?t') |- _] =>
     specialize (IH Wt In Wf t' Hr); destruct_all
   end;
@@ -297,15 +299,15 @@ Ltac solve_let :=
 (** If a term [γ|t] has type [T] and reduces to [γ'|t'] then the latter has
     the same type [T] under an extended environment that is inert, well-typed,
     and well-formed. *)
-Lemma preservation: forall G s t s' t' T,
-    well_typed G s ->
+Lemma preservation: forall G γ t γ' t' T,
+    γ ⫶ G ->
     inert G ->
-    wf_env G ->
-    (s, t) ⟼ (s', t') ->
+    wf G ->
+    (γ, t) ⟼ (γ', t') ->
     G ⊢ t : T ->
     exists G', inert G' /\
-          wf_env (G & G') /\
-          well_typed (G & G') s' /\
+          wf (G & G') /\
+          γ' ⫶ G & G' /\
           G & G' ⊢ t' : T.
 Proof.
   introv Hwt Hi Hwf Hred Ht. gen t'.
@@ -352,12 +354,12 @@ Qed.
 
 (** Any well-typed term is either in normal form (i.e. a path or value) or can
     take a reduction step. *)
-Lemma progress: forall G s t T,
+Lemma progress: forall G γ t T,
     inert G ->
-    wf_env G ->
-    well_typed G s ->
+    wf G ->
+    γ ⫶ G ->
     G ⊢ t : T ->
-    norm_form t \/ exists s' t', (s, t) ⟼ (s', t').
+    norm_form t \/ exists γ' t', (γ, t) ⟼ (γ', t').
 Proof.
   introv Hi Hwf Hwt Ht.
   induction Ht; eauto.
@@ -365,10 +367,10 @@ Proof.
     pose proof (canonical_forms_fun Hi Hwf Hwt Ht1). destruct_all. right*.
   - Case "ty_let"%string.
     right. destruct t; eauto.
-    + pick_fresh z. exists (s & z ~ v). eauto.
-    + specialize (IHHt Hi Hwf Hwt) as [Hn | [s' [t' Hr]]].
+    + pick_fresh z. exists (γ & z ~ v). eauto.
+    + specialize (IHHt Hi Hwf Hwt) as [Hn | [γ' [t' Hr]]].
       { inversion Hn. } eauto.
-    + specialize (IHHt Hi Hwf Hwt) as [Hn | [s' [t' Hr]]].
+    + specialize (IHHt Hi Hwf Hwt) as [Hn | [γ' [t' Hr]]].
       { inversion Hn. } eauto.
 Qed.
 
@@ -378,35 +380,35 @@ Qed.
     to [γ'|t'] then the latter is either in normal form and has type [T],
     or it can take a further step to a term [γ''|t''], where [t''] also
     has type [T]. *)
-Lemma safety_helper G t1 t2 s1 s2 T :
+Lemma safety_helper G t1 t2 γ1 γ2 T :
   G ⊢ t1 : T ->
   inert G ->
-  wf_env G ->
-  well_typed G s1 ->
-  (s1, t1) ⟼* (s2, t2) ->
-  (exists s3 t3 G3, (s2, t2) ⟼ (s3, t3) /\
+  wf G ->
+  γ1 ⫶ G ->
+  (γ1, t1) ⟼* (γ2, t2) ->
+  (exists γ3 t3 G3, (γ2, t2) ⟼ (γ3, t3) /\
                G3 ⊢ t3 : T /\
-               well_typed G3 s3 /\
-               wf_env G3 /\
+               γ3 ⫶ G3 /\
+               wf G3 /\
                inert G3) \/
   (exists G2, norm_form t2 /\ G2 ⊢ t2 : T /\
-               well_typed G2 s2 /\
-               wf_env G2 /\
+               γ2 ⫶ G2 /\
+               wf G2 /\
                inert G2).
 Proof.
   intros Ht Hi Hwf Hwt Hr. gen G T. dependent induction Hr; introv Hi Hwf Hwt; introv Ht.
-  - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [s' [t' Hr]]].
+  - pose proof (progress Hi Hwf Hwt Ht) as [Hn | [γ' [t' Hr]]].
     right. exists G. eauto.
     left. pose proof (preservation Hwt Hi Hwf Hr Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
-    exists s' t' (G & G'). repeat split*. apply* inert_concat.
-  - destruct b as [s12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
+    exists γ' t' (G & G'). repeat split*. apply* inert_concat.
+  - destruct b as [γ12 t12]. specialize (IHHr _ _ _ _ eq_refl eq_refl).
     pose proof (preservation Hwt Hi Hwf H Ht) as [G' [Hi' [Hwf' [Hwt' Ht']]]].
     specialize (IHHr _ (inert_concat Hi Hi' (well_typed_to_ok_G Hwt'))).
     eauto.
 Qed.
 
 Definition diverges := infseq red.
-Definition cyclic_path s p := infseq (lookup_step s) (defp p).
+Definition cyclic_path γ p := infseq (lookup_step γ) (defp p).
 
 (** Reducing any well-typed program (i.e. term that can be typed in an empty context)
     results either
@@ -415,17 +417,17 @@ Definition cyclic_path s p := infseq (lookup_step s) (defp p).
 Theorem safety t T :
   empty ⊢ t : T ->
   diverges (empty, t) \/
-  (exists s u G, (empty, t) ⟼* (s, u) /\
+  (exists γ u G, (empty, t) ⟼* (γ, u) /\
             norm_form u /\
             G ⊢ u : T /\
-            well_typed G s /\
-            wf_env G /\
+            γ ⫶ G /\
+            wf G /\
             inert G).
 Proof.
   intros Ht.
   pose proof (infseq_or_finseq red (empty, t)) as [? | [[s u] [Hr Hn]]]; eauto.
   right. epose proof (safety_helper Ht inert_empty wfe_empty well_typed_empty Hr)
-    as [[s' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' [Hwt [Hwf Hi]]]]]].
+    as [[γ' [t' [G' [Hr' [Ht' Hwt]]]]] | [G [Hn' [Ht' [Hwt [Hwf Hi]]]]]].
   - false* Hn.
   - repeat eexists; eauto.
 Qed.
@@ -438,16 +440,16 @@ Section PathSafety.
   (** Looking up any well-typed path in the value environment results either
     - in a value in a finite number of steps, or
     - in an infinite sequence of lookup operations, i.e. the path is cyclic *)
-  Lemma path_safety G p T s :
+  Lemma path_safety G p T γ :
     inert G ->
-    wf_env G ->
-    well_typed G s ->
+    wf G ->
+    γ ⫶ G ->
     G ⊢ trm_path p : T ->
-    cyclic_path s p \/ exists v, s ∋ (p, v).
+    cyclic_path γ p \/ exists v, γ ∋ (p, v).
   Proof.
     intros Hi Hwf Hwt Hp.
     proof_recipe. apply repl_prec_exists in Hp as [U Hp].
-    pose proof (infseq_or_finseq (lookup_step s) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
+    pose proof (infseq_or_finseq (lookup_step γ) (defp p)) as [? | [t [Hl Hirr]]]; eauto.
     right. destruct t; eauto.
     pose proof (lookup_pres Hi Hwf Hwt Hp Hl) as [S Hq].
     pose proof (typ_to_lookup3 Hi Hwf Hwt Hq) as [t Hl'].
@@ -465,12 +467,12 @@ Section ExtendedSafety.
   Reserved Notation "t '↠' u" (at level 40).
 
   Inductive extended_red : sta * trm -> sta * trm -> Prop :=
-  | er_red s s' t t':
-      (s, t) ⟼ (s', t') ->
-      (s, t) ↠ (s', t')
-  | er_lookup s p t:
-      s ⟦ p ⤳ t ⟧ ->
-      (s, trm_path p) ↠ (s, deftrm t)
+  | er_red γ γ' t t':
+      (γ, t) ⟼ (γ', t') ->
+      (γ, t) ↠ (γ', t')
+  | er_lookup γ p t:
+      γ ⟦ p ⤳ t ⟧ ->
+      (γ, trm_path p) ↠ (γ, deftrm t)
   where "t ↠ u" := (extended_red t u).
 
   Hint Constructors extended_red.
@@ -481,26 +483,26 @@ Section ExtendedSafety.
   (** Divergence of extended reduction *)
   Definition diverges' := infseq extended_red.
 
-  Lemma extend_infseq s t s' t' :
-        diverges' (s, t) ->
-        (s', t') ↠* (s, t) ->
-        diverges' (s', t').
+  Lemma extend_infseq γ t γ' t' :
+        diverges' (γ, t) ->
+        (γ', t') ↠* (γ, t) ->
+        diverges' (γ', t').
   Proof.
     intros Hinf Hr. dependent induction Hr; auto.
     destruct b. specialize (IHHr _ _ _ _ Hinf eq_refl eq_refl).
     econstructor. apply H. auto.
   Qed.
 
-  Lemma map_red_extend s t s' t':
-    (s, t) ⟼* (s', t') ->
-    (s, t) ↠* (s', t').
+  Lemma map_red_extend γ t γ' t':
+    (γ, t) ⟼* (γ', t') ->
+    (γ, t) ↠* (γ', t').
   Proof.
     intros Hr. dependent induction Hr; try destruct b; eauto.
   Qed.
 
-  Lemma map_lookup_extend s t t':
-    star (lookup_step s) t t' ->
-    (s, deftrm t) ↠*(s, deftrm t').
+  Lemma map_lookup_extend γ t t':
+    star (lookup_step γ) t t' ->
+    (γ, deftrm t) ↠*(γ, deftrm t').
   Proof.
     intros Hr. dependent induction Hr; eauto.
     destruct a. eapply star_trans. apply star_one. apply* er_lookup.
@@ -514,16 +516,16 @@ Section ExtendedSafety.
       - in an infinite reduction sequence. *)
   Theorem extended_safety t T :
     empty ⊢ t : T ->
-    diverges' (empty, t) \/ exists s v, (empty, t) ↠* (s, trm_val v).
+    diverges' (empty, t) \/ exists γ v, (empty, t) ↠* (γ, trm_val v).
   Proof.
-    intros Ht. pose proof (safety Ht) as [Hd | [s [u [G [Hr [Hn [Hu [Hwt [Hwf Hi]]]]]]]]].
+    intros Ht. pose proof (safety Ht) as [Hd | [γ [u [G [Hr [Hn [Hu [Hwt [Hwf Hi]]]]]]]]].
     - Case "term diverges"%string.
       left. inversions Hd. inversions H0. apply infseq_step with (b:=b); destruct b; auto.
       destruct b0. econstructor. apply er_red. apply H1.
       apply infseq_coinduction_principle with
-          (X := fun st => exists s1 t1,
-                    st = (s1, t1) /\ infseq red (s1, t1)).
-      intros st [s' [t' [-> Hinf]]].
+          (X := fun st => exists γ1 t1,
+                    st = (γ1, t1) /\ infseq red (γ1, t1)).
+      intros st [γ' [t' [-> Hinf]]].
       + inversions Hinf. destruct b. eexists; split*.
       + eauto.
     - Case "term evaluates to normal form"%string.
@@ -531,26 +533,26 @@ Section ExtendedSafety.
       + SCase "term evaluates to a path"%string.
         pose proof (path_safety Hi Hwf Hwt Hu) as [Hd | Hn].
         * SSCase "path lookup diverges"%string.
-          left. assert (infseq extended_red (s, trm_path p)). {
+          left. assert (infseq extended_red (γ, trm_path p)). {
             clear Hwf Hwt Hr Hu Ht Hi G T t.
             apply infseq_coinduction_principle with
-                (X := fun st => exists u, st = (s, deftrm u) /\ infseq (lookup_step s) u).
+                (X := fun st => exists u, st = (γ, deftrm u) /\ infseq (lookup_step γ) u).
             + intros st [du [-> Hinf]].
               inversions Hinf. destruct b, du; try solve [inversion H].
               eexists; split*; apply* er_lookup.
               inversions H0. inversion H1.
             + eexists. split*. simpl. auto.
           }
-          assert (star extended_red (empty, t) (s, trm_path p)). {
+          assert (star extended_red (empty, t) (γ, trm_path p)). {
             apply* map_red_extend.
           }
           apply* extend_infseq.
         * SSCase "path looks up to value"%string.
-          destruct Hn as [v Hv]. right. exists s v.
+          destruct Hn as [v Hv]. right. exists γ v.
           eapply star_trans. eapply map_red_extend. eauto.
           inversions Hv. apply map_lookup_extend in H1. eauto.
       + SCase "term evaluates to a value"%string.
-        right. exists s v. apply* map_red_extend.
+        right. exists γ v. apply* map_red_extend.
   Qed.
 
 End ExtendedSafety.

@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="https://amaurremi.github.io/dot-calculus/src/extensions/paths/">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">Reduction</h1>
+
+<div class="code">
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Definitions.html#"><span class="id" title="library">Definitions</span></a> <a class="idref" href="Lookup.html#"><span class="id" title="library">Lookup</span></a> <a class="idref" href="Sequences.html#"><span class="id" title="library">Sequences</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab80"></a><h1 class="section">Operational Semantics</h1>
+
+<div class="paragraph"> </div>
+
+ Term-reduction relation 
+</div>
+<div class="code">
+<span class="id" title="keyword">Reserved Notation</span> &quot;t1 '⟼' t2" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40, <span class="id" title="var">t2</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 39).<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="red"><span class="id" title="inductive">red</span></a> : <a class="idref" href="Definitions.html#sta"><span class="id" title="definition">sta</span></a> <span class="id" title="notation">×</span> <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a> <span class="id" title="notation">→</span> <a class="idref" href="Definitions.html#sta"><span class="id" title="definition">sta</span></a> <span class="id" title="notation">×</span> <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a> <span class="id" title="notation">→</span> <span class="id" title="keyword">Prop</span> :=<br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">(<span class="id" title="var">p</span>,</span> <span class="inlinecode"><span class="id" title="var">lambda</span>(<span class="id" title="var">T</span>)<span class="id" title="var">t</span>)</span>  <span class="inlinecode"></span>      <br>
+    <span class="inlinecode">―――――――――――――――――――――</span>      <br>
+    <span class="inlinecode">(<span class="id" title="var">γ</span></span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode"><span class="id" title="var">q</span>)</span> <span class="inlinecode">⟼</span> <span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="var">t</span>^<span class="id" title="var">q</span>)</span>      
+</div>
+<div class="code">
+| <a name="red_app"><span class="id" title="constructor">red_app</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">T</span> <span class="id" title="var">t</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#c47b99a8858a8fdd619fdfff097f423f"><span class="id" title="notation">∋</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#p"><span class="id" title="variable">p</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">λ</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">(</span></a><a class="idref" href="Reduction.html#T"><span class="id" title="variable">T</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">)</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_app"><span class="id" title="constructor">trm_app</span></a> <a class="idref" href="Reduction.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Reduction.html#q"><span class="id" title="variable">q</span></a><span class="id" title="notation">)</span> <a class="idref" href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">⟼</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#open_trm_p"><span class="id" title="definition">open_trm_p</span></a> <a class="idref" href="Reduction.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span><br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">t</span>)</span> <span class="inlinecode">⟼</span> <span class="inlinecode">((<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">v</span>),</span> <span class="inlinecode"><span class="id" title="var">t</span>^<span class="id" title="var">x</span>)</span> 
+</div>
+<div class="code">
+| <a name="red_let_val"><span class="id" title="constructor">red_let_val</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">v</span> <span class="id" title="var">t</span> <span class="id" title="var">γ</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Reduction.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> (<a class="idref" href="Definitions.html#trm_val"><span class="id" title="constructor">trm_val</span></a> <a class="idref" href="Reduction.html#v"><span class="id" title="variable">v</span></a>) <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <a class="idref" href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">⟼</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Reduction.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">¬</span> <a class="idref" href="Reduction.html#v"><span class="id" title="variable">v</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a> <a class="idref" href="Reduction.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span><br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">t</span>)</span> <span class="inlinecode">⟼</span> <span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="var">t</span>^<span class="id" title="var">p</span>)</span> 
+</div>
+<div class="code">
+| <a name="red_let_path"><span class="id" title="constructor">red_let_path</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">t</span> <span class="id" title="var">γ</span> <span class="id" title="var">p</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> (<a class="idref" href="Definitions.html#trm_path"><span class="id" title="constructor">trm_path</span></a> <a class="idref" href="Reduction.html#p"><span class="id" title="variable">p</span></a>) <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <a class="idref" href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">⟼</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#open_trm_p"><span class="id" title="definition">open_trm_p</span></a> <a class="idref" href="Reduction.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span><br/>
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="var">t0</span>)</span> <span class="inlinecode">⟼</span> <span class="inlinecode">(<span class="id" title="var">γ'</span>,</span> <span class="inlinecode"><span class="id" title="var">t0'</span>)</span>                            <br>
+    <span class="inlinecode">―――――――――――――――――――――――――――――――――――――――――――――――</span>  <br>
+    <span class="inlinecode">(<span class="id" title="var">γ</span>,</span> <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t0</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">t</span>)</span> <span class="inlinecode">⟼</span> <span class="inlinecode">(<span class="id" title="var">γ'</span>,</span> <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t0'</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">t</span>)</span>  
+</div>
+<div class="code">
+| <a name="red_let_tgt"><span class="id" title="constructor">red_let_tgt</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">t0</span> <span class="id" title="var">t</span> <span class="id" title="var">γ</span> <span class="id" title="var">t0'</span> <span class="id" title="var">γ'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Reduction.html#t0"><span class="id" title="variable">t0</span></a><span class="id" title="notation">)</span> <a class="idref" href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">⟼</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#390cdadc901b8ad038b859add716aae2"><span class="id" title="variable">γ'</span></a><span class="id" title="notation">,</span> <a class="idref" href="Reduction.html#t0'"><span class="id" title="variable">t0'</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">(</span><a class="idref" href="Reduction.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> <a class="idref" href="Reduction.html#t0"><span class="id" title="variable">t0</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span> <a class="idref" href="Reduction.html#6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">⟼</span></a> <span class="id" title="notation">(</span><a class="idref" href="Reduction.html#390cdadc901b8ad038b859add716aae2"><span class="id" title="variable">γ'</span></a><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> <a class="idref" href="Reduction.html#t0'"><span class="id" title="variable">t0'</span></a> <a class="idref" href="Reduction.html#t"><span class="id" title="variable">t</span></a><span class="id" title="notation">)</span><br/>
+<br/>
+<span class="id" title="keyword">where</span> <a name="6a0a2cd1c1d834551a7de9c07376fb83"><span class="id" title="notation">&quot;</span></a>t1 '⟼' t2" := (<a class="idref" href="Reduction.html#red"><span class="id" title="inductive">red</span></a> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Reflexive, transitive closure of reduction relation 
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="4e97cf452882dc3f98e0131fef8d7935"><span class="id" title="notation">&quot;</span></a>t1 '⟼*' t2" := (<a class="idref" href="Sequences.html#star"><span class="id" title="inductive">star</span></a> <a class="idref" href="Reduction.html#red"><span class="id" title="inductive">red</span></a> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab81"></a><h2 class="section">Normal forms</h2>
+
+<div class="paragraph"> </div>
+
+ Paths and values are considered to be in normal form. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Inductive</span> <a name="norm_form"><span class="id" title="inductive">norm_form</span></a>: <a class="idref" href="Definitions.html#trm"><span class="id" title="inductive">trm</span></a> <span class="id" title="notation">→</span> <span class="id" title="keyword">Prop</span> :=<br/>
+| <a name="nf_path"><span class="id" title="constructor">nf_path</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">p</span>, <a class="idref" href="Reduction.html#norm_form"><span class="id" title="inductive">norm_form</span></a> (<a class="idref" href="Definitions.html#trm_path"><span class="id" title="constructor">trm_path</span></a> <a class="idref" href="Reduction.html#p"><span class="id" title="variable">p</span></a>)<br/>
+| <a name="nf_val"><span class="id" title="constructor">nf_val</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">v</span>, <a class="idref" href="Reduction.html#norm_form"><span class="id" title="inductive">norm_form</span></a> (<a class="idref" href="Definitions.html#trm_val"><span class="id" title="constructor">trm_val</span></a> <a class="idref" href="Reduction.html#v"><span class="id" title="variable">v</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <a class="idref" href="Reduction.html#red"><span class="id" title="inductive">red</span></a> <a class="idref" href="Reduction.html#norm_form"><span class="id" title="inductive">norm_form</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

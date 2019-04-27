@@ -29,13 +29,59 @@ To **compile the proof**, navigate to the cloned directory and run
  make
 ```
 
+## Paper Correspondence
+
+The pDOT calculus is formalized using the [locally nameless
+representation](http://www.chargueraud.org/softs/ln/)
+with cofinite quantification
+in which free variables are represented as named variables,
+and bound variables are represented as de Bruijn indices.
+
+### Correspondence of Definitions
+
+| Definition                                          | In paper      | File                   | Paper notation                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
+|-----------------------------------------------------|---------------|------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| Abstract Syntax                                     | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  |                         |
+| - variable                                          | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |
+| avar                    |
+| - term member                                       | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  | `trm_label`               |
+| - type member                                       | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  | `typ_label`               |
+| - path                                              | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |  x.a.b.c<br><br>p.a<br><br>p.b̅        |  `p_sel x (c::b::a::nil)` <br><br>`p•a`<br> <br>`p••b`                                                              | `path`                   |
+| - term                                              | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  | `trm`                     |
+| - stable term                                       | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  | `def_rhs`                 |
+| - value                                             | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | ν(x: T)ds <br>λ(x: T)t                                                                 | `ν(T)ds` <br>`λ(T)t`                                                                                                                                                                             | `val`                     |
+| - definition                                        | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | {a = t} <br>{A = T}                                                                    | `{a := t}`<br> `{A ⦂= T}`                                                                                                                                                                            | `def`                     |
+| - type                                              | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | {a: T} <br>{A: T..U} <br>∀(x: T)U <br>p.A <br>p.type <br>μ(x: T) <br>T ∧ U <br>⊤ <br>⊥ | `{a ⦂ T}` <br>`{A >: T <: U}` <br>`∀(T)U` <br>`p↓A` <br>`{{p}}` <br>`μ(T)` <br>`T ∧ U` <br>`⊤` <br>`⊥`                                                                                                            | `typ`                     |
+| Type System                                         | Fig. 2      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  |                         |
+| - term typing                                       | Fig. 2      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | Γ ⊢ t: T                                                                               | `Γ ⊢ t : T`                                                                                                                                                                                      | `ty_trm`                |
+| - definition typing                                 | Fig. 2      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | p; Γ ⊢ d: T                                                                            | `x; bs; Γ ⊢ d : T` <br>(single definition)  <br> `x; bs; Γ ⊢ d :: T` <br>(multiple definitions) <br> Here, p=`x.bs`, i.e. `x`<br> is p's receiver, and <br>`bs` are p's fields <br>in reverse order | `ty_def` <br> `ty_defs` |
+| - tight bounds                                      | Fig. 2      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  | `tight_bounds`          |
+| - subtyping                                         | Fig. 2      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | Γ ⊢ T <: U                                                                             | `Γ ⊢ T <: U`                                                                                                                                                                                     | `subtyp`                |
+| Operational semantics | Fig. 3 | [Reduction.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Reduction.html) | γ&#124;t ⟼ γ'&#124;t' <br> γ&#124;t ⟼* γ'&#124;t' | `(γ, t) ⟼ (γ', t')` <br> `(γ, t) ⟼* (γ', t')` | `red` |
+| Path lookup                                         | Fig. 4      | [Lookup.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html)               | γ ⊢ p ⤳ s <br> γ ⊢ s ⤳* s' <br> γ ⊢ p ⤳* v                                              | `γ ⊢ ⟦ p ⤳ s ⟧` <br> `γ ⊢ ⟦ s ⤳* s' ⟧` <br> `γ ∋ (p, v)`                                                                                                                                              | `lookup_step`           |
+| Extended reduction                                  | Sec. 5     | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)               | γ&#124;t ↠ γ'&#124;t' <br> γ&#124;t ↠* γ'&#124;t'                                                                          | `(γ, t) ↠ (γ', t')` <br> `(γ, t) ↠* (γ', t')`                                                                                                                                                                              | `extended_red`          |
+| Inert and record types                              | Fig. 5      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | inert T <br> inert Γ                                                                   | `inert_typ T` <br> `inert Γ`                                                                                                                                                                     |                         |
+| Well-formed <br> environments                            | Sec. 5.2.1 | [PreciseTyping.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/PreciseTyping.html)        |                                                                                        |                                                                                                                                                                                                  | `wf`                    |
+| Correspondence <br>between a value<br> and type environment | Sec. 5     | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | γ: Γ                                                                                   | `γ ⫶ Γ`                                                                                                                                                                                          | `well_typed` |
+
+
+### Correspondence of Lemmas and Theorems
+
+| Theorem                          | File             | Name in proof         |
+|----------------------------------|------------------|-----------------------|
+| Theorem 5.1 (Soundness)          | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `safety`              |
+| Theorem 5.2 (Extended Soundness) | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `extended_safety`     |
+| Lemma 5.3 (Progress)             | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `progress`            |
+| Lemma 5.4 (Preservation)         | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `preservation`        |
+| Lemma 5.4                        | CanonicalForms.v | `canonical_forms_fun` |
+
 ## Proof Organization
 
 ### Safety Proof
 The Coq proof is split up into the following modules:
   - **[Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)**: Definitions of pDOT's
     abstract syntax and type system.
-  - **[OperationalSemantics.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/OperationalSemantics.html)**:
+  - **[Reduction.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Reduction.html)**:
     Normal forms and the operational semantics of pDOT.
   - **[Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)**: ***Final safety theorem***
     through Progress and Preservation.
@@ -69,11 +115,6 @@ The Coq proof is split up into the following modules:
   - [Sequences.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Sequences.html): A library of relation
     operators by Xavier Leroy.
 
-### Path Safety Proof
-
-* [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html): Proves that well-typed paths
-    are either cyclic or reduce to values.
-
 ### Examples
 
   - [CompilerExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/CompilerExample.html): The dotty-compiler
@@ -85,72 +126,6 @@ The Coq proof is split up into the following modules:
   - [ExampleTactics.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/ExampleTactics.html): Helper tactics to prove
     the above examples.
 
-<!--The following figure shows a dependency graph between the Coq modules:-->
+The following figure shows a dependency graph between the Coq modules:
 
-<!--![Dependency graph](paths/doc/graph.png)-->
-
-## Paper Correspondence
-
-The pDOT calculus is formalized using the [locally nameless
-representation](http://www.chargueraud.org/softs/ln/)
-with cofinite quantification
-in which free variables are represented as named variables,
-and bound variables are represented as de Bruijn indices.
-
-- pDOT's **abstract syntax** (Figure 1)
-    is defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - variable: `avar`
-    - term member: `trm_label`
-    - type member: `typ_label`
-    - path: `path`
-    - term: `trm`
-    - stable term: `def_rhs`
-    - value: `val`
-    - definition: `def`
-    - type: `typ`
-- pDOT **type system** (Figure 2)
-    is defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - term typing (Γ ⊢ t: T): `ty_trm`, notation: `Γ ⊢ t : T`
-    - definition typing (p; Γ ⊢ d: T): `ty_def` and `ty_defs` for single
-        and multiple definitions; notations: `x; bs; Γ ⊢ d : T` and
-        `x; bs; G ⊢ d :: T`, where `x` is the receiver of the
-        path and `bs` is the list of p's fields in *reverse* order.
-        For example, a path x.a.b.c will be represented as
-        x; \[c, b, a\]
-    - tight bounds: `tight_bounds` function
-    - subtyping (Γ ⊢ T <: U): `subtyp`, notation: `Γ ⊢ T <: U`
-- pDOT's **operational semantics** (Figure 3)
-    defined in [OperationalSemantics.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/OperationalSemantics.html):
-    - reduction relation (γ | t ↦ γ' | t'):
-        `red'`, notation: `(γ, t) |=> (γ', t')`,
-- **Path lookup** (Figure 4):
-    - lookup relation (γ ⊢ p ⤳ s ):
-        `lookup_step`, notation: `γ ⟦ p ⟼ s ⟧`,
-        defined in
-        [Lookup.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html)
-    - reflexive, transitive closure of lookup relation (γ ⊢ s ⤳* s' ):
-        `lookup`, notation: `γ ⟦ s ⟼* s' ⟧`;
-        we also define special notation for a lookup that results
-        in a value: `γ ∋ (p, v)`;
-        defined in
-        [Lookup.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html)
-- **Inert** types (Figure 5)
-    defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - inert types: `inert_typ`
-    - records `record_typ` and `record_dec`
-    - inert contexts: `inert`
-- **Well-formed** environments are defined in
-    [PreciseTyping.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/PreciseTyping.html) as `wf_env`
-- **Correspondence** between a value and typing environment
-    (γ: Γ) is represented as `well_typed Γ γ`,
-    [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)
-- **Theorems**:
-    In the progress and preservation lemmas,
-    we use the `sta_trm_typ` judgment with a notation `⊢ (γ, t): T` to
-    denote that for all inert, well-typed environment Γ such that
-    γ: Γ, Γ ⊢ t: T.
-  - Theorem 5.1 (**Soundness**): `safety` in [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)
-  - Lemma 5.2 (Progress): `progress` in [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)
-  - Lemma 5.3 (Preservation): `preservation` in [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)
-  - Lemma 5.4: `canonical_forms_fun` in
-    [CanonicalForms.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/CanonicalForms.html).
+![Dependency graph](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/graph.png)
