@@ -8,7 +8,7 @@
 
 Set Implicit Arguments.
 
-(** This proof uses the
+(** This proof uses the Arguments [Arguments] alpha [alpha]
     #<a href="http://www.chargueraud.org/softs/tlc/">TLC</a>#
     meta-theory library by Arthur Chargueraud. *)
 Require Export TLC.LibLN.

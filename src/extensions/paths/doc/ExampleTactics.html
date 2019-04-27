@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../README.html">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">ExampleTactics</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab29"></a><h1 class="section">Tactics and Notatations used in Examples</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="Definitions.html#"><span class="id" title="library">Definitions</span></a> <a class="idref" href="Binding.html#"><span class="id" title="library">Binding</span></a> <a class="idref" href="Weakening.html#"><span class="id" title="library">Weakening</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="library">List</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="path_ref"><span class="id" title="abbreviation">path_ref</span></a> <span class="id" title="var">n</span> := (<a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_b"><span class="id" title="constructor">avar_b</span></a> <span class="id" title="var">n</span>) <span class="id" title="constructor">nil</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="this"><span class="id" title="abbreviation">this</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 0).<br/>
+<span class="id" title="keyword">Notation</span> <a name="super"><span class="id" title="abbreviation">super</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 1).<br/>
+<span class="id" title="keyword">Notation</span> <a name="ssuper"><span class="id" title="abbreviation">ssuper</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a name="sssuper"><span class="id" title="abbreviation">sssuper</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 3).<br/>
+<span class="id" title="keyword">Notation</span> <a name="ssssuper"><span class="id" title="abbreviation">ssssuper</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 4).<br/>
+<span class="id" title="keyword">Notation</span> <a name="sssssuper"><span class="id" title="abbreviation">sssssuper</span></a> := (<a class="idref" href="ExampleTactics.html#path_ref"><span class="id" title="abbreviation">path_ref</span></a> 5).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="lazy"><span class="id" title="abbreviation">lazy</span></a> <span class="id" title="var">t</span> := (<a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> (<a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">λ</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">(</span></a><a class="idref" href="Definitions.html#276a4a3018138118cad52558d0b71a10"><span class="id" title="notation">⊤</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">)</span></a> <span class="id" title="var">t</span>)).<br/>
+<span class="id" title="keyword">Notation</span> <a name="Lazy"><span class="id" title="abbreviation">Lazy</span></a> <span class="id" title="var">T</span> := (<a class="idref" href="Definitions.html#5602fefe5ae9ac7607d0a75368b09df0"><span class="id" title="notation">∀(</span></a><a class="idref" href="Definitions.html#276a4a3018138118cad52558d0b71a10"><span class="id" title="notation">⊤</span></a><a class="idref" href="Definitions.html#5602fefe5ae9ac7607d0a75368b09df0"><span class="id" title="notation">)</span></a> <span class="id" title="var">T</span>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="id"><span class="id" title="abbreviation">id</span></a> := (<a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">λ</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">(</span></a><a class="idref" href="Definitions.html#276a4a3018138118cad52558d0b71a10"><span class="id" title="notation">⊤</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">)</span></a> <a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">(</span></a><a class="idref" href="Definitions.html#trm_path"><span class="id" title="constructor">trm_path</span></a> <a class="idref" href="ExampleTactics.html#this"><span class="id" title="abbreviation">this</span></a><a class="idref" href="Definitions.html#d9cc4b8b9bd644016bdfcf5f8009b5b6"><span class="id" title="notation">)</span></a>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="Id"><span class="id" title="abbreviation">Id</span></a> := (<a class="idref" href="ExampleTactics.html#Lazy"><span class="id" title="abbreviation">Lazy</span></a> <a class="idref" href="Definitions.html#276a4a3018138118cad52558d0b71a10"><span class="id" title="notation">⊤</span></a>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="let_trm"><span class="id" title="abbreviation">let_trm</span></a> <span class="id" title="var">t</span> := (<a class="idref" href="Definitions.html#trm_let"><span class="id" title="constructor">trm_let</span></a> <span class="id" title="var">t</span> (<a class="idref" href="Definitions.html#trm_path"><span class="id" title="constructor">trm_path</span></a> <a class="idref" href="ExampleTactics.html#this"><span class="id" title="abbreviation">this</span></a>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="550434e23577e83b02880618b98accb7"><span class="id" title="notation">&quot;</span></a>d1 'Λ' d2" := (<a class="idref" href="Definitions.html#defs_cons"><span class="id" title="constructor">defs_cons</span></a> <span class="id" title="var">d1</span> <span class="id" title="var">d2</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">crush</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> (<span class="id" title="tactic">progress</span> (<span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> (<span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_trm"><span class="id" title="definition">open_trm</span></a>, <a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a>, <a class="idref" href="Definitions.html#open_typ_p"><span class="id" title="definition">open_typ_p</span></a>, <a class="idref" href="Definitions.html#open_defs"><span class="id" title="definition">open_defs</span></a>, <a class="idref" href="Definitions.html#open_defs_p"><span class="id" title="definition">open_defs_p</span></a>))); <span class="id" title="tactic">auto</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <span class="id" title="var">_</span> |- <a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>; <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">case_if</span>; <span class="id" title="tactic">auto</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">remember_ctx</span> <span class="id" title="var">G</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>: <span class="id" title="var">_</span> |- ?<span class="id" title="var">G'</span> <a class="idref" href="Definitions.html#8f800003c5c18bd4e5a8078841b62512"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="Definitions.html#8f800003c5c18bd4e5a8078841b62512"><span class="id" title="notation">:</span></a> <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">remember</span> <span class="id" title="var">G'</span> <span class="id" title="keyword">as</span> <span class="id" title="var">G</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

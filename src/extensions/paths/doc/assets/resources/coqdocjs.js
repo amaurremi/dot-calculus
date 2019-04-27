@@ -57,6 +57,54 @@ function replNodes() {
   });
 }
 
+function replNotIn() {
+        toArray(document.getElementsByClassName("id")).forEach(function(node){
+            if (node.getAttribute("type") == "notation" && node.textContent == "\\" && node.nextSibling.getAttribute("type") == "notation" && node.nextSibling.textContent == "notin"){
+                var next = node.nextSibling;
+
+                node.setAttribute("repl", "∉");
+                node.setAttribute("title", "\\notin");
+
+                var hidden = document.createElement("span");
+                hidden.setAttribute("class", "hidden");
+                while (node.firstChild) {
+                    hidden.appendChild(node.firstChild);
+                }
+
+                hidden.appendChild(next);
+
+                node.appendChild(hidden);
+            }
+        });
+
+        coqdocjs.replInText.forEach(function(toReplace){
+            toArray(document.getElementsByClassName("inlinecode")).forEach(function(node){
+                var fc = node.firstChild;
+                if (fc && fc.textContent == "\\" && fc.nextSibling) {
+                    var ns = fc.nextSibling;
+                    if (ns.getAttribute("type") == "var" && ns.textContent == "notin") {
+                        var child = ns.cloneNode(true);
+
+                        child.setAttribute("repl", "∉");
+                        child.setAttribute("title", "\\notin");
+                        while (child.firstChild) {
+                            child.removeChild(child.firstChild);
+                        }
+
+                        var hidden = document.createElement("span");
+                        hidden.setAttribute("class", "hidden");
+                        while (node.firstChild) {
+                            hidden.appendChild(node.firstChild);
+                        }
+
+                        node.appendChild(child);
+                        node.appendChild(hidden);
+                    }
+                }
+            });
+        });
+}
+
 function isVernacStart(l, t){
   t = t.trim();
   for(var s of l){

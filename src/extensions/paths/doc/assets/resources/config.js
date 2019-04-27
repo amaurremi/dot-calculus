@@ -69,4 +69,4 @@ coqdocjs.subscr = {
   "9" : "₉",
 };
 
-coqdocjs.replInText = ["==>","<=>", "=>", "->", "<-", ":="];
+coqdocjs.replInText = ["==>","<=>", "=>", "->", "<-", ":=", "Arguments"];

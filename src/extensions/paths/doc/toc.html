@@ -1,0 +1,316 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../README.html">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<a href="Definitions.html"><h2>Definitions</h2></a>
+<ul class="doclist">
+<li><a href="Definitions.html#lab1">pDOT Abstract Syntax and Type System</a>
+<ul class="doclist">
+<li><a href="Definitions.html#lab2">Abstract Syntax</a>
+
+</li>
+<li><a href="Definitions.html#lab8">Opening</a>
+
+</li>
+<li><a href="Definitions.html#lab9">Path Replacement</a>
+
+</li>
+<li><a href="Definitions.html#lab10">Free variables</a>
+
+</li>
+<li><a href="Definitions.html#lab11">Record and Inert Types</a>
+
+</li>
+<li><a href="Definitions.html#lab12">Typing Rules</a>
+
+</li>
+<li><a href="Definitions.html#lab17">Well-typed stores</a>
+
+</li>
+<li><a href="Definitions.html#lab18">Infrastructure</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Binding.html"><h2>Binding</h2></a>
+<ul class="doclist">
+<li><a href="Binding.html#lab21">Opening and Substitution Properties and Environment Reasoning</a>
+<ul class="doclist">
+<li><a href="Binding.html#lab22">Substitution definitions</a>
+
+</li>
+<li><a href="Binding.html#lab24">Simple Implications of Typing</a>
+
+</li>
+<li><a href="Binding.html#lab25">Opening Lemmas</a>
+
+</li>
+<li><a href="Binding.html#lab27">Variable Substitution Lemmas</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Weakening.html"><h2>Weakening</h2></a>
+<ul class="doclist">
+<li><a href="Weakening.html#lab28">Weakening Lemma</a>
+
+</li>
+</ul>
+<a href="ExampleTactics.html"><h2>ExampleTactics</h2></a>
+<ul class="doclist">
+<li><a href="ExampleTactics.html#lab29">Tactics and Notatations used in Examples</a>
+
+</li>
+</ul>
+<a href="SingletonTypeExample.html"><h2>SingletonTypeExample</h2></a>
+<ul class="doclist">
+<li><a href="SingletonTypeExample.html#lab30">Singleton-Types Example</a>
+
+</li>
+</ul>
+<a href="CompilerExample.html"><h2>CompilerExample</h2></a>
+<ul class="doclist">
+<li><a href="CompilerExample.html#lab31">Compiler Example</a>
+
+</li>
+</ul>
+<a href="ListExample.html"><h2>ListExample</h2></a>
+<ul class="doclist">
+<li><a href="ListExample.html#lab32">List Example</a>
+
+</li>
+</ul>
+<a href="Sequences.html"><h2>Sequences</h2></a>
+<ul class="doclist">
+<li><a href="Sequences.html#lab33">Xavier Leroy's Sequences Library</a>
+<ul class="doclist">
+<li><a href="Sequences.html#lab34">Finite sequences of transitions</a>
+
+</li>
+<li><a href="Sequences.html#lab35">Infinite sequences of transitions</a>
+
+</li>
+<li><a href="Sequences.html#lab36">Determinism properties for functional transition relations.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="RecordAndInertTypes.html"><h2>RecordAndInertTypes</h2></a>
+<ul class="doclist">
+<li><a href="RecordAndInertTypes.html#lab37">Reasoning About Records and Inert Types</a>
+
+</li>
+</ul>
+<a href="Replacement.html"><h2>Replacement</h2></a>
+<ul class="doclist">
+<li><a href="Replacement.html#lab39">Path Replacement <span class="inlinecode"><span class="id" title="var">T</span>[<span class="id" title="var">q</span>/<span class="id" title="var">p</span>,<span class="id" title="var">n</span>]</span></a>
+
+</li>
+</ul>
+<a href="Subenvironments.html"><h2>Subenvironments</h2></a>
+<ul class="doclist">
+<li><a href="Subenvironments.html#lab40">Subenvironments <span class="inlinecode"><span class="id" title="var">G1</span></span> <span class="inlinecode">⪯</span> <span class="inlinecode"><span class="id" title="var">G2</span></span></a>
+
+</li>
+</ul>
+<a href="Narrowing.html"><h2>Narrowing</h2></a>
+<ul class="doclist">
+<li><a href="Narrowing.html#lab41">Narrowing Lemma</a>
+
+</li>
+</ul>
+<a href="PreciseFlow.html"><h2>PreciseFlow</h2></a>
+<ul class="doclist">
+<li><a href="PreciseFlow.html#lab42">Precise Typing (Elimination Typing I)</a>
+<ul class="doclist">
+<li><a href="PreciseFlow.html#lab43">Precise typing for values</a>
+
+</li>
+<li><a href="PreciseFlow.html#lab44">Precise Flow for Paths</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="PreciseTyping.html"><h2>PreciseTyping</h2></a>
+<ul class="doclist">
+<li><a href="PreciseTyping.html#lab45">Precise Typing (Elimination Typing II and III)</a>
+<ul class="doclist">
+<li><a href="PreciseTyping.html#lab46">II-level Precise Typing</a>
+
+</li>
+<li><a href="PreciseTyping.html#lab47">III-level Precise Typing</a>
+
+</li>
+<li><a href="PreciseTyping.html#lab49">Wellformed paths and environments</a>
+
+</li>
+<li><a href="PreciseTyping.html#lab50">Strengthening and Typing of Singleton Types</a>
+
+</li>
+<li><a href="PreciseTyping.html#lab52">Replacement Composition</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="TightTyping.html"><h2>TightTyping</h2></a>
+<ul class="doclist">
+<li><a href="TightTyping.html#lab53">Tight typing ⊢]</a>
+
+</li>
+</ul>
+<a href="InvertibleTyping.html"><h2>InvertibleTyping</h2></a>
+<ul class="doclist">
+<li><a href="InvertibleTyping.html#lab55">Invertible (Introduction-pq) Typing</a>
+<ul class="doclist">
+<li><a href="InvertibleTyping.html#lab56">Invertible typing of paths <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode">⊢##</span> <span class="inlinecode"><span class="id" title="var">p</span>:</span> <span class="inlinecode"><span class="id" title="var">T</span></span></a>
+
+</li>
+<li><a href="InvertibleTyping.html#lab60">Invertible typing for values</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="ReplacementTyping.html"><h2>ReplacementTyping</h2></a>
+<ul class="doclist">
+<li><a href="ReplacementTyping.html#lab61">Replacement (Introduction-qp) Typing</a>
+<ul class="doclist">
+<li><a href="ReplacementTyping.html#lab62">Replacement Typing for Paths</a>
+
+</li>
+<li><a href="ReplacementTyping.html#lab65">Replacement typing for values</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="GeneralToTight.html"><h2>GeneralToTight</h2></a>
+<ul class="doclist">
+<li><a href="GeneralToTight.html#lab66">Converting General Typing To Tight Typing</a>
+<ul class="doclist">
+<li><a href="GeneralToTight.html#lab67">Sel-&lt;: Replacement</a>
+
+</li>
+<li><a href="GeneralToTight.html#lab68">Sngl-&lt;: Replacement</a>
+
+</li>
+<li><a href="GeneralToTight.html#lab69">General to Tight <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">to</span></span> <span class="inlinecode">⊢#</span></a>
+
+</li>
+<li><a href="GeneralToTight.html#lab70">Proof Recipe</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Lookup.html"><h2>Lookup</h2></a>
+<ul class="doclist">
+<li><a href="Lookup.html#lab71">Runtime Configuration Lookup of Paths</a>
+
+</li>
+</ul>
+<a href="Substitution.html"><h2>Substitution</h2></a>
+<ul class="doclist">
+<li><a href="Substitution.html#lab73">Substitution and Renaming</a>
+<ul class="doclist">
+<li><a href="Substitution.html#lab74">Substitution Lemma</a>
+
+</li>
+<li><a href="Substitution.html#lab75">Renaming</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="CanonicalForms.html"><h2>CanonicalForms</h2></a>
+<ul class="doclist">
+<li><a href="CanonicalForms.html#lab76">Canonical Forms</a>
+<ul class="doclist">
+<li><a href="CanonicalForms.html#lab77">Type preservation for path lookup</a>
+
+</li>
+<li><a href="CanonicalForms.html#lab78">Looking up well-typed paths</a>
+
+</li>
+<li><a href="CanonicalForms.html#lab79">Canonical Forms for Functions</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="OperationalSemantics.html"><h2>OperationalSemantics</h2></a>
+<ul class="doclist">
+<li><a href="OperationalSemantics.html#lab80">Operational Semantics</a>
+<ul class="doclist">
+<li><a href="OperationalSemantics.html#lab81">Normal forms</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="Safety.html"><h2>Safety</h2></a>
+<ul class="doclist">
+<li><a href="Safety.html#lab82">Type Soundness</a>
+<ul class="doclist">
+<li><a href="Safety.html#lab83">Safety wrt Term Reduction ⟼</a>
+
+</li>
+<li><a href="Safety.html#lab89">Safety wrt Path Lookup ⤳</a>
+
+</li>
+<li><a href="Safety.html#lab90">Extended Safety</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="assets/resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="assets/resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="assets/resources/config.js"></script>
+<script type="text/javascript" src="assets/resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../README.html">README</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">RecordAndInertTypes</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab37"></a><h1 class="section">Reasoning About Records and Inert Types</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Definitions.html#"><span class="id" title="library">Definitions</span></a> <a class="idref" href="Binding.html#"><span class="id" title="library">Binding</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab38"></a><h3 class="section">Lemmas About Records and Record Types</h3>
+
+<div class="paragraph"> </div>
+
+ If definitions <span class="inlinecode"><span class="id" title="var">ds</span></span> have type <span class="inlinecode"><span class="id" title="var">U</span></span> and <span class="inlinecode"><span class="id" title="var">ds</span></span> don't have a member named <span class="inlinecode"><span class="id" title="var">l</span></span>
+    then the record type <span class="inlinecode"><span class="id" title="var">U</span></span> doesn't have a member named <span class="inlinecode"><span class="id" title="var">l</span></span> either. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="hasnt_notin"><span class="id" title="lemma">hasnt_notin</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">G</span> <span class="id" title="var">ds</span> <span class="id" title="var">ls</span> <span class="id" title="var">l</span> <span class="id" title="var">U</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">⊢</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">::</span></a> <a class="idref" href="RecordAndInertTypes.html#U"><span class="id" title="variable">U</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#U"><span class="id" title="variable">U</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_hasnt"><span class="id" title="definition">defs_hasnt</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="RecordAndInertTypes.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inversion_def_typ</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>: <span class="id" title="var">_</span><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">:</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> ⇒ <span class="id" title="var">inversions</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hds</span> <span class="id" title="var">Hrec</span> <span class="id" title="var">Hhasnt</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">inversions</span> <span class="id" title="var">Hhasnt</span>. <span class="id" title="var">gen</span> <span class="id" title="var">ds</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">Hrec</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">Hds</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">inversion_def_typ</span>; <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> *; <span class="id" title="var">case_if</span>; <span class="id" title="tactic">apply</span>× <span class="id" title="lemma">notin_singleton</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="lemma">notin_union</span>; <span class="id" title="tactic">split</span>; <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> ×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span>× <span class="id" title="var">IHHrec</span>. <span class="id" title="var">case_if</span>×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversion_def_typ</span>; <span class="id" title="var">case_if</span>; <span class="id" title="tactic">apply</span>× <span class="id" title="lemma">notin_singleton</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span></span> then <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="id" title="var">p</span></span> <span class="inlinecode">∋</span> <span class="inlinecode"><span class="id" title="var">d</span>^<span class="id" title="var">p</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="defs_has_open"><span class="id" title="lemma">defs_has_open</span></a> <span class="id" title="var">ds</span> <span class="id" title="var">d</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="RecordAndInertTypes.html#d"><span class="id" title="variable">d</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a> (<a class="idref" href="Definitions.html#open_defs_p"><span class="id" title="definition">open_defs_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a>) (<a class="idref" href="Definitions.html#open_def_p"><span class="id" title="definition">open_def_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#d"><span class="id" title="variable">d</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hd</span>. <span class="id" title="var">gen</span> <span class="id" title="var">d</span> <span class="id" title="var">p</span>; <span class="id" title="tactic">induction</span> <span class="id" title="var">ds</span>; <span class="id" title="var">introv</span> <span class="id" title="var">Hd</span>; <span class="id" title="var">introv</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">Hd</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">case_if</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_defs_p"><span class="id" title="definition">open_defs_p</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_def_p"><span class="id" title="definition">open_def_p</span></a>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">case_if</span>×.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">specialize</span> (<span class="id" title="var">IHds</span> <span class="id" title="var">_</span> <span class="id" title="var">H0</span>). <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="var">case_if</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;× <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>, <span class="id" title="var">d0</span>; <span class="id" title="var">false</span>× <span class="id" title="var">C</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;× <span class="id" title="tactic">apply</span>× <span class="id" title="var">IHds</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">ds</span>^<span class="id" title="var">p</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t</span>}</span> then <span class="inlinecode"><span class="id" title="var">ds</span></span> <span class="inlinecode">∋</span> <span class="inlinecode">{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">_</span>}</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="defs_has_open'"><span class="id" title="lemma">defs_has_open'</span></a> <span class="id" title="var">ds</span> <span class="id" title="var">p</span> <span class="id" title="var">t</span> <span class="id" title="var">a</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a> (<a class="idref" href="Definitions.html#open_defs_p"><span class="id" title="definition">open_defs_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a>) <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">:=</span></a> <a class="idref" href="RecordAndInertTypes.html#t"><span class="id" title="variable">t</span></a><a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">∃</span> <span class="id" title="var">u</span><span class="id" title="notation">,</span> <a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">:=</span></a> <a class="idref" href="RecordAndInertTypes.html#u"><span class="id" title="variable">u</span></a><a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">}</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hd</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">ds</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">Hd</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">case_if</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">eexists</span>. <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="var">case_if</span>×.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#defs_has"><span class="id" title="definition">defs_has</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="var">case_if</span>×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">C0</span>. <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">C</span>. <span class="id" title="var">false</span>×.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>^<span class="id" title="var">x</span>])</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_dec_preserves_label"><span class="id" title="lemma">open_dec_preserves_label</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">D</span> <span class="id" title="var">x</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#label_of_dec"><span class="id" title="definition">label_of_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#label_of_dec"><span class="id" title="definition">label_of_dec</span></a> (<a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#i"><span class="id" title="variable">i</span></a> <a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">D</span>; <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Opening preserves the labels of a definition: <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">labels</span>([<span class="id" title="var">D</span>^<span class="id" title="var">p</span>])</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_dec_preserves_label_p"><span class="id" title="lemma">open_dec_preserves_label_p</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">D</span> <span class="id" title="var">p</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#label_of_dec"><span class="id" title="definition">label_of_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#label_of_dec"><span class="id" title="definition">label_of_dec</span></a> (<a class="idref" href="Definitions.html#open_rec_dec_p"><span class="id" title="definition">open_rec_dec_p</span></a> <a class="idref" href="RecordAndInertTypes.html#i"><span class="id" title="variable">i</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">D</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Opening preserves record-typeness and inertness 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_record_p"><span class="id" title="lemma">open_record_p</span></a>:<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">D</span>, <a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span>, <a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> (<a class="idref" href="Definitions.html#open_rec_dec_p"><span class="id" title="definition">open_rec_dec_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a>)<span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">ls</span> , <a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span>, <a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> (<a class="idref" href="Definitions.html#open_rec_typ_p"><span class="id" title="definition">open_rec_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>) <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span>, <a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span>, <a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> (<a class="idref" href="Definitions.html#open_rec_typ_p"><span class="id" title="definition">open_rec_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>)<span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#rcd_mutind"><span class="id" title="definition">rcd_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [<span class="id" title="tactic">constructor</span>; <span class="id" title="tactic">auto</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [<span class="id" title="var">erewrite</span> <a class="idref" href="RecordAndInertTypes.html#open_dec_preserves_label_p"><span class="id" title="lemma">open_dec_preserves_label_p</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">e</span>; <span class="id" title="tactic">eauto</span>]].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <a class="idref" href="Definitions.html#open_typ"><span class="id" title="definition">open_typ</span></a>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+for record types only 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="open_record_typ_p"><span class="id" title="lemma">open_record_typ_p</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">p</span> <span class="id" title="var">ls</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span> <a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> (<a class="idref" href="Definitions.html#open_typ_p"><span class="id" title="definition">open_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>) <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span>× <a class="idref" href="RecordAndInertTypes.html#open_record_p"><span class="id" title="lemma">open_record_p</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="open_record_type_p"><span class="id" title="lemma">open_record_type_p</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">p</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span> <a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> (<a class="idref" href="Definitions.html#open_typ_p"><span class="id" title="definition">open_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">ls</span> <span class="id" title="var">H</span>]. <span class="id" title="tactic">∃</span> <span class="id" title="var">ls</span>. <span class="id" title="tactic">eapply</span> <a class="idref" href="RecordAndInertTypes.html#open_record_typ_p"><span class="id" title="lemma">open_record_typ_p</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">eassumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">invert_open</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">T'</span> |- <span class="id" title="var">_</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">T'</span>; <span class="id" title="var">inversions</span>× <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">D'</span> |- <span class="id" title="var">_</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">D'</span>; <span class="id" title="var">inversions</span>× <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ_p"><span class="id" title="definition">open_rec_typ_p</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">T'</span> |- <span class="id" title="var">_</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">T'</span>; <span class="id" title="var">inversions</span>× <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">H</span>: <span class="id" title="var">_</span> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec_p"><span class="id" title="definition">open_rec_dec_p</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">D'</span> |- <span class="id" title="var">_</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">D'</span>; <span class="id" title="var">inversions</span>× <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Closing preserves record-typeness and inertness 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="record_open"><span class="id" title="lemma">record_open</span></a>:<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">D</span>, <a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">k</span> <span class="id" title="var">D'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_dec"><span class="id" title="definition">fv_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec"><span class="id" title="definition">open_rec_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">ls</span> , <a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">k</span> <span class="id" title="var">T'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span>, <a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">k</span> <span class="id" title="var">T'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">notin</span> <a class="idref" href="Definitions.html#fv_typ"><span class="id" title="definition">fv_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ"><span class="id" title="definition">open_rec_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#rcd_mutind"><span class="id" title="definition">rcd_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">invert_open</span>; <span class="id" title="var">simpls</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <a class="idref" href="Binding.html#open_fresh_typ_dec_injective"><span class="id" title="lemma">open_fresh_typ_dec_injective</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>; <span class="id" title="tactic">auto</span>. <span class="id" title="tactic">subst</span>. <span class="id" title="tactic">constructor</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">t0</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">H3</span>. <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">constructor</span>×. <span class="id" title="tactic">rewrite</span>× &lt;- <a class="idref" href="RecordAndInertTypes.html#open_dec_preserves_label"><span class="id" title="lemma">open_dec_preserves_label</span></a>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">invert_open</span>. <span class="id" title="var">simpls</span>. <span class="id" title="var">destruct_notin</span>. <span class="id" title="tactic">constructor</span>×. <span class="id" title="tactic">eauto</span>. <span class="id" title="tactic">rewrite</span>× &lt;- <a class="idref" href="RecordAndInertTypes.html#open_dec_preserves_label"><span class="id" title="lemma">open_dec_preserves_label</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Closing preserves tight-typeness 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="record_open_tight"><span class="id" title="lemma">record_open_tight</span></a>:<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">D</span>, <a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span> <span class="id" title="var">D'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#tight_bounds_dec"><span class="id" title="definition">tight_bounds_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_dec_p"><span class="id" title="definition">open_rec_dec_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D'"><span class="id" title="variable">D'</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">ls</span> , <a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span> <span class="id" title="var">T'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#tight_bounds"><span class="id" title="definition">tight_bounds</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ_p"><span class="id" title="definition">open_rec_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">T</span>, <a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">k</span> <span class="id" title="var">T'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#tight_bounds"><span class="id" title="definition">tight_bounds</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#open_rec_typ_p"><span class="id" title="definition">open_rec_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T'"><span class="id" title="variable">T'</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#rcd_mutind"><span class="id" title="definition">rcd_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">invert_open</span>; <span class="id" title="var">simpls</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">t0</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">H3</span>. <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">constructor</span>×. <span class="id" title="tactic">rewrite</span>× &lt;- <a class="idref" href="RecordAndInertTypes.html#open_dec_preserves_label_p"><span class="id" title="lemma">open_dec_preserves_label_p</span></a>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">invert_open</span>. <span class="id" title="var">simpls</span>. <span class="id" title="var">destruct_notin</span>. <span class="id" title="tactic">constructor</span>×. <span class="id" title="tactic">eauto</span>. <span class="id" title="tactic">rewrite</span>× &lt;- <a class="idref" href="RecordAndInertTypes.html#open_dec_preserves_label_p"><span class="id" title="lemma">open_dec_preserves_label_p</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The type of definitions is a record type. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="ty_defs_record_type_helper"><span class="id" title="lemma">ty_defs_record_type_helper</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">z</span> <span class="id" title="var">bs</span> <span class="id" title="var">G</span> <span class="id" title="var">d</span> <span class="id" title="var">D</span>, <a class="idref" href="RecordAndInertTypes.html#z"><span class="id" title="variable">z</span></a><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">⊢</span></a> <a class="idref" href="RecordAndInertTypes.html#d"><span class="id" title="variable">d</span></a> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">:</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">→</span> <a class="idref" href="Definitions.html#record_dec"><span class="id" title="inductive">record_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a><span class="id" title="notation">)</span> <span class="id" title="notation">∧</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">(</span><span class="id" title="keyword">∀</span> <span class="id" title="var">z</span> <span class="id" title="var">bs</span> <span class="id" title="var">G</span> <span class="id" title="var">ds</span> <span class="id" title="var">T</span>, <a class="idref" href="RecordAndInertTypes.html#z"><span class="id" title="variable">z</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">⊢</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">::</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span> <a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a><span class="id" title="notation">)</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="Definitions.html#ty_def_mutind"><span class="id" title="definition">ty_def_mutind</span></a>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">t</span>. <span class="id" title="tactic">econstructor</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">ls</span> <span class="id" title="var">H</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> ((<span class="id" title="notation">proj32</span> <a class="idref" href="RecordAndInertTypes.html#record_open_tight"><span class="id" title="lemma">record_open_tight</span></a>) <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">t</span> <span class="id" title="constructor">eq_refl</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [? ?]. <span class="id" title="tactic">econstructor</span>. <span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<a class="idref" href="RecordAndInertTypes.html#hasnt_notin"><span class="id" title="lemma">hasnt_notin</span></a> <span class="id" title="var">t</span> <span class="id" title="var">H</span> <span class="id" title="var">d0</span>). <span class="id" title="var">inversions</span> <span class="id" title="var">t0</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+for multiple-definition typing only 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="ty_defs_record_type"><span class="id" title="lemma">ty_defs_record_type</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">z</span> <span class="id" title="var">bs</span> <span class="id" title="var">G</span> <span class="id" title="var">ds</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#z"><span class="id" title="variable">z</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">⊢</span></a> <a class="idref" href="RecordAndInertTypes.html#ds"><span class="id" title="variable">ds</span></a> <a class="idref" href="Definitions.html#ed2865d5b6635aaa6d875cc0fd7c034b"><span class="id" title="notation">::</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">apply</span>× <a class="idref" href="RecordAndInertTypes.html#ty_defs_record_type_helper"><span class="id" title="lemma">ty_defs_record_type_helper</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="defs_invert_trm"><span class="id" title="lemma">defs_invert_trm</span></a> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">G</span> <span class="id" title="var">d</span> <span class="id" title="var">a</span> <span class="id" title="var">T</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#bs"><span class="id" title="variable">bs</span></a><a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">;</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">⊢</span></a> <a class="idref" href="RecordAndInertTypes.html#d"><span class="id" title="variable">d</span></a> <a class="idref" href="Definitions.html#ae7a57a11402d7c5d6d3a8914fe4ced3"><span class="id" title="notation">:</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<span class="id" title="notation">∃</span> <span class="id" title="var">t</span><span class="id" title="notation">,</span> <a class="idref" href="RecordAndInertTypes.html#d"><span class="id" title="variable">d</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">:=</span></a> <a class="idref" href="RecordAndInertTypes.html#t"><span class="id" title="variable">t</span></a><a class="idref" href="Definitions.html#5c1231770009cbe12d8b89eaf73bf800"><span class="id" title="notation">}</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hd</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">Hd</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">T</span></span> is a record type with labels <span class="inlinecode"><span class="id" title="var">ls</span></span>, and <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">=</span> <span class="inlinecode">...</span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="var">D</span></span> <span class="inlinecode">∧</span> <span class="inlinecode">...</span>,
+    then <span class="inlinecode"><span class="id" title="var">label</span>(<span class="id" title="var">D</span>)</span> <span class="inlinecode">∈</span> <span class="inlinecode"><span class="id" title="var">ls</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">D</span> <span class="id" title="var">ls</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_typ"><span class="id" title="inductive">record_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#label_of_dec"><span class="id" title="definition">label_of_dec</span></a> <a class="idref" href="RecordAndInertTypes.html#D"><span class="id" title="variable">D</span></a> <span class="id" title="notation">\</span><span class="id" title="notation">in</span> <a class="idref" href="RecordAndInertTypes.html#ls"><span class="id" title="variable">ls</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Htyp</span> <span class="id" title="var">Has</span>. <span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">D</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">Htyp</span>; <span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has</span>. <span class="id" title="tactic">subst</span>. <span class="id" title="tactic">apply</span> <span class="id" title="lemma">in_singleton_self</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">rewrite</span> <span class="id" title="axiom">in_union</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">apply</span>× <span class="id" title="var">IHHtyp</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">apply</span> <span class="id" title="lemma">in_singleton_self</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">=</span> <span class="inlinecode">...</span> <span class="inlinecode">∧</span> <span class="inlinecode">{<span class="id" title="var">A</span>:</span> <span class="inlinecode"><span class="id" title="var">T1</span>..<span class="id" title="var">T1</span>}</span> <span class="inlinecode">∧</span> <span class="inlinecode">...</span> and <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode">=</span> <span class="inlinecode">...</span> <span class="inlinecode">∧</span> <span class="inlinecode">{<span class="id" title="var">A</span>:</span> <span class="inlinecode"><span class="id" title="var">T2</span>..<span class="id" title="var">T2</span>}</span> <span class="inlinecode">∧</span> <span class="inlinecode">...</span>
+    then <span class="inlinecode"><span class="id" title="var">T1</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">T2</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="unique_rcd_typ"><span class="id" title="lemma">unique_rcd_typ</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">A</span> <span class="id" title="var">T1</span> <span class="id" title="var">T2</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="RecordAndInertTypes.html#T1"><span class="id" title="variable">T1</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="RecordAndInertTypes.html#T1"><span class="id" title="variable">T1</span></a><a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="RecordAndInertTypes.html#T2"><span class="id" title="variable">T2</span></a> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="RecordAndInertTypes.html#T2"><span class="id" title="variable">T2</span></a><a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#T1"><span class="id" title="variable">T1</span></a> <span class="id" title="notation">=</span> <a class="idref" href="RecordAndInertTypes.html#T2"><span class="id" title="variable">T2</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Htype</span> <span class="id" title="var">Has1</span> <span class="id" title="var">Has2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">T2</span>. <span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">T1</span>. <span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">A</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">Htype</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">ls</span> <span class="id" title="var">Htyp</span>]. <span class="id" title="tactic">induction</span> <span class="id" title="var">Htyp</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has1</span>; <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has2</span>; <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span>× <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span>× <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <a class="idref" href="RecordAndInertTypes.html#record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">D</span>:=<a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">{</span></a><span class="id" title="var">A</span> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&gt;:</span></a> <span class="id" title="var">T1</span> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&lt;:</span></a> <span class="id" title="var">T1</span><a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">}</span></a>) <span class="id" title="tactic">in</span> <span class="id" title="var">Htyp</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">H9</span>. <span class="id" title="var">false</span>× <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <a class="idref" href="RecordAndInertTypes.html#record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">D</span>:=<a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">{</span></a><span class="id" title="var">A</span> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&gt;:</span></a> <span class="id" title="var">T2</span> <a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">&lt;:</span></a> <span class="id" title="var">T2</span><a class="idref" href="Definitions.html#b194d02349b51cad3901d2caba34fa00"><span class="id" title="notation">}</span></a>) <span class="id" title="tactic">in</span> <span class="id" title="var">Htyp</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="var">false</span>× <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="var">inversions</span>× <span class="id" title="var">H9</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">T</span></span> is a record type then each term label can occur only once in <span class="inlinecode"><span class="id" title="var">T</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="unique_rcd_trm"><span class="id" title="lemma">unique_rcd_trm</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">T</span> <span class="id" title="var">a</span> <span class="id" title="var">U1</span> <span class="id" title="var">U2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_type"><span class="id" title="definition">record_type</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <a class="idref" href="RecordAndInertTypes.html#U1"><span class="id" title="variable">U1</span></a><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <a class="idref" href="RecordAndInertTypes.html#U2"><span class="id" title="variable">U2</span></a><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#U1"><span class="id" title="variable">U1</span></a> <span class="id" title="notation">=</span> <a class="idref" href="RecordAndInertTypes.html#U2"><span class="id" title="variable">U2</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Htype</span> <span class="id" title="var">Has1</span> <span class="id" title="var">Has2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">gen</span> <span class="id" title="var">U1</span> <span class="id" title="var">U2</span> <span class="id" title="var">a</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">Htype</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">ls</span> <span class="id" title="var">Htyp</span>]. <span class="id" title="tactic">induction</span> <span class="id" title="var">Htyp</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has1</span>; <span class="id" title="tactic">inversion</span> <span class="id" title="var">Has2</span>; <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span>× <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">inversion</span>× <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">eapply</span> <a class="idref" href="RecordAndInertTypes.html#record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">D</span>:=<a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><span class="id" title="var">a</span> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <span class="id" title="var">U1</span><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a>) <span class="id" title="tactic">in</span> <span class="id" title="var">Htyp</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">H9</span>. <span class="id" title="var">false</span>× <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <a class="idref" href="RecordAndInertTypes.html#record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">D</span>:=<a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><span class="id" title="var">a</span> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <span class="id" title="var">U2</span><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a>) <span class="id" title="tactic">in</span> <span class="id" title="var">Htyp</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="var">false</span>× <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="var">lets</span> <span class="id" title="var">Hr</span>: (<a class="idref" href="RecordAndInertTypes.html#record_typ_has_label_in"><span class="id" title="lemma">record_typ_has_label_in</span></a> <span class="id" title="var">Htyp</span> <span class="id" title="var">H9</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">false</span>× <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">inversions</span> <span class="id" title="var">H5</span>. <span class="id" title="var">inversions</span>× <span class="id" title="var">H9</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+is <span class="inlinecode"><span class="id" title="var">T</span></span> a singleton type? 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="is_sngl"><span class="id" title="definition">is_sngl</span></a> <span class="id" title="var">T</span> := <span class="id" title="notation">∃</span> <span class="id" title="var">p</span><span class="id" title="notation">,</span> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#2e12ae37c5a5c7396a13d7170e0de451"><span class="id" title="notation">{{</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Definitions.html#2e12ae37c5a5c7396a13d7170e0de451"><span class="id" title="notation">}}</span></a>.<br/>
+</div>
+
+<div class="doc">
+is <span class="inlinecode"><span class="id" title="var">T</span></span> an inert or singleton type? 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="inert_sngl"><span class="id" title="definition">inert_sngl</span></a> <span class="id" title="var">T</span> := <a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a> <span class="id" title="notation">∨</span> <a class="idref" href="RecordAndInertTypes.html#is_sngl"><span class="id" title="definition">is_sngl</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If <span class="inlinecode"><span class="id" title="var">μ</span>(...{<span class="id" title="var">a</span>:</span> <span class="inlinecode"><span class="id" title="var">U</span>}...)</span> is inert then <span class="inlinecode"><span class="id" title="var">U</span></span> is inert or a singleton type. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="inert_record_has"><span class="id" title="lemma">inert_record_has</span></a> <span class="id" title="var">T</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span> <span class="id" title="var">U</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert_typ"><span class="id" title="inductive">inert_typ</span></a> (<a class="idref" href="Definitions.html#57e8a3f1aebb1c6069654ec2f0cd7a19"><span class="id" title="notation">μ</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>) <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#record_has"><span class="id" title="inductive">record_has</span></a> (<a class="idref" href="Definitions.html#open_typ_p"><span class="id" title="definition">open_typ_p</span></a> <a class="idref" href="RecordAndInertTypes.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>) <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">{</span></a><a class="idref" href="RecordAndInertTypes.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">⦂</span></a> <a class="idref" href="RecordAndInertTypes.html#U"><span class="id" title="variable">U</span></a><a class="idref" href="Definitions.html#18cbe8108c7275adbcbe2d488cc0d64e"><span class="id" title="notation">}</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="RecordAndInertTypes.html#inert_sngl"><span class="id" title="definition">inert_sngl</span></a> <a class="idref" href="RecordAndInertTypes.html#U"><span class="id" title="variable">U</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hi</span> <span class="id" title="var">Hr</span>. <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">Hr</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">T</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">x</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hi</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inversions</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">left</span>. <span class="id" title="tactic">apply</span>× <a class="idref" href="RecordAndInertTypes.html#open_record_p"><span class="id" title="lemma">open_record_p</span></a>. <span class="id" title="tactic">right</span>. <span class="id" title="tactic">eexists</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">T</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">x</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hi</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span>× <span class="id" title="var">IHHr</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">T</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">x</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hi</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">specialize</span> (<span class="id" title="var">IHHr</span> <span class="id" title="var">U</span> <span class="id" title="var">a</span> <span class="id" title="var">p</span> (<a class="idref" href="Definitions.html#typ_rcd"><span class="id" title="constructor">typ_rcd</span></a> <span class="id" title="var">D</span>)). <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Concatenating inert contexts yields an inert context 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="inert_concat"><span class="id" title="lemma">inert_concat</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">G'</span> <span class="id" title="var">G</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> <a class="idref" href="RecordAndInertTypes.html#G'"><span class="id" title="variable">G'</span></a> <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="inductive">ok</span> (<a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="RecordAndInertTypes.html#G'"><span class="id" title="variable">G'</span></a>) <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> (<a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="RecordAndInertTypes.html#G'"><span class="id" title="variable">G'</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">G'</span> <span class="id" title="keyword">using</span> <span class="id" title="lemma">env_ind</span>; <span class="id" title="var">introv</span> <span class="id" title="var">Hg</span> <span class="id" title="var">Hg'</span> <span class="id" title="var">Hok</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span>× <span class="id" title="lemma">concat_empty_r</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">concat_assoc</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inversions</span> <span class="id" title="var">Hg'</span>; <span class="id" title="var">inversions</span> <span class="id" title="var">Hok</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">concat_assoc</span> <span class="id" title="tactic">in</span> *; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [<span class="id" title="var">false</span>× <span class="id" title="lemma">empty_push_inv</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="lemma">eq_push_inv</span> <span class="id" title="var">H</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">Heq1</span> [<span class="id" title="var">Heq2</span> <span class="id" title="var">Heq3</span>]]; <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="lemma">eq_push_inv</span> <span class="id" title="var">H3</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">Heq1</span> [<span class="id" title="var">Heq2</span> <span class="id" title="var">Heq3</span>]]; <span class="id" title="tactic">subst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Removing one element from an inert context preserves inertness. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="inert_prefix_one"><span class="id" title="lemma">inert_prefix_one</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">G</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> (<a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="RecordAndInertTypes.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="RecordAndInertTypes.html#T"><span class="id" title="variable">T</span></a>) <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">introv</span> <span class="id" title="var">Hi</span>. <span class="id" title="var">inversions</span> <span class="id" title="var">Hi</span>. <span class="id" title="var">false</span>× <span class="id" title="lemma">empty_push_inv</span>. <span class="id" title="var">lets</span> <span class="id" title="var">Heq</span>: (<span class="id" title="lemma">eq_push_inv</span> <span class="id" title="var">H</span>); <span class="id" title="var">destruct_all</span>; <span class="id" title="tactic">subst</span>×.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Any prefix of an inert context is inert 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="inert_prefix"><span class="id" title="lemma">inert_prefix</span></a> <span class="id" title="var">G</span> <span class="id" title="var">G'</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> (<a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="RecordAndInertTypes.html#G'"><span class="id" title="variable">G'</span></a>) <span class="id" title="notation">→</span><br/>
+&nbsp;&nbsp;<a class="idref" href="Definitions.html#inert"><span class="id" title="inductive">inert</span></a> <a class="idref" href="RecordAndInertTypes.html#G"><span class="id" title="variable">G</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">G'</span> <span class="id" title="keyword">using</span> <span class="id" title="lemma">env_ind</span>; <span class="id" title="tactic">intros</span> <span class="id" title="var">Hi</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">concat_empty_r</span> <span class="id" title="tactic">in</span> <span class="id" title="var">Hi</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> <span class="id" title="lemma">concat_assoc</span> <span class="id" title="tactic">in</span> <span class="id" title="var">Hi</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="RecordAndInertTypes.html#inert_prefix_one"><span class="id" title="lemma">inert_prefix_one</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">Hi</span>. <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
