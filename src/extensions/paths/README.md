@@ -97,74 +97,30 @@ with cofinite quantification
 in which free variables are represented as named variables,
 and bound variables are represented as de Bruijn indices.
 
-| Definition/Theorem | In paper | File          | Paper notation                                                                         | Proof notations                                                                      | Name in proof |
-|--------------------|----------|---------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|---------------|
-| Abstract Syntax    | Figure 1 | Definitions.v |                                                                                        |                                                                                      |               |
-| - variable         | Figure 1 | Definitions.v |                                                                                        |                                                                                      | avar          |
-| - term member      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | trm_label     |
-| - type member      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | typ_label     |
-| - path             | Figure 1 | Definitions.v | p.a <br>p.b̅                                                                            | p•a <br>p••b                                                                         | path          |
-| - term             | Figure 1 | Definitions.v |                                                                                        |                                                                                      | trm           |
-| - stable term      | Figure 1 | Definitions.v |                                                                                        |                                                                                      | def_rhs       |
-| - value            | Figure 1 | Definitions.v | ν(x: T)ds <br>λ(x: T)t                                                                 | ν(T)ds <br>λ(T)t                                                                     | val           |
-| - definition       | Figure 1 | Definitions.v | {a = t} <br>{A = T}                                                                    | {a := t} {A ⦂= T}                                                                    | def           |
-| - type             | Figure 1 | Definitions.v | {a: T} <br>{A: T..U} <br>∀(x: T)U <br>p.A <br>p.type <br>μ(x: T) <br>T ∧ U <br>⊤ <br>⊥ | {a ⦂ T} <br>{A >: T <: U} <br>∀(T)U <br>p↓A <br>{{p}} <br>μ(T) <br>T ∧ U <br>⊤ <br>⊥ | typ           |
-| Type System        | Figure 2 | Definitions.v |                                                                                        |                                                                                      |               |
-| term typing        | Figure 2 | Definitions.v | Γ ⊢ t: T                                                                               | Γ ⊢ t : T                                                                            |               |
-| definition typing  | Figure 2 | Definitions.v | p; Γ ⊢ d: T                                                                            | x; bs; Γ ⊢ d : T x; bs; Γ ⊢ d :: T                                                   |               |
-| tight bounds       | Figure 2 | Definitions.v |                                                                                        |                                                                                      |               |
-| subtyping          | Figure 2 | Definitions.v | Γ ⊢ T <: U                                                                             | Γ ⊢ T <: U                                                                           |               |
+| Definition                                          | In paper      | File                   | Paper notation                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
+|-----------------------------------------------------|---------------|------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| Abstract Syntax                                     | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  |                         |
+| - variable                                          | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | avar                    |
+| - term member                                       | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | trm_label               |
+| - type member                                       | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | typ_label               |
+| - path                                              | Figure 1      | Definitions.v          |  x.a.b.c<br>p.a (single field selection)<br> p.b̅ (selection of a list of fields)       |  [p_sel x [c, b, a]] (paths are represented as a pair of a receiver and a list of fields in reverse order) <br>[p•a]<br> <br>[p••b]                                                              | path                    |
+| - term                                              | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | trm                     |
+| - stable term                                       | Figure 1      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | def_rhs                 |
+| - value                                             | Figure 1      | Definitions.v          | ν(x: T)ds <br>λ(x: T)t                                                                 | [ν(T)ds] <br>[λ(T)t]                                                                                                                                                                             | val                     |
+| - definition                                        | Figure 1      | Definitions.v          | {a = t} <br>{A = T}                                                                    | [{a := t}] [{A ⦂= T}]                                                                                                                                                                            | def                     |
+| - type                                              | Figure 1      | Definitions.v          | {a: T} <br>{A: T..U} <br>∀(x: T)U <br>p.A <br>p.type <br>μ(x: T) <br>T ∧ U <br>⊤ <br>⊥ | {a ⦂ T} <br>{A >: T <: U} <br>∀(T)U <br>p↓A <br>{{p}} <br>μ(T) <br>T ∧ U <br>⊤ <br>⊥                                                                                                             | typ                     |
+| Type System                                         | Figure 2      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  |                         |
+| - term typing                                       | Figure 2      | Definitions.v          | Γ ⊢ t: T                                                                               | [Γ ⊢ t : T]                                                                                                                                                                                      | [ty_trm]                |
+| - definition typing                                 | Figure 2      | Definitions.v          | p; Γ ⊢ d: T                                                                            | [x; bs; Γ ⊢ d : T] (single definition typing)  <br> [x; bs; Γ ⊢ d :: T] (typing of multiple definitions) <br> Here, p=[x.bs], i.e. [x] is p's receiver, and [bs] are p's fields in reverse order | [ty_def] <br> [ty_defs] |
+| - tight bounds                                      | Figure 2      | Definitions.v          |                                                                                        |                                                                                                                                                                                                  | [tight_bounds]          |
+| - subtyping                                         | Figure 2      | Definitions.v          | Γ ⊢ T <: U                                                                             | [Γ ⊢ T <: U]                                                                                                                                                                                     | [subtyp]                |
+| Operational semantics                               | Figure 3      | OperationalSemantics.v |                                                                                        |                                                                                                                                                                                                  | [red]                   |
+| Path lookup                                         | Figure 4      | Lookup.v               | γ ⊢ p ⟼ s <br> γ ⊢ s ⟼* s' <br> γ ⊢ p ⟼ v                                              | [γ ⊢ ⟦ p ⟼ s ⟧ <br> γ ⊢ ⟦ s ⟼* s' ⟧ <br> γ ∋ (p, v)                                                                                                                                              | [lookup_step]           |
+| Inert and record types                              | Figure 5      | Definitions.v          | inert T <br> inert Γ                                                                   | [inert_typ T] <br> [inert Γ]                                                                                                                                                                     |                         |
+| Well-formed environments                            | Section 5.2.1 | PreciseTyping.v        |                                                                                        |                                                                                                                                                                                                  | [wf]                    |
+| Correspondence between a value and type environment | Section 5     | Definitions.v          | γ: Γ                                                                                   | [γ ⫶ Γ]                                                                                                                                                                                          | [well_typed] |
 
 
-
-
-- pDOT's **abstract syntax** (Figure 1)
-    is defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - variable: `avar`
-    - term member: `trm_label`
-    - type member: `typ_label`
-    - path: `path`
-    - term: `trm`
-    - stable term: `def_rhs`
-    - value: `val`
-    - definition: `def`
-    - type: `typ`
-- pDOT **type system** (Figure 2)
-    is defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - term typing (Γ ⊢ t: T): `ty_trm`, notation: `Γ ⊢ t : T`
-    - definition typing (p; Γ ⊢ d: T): `ty_def` and `ty_defs` for single
-        and multiple definitions; notations: `x; bs; Γ ⊢ d : T` and
-        `x; bs; G ⊢ d :: T`, where `x` is the receiver of the
-        path and `bs` is the list of p's fields in *reverse* order.
-        For example, a path x.a.b.c will be represented as
-        x; \[c, b, a\]
-    - tight bounds: `tight_bounds` function
-    - subtyping (Γ ⊢ T <: U): `subtyp`, notation: `Γ ⊢ T <: U`
-- pDOT's **operational semantics** (Figure 3)
-    defined in [OperationalSemantics.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/OperationalSemantics.html):
-    - reduction relation (γ | t ↦ γ' | t'):
-        `red'`, notation: `(γ, t) |=> (γ', t')`,
-- **Path lookup** (Figure 4):
-    - lookup relation (γ ⊢ p ⤳ s ):
-        `lookup_step`, notation: `γ ⟦ p ⟼ s ⟧`,
-        defined in
-        [Lookup.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html)
-    - reflexive, transitive closure of lookup relation (γ ⊢ s ⤳* s' ):
-        `lookup`, notation: `γ ⟦ s ⟼* s' ⟧`;
-        we also define special notation for a lookup that results
-        in a value: `γ ∋ (p, v)`;
-        defined in
-        [Lookup.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html)
-- **Inert** types (Figure 5)
-    defined in [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html):
-    - inert types: `inert_typ`
-    - records `record_typ` and `record_dec`
-    - inert contexts: `inert`
-- **Well-formed** environments are defined in
-    [PreciseTyping.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/PreciseTyping.html) as `wf_env`
-- **Correspondence** between a value and typing environment
-    (γ: Γ) is represented as `well_typed Γ γ`,
-    [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)
 - **Theorems**:
     In the progress and preservation lemmas,
     we use the `sta_trm_typ` judgment with a notation `⊢ (γ, t): T` to
