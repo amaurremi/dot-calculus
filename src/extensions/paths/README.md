@@ -39,7 +39,7 @@ and bound variables are represented as de Bruijn indices.
 
 ### Correspondence of Definitions
 
-| Definition                                          | In paper      | File                   | Paper notation                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
+| Definition                                          | In paper      | File                   | Paper notations                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
 |-----------------------------------------------------|---------------|------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
 | Abstract Syntax                                     | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  |                         |
 | - variable                                          | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |
@@ -73,7 +73,7 @@ and bound variables are represented as de Bruijn indices.
 | Theorem 5.2 (Extended Soundness) | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `extended_safety`     |
 | Lemma 5.3 (Progress)             | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `progress`            |
 | Lemma 5.4 (Preservation)         | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `preservation`        |
-| Lemma 5.4                        | CanonicalForms.v | `canonical_forms_fun` |
+| Lemma 5.4                        | [CanonicalForms.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/CanonicalForms.html) | `canonical_forms_fun` |
 
 ### Correspondence of Examples
 
