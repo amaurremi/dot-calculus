@@ -128,4 +128,4 @@ The Coq proof is split up into the following modules:
 
 The following figure shows a dependency graph between the Coq modules:
 
-![Dependency graph](paths/doc/graph.png)
+![Dependency graph](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/graph.png)
