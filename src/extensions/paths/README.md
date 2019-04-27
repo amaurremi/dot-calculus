@@ -8,6 +8,8 @@ with paths of arbitrary length. This allows
 us to express path-dependent types of the form `x.a.b.A` as opposed to
 just `x.A`.
 
+[Link to the pDOT paper](https://arxiv.org/abs/1904.07298v1)
+
 ## Compiling the Proof
 
 **System requirements**:
@@ -37,9 +39,11 @@ with cofinite quantification
 in which free variables are represented as named variables,
 and bound variables are represented as de Bruijn indices.
 
+We include the [Sequences](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Sequences.html) library by [Xavier Leroy](https://xavierleroy.org/) into our development to reason about the reflexive, transitive closure of binary relations.
+
 ### Correspondence of Definitions
 
-| Definition                                          | In paper      | File                   | Paper notations                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
+| Definition                                          | In [paper](https://arxiv.org/abs/1904.07298v1)      | File                   | Paper notations                                                                         | Proof notations                                                                                                                                                                                  | Name in proof           |
 |-----------------------------------------------------|---------------|------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
 | Abstract Syntax                                     | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          |                                                                                        |                                                                                                                                                                                                  |                         |
 | - variable                                          | Fig. 1      | [Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)          | | | [`avar`](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#avar) |
@@ -76,7 +80,7 @@ and bound variables are represented as de Bruijn indices.
 
 ### Correspondence of Examples
 
-| Example                | In paper                 | File                   |
+| Example                | In [paper](https://arxiv.org/abs/1904.07298v1)                 | File                   |
 |------------------------|--------------------------|------------------------|
 | List example           | Section 6.2, Figure 8 a) | [ListExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/ListExample.html)                   |
 | Compiler example       | Section 6.3, Figure 8 b) | [CompilerExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/CompilerExample.html)           |
