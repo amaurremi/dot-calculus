@@ -4,13 +4,13 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(** * Narrowing Lemma *)
+
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions Subenvironments Weakening.
 
-(** * Narrowing Lemma *)
 (** The narrowing lemma states that typing is preserved under subenvironments.
     The lemma corresponds to Lemma 3.11 in the paper.
     The proof is by mutual induction on term typing, definition typing,
@@ -52,12 +52,12 @@ Lemma narrow_rules:
   (forall G t T, G ⊢ t : T -> forall G',
     G' ⪯ G ->
     G' ⊢ t : T)
-/\ (forall z bs P G d D, z; bs; P; G ⊢ d : D -> forall G',
+/\ (forall z bs G d D, z; bs; G ⊢ d : D -> forall G',
     G' ⪯ G ->
-    z; bs; P; G' ⊢ d : D)
-/\ (forall z bs P G ds T, z; bs; P; G ⊢ ds :: T -> forall G',
+    z; bs; G' ⊢ d : D)
+/\ (forall z bs G ds T, z; bs; G ⊢ ds :: T -> forall G',
     G' ⪯ G ->
-    z; bs; P; G' ⊢ ds :: T)
+    z; bs; G' ⊢ ds :: T)
 /\ (forall G S U, G ⊢ S <: U -> forall G',
     G' ⪯ G ->
     G' ⊢ S <: U).
@@ -68,15 +68,9 @@ Proof.
           | [ H : _ ⪯ _ |- _ ] => destruct (subenv_implies_ok H)
           end;
           fresh_constructor].
-
-  Case "ty_var".
-  induction H; auto;
-  match goal with
-  | [ H : binds _ _ (_ & _) |- _ ] =>
-    apply binds_push_inv in H; destruct_all; subst
-  end;
-  [ eapply ty_sub; [eauto 2 | apply weaken_subtyp; trivial]
-  | apply weaken_ty_trm; auto].
+    induction H; auto. apply binds_push_inv in b; destruct_all; subst.
+    apply ty_sub with (T:=T0); auto. apply* weaken_subtyp.
+    apply* weaken_ty_trm.
 Qed.
 
 (** The narrowing lemma, formulated only for term typing. *)
@@ -97,10 +91,11 @@ Proof.
   intros. apply* narrow_rules.
 Qed.
 
-Lemma narrow_defs: forall G G' ds T z bs P,
-    z; bs; P; G ⊢ ds :: T ->
+(** The narrowing lemma, formulated only for definition typing. *)
+Lemma narrow_defs: forall G G' ds T z bs,
+    z; bs; G ⊢ ds :: T ->
     G' ⪯ G ->
-    z; bs; P; G' ⊢ ds :: T.
+    z; bs; G' ⊢ ds :: T.
 Proof.
   intros. apply* narrow_rules.
 Qed.

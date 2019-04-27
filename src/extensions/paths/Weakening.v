@@ -4,12 +4,12 @@
 (** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
+(** * Weakening Lemma *)
+
 Set Implicit Arguments.
 
-Require Import LibLN.
 Require Import Definitions.
 
-(** * Weakening Lemma *)
 (** Weakening states that typing is preserved in extended environments. *)
 
 (** [G1, G3 |- t: T]                    #<br>#
@@ -47,18 +47,18 @@ Lemma weaken_rules:
         G = G1 & G3 ->
         ok (G1 & G2 & G3) ->
         G1 & G2 & G3 ⊢ t : T) /\
-  (forall x bs P G d D,
-      x; bs; P; G ⊢ d : D ->
+  (forall x bs G d D,
+      x; bs; G ⊢ d : D ->
       forall G1 G2 G3,
         G = G1 & G3 ->
         ok (G1 & G2 & G3) ->
-        x; bs; P; G1 & G2 & G3 ⊢ d : D) /\
-  (forall x bs P G ds T,
-      x; bs; P; G ⊢ ds :: T ->
+        x; bs; G1 & G2 & G3 ⊢ d : D) /\
+  (forall x bs G ds T,
+      x; bs; G ⊢ ds :: T ->
       forall G1 G2 G3,
         G = G1 & G3 ->
         ok (G1 & G2 & G3) ->
-        x; bs; P; G1 & G2 & G3 ⊢ ds :: T) /\
+        x; bs; G1 & G2 & G3 ⊢ ds :: T) /\
   (forall G T U,
       G ⊢ T <: U ->
       forall G1 G2 G3,
@@ -107,10 +107,11 @@ Proof.
   weaken_specialize.
 Qed.
 
-Lemma weaken_ty_defs: forall G1 G2 z bs P ds T,
-    z; bs; P; G1 ⊢ ds :: T ->
+(** Weakening lemma specialized to definition-typing *)
+Lemma weaken_ty_defs: forall G1 G2 z bs ds T,
+    z; bs; G1 ⊢ ds :: T ->
     ok (G1 & G2) ->
-    z; bs; P; G1 & G2 ⊢ ds :: T.
+    z; bs; G1 & G2 ⊢ ds :: T.
 Proof.
   weaken_specialize.
 Qed.

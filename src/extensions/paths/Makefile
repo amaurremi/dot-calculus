@@ -1,14 +1,9 @@
-FILES=Safety.v
+FILES=Safety.v ListExample.v CompilerExample.v SingletonTypeExample.v
 OBJECTS=$(FILES:.v=.vo)
 
-TLCDIR=../../../lib/tlc
 DOCDIR=doc
 
-TLCSRC=$(TLCDIR)
-LIBLN=$(TLCSRC)/LibLN.vo
-TLCNAME=TLC
-
-COQINCLUDE=-R $(TLCSRC) $(TLCNAME) -R . \"\"
+COQINCLUDE=-R . \"\"
 COQMAKEFILE=$(COQBIN)coq_makefile
 
 PROOFMAKEFILE=Makefile.coq
@@ -43,11 +38,6 @@ doc: $(DOCDIR)/toc.html
 all doc clean: $(PROOFMAKEFILE)
 %vo: $(PROOFMAKEFILE)
 
-all: $(LIBLN)
-doc: $(LIBLN)
-proofs: $(LIBLN)
-%vo: $(LIBLN)
-
 #############
 # IDE Setup #
 #############
@@ -57,13 +47,6 @@ ide: _CoqProject
 
 _CoqProject:
 	echo $(COQINCLUDE) > _CoqProject
-
-########################
-# Library Dependencies #
-########################
-
-$(LIBLN): $(wildcard $(TLCSRC)/*.v)
-	$(MAKE) -C $(TLCDIR)
 
 ###################
 # Forced Rebuilds #
@@ -90,7 +73,7 @@ EXTRA_DIR:=$(DOCDIR)/assets
 COQDOCFLAGS:= \
   --no-externals \
   --toc --toc-depth 2 --html \
-  --index indexpage --no-lib-name --parse-comments \
+  --index indexpage --no-lib-name --parse-comments -utf8 \
   --with-header $(EXTRA_DIR)/header.html --with-footer $(EXTRA_DIR)/footer.html
 export COQDOCFLAGS
 
@@ -120,13 +103,13 @@ DPDDOT=$(DPDFILENAME:=.dot)
 DPDEXCLUDE ?=
 DPDMODULES=$(filter-out $(DPDEXCLUDE), $(DPDMODALL))
 
-DPDTEXT=Require dpdgraph.dpdgraph. Require LibLN. Require Coq.Program.Equality.
+DPDTEXT=Require dpdgraph.dpdgraph. Require TLC.LibLN. Require Coq.Program.Equality.
 DPDTEXT+=Require $(DPDMODULES).
 DPDTEXT+=Set DependGraph File \"$(DPDFILENAME)\".
 DPDTEXT+=Print FileDependGraph $(DPDMODULES).
 
 $(DPDFILENAME): $(shell coqdep -sort $(FILES))
-	echo $(DPDTEXT) | coqtop -R $(TLCSRC) $(TLCNAME) -notop
+	echo $(DPDTEXT) | coqtop
 
 $(DPDDOT): $(DPDFILENAME)
 	dpd2dot -without-defs $<

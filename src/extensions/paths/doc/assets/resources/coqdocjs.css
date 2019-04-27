@@ -4,10 +4,6 @@
   font-size: 0;
 }
 
-.inlinecode .hidden {
-    display: none;
-}
-
 .id[repl]:before{
   content: attr(repl);
 }
@@ -109,17 +105,20 @@ html, body {
   padding:0;
 }
 
-body {
-  display: flex;
-  flex-direction: column
+@media only screen { /* no div with internal scrolling to allow printing of whole content */
+    body {
+        display: flex;
+        flex-direction: column
+    }
+
+    #content {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+    }
 }
 
-#content {
-  flex: 1;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
 #content:focus {
   outline: none; /* prevent glow in OS X */
 }
@@ -241,9 +240,9 @@ div.goal {
 }
 
 div.doc {
-    background-color: #e0e5f8;
-    padding: 10px;
-    clear: both;
+   // background-color: #eee;
+   // padding: 2mm;
+  clear: both;
 }
 
 span.command:hover {

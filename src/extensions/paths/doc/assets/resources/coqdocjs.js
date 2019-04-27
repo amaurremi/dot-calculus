@@ -40,7 +40,7 @@ function replInTextNodes() {
 
 function replNodes() {
   toArray(document.getElementsByClassName("id")).forEach(function(node){
-      if (["var", "variable", "keyword", "notation", "definition", "inductive", "tactic"].indexOf(node.getAttribute("type"))>=0){
+    if (["var", "variable", "keyword", "notation", "definition", "inductive"].indexOf(node.getAttribute("type"))>=0){
       var text = node.textContent;
       var replText = replace(text);
       if(text != replText) {
@@ -57,7 +57,7 @@ function replNodes() {
   });
 }
 
-    function replNotIn() {
+function replNotIn() {
         toArray(document.getElementsByClassName("id")).forEach(function(node){
             if (node.getAttribute("type") == "notation" && node.textContent == "\\" && node.nextSibling.getAttribute("type") == "notation" && node.nextSibling.textContent == "notin"){
                 var next = node.nextSibling;
@@ -103,7 +103,7 @@ function replNodes() {
                 }
             });
         });
-    }
+}
 
 function isVernacStart(l, t){
   t = t.trim();
@@ -120,7 +120,7 @@ function isProofStart(s){
 }
 
 function isProofEnd(s){
-  return isVernacStart(["Qed", "Admitted", "Defined"], s);
+  return isVernacStart(["Qed", "Admitted", "Defined", "Abort"], s);
 }
 
 function proofStatus(){
@@ -220,7 +220,6 @@ function postprocess(){
   repairDom();
   replInTextNodes()
   replNodes();
-  replNotIn();
   foldProofs();
   document.getElementById("toggle-proofs").addEventListener("click", toggleProofs);
   updateView();

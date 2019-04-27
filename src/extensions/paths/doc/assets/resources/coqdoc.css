@@ -17,11 +17,6 @@ a {
     font-weight: bold;
 }
 
-.readme a {
-    text-decoration: underline;
-    font-weight: none;
-}
-
 #main .code a, #main .inlinecode a, #toc a {
     font-weight: inherit;
 }

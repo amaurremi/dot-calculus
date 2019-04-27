@@ -8,7 +8,7 @@
 
 Set Implicit Arguments.
 
-Require Import LibLN.
+Require Import TLC.LibLN.
 Require Import Coq.Program.Equality.
 Require Import Definitions.
 
@@ -118,6 +118,7 @@ Proof.
 
   apply typ_mutind; intros; invert_open; simpl in *;
     f_equal; eauto using open_fresh_avar_injective.
+  all: (apply* H; eauto) || (apply* H0; eauto).
 Qed.
 
 (** * Variable Substitution Lemmas *)
@@ -191,6 +192,13 @@ Proof.
     rewrite (IH N2).
     rewrite ((proj1 (subst_fresh_typ_dec _ _)) _ N1).
     reflexivity.
+Qed.
+
+(** [G[y/x], z ~ T[y/x] = (G, z ~ T)[y/x] *)
+Lemma subst_ctx_push : forall x y G z T,
+    subst_ctx x y G & z ~ subst_typ x y T = subst_ctx x y (G & z ~ T).
+Proof.
+  intros. unfold subst_ctx; rewrite map_concat, map_single; auto.
 Qed.
 
 (** Definition of substitution on named variables: #<br>#

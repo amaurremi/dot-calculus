@@ -1,7 +1,6 @@
 Set Implicit Arguments.
 
-Require Import LibLN.
-Require Import Coq.Program.Equality.
+Require Import Coq.Program.Equality String.
 Require Import Binding CanonicalForms Definitions GeneralToTight InvertibleTyping Narrowing
             OperationalSemantics PreciseTyping RecordAndInertTypes Substitution Weakening.
 
@@ -37,7 +36,7 @@ Ltac binds_eq :=
   match goal with
   | [Hb1: binds ?x _ ?G,
      Hb2: binds ?x _ ?G |- _] =>
-     apply (binds_func Hb1) in Hb2; inversions Hb2
+     apply (binds_functional Hb1) in Hb2; inversions Hb2
   end.
 
 Ltac invert_red :=
@@ -82,7 +81,7 @@ Lemma preservation_helper: forall G s t s' t' T,
 Proof.
   introv Hwf Hin Hred Ht. gen t'.
   induction Ht; intros; try solve [invert_red].
-  - Case "ty_all_elim".
+  - Case "ty_all_elim"%string.
     match goal with
     | [Hx: _ ⊢ trm_var (avar_f _) : typ_all _ _ |- _] =>
         pose proof (canonical_forms_fun Hin Hwf Hx) as [L [T' [t [Bis [Hsub Hty]]]]];
@@ -91,8 +90,8 @@ Proof.
     end.
     exists (@empty typ). rewrite concat_empty_r. repeat_split_right; auto.
     pick_fresh y. assert (y \notin L) as FrL by auto. specialize (Hty y FrL).
-    eapply renaming_typ; eauto.
-  - Case "ty_new_elim".
+    apply* renaming_typ; eauto.
+  - Case "ty_new_elim"%string.
     pose proof (canonical_forms_obj Hin Hwf Ht) as [S [ds [t [Bis [Has Ty]]]]].
     invert_red. binds_eq.
     exists (@empty typ). rewrite concat_empty_r. repeat_split_right; auto.
@@ -100,7 +99,7 @@ Proof.
     | [Hd: defs_has _ (def_trm _ ?t') |- G ⊢ t': T] =>
       rewrite* <- (defs_has_inv Has Hd)
     end.
-  - Case "ty_let".
+  - Case "ty_let"%string.
     destruct t; try solve [solve_let].
     + SCase "[t = (let x = a in u)] where a is a variable".
       repeat invert_red.
@@ -118,7 +117,7 @@ Proof.
       ** apply~ well_typed_push. apply (precise_to_general_v Hv).
       ** eapply renaming_fresh with (L:=L \u dom G \u \{x}). apply* ok_push.
          intros. apply* weaken_rules. apply ty_sub with (T:=V); auto. apply* weaken_subtyp.
-  - Case "ty_sub".
+  - Case "ty_sub"%string.
     solve_IH.
     match goal with
     | [Hs: _ ⊢ _ <: _,
@@ -172,11 +171,11 @@ Theorem progress: forall s t T,
 Proof.
   introv Ht. inversion Ht as [G s' t' T' Hi Hwt HT]. subst.
   induction HT; eauto.
-  - Case "ty_all_elim".
+  - Case "ty_all_elim"%string.
     pose proof (canonical_forms_fun Hi Hwt HT1). destruct_all. right*.
-  - Case "ty_new_elim".
+  - Case "ty_new_elim"%string.
     pose proof (canonical_forms_obj Hi Hwt HT). destruct_all. right*.
-  - Case "ty_let".
+  - Case "ty_let"%string.
     right. destruct t; try solve [solve_let_prog].
     + pose proof (var_typing_implies_avar_f HT) as [x A]. subst*.
     + pick_fresh x. exists (s & x ~ v) (open_trm x u). auto.
