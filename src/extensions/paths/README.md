@@ -75,6 +75,14 @@ and bound variables are represented as de Bruijn indices.
 | Lemma 5.4 (Preservation)         | [Safety.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html)         | `preservation`        |
 | Lemma 5.4                        | CanonicalForms.v | `canonical_forms_fun` |
 
+### Correspondence of Examples
+
+| Example                | In paper                 | File                   |
+|------------------------|--------------------------|------------------------|
+| List example           | Section 6.2, Figure 8 a) | [ListExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/ListExample.html)                   |
+| Compiler example       | Section 6.3, Figure 8 b) | [CompilerExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/CompilerExample.html)           |
+| Singleton type example | Section 6.4, Figure 8 c) | [SingletonTypeExample.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/SingletonTypeExample.html) |
+
 ## Proof Organization
 
 ### Safety Proof
