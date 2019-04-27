@@ -731,35 +731,35 @@ Qed.
 
 (** ** Wellformed paths and environments *)
 
-Inductive wf_env : ctx -> Prop :=
+Inductive wf : ctx -> Prop :=
 | wfe_empty :
-    wf_env empty
+    wf empty
 | wfe_push G x T :
-    wf_env G ->
+    wf G ->
     x # G ->
     (forall bs q, G & x ~ T ⊢! p_sel (avar_f x) bs : {{ q }}⪼ {{ q }}->
              exists U, G & x ~ T ⊢!! q : U) ->
-    wf_env (G & x ~ T).
+    wf (G & x ~ T).
 
-Hint Constructors wf_env.
+Hint Constructors wf.
 
-Lemma wf_env_prefix_one G x T :
-  wf_env (G & x ~ T) -> wf_env G.
+Lemma wf_prefix_one G x T :
+  wf (G & x ~ T) -> wf G.
 Proof.
   intros Hwf. dependent induction Hwf.
   - false* empty_push_inv.
   - apply eq_push_inv in x as [-> [-> ->]]. destruct G as [|G x U] using env_ind; auto.
 Qed.
 
-Lemma wf_env_prefix G G' :
-  wf_env (G & G') -> wf_env G.
+Lemma wf_prefix G G' :
+  wf (G & G') -> wf G.
 Proof.
   intros Hwf. gen G. induction G' using env_ind; introv Hwf.
   - rewrite concat_empty_r in Hwf; auto.
-  - rewrite concat_assoc in *. apply IHG'. apply* wf_env_prefix_one.
+  - rewrite concat_assoc in *. apply IHG'. apply* wf_prefix_one.
 Qed.
 
-Hint Resolve wf_env_prefix wf_env_prefix_one.
+Hint Resolve wf_prefix wf_prefix_one.
 
 (** ** Strengthening and Typing of Singleton Types *)
 (** Strengthening is the opposite of weakening: removing elements
@@ -769,7 +769,7 @@ Hint Resolve wf_env_prefix wf_env_prefix_one.
 
 Lemma pf_strengthen_one_helper G y bs T x q :
   inert (G & x ~ T) ->
-  wf_env G ->
+  wf G ->
   G & x ~ T ⊢! p_sel (avar_f y) bs : {{ q }}⪼ {{ q }}->
   x <> y ->
   exists U, G ⊢!! q : U.
@@ -785,7 +785,7 @@ Qed.
 
 Lemma pt2_strengthen_one_helper G y bs T x q :
   inert (G & x ~ T) ->
-  wf_env G ->
+  wf G ->
   G & x ~ T ⊢!! p_sel (avar_f y) bs : {{ q }}->
   x <> y ->
   G ⊢!! p_sel (avar_f y) bs : {{ q }}/\ exists S, G ⊢!! q : S.
@@ -812,7 +812,7 @@ Qed.
 
 Lemma pt2_strengthen_one G y bs T x U :
   inert (G & x ~ T) ->
-  wf_env G ->
+  wf G ->
   G & x ~ T ⊢!! p_sel (avar_f y) bs : U ->
   x <> y ->
   G ⊢!! p_sel (avar_f y) bs : U.
@@ -831,7 +831,7 @@ Qed.
 
 Lemma sngl_typed G p q :
     inert G ->
-    wf_env G ->
+    wf G ->
     G ⊢! p: {{ q }}⪼ {{ q }}->
     exists T, G ⊢!! q: T.
 Proof.
@@ -845,7 +845,7 @@ Qed.
 
 Lemma sngl_typed2 : forall G p q,
     inert G ->
-    wf_env G ->
+    wf G ->
     G ⊢!! p: {{ q }}->
     exists T, G ⊢!! q: T.
 Proof.
@@ -855,7 +855,7 @@ Qed.
 
 Lemma sngl_typed3 : forall G p q,
     inert G ->
-    wf_env G ->
+    wf G ->
     G ⊢!!! p: {{ q }}->
     exists T, G ⊢!!! q: T.
 Proof.
@@ -865,7 +865,7 @@ Qed.
 
 Lemma pt2_fld_strengthen G p a T U G' :
   inert (G & G') ->
-  wf_env G ->
+  wf G ->
   G ⊢!! p : T ->
   G & G' ⊢!! p • a : U ->
   G ⊢!! p • a : U.
@@ -888,7 +888,7 @@ Qed.
 Lemma pt2_strengthen G G1 G2 bs T x U :
   G = G1 & x ~ T & G2 ->
   inert G ->
-  wf_env G ->
+  wf G ->
   G ⊢!! p_sel (avar_f x) bs : U ->
   G1 & x ~ T ⊢!! p_sel (avar_f x) bs : U.
 Proof.
@@ -898,12 +898,12 @@ Proof.
     + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
       false* notin_same.
     + rewrite concat_assoc in *. eapply pt2_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) (wf_env_prefix Hwf) Hp). eauto. apply* wf_env_prefix.
+      specialize (IHG2 (inert_prefix Hi) (wf_prefix Hwf) Hp). eauto. apply* wf_prefix.
 Qed.
 
 Lemma pt3_strengthen_one G bs T x y U :
   inert (G & x ~ T) ->
-  wf_env (G & x ~ T) ->
+  wf (G & x ~ T) ->
   G & x ~ T ⊢!!! p_sel (avar_f y) bs : U ->
   y <> x ->
   G ⊢!!! p_sel (avar_f y) bs : U.
@@ -923,7 +923,7 @@ Qed.
 Lemma pt3_strengthen G G1 G2 bs T x U :
   G = G1 & x ~ T & G2 ->
   inert G ->
-  wf_env G ->
+  wf G ->
   G ⊢!!! p_sel (avar_f x) bs : U ->
   G1 & x ~ T ⊢!!! p_sel (avar_f x) bs : U.
 Proof.
@@ -933,12 +933,12 @@ Proof.
     + apply inert_ok in Hi. apply ok_middle_inv_r in Hi. simpl_dom. apply notin_union in Hi as [Contra _].
       false* notin_same.
     + rewrite concat_assoc in *. apply pt3_strengthen_one in Hp; auto.
-      specialize (IHG2 (inert_prefix Hi) (wf_env_prefix Hwf) Hp). eauto.
+      specialize (IHG2 (inert_prefix Hi) (wf_prefix Hwf) Hp). eauto.
 Qed.
 
 Lemma pt2_strengthen_full G p T :
   inert G ->
-  wf_env G ->
+  wf G ->
   G ⊢!! p : T ->
   exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
                   p = p_sel (avar_f x) bs /\
@@ -950,7 +950,7 @@ Qed.
 
 Lemma pt2_strengthen_from_pf G G' p bs T T' U :
   inert (G & G') ->
-  wf_env (G & G') ->
+  wf (G & G') ->
   G ⊢! p: T ⪼ T' ->
   G & G' ⊢!! p••bs : U ->
   G  ⊢!! p••bs : U.
@@ -964,12 +964,12 @@ Proof.
     apply* pt2_weaken.
   - rewrite proj_rewrite' in *. pose proof (pt2_backtrack _ _ Hp2) as [V Hb].
     specialize (IHbs _ Hb).
-    pose proof (pt2_fld_strengthen _ Hi (wf_env_prefix Hwf) IHbs Hp2). eauto.
+    pose proof (pt2_fld_strengthen _ Hi (wf_prefix Hwf) IHbs Hp2). eauto.
 Qed.
 
 Lemma pt3_strengthen_full G p T :
   inert G ->
-  wf_env G ->
+  wf G ->
   G ⊢!!! p : T ->
   exists G1 G2 x bs V, G = G1 & x ~ V & G2 /\
                   p = p_sel (avar_f x) bs /\
@@ -982,8 +982,8 @@ Proof.
     pose proof (pt2_strengthen_full Hi Hwf H) as [G1' [G2' [y [cs [W3 [Heq [-> Hp2]]]]]]].
     do 5 eexists. split. apply Heq. split*.
     assert (inert (G1' & y ~ W3)) as Hi' by (rewrite Heq in Hi; apply* inert_prefix).
-    assert (wf_env (G1' & y ~ W3)) as Hwf'.
-    { rewrite Heq in Hwf. eapply wf_env_prefix. eauto. }
+    assert (wf (G1' & y ~ W3)) as Hwf'.
+    { rewrite Heq in Hwf. eapply wf_prefix. eauto. }
     pose proof (sngl_typed2 Hi' Hwf' Hp2) as [U Hx].
     apply (pt2_strengthen_full Hi') in Hx as [G1'' [G2'' [z [ds [X [HeqG [[= <- <-] Hx]]]]]]].
     rewrite HeqG in Heq. do 2 rewrite <- concat_assoc in Heq. rewrite concat_assoc in Heq.
@@ -996,14 +996,14 @@ Qed.
 
 Lemma pt3_fld_strengthen G p a T U G' :
   inert (G & G') ->
-  wf_env (G & G') ->
+  wf (G & G') ->
   G ⊢!!! p : T ->
   G & G' ⊢!!! p • a : U ->
   G ⊢!!! p • a : U.
 Proof.
   intros Hi Hwf Hp Hpa.
   pose proof (pt3_strengthen_full Hi Hwf Hpa) as [G1 [G2 [px [pbs [V [HeqG [Heqp Hp1]]]]]]]. simpl_dot.
-  pose proof (pt3_strengthen_full (inert_prefix Hi) (wf_env_prefix Hwf) Hp)
+  pose proof (pt3_strengthen_full (inert_prefix Hi) (wf_prefix Hwf) Hp)
     as [G1' [G2' [px' [pbs' [V' [-> [[= <- <-] HHH]]]]]]].
   rewrite <- concat_assoc in *. apply env_ok_inv' in HeqG as [-> [-> <-]]; auto.
   rewrite concat_assoc in *. apply* pt3_weaken. apply inert_ok. apply* inert_prefix.
@@ -1011,7 +1011,7 @@ Qed.
 
 Lemma pf_strengthen_from_pt3 G G' p T U V :
   inert (G & G') ->
-  wf_env (G & G') ->
+  wf (G & G') ->
   G ⊢!!! p: T ->
   G & G' ⊢! p : U ⪼ V ->
   G  ⊢! p : U ⪼ V.
@@ -1021,7 +1021,7 @@ Proof.
   apply (pt3_strengthen_full (inert_prefix Hi)) in Hp3 as [G1' [G2' [? [? [? [-> [[= <- <-] Hp3]]]]]]].
   rewrite <- concat_assoc in Heq. apply env_ok_inv in Heq as [-> [-> <-]].
   apply* pf_weaken. apply inert_ok. apply* inert_prefix. rewrite concat_assoc in Heq.
-  rewrite Heq in Hi. auto. apply* wf_env_prefix.
+  rewrite Heq in Hi. auto. apply* wf_prefix.
 Qed.
 
 (** ** Replacement Composition *)
@@ -1046,7 +1046,7 @@ Notation "G '⊢' p '⟿'' q" := (G ⊢ {{ p }}⟿ {{ q }}) (at level 40, p at l
     singleton paths *)
 Lemma repl_comp_to_prec': forall G G' p q T,
     inert (G & G') ->
-    wf_env (G & G') ->
+    wf (G & G') ->
     G ⊢ p ⟿' q ->
     G & G' ⊢!!! p: T ->
     p = q \/ G ⊢!!! p: {{ q }}.
@@ -1063,10 +1063,10 @@ Proof.
   - specialize (IHHr _ Hp). destruct H as [p1 [p2 [n [S [H1 [Hq H2]]]]]].
     destruct (repl_prefixes_sngl H2) as [bs [He1 He2]]. subst.
     destruct IHHr as [Heq | IH].
-    * subst. right. lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_env_prefix Hwf) (pt3 (pt2 H1))). destruct Hs.
+    * subst. right. lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) (pt3 (pt2 H1))). destruct Hs.
       apply* pt3_trans_trans. apply* inert_prefix.
     * right*. apply* pt3_sngl_trans3.
-      lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_env_prefix Hwf) IH). destruct Hs.
+      lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) IH). destruct Hs.
       apply* pt3_trans_trans. apply* inert_prefix.
 Qed.
 

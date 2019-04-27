@@ -1,7 +1,3 @@
-(** printing |-#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
-(** printing |-##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
-(** printing |-##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
-(** printing |-!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
 (** * Substitution and Renaming *)
@@ -14,14 +10,20 @@ Require Import Definitions Binding Replacement Weakening.
 Ltac subst_open_fresh :=
   match goal with
   | [ |- context [ open_typ ?z (subst_typ ?x ?p ?T) ] ] =>
-    replace (open_typ z (subst_typ x p T)) with (open_typ_p (subst_path x p (pvar z)) (subst_typ x p T)) by
-        (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_typ_eq; auto)
+    replace (open_typ z (subst_typ x p T)) with
+        (open_typ_p (subst_path x p (pvar z)) (subst_typ x p T)) by
+        (unfold subst_path; simpl; unfold subst_var_p;
+         rewrite If_r, open_var_typ_eq; auto)
     | [ |- context [ open_defs ?z (subst_defs ?x ?p ?ds) ] ] =>
-        replace (open_defs z (subst_defs x p ds)) with (open_defs_p (subst_path x p (pvar z)) (subst_defs x p ds))
-          by (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_defs_eq; auto)
+      replace (open_defs z (subst_defs x p ds)) with
+          (open_defs_p (subst_path x p (pvar z)) (subst_defs x p ds))
+        by (unfold subst_path; simpl; unfold subst_var_p;
+            rewrite If_r, open_var_defs_eq; auto)
      | [ |- context [ open_trm ?z (subst_trm ?x ?p ?t) ] ] =>
-        replace (open_trm z (subst_trm x p t)) with (open_trm_p (subst_path x p (pvar z)) (subst_trm x p t))
-          by (unfold subst_path; simpl; unfold subst_var_p; rewrite If_r, open_var_trm_eq; auto)
+       replace (open_trm z (subst_trm x p t)) with
+           (open_trm_p (subst_path x p (pvar z)) (subst_trm x p t))
+         by (unfold subst_path; simpl; unfold subst_var_p;
+             rewrite If_r, open_var_trm_eq; auto)
     end.
 
 Ltac subst_fresh_solver :=

@@ -1,7 +1,3 @@
-(** printing ⊢#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
-(** printing ⊢##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
-(** printing ⊢##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
-(** printing ⊢!    %\vdash_!%       #&vdash;<sub>!</sub>#         *)
 (** remove printing ~ *)
 
 (** * Opening and Substitution Properties and Environment Reasoning *)
@@ -135,11 +131,11 @@ Definition subst_ctx (z: var) (p: path) (G: ctx) : ctx :=
 
 (** *** Field selection *)
 
-(** Opening does not affect the last fields of a path: [(p^q).bs = (p.bs)^q ] *)
-Lemma sel_fields_open : forall n p q bs,
-  sel_fields (open_rec_path_p n p q) bs = open_rec_path_p n p (sel_fields q bs).
+(** Opening does not affect the last fields of a path: [qᵖ.bs = q.bsᵖ ] *)
+Lemma sel_fields_open : forall n q p bs,
+  sel_fields (open_rec_path_p n q p) bs = open_rec_path_p n q (sel_fields p bs).
 Proof.
-  intros. destruct q. simpl. destruct p. destruct a. case_if; simpl; auto. rewrite* app_assoc.
+  intros. destruct p. simpl. destruct q. destruct a. case_if; simpl; auto. rewrite* app_assoc.
   simpl. auto.
 Qed.
 
@@ -158,7 +154,7 @@ Proof.
   introv Heq. destruct* p. inversion* Heq.
 Qed.
 
-(** The same for a different notation of field selection: [q.bs^p = (q^p).bs] *)
+(** The same for a different notation of field selection: [q.bsᵖ = qᵖ.bs] *)
 Lemma field_sel_open: forall p q bs n,
     open_rec_path_p n p (q •• bs) = (open_rec_path_p n p q) •• bs.
 Proof.
@@ -282,7 +278,7 @@ Ltac avar_solve :=
 
 (** The following [open_fresh_XYZ_injective] lemmas state that given two
     symbols (variables, types, terms, etc.) [X] and [Y] and a variable [z],
-    if [z \notin fv(X)] and [z \notin fv(Y)], then [X^z = Y^z] implies [X = Y]. *)
+    if [z ∉ fv(X)] and [z ∉ fv(Y)], then [Xᶻ = Yᶻ] implies [X = Y]. *)
 
 (** - variables *)
 Lemma open_fresh_avar_injective : forall x y k z,
@@ -403,7 +399,7 @@ Proof.
   apply~ notin_union.
 Qed.
 
-(** If [x \notin fv(G)] then [G[y/x] = G] *)
+(** If [x ∉ fv(G)] then [G[y/x] = G] *)
 Lemma subst_fresh_ctx: forall x y G,
   x \notin fv_ctx_types G -> subst_ctx x y G = G.
 Proof.
@@ -420,10 +416,10 @@ Qed.
 
 (** The following lemmas state that substitution commutes with opening:
     for a symbol [Z], #<br>#
-    [(Z^a)[y/x] = (Z[y/x])^(a[y/x])]. *)
+    [(Zᵃ)[y/x] = Z[y/x]]#<sup>a[y/x]</sup>#. *)
 
 (** Substitution commutes with variable-opening
-    - variables: [(y^z)[p/x] = (y[p/x])^(z[p/x])] *)
+    - variables: [yᶻ[p/x] = y[p/x]]#<sup>z[p/x]</sup># *)
 Lemma subst_open_commut_avar: forall x p z y n,
     named_path p ->
     subst_avar x p (open_rec_avar n z y)
@@ -434,7 +430,7 @@ Proof.
     repeat case_if; simpl; try case_if*; eauto; inversions  Hl; destruct_all; inversion H.
 Qed.
 
-(** - paths: [(q^z)[p/x] = (q[p/x])^(z[p/x])] *)
+(** - paths: [qᶻ[p/x] = q[p/x]]#<sup>z[p/x]</sup># *)
 Lemma subst_open_commut_path: forall p n x q z,
     named_path p ->
     subst_path x p (open_rec_path n z q)
@@ -443,7 +439,7 @@ Proof.
   introv Hl. destruct q as [? ?]. simpl. rewrite* subst_open_commut_avar. rewrite* sel_fields_open.
 Qed.
 
-(** - types and declarations: [(T^z)[p/x] = (T[p/x])^(z[p/x])] *)
+(** - types and declarations: [Tᶻ[p/x] = T[p/x]]#<sup>z[p/x]</sup># *)
 Lemma subst_open_commut_typ_dec: forall x p z,
   named_path p ->
   (forall T : typ, forall n: nat,
@@ -506,7 +502,7 @@ Proof.
 Qed.
 
 (** Substitution commutes with path-opening *)
-(** - paths: [(p^r)[q/x] = (p[q/x])^(r[q/x])] *)
+(** - paths: [pʳ[q/x] = p[q/x]]#<sup>r[q/x]</sup># *)
 Lemma subst_open_commut_path_p: forall p n x q r,
     named_path q ->
     subst_path x q (open_rec_path_p n r p)
@@ -522,7 +518,7 @@ Proof.
   unfold sel_fields; reflexivity.
 Qed.
 
-(** - types and declarations: [(T^r)[q/x] = (T[q/x])^(r[q/x])] *)
+(** - types and declarations: [Tʳ[q/x] = T[q/x]]#<sup>r[q/x]</sup># *)
 Lemma subst_open_commut_typ_dec_p: forall x y r,
   named_path y ->
   (forall T : typ, forall n: nat,
@@ -588,7 +584,7 @@ Qed.
 (** The following lemmas state that opening a symbol with a variable [y]
     is the same as opening the symbol with another variable [x] and
     substituting [x] with [y]: #<br>#
-    [Z^y = (Z^x)[y/x]] *)
+    [Zʸ = (Zˣ)[y/x]] *)
 
 (** Substitution after opening
     - terms *)
@@ -625,7 +621,7 @@ Proof.
   intros. destruct* d.
 Qed.
 
-(** If [l \notin labels(ds)] then [l \notin labels(ds[y/x]] *)
+(** If [l ∉ labels(ds)] then [l ∉ labels(ds[y/x]] *)
 Lemma subst_defs_hasnt: forall x y l ds,
   defs_hasnt ds l ->
   defs_hasnt (subst_defs x y ds) l.
@@ -763,7 +759,7 @@ Proof.
 Qed.
 
 (** Closing recursive types in the environment does not affect typing:
-    if [G1, x: S^x, G2 ⊢ t: T] then  [G1, x: μ(x: S), G2 ⊢ t: T],
+    if [G1, x: Sˣ, G2 ⊢ t: T] then  [G1, x: μ(x: S), G2 ⊢ t: T],
     and the same holds for definition typing and subtyping. *)
 Lemma open_env_rules:
   (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
@@ -843,9 +839,11 @@ Proof.
 Qed.
 
 (** A prefix of a well-typed environment is well-typed *)
-Lemma wt_prefix G1 x T G2 s :
-  well_typed (G1 & x ~ T & G2) s ->
-  exists v s1 s2, s = s1 & x ~ v & s2 /\ well_typed (G1 & x ~ T) (s1 & x ~ v).
+Lemma wt_prefix G1 x T G2 γ :
+  γ ⫶ G1 & x ~ T & G2 ->
+  exists v γ1 γ2,
+    γ = γ1 & x ~ v & γ2 /\
+    γ1 & x ~ v ⫶ G1 & x ~ T.
 Proof.
   intros Hwt. dependent induction Hwt.
   - false* empty_middle_inv.
@@ -858,25 +856,26 @@ Proof.
 Qed.
 
 (** The elements of a well-typed environment's domain are unique *)
-Lemma wt_to_ok_s G s :
-  well_typed G s ->
-  ok s.
+Lemma wt_to_ok_γ G γ :
+  γ ⫶ G ->
+  ok γ.
 Proof.
   induction 1; eauto.
 Qed.
 
 (** If [e: G], the variables in the domain of [e] are distinct. *)
-Lemma well_typed_to_ok_G: forall s G,
-    well_typed G s -> ok G.
+Lemma well_typed_to_ok_G: forall γ G,
+    γ ⫶ G ->
+    ok G.
 Proof.
   intros. induction H; jauto.
 Qed.
 Hint Resolve well_typed_to_ok_G.
 
-(** If [s: G] and [x ∉ dom(G)] then [x ∉ dom(s)] *)
-Lemma well_typed_notin_dom: forall G s x,
-    well_typed G s ->
-    x # s ->
+(** If [s: G] and [x ∉ dom(G)] then [x ∉ dom(γ)] *)
+Lemma well_typed_notin_dom: forall G γ x,
+    γ ⫶ G ->
+    x # γ ->
     x # G.
 Proof.
   intros. induction H; auto.

@@ -3,7 +3,6 @@ var coqdocjs = coqdocjs || {};
 coqdocjs.repl = {
     "forall": "∀",
     "exists": "∃",
-    "~": "¬",
     "/\\": "∧",
     "\\/": "∨",
     "->": "→",
@@ -50,6 +49,7 @@ coqdocjs.repl = {
     "zeta": "ζ",
     "Delta": "Δ",
     "Gamma": "Γ",
+    "G": "Γ",
     "Pi": "Π",
     "Sigma": "Σ",
     "Omega": "Ω",
@@ -67,6 +67,13 @@ coqdocjs.subscr = {
   "7" : "₇",
   "8" : "₈",
   "9" : "₉",
+  "n" : "ₙ"
+};
+
+coqdocjs.supscr = {
+    "x" : "ˣ",
+    "p" : "ᵖ",
+    "r" : "ʳ"
 };
 
 coqdocjs.replInText = ["==>","<=>", "=>", "->", "<-", ":=", "Arguments"];
