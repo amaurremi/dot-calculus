@@ -13,15 +13,13 @@ Require Import Coq.Program.Equality.
 Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping
         Narrowing Replacement ReplacementTyping.
 
-(** ** Sel-<: Replacement
+(** ** Sel-<: Replacement *)
 
-    This lemma strengthens the tight Sel-<:-# and <:-Sel-# subtyping rules
-    ([subtyp_sel1_t] and [subtyp_sel2_t]) by replacing the ⊢!!! premise with a ⊢# premise: #<br>#
 
-    [inert G]                  #<br>#
-    [G ⊢# p: {A: S..U}]        #<br>#
-    [――――――――――――――――――――――]   #<br>#
-    [G ⊢# S <: p.A <: U]       *)
+(** This lemma strengthens the tight [Sel-<:-#] and [<:-Sel-#] subtyping rules
+    ([subtyp_sel1_t] and [subtyp_sel2_t]) by replacing the ⊢!!!
+    premise with a ⊢# premise: #<br>#
+    if [G ⊢# p: {A: S..U}] then [G ⊢# S <: p.A <: U] *)
 Lemma sel_replacement: forall G p A S U,
     inert G ->
     G ⊢# trm_path p : typ_rcd {A >: S <: U} ->
@@ -45,16 +43,12 @@ Proof.
   apply repl_to_inv in H as [? ?]. apply inv_to_prec in H as [? ?]. apply* pt2_exists.
 Qed.
 
-(** ** Sngl-<: Replacement
+(** ** Sngl-<: Replacement *)
 
-    This lemma strengthens the tight Sngl-<:-# and <:-Sngl-# subtyping rules
-    ([subtyp_sngl_pq_t] and [subtyp_sngl_qp_t]) by replacing the ⊢!!! premise with a ⊢# premise: #<br>#
-
-    [inert G]                  #<br>#
-    [G ⊢# p: q.type]           #<br>#
-    [G ⊢# q]                   #<br>#
-    [―――――――――――――――――――――――]  #<br>#
-    [G ⊢# T <: T[q/p,n] <: T]       *)
+(** This lemma strengthens the tight [Sngl-<:-#] and [<:-Sngl-#] subtyping rules
+    ([subtyp_sngl_pq_t] and [subtyp_sngl_qp_t]) by replacing the ⊢!!! premise
+    with a ⊢# premise: #<br>#
+    if [G ⊢# p: q.type] and [q] is well-typed then [G ⊢# T <: T[q/p,n] <: T] *)
 Lemma sngl_replacement: forall G p q n T U S,
     inert G ->
     G ⊢# trm_path p: {{ q }} ->

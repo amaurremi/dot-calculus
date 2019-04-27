@@ -84,6 +84,11 @@ Proof.
 Qed.
 
 (** ** Substitution Lemma *)
+
+(** Substitution says that we can remove an assumption [x] of type [T] in the environment,
+    if we substitute [x] with a path [p] of the same type [T] (in which, also,
+    [x] must be replced with [p]). *)
+
 (** [G1, x: S, G2 ⊢ t: T]            #<br>#
     [x \notin fv(G1)]                 #<br>#
     [G1, G2[p/x] ⊢ p: S[p/x]]       #<br>#
@@ -321,12 +326,9 @@ Proof.
   rewrite subst_fresh_typ. all: eauto using typed_paths_named.
 Qed.
 
-(** Substitute a fresh opening variable with a path of the same type #<br>#
-
-    [∀ fresh x, G, x: T ⊢ u^x: U] #<br>#
-    [G ⊢ p: T]                    #<br>#
-    [――――――――――――――――――――――]      #<br>#
-    [G ⊢ u^p : U^p]         *)
+(** Substitute a fresh opening variable with a path of the same type: #<br>#
+    if [∀ fresh x, G, x: T ⊢ u^x: U] and [G ⊢ p: T] then
+    [G ⊢ u^p : U^p] *)
 Lemma subst_fresh_var_path : forall L G T u U p,
     ok G ->
     (forall x : var, x \notin L -> G & x ~ T ⊢ open_trm x u : U) ->
@@ -342,12 +344,8 @@ Qed.
 
 (** ** Renaming *)
 
-(** Replace a variable bound in the environment with a fresh variable for typing *)
-(** [G1, z: T, G2 ⊢ t: U]                      #<br>#
-    [x] fresh                                  #<br>#
-    [―――――――――――――――――――――――――――――――――――――――]  #<br>#
-    [G1, x: T[x/z], G2[x/z] ⊢ t[x/z]: U[x/z]]
-*)
+(** Replace a variable bound in the environment with a fresh variable for typing: #<br>#
+    if [G1, z: T, G2 ⊢ t: U] then [G1, x: T[x/z], G2[x/z] ⊢ t[x/z]: U[x/z]] *)
 Lemma rename_ty_trm x z G1 T G2 t U:
   z \notin fv_ctx_types G1 ->
   G1 & z ~ T & G2 ⊢ t : U ->
@@ -368,12 +366,8 @@ Proof.
   apply* ok_concat_map.
 Qed.
 
-(** Replace the this variable with a fresh variable for definition typing *)
-(** [z.bs; G1, z: T, G2 ⊢ ds: U]                      #<br>#
-    [x] fresh                                  #<br>#
-    [―――――――――――――――――――――――――――――――――――――――]  #<br>#
-    [x.bs; G1, x: T[x/z], G2[x/z] ⊢ ds[x/z]: U[x/z]]
-*)
+(** Replace the this variable with a fresh variable for definition typing: #<br>#:
+    if [z.bs; G1, z: T, G2 ⊢ ds: U] then [x.bs; G1, x: T[x/z], G2[x/z] ⊢ ds[x/z]: U[x/z]] *)
 Lemma rename_def_defs :
   (forall z bs G d D, z; bs; G ⊢ d : D -> forall G1 T G2 x,
      G = G1 & z ~ T & G2 ->
