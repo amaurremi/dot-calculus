@@ -11,37 +11,24 @@
 Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List String.
-Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrowing PreciseTyping
-        Replacement ReplacementTyping RecordAndInertTypes Substitution Subenvironments TightTyping
-        Weakening.
+Require Import Binding Definitions GeneralToTight InvertibleTyping Lookup Narrowing
+        PreciseTyping Replacement ReplacementTyping RecordAndInertTypes Substitution
+        Subenvironments TightTyping Weakening.
 Require Import Sequences.
 
+(** Converting a stable term to a general term *)
 Definition deftrm t : trm :=
   match t with
   | defp p => trm_path p
   | defv v => trm_val v
   end.
 
-(** ** Lemmas to prove that [γ ⟦ p ↦ t ⟧] and [Γ ⊢!/!!/!!! p: T] imply [Γ ⊢ t: T] *)
+(** ** Type preservation for path lookup *)
 
-Lemma repl_composition_sub G T U :
-  G ⊢ T ⟿ U ->
-  G ⊢ U <: T /\ G ⊢ T <: U.
-Proof.
-  intros Hr. dependent induction Hr; eauto.
-  destruct H as [q [r [n [S [Hq%precise_to_general [Hq' Hrt]]]]]]. destruct_all.
-  split.
-  - eapply subtyp_trans. apply* subtyp_sngl_qp. apply* precise_to_general2. eauto.
-  - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eapply subtyp_sngl_pq; eauto. apply* precise_to_general2.
-Qed.
-
-Lemma defs_invert_trm x bs G d a T :
-  x; bs; G ⊢ d : {a ⦂ T} ->
-  exists t, d = {a := t}.
-Proof.
-  intros Hd. inversion Hd; eauto.
-Qed.
-
+(** If the record [{a = t}] has type [{a: V}] then [t] is either
+    - a function that has type [V],
+    - an object [ν(U)ds] that has type [μ(U)], and [V=μ(U)], or
+    - a well-typed path [q], and [V=q.type] *)
 Lemma object_typing G x bs ds T a t V :
   inert G ->
   x; bs; G ⊢ ds :: T ->
@@ -65,6 +52,11 @@ Proof.
     * left. inversions Hdt. eauto.
 Qed.
 
+(** If [p] looks up to [t] in a value environment, [p]'s environment type
+    is [T] and [p]'s precise type is [U], then either [t] is
+    - a function that has type [T],
+    - an object [ν(S)ds] that has type [μ(S)], and [T] and [μ(s)] are equivalent, or
+    - a well-typed path [q], and [T] is equivalent to [q.type] *)
 Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
     inert G ->
     wf_env G ->
@@ -86,7 +78,7 @@ Lemma lookup_step_preservation_prec1: forall G s p px pbs t T U,
         (r = r' \/ G1 ⊢!!! r : {{ r' }}) /\ (q = r' \/ G1 ⊢!!! q : {{ r' }})).
 Proof.
   introv Hi Hwf Hwt. gen p px pbs t T U.
-  (** induction on well-formedness **)
+  (* induction on well-formedness **)
   induction Hwt; introv Hs Hp Heq.
   - Case "G is empty"%string.
     false* lookup_empty.
@@ -94,7 +86,7 @@ Proof.
     pose proof (typed_paths_named (precise_to_general Hp)) as [px' [bs ->]].
     destruct (classicT (x = px')) as [-> | Hn].
     * SCase "x = px"%string.
-      (** induction on ⟦⤳⟧ **)
+      (* induction on ⟦⤳⟧ **)
       gen T U T0 px pbs.
       dependent induction Hs; introv Hwf Hi Hv; introv Hp; introv [= -> <-];
         try simpl_dot; try rewrite proj_rewrite in *.
@@ -186,6 +178,11 @@ Proof.
       + right. right. repeat eexists. rewrite concat_assoc. all: eauto.
 Qed.
 
+(** If [p] looks up to [t] in a value environment and [p]'s II-level precise type
+    is [T], then either [t] is
+    - a function that has type [T], and [T] is [p]'s precise type,
+    - an object [ν(S)ds] that has type [μ(S)], and [T] and [μ(s)] are equivalent, or
+    - a well-typed path [q], and [T] is equivalent to [q.type] *)
 Lemma lookup_step_preservation_prec2 G s p px pbs t T :
     inert G ->
     wf_env G ->
@@ -247,6 +244,11 @@ Proof.
                                    [? [? [? [? [? [? [[=] ?]]]]]]]]]; auto.
 Qed.
 
+(** If [p] looks up to [t] in a value environment and [p]'s III-level precise type
+    is an _inert_ type [T], then either [t] is
+    - a function that has type [T],
+    - an object [ν(S)ds] that has type [μ(S)], and [T] and [μ(s)] are equivalent, or
+    - a well-typed path [q], and [q]'s type is [T] *)
 Lemma lookup_step_preservation_inert_prec3: forall G s p T t,
     inert G ->
     wf_env G ->
@@ -310,6 +312,8 @@ Proof.
       apply* pt3_inert_sngl_invert. repeat apply* pt3_weaken.
 Qed.
 
+(** If [p] looks up to [t] in a value environment and [p]'s III-level precise type
+    is a function type, then [t] has the same function type *)
 Lemma lookup_step_preservation_prec3_fun G s p T S t :
   inert G ->
   wf_env G ->
@@ -323,7 +327,72 @@ Proof.
       [[? [? [-> Ht]]] | [? [[=] ?]]]; auto.
 Qed.
 
-(** ** Lemmas to prove that [Γ ~ γ] and [Γ ⊢! p: T] imply [γ ∋ (p, v)] *)
+(** The following two lemmas are needed only for path safety (not for term safety) *)
+
+(** If a well-typed path [p] looks up to a path [q] then [q] is also well-typed. *)
+Lemma lookup_step_pres G p T q s :
+  inert G ->
+  wf_env G ->
+  well_typed G s ->
+  G ⊢!!! p : T ->
+  s ⟦ p ⤳ defp q ⟧ ->
+  exists U, G ⊢!!! q : U.
+Proof.
+  intros Hi Hwf Hwt Hp Hl.
+  apply pt2_exists in Hp as [U Hp].
+  pose proof (named_lookup_step Hl) as [x [bs Heq]].
+  pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hl Hp Heq)
+    as [[? [? [? [[=] ?]]]] |
+        [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
+         [r' [r [G1 [G2 [pT [S [[= ->] [-> [-> [[-> | Hr] [-> | Hr']]]]]]]]]]]]].
+  - apply sngl_typed2 in Hp as [U Hr]; eauto.
+  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l.
+  - apply sngl_typed3 in Hr as [U Hr]; eauto.
+    eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l. do 2 apply* inert_prefix.
+  - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
+    apply* ok_concat_inv_l.
+Qed.
+
+(** If a well-typed path [p] looks up to a path [q] in a finite number
+    of steps then [q] is also well-typed.*)
+Lemma lookup_pres G p T q s :
+  inert G ->
+  wf_env G ->
+  well_typed G s ->
+  G ⊢!!! p : T ->
+  s ⟦ defp p ⤳* defp q ⟧ ->
+  exists U, G ⊢!!! q : U.
+Proof.
+  intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
+  destruct b.
+  - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
+  - apply lookup_val_inv in Hl as [=].
+Qed.
+
+(** If a stable term [t] has a function type and [t] can be looked
+    up to [u] in a finite number of steps in the value environment,
+    then [u] has the same function type. *)
+Lemma lookup_preservation_forall : forall G s t u T S,
+    inert G ->
+    wf_env G ->
+    well_typed G s ->
+    s ⟦ t ⤳* u ⟧ ->
+    G ⊢ deftrm t : ∀(S) T ->
+    G ⊢ deftrm u: ∀(S) T.
+Proof.
+  introv Hi Hwf Hwt Hl Hp. dependent induction Hl; auto.
+  assert (exists q, a = defp q) as [q ->] by (inversions H; eauto).
+  proof_recipe.
+  apply repl_to_precise_typ_all in Hp as [S' [T' [? [Hpr' [? ?]]]]]; auto.
+  apply IHHl.
+  pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt H Hpr') as Hb.
+  apply ty_sub with (T:=∀(S') T'); auto; fresh_constructor; apply* tight_to_general.
+Qed.
+
+(** ** Looking up well-typed paths *)
+(** If a path has a precise type then it can be looked up in the value environment *)
 Lemma typ_to_lookup1 G s p T U :
   inert G ->
   wf_env G ->
@@ -332,13 +401,13 @@ Lemma typ_to_lookup1 G s p T U :
   exists t, s ⟦ p ⤳ t ⟧.
 Proof.
   intros Hi Hwf Hwt Hp. gen p T U. induction Hwt; introv Hp.
-  (** induction on ⟦~⟧ **)
+  (* induction on ⟦~⟧ **)
   - false. dependent induction Hp; eauto. apply* binds_empty_inv.
   - pose proof (typed_paths_named (precise_to_general Hp)) as [y [bs ->]].
     (* later when we figure out how to make env closed *)
     destruct (classicT (x = y)) as [-> | Hn].
     * SCase "x = y"%string.
-      (** induction on ⟦⊢!⟧ **)
+      (* induction on ⟦⊢!⟧ **)
       dependent induction Hp; try simpl_dot.
       + eexists. apply* lookup_var.
       + specialize (IHHp _ _ H0 _ _ Hwf Hi Hwt H H1 IHHwt JMeq_refl eq_refl) as [t Hs].
@@ -367,6 +436,7 @@ Proof.
       eexists. apply* lookup_step_weaken_one.
 Qed.
 
+(** If a path has a II-level precise type then it can be looked up in the value environment *)
 Lemma typ_to_lookup2 G s p T :
   inert G ->
   wf_env G ->
@@ -387,6 +457,8 @@ Proof.
     + eauto.
 Qed.
 
+(** If a path has a III-level precise type then it can be looked up
+    in the value environment *)
 Lemma typ_to_lookup3 G s p T :
   inert G ->
   wf_env G ->
@@ -397,7 +469,12 @@ Proof.
   intros Hi Hwf Hwt Hp. induction Hp; apply* typ_to_lookup2.
 Qed.
 
-Lemma sngl_path_lookup1 G s p q U :
+(** If a path [p]'s environment type is a singleton type [q.type]
+    then [p] can be looked up to a path [r] in the value environment,
+    and either [q=r], or there exists a path [r'] such that
+    both [r'] is the III-level precise type of both [q] and [r].
+    In other words, [q] and [r] are aliases of the same path [r']. *)
+Lemma sngl_path_lookup G s p q U :
   inert G ->
   wf_env G ->
   well_typed G s ->
@@ -421,6 +498,9 @@ Proof.
     + split*. split; right; repeat apply* pt3_weaken.
 Qed.
 
+(** If [p] looks up to [t] in a value environment and [p]'s III-level precise type
+    is [q.type], where [q]'s environment type is a function type, then
+    [t] is a path [r], and [q] and [r] are aliases. *)
 Lemma lookup_step_preservation_sngl_prec3: forall G s p q t Q1 Q2 Q3,
     inert G ->
     wf_env G ->
@@ -439,13 +519,13 @@ Proof.
     as [[S' [U' [u [[= ->] [Hv Hp']]]]] |
         [[S' [ds [W [U [G1 [G2 [pT [-> [Hp' [Heq' [Hds [Hrc1 Hrc2]]]]]]]]]]]] |
          [q' [r [r' [G1 [G2 [pT [-> [[= ->] [-> [Hrc1 Hrc2]]]]]]]]]]]].
-  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwf Hwt Hp') as [? [? [Hl ?]]].
+  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup Hi Hwf Hwt Hp') as [? [? [Hl ?]]].
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
   - destruct Hrc1 as [-> | Hrc1]; destruct Hrc2 as [-> | Hrc2]; do 2 eexists; eauto; split*; split;
       [ left* | right | right | left* | right | right ]; repeat apply* pt3_weaken.
     all: apply* inert_ok; apply* inert_prefix.
-  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup1 Hi Hwf Hwt Hp') as [? [? [Hl ?]]].
+  - pose proof (pf_sngl_T Hi Hp') as ->. pose proof (sngl_path_lookup Hi Hwf Hwt Hp') as [? [? [Hl ?]]].
     pose proof (lookup_step_func Hl Hs) as [=].
   - pose proof (pf_sngl_T Hi Hp') as [=].
   - pose proof (typ_to_lookup3 Hi Hwf Hwt Hp) as [t Hl].
@@ -505,6 +585,8 @@ Proof.
            *** false* pf_inert_pt3_sngl_false.
 Qed.
 
+(** If a [x.bs] looks up to a path [x.cs] in the value environment,
+    and [x.bs]'s environment type is [T] then [T = x.cs.type]. *)
 Lemma lookup_same_var_same_type G s x bs cs T:
   inert G ->
   wf_env G ->
@@ -539,6 +621,8 @@ Proof.
       apply lookup_strengthen_one in Hs; eauto. apply* IHHwt. apply* inert_prefix. apply* wf_env_prefix.
 Qed.
 
+(** If the path [y.bs] has II-level precise type [y.cs.type] then
+    [y.bs] looks up to [y.cs] in the value environment. *)
 Lemma typed_path_lookup_same_var2 G s y bs cs :
   inert G ->
   wf_env G ->
@@ -568,6 +652,8 @@ Proof.
       false binds_fresh_inv; eauto.
 Qed.
 
+(** If the path [y.bs] has III-level precise type [y.cs.type] then
+    [y.bs] looks up to [y.cs] in the value environment in a finite number of steps. *)
 Lemma typed_path_lookup_same_var3 G s y bs cs :
   inert G ->
   wf_env G ->
@@ -596,6 +682,10 @@ Proof.
         simpl_dom. apply notin_union in Hok as [Hnu _]. false binds_fresh_inv; eauto.
 Qed.
 
+(** If [px.pbs] has III-level precise type [qx.qbs.type], and [px ≠ qx]
+    then there exists a type [q'] that is [px.pbs]'s II-level precise type,
+    [qx.qbs.type] is [q']'s III-level precise type, and [q']'s receiver is
+    not equal to [px]. *)
 Lemma prev_var_exists G p q px pbs qx qbs:
   inert G ->
   wf_env G ->
@@ -624,6 +714,9 @@ Proof.
       * eexists. exists pbs. eexists. exists rbs rx. split*.
 Qed.
 
+(** If [p]'s III-level precise type is [r.type] and [r]'s environment type is
+    a function type then [p] can be looked up to [r] in the value environment
+    in a finite number of steps. *)
 Lemma typed_path_lookup_helper G s p r S T V :
   inert G ->
   wf_env G ->
@@ -703,6 +796,8 @@ Proof.
       apply (sngl_typed3 Hi' Hwf') in Hp as [U Ht]. apply* pf_strengthen_from_pt3.
 Qed.
 
+(** If [p]'s III-level precise type is a function type then [p] can be looked
+    up to a value in the value environment. *)
 Lemma typed_path_lookup3 G s p T U :
   inert G ->
   wf_env G ->
@@ -732,25 +827,11 @@ Proof.
     eexists. constructor. eapply star_trans. apply Hs. apply* star_one.
 Qed.
 
-(** ** Lemmas to Prove Canonical Forms for Functions *)
+(** ** Canonical Forms for Functions *)
 
-Lemma lookup_preservation_forall : forall G s t u T S,
-    inert G ->
-    wf_env G ->
-    well_typed G s ->
-    star (lookup_step s) t u ->
-    G ⊢ deftrm t : ∀(S) T ->
-    G ⊢ deftrm u: ∀(S) T.
-Proof.
-  introv Hi Hwf Hwt Hl Hp. dependent induction Hl; auto.
-  assert (exists q, a = defp q) as [q ->] by (inversions H; eauto).
-  proof_recipe.
-  apply repl_to_precise_typ_all in Hp as [S' [T' [? [Hpr' [? ?]]]]]; auto.
-  apply IHHl.
-  pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt H Hpr') as Hb.
-  apply ty_sub with (T:=∀(S') T'); auto; fresh_constructor; apply* tight_to_general.
-Qed.
-
+(** If a path has a III-level function type then the path can be
+    looked up in the value environment in a finite number of steps
+    to a value of the same type. *)
 Lemma corresponding_types_fun: forall G s p S T,
     inert G ->
     wf_env G ->
@@ -765,63 +846,8 @@ Proof.
   lets Ht: (lookup_preservation_forall Hi Hwf Hwt H1 (precise_to_general3 Hp)). eauto.
 Qed.
 
-(** [forall] to [G(x)]        #<br>#
-    [inert G]            #<br>#
-    [G ⊢ p: forall(T)U]       #<br>#
-    [――――――――――――――--]   #<br>#
-    [exists T', U',]          #<br>#
-    [G ∋ (p, forall(T')U')]   #<br>#
-    [G ⊢ T <: T']        #<br>#
-    [forall fresh y, G, y: T ⊢ U'^y <: U^y] *)
-Lemma path_typ_all_to_binds: forall G p T U,
-    inert G ->
-    G ⊢ trm_path p : ∀(T) U ->
-    (exists L T' U',
-        G ⊢!!! p : ∀(T') U' /\
-        G ⊢ T <: T' /\
-        (forall y, y \notin L -> G & y ~ T ⊢ (open_typ y U') <: (open_typ y U))).
-Proof.
-  introv Hin Ht.
-  lets Htt: (general_to_tight_typing Hin Ht).
-  lets Hrepl: (replacement_closure Hin Htt).
-  destruct (repl_to_precise_typ_all Hin Hrepl) as [T' [U' [L [Hs1 [Hs2 Hs3]]]]].
-  exists L T' U'. repeat split; auto.
-  apply* tight_to_general.
-Qed.
-
-(** [forall] to [lambda]                 #<br>#
-    [inert G]                       #<br>#
-    [G ⊢ v: forall(T)U]                  #<br>#
-    [――――――――――――]                  #<br>#
-    [exists T', t,]                      #<br>#
-    [v = lambda(T')t]               #<br>#
-    [G ⊢ T <: T']                   #<br>#
-    [forall fresh y, G, y: T ⊢ t^y: U^y] *)
-Lemma val_typ_all_to_lambda: forall G v T U,
-    inert G ->
-    G ⊢ trm_val v : ∀(T) U ->
-    (exists L T' t,
-        v = λ(T') t /\
-        G ⊢ T <: T' /\
-        (forall y, y \notin L -> G & y ~ T ⊢ (open_trm y t) : open_typ y U)).
-Proof.
-  introv Hin Ht. proof_recipe. inversions Hvpr.
-  exists (L1 \u L \u (dom G)) S1 t. repeat split~.
-  intros. assert (HL: y \notin L) by auto. assert (HL0: y \notin L1) by auto.
-  specialize (HS2 y HL0).
-  specialize (H2 y HL).
-  eapply ty_sub; eauto. eapply narrow_typing in H2; eauto.
-Qed.
-
-(** *** Canonical Forms for Functions
-
-    [inert G]              #<br>#
-    [s: G]                 #<br>#
-    [G ⊢ p: forall(T)U]         #<br>#
-    [――――――――――――――――――――] #<br>#
-    [s ∋ (p, lambda(T')t)] #<br>#
-    [G ⊢ T <: T']          #<br>#
-    [G, y: T ⊢ t: U]          *)
+(** If a path has a function type then it can be looked up in the value environment
+    in a finite number of steps to a function that has the same function type. *)
 Lemma canonical_forms_fun: forall G s p T U,
     inert G ->
     wf_env G ->
@@ -832,7 +858,7 @@ Lemma canonical_forms_fun: forall G s p T U,
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.
   introv Hin Hwf Hwt Hty.
-  destruct (path_typ_all_to_binds Hin Hty) as [L [S [T' [Hp [Hs1 Hs2]]]]].
+  destruct (path_typ_all_to_precise Hin Hty) as [L [S [T' [Hp [Hs1 Hs2]]]]].
   destruct (corresponding_types_fun Hin Hwf Hwt Hp) as [v [P Hv]].
   destruct (val_typ_all_to_lambda Hin Hv) as [L' [S' [t [Heq [Hs1' Hs2']]]]].
   subst.

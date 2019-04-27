@@ -13,12 +13,8 @@ Require Import Definitions Binding.
 
 (** *** Lemmas About Records and Record Types *)
 
-(** [G ⊢ ds :: U]                          #<br>#
-    [U] is a record type with labels [ls]  #<br>#
-    [ds] are definitions with label [ls']  #<br>#
-    [l \notin ls']                          #<br>#
-    [―――――――――――――――――――――――――――――――――――]  #<br>#
-    [l \notin ls] *)
+(** If definitions [ds] have type [U] and [ds] don't have a member named [l]
+    then the record type [U] doesn't have a member named [l] either. *)
 Lemma hasnt_notin : forall x bs G ds ls l U,
     x; bs; G ⊢ ds :: U ->
     record_typ U ls ->
@@ -71,7 +67,7 @@ Proof.
   intros. induction D; reflexivity.
 Qed.
 
-(** labels([D]) = labels([D^p]) *)
+(** Opening preserves the labels of a definition: [labels([D]) = labels([D^p])] *)
 Lemma open_dec_preserves_label_p: forall D p i,
   label_of_dec D = label_of_dec (open_rec_dec_p i p D).
 Proof.
@@ -188,6 +184,13 @@ Proof.
   intros. apply* ty_defs_record_type_helper.
 Qed.
 
+Lemma defs_invert_trm x bs G d a T :
+  x; bs; G ⊢ d : {a ⦂ T} ->
+  exists t, d = {a := t}.
+Proof.
+  intros Hd. inversion Hd; eauto.
+Qed.
+
 (** If [T] is a record type with labels [ls], and [T = ... /\ D /\ ...],
     then [label(D) ∈ ls]. *)
 Lemma record_typ_has_label_in: forall T D ls,
@@ -202,10 +205,8 @@ Proof.
     + right. inversions H5. apply in_singleton_self.
 Qed.
 
-(** [T = ... /\ {A: T1..T1} /\ ...] #<br>#
-    [T = ... /\ {A: T2..T2} /\ ...] #<br>#
-    [―――――――――――――――――――――――――――] #<br>#
-    [T1 = T2] *)
+(** If [T = ... /\ {A: T1..T1} /\ ...] and [T = ... /\ {A: T2..T2} /\ ...]
+    then [T1 = T2] *)
 Lemma unique_rcd_typ: forall T A T1 T2,
   record_type T ->
   record_has T {A >: T1 <: T1} ->

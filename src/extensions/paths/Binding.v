@@ -135,7 +135,7 @@ Definition subst_ctx (z: var) (p: path) (G: ctx) : ctx :=
 
 (** *** Field selection *)
 
-(** [(p^q).bs = (p.bs)^q ] *)
+(** Opening does not affect the last fields of a path: [(p^q).bs = (p.bs)^q ] *)
 Lemma sel_fields_open : forall n p q bs,
   sel_fields (open_rec_path_p n p q) bs = open_rec_path_p n p (sel_fields q bs).
 Proof.
@@ -143,19 +143,14 @@ Proof.
   simpl. auto.
 Qed.
 
-(** [y.bs.b [p/x] = (y.bs [p/x]).b] *)
+(** Opening is only applied to the receiver of a path: [y.bs.b [p/x] = (y.bs [p/x]).b] *)
 Lemma sel_fields_subst : forall x p y bs b,
     subst_path x p (p_sel y bs) • b = (subst_path x p (p_sel y bs)) • b.
 Proof.
   intros. destruct p, y; auto. simpl. unfold subst_var_p. case_if; simpl; auto.
 Qed.
 
-(** [[
-p.a = x.bs
-____________
-bs = a :: bs'
-]]
-*)
+(** If [p.a = x.bs] then [bs = a :: bs'] *)
 Lemma last_field : forall p a x bs,
     p • a = p_sel x bs ->
     exists bs', bs = a :: bs'.
@@ -163,10 +158,26 @@ Proof.
   introv Heq. destruct* p. inversion* Heq.
 Qed.
 
-(** ** Simple Implications of Typing *)
+(** The same for a different notation of field selection: [q.bs^p = (q^p).bs] *)
+Lemma field_sel_open: forall p q bs n,
+    open_rec_path_p n p (q •• bs) = (open_rec_path_p n p q) •• bs.
+Proof.
+  introv. unfold sel_fields. destruct p, q, a, a0; simpl; try case_if; auto;
+                               rewrite* app_assoc.
+Qed.
 
 (** A path [p=x.bs] whose receiver [x] is a named variable *)
 Definition named_path p := exists x bs, p = p_sel (avar_f x) bs.
+
+(** Opening does not affect named paths *)
+Lemma open_named_path : forall p q n,
+    named_path p ->
+    open_rec_path_p n q p = p.
+Proof.
+  introv Hn. inversions Hn. destruct_all. subst. simpl. destruct q. auto.
+Qed.
+
+(** ** Simple Implications of Typing *)
 
 (** If a variable can be typed in an environment,
     then it is bound in that environment. *)
@@ -181,6 +192,7 @@ Proof.
   simpl_dot. eauto.
 Qed.
 
+(** Any well-typed path starts with a named variable. *)
 Lemma typed_paths_named: forall G p T,
     G ⊢ trm_path p : T ->
     named_path p.
@@ -193,6 +205,13 @@ Proof.
     specialize (IHty_trm _ _ eq_refl). destruct_all. inversions H0. repeat eexists.
   - simpl_dot. specialize (IHty_trm1 _ _ eq_refl). destruct_all.
     inversions H1. eauto.
+Qed.
+
+(** Paths cannot be typed in empty environments *)
+Lemma typing_empty_false: forall p T,
+    empty ⊢ trm_path p: T -> False.
+Proof.
+  introv Hp. dependent induction Hp; eauto; false* binds_empty_inv.
 Qed.
 
 (** ** Opening Lemmas *)
@@ -376,10 +395,7 @@ Proof.
   rewrite union_comm. reflexivity.
 Qed.
 
-(** [x \notin fv(G, z: T)]                   #<br>#
-    [x \notin fv(T)]                         #<br>#
-    [―――――――――――――――――――――――――――――――――――――] #<br>#
-    [x \notin fv(T)] and [x \notin fv(G)] *)
+(** If [x ∉ fv(G, z: T)] and [x ∉ fv(T)] then [x ∉ fv(T)] and [x ∉ fv(G)] *)
 Lemma invert_fv_ctx_types_push: forall x z T G,
   x \notin fv_ctx_types (G & z ~ T) -> x \notin fv_typ T /\ x \notin (fv_ctx_types G).
 Proof.
@@ -387,9 +403,7 @@ Proof.
   apply~ notin_union.
 Qed.
 
-(** [x \notin fv(G)]         #<br>#
-    [――――――――――――――――――]    #<br>#
-    [G[y/x] = G]    *)
+(** If [x \notin fv(G)] then [G[y/x] = G] *)
 Lemma subst_fresh_ctx: forall x y G,
   x \notin fv_ctx_types G -> subst_ctx x y G = G.
 Proof.
@@ -611,9 +625,7 @@ Proof.
   intros. destruct* d.
 Qed.
 
-(** [l \notin labels(ds)]     #<br>#
-    [――――――――――――――――――――――] #<br>#
-    [l \notin labels(ds[y/x]] *)
+(** If [l \notin labels(ds)] then [l \notin labels(ds[y/x]] *)
 Lemma subst_defs_hasnt: forall x y l ds,
   defs_hasnt ds l ->
   defs_hasnt (subst_defs x y ds) l.
@@ -632,10 +644,9 @@ Proof.
   apply subst_defs_hasnt. apply H.
 Qed.
 
-(** [ds = ... /\ {a = t} /\ ...]  #<br>#
-    [ds = ... /\ {a = t'} /\ ...] #<br>#
-    [―――――――――――――――――――――――――] #<br>#
-    [t = t'] *)
+(** Each field can appear only once in the same intersection of definitions:
+    if [ds = ... /\ {a = t} /\ ...] and [ds = ... /\ {a = t'} /\ ...]
+    then [t = t'] *)
 Lemma defs_has_inv: forall ds a t t',
     defs_has ds {a := t} ->
     defs_has ds {a := t'} ->
@@ -714,33 +725,7 @@ Proof.
   auto.
 Qed.
 
-(** [q.bs^p = (q^p).bs] *)
-Lemma field_sel_open: forall p q bs n,
-    open_rec_path_p n p (q •• bs) = (open_rec_path_p n p q) •• bs.
-Proof.
-  introv. unfold sel_fields. destruct p, q, a, a0; simpl; try case_if; auto;
-                               rewrite* app_assoc.
-Qed.
-
-(** Opening does not affect named paths *)
-Lemma open_named_path : forall p q n,
-    named_path p ->
-    open_rec_path_p n q p = p.
-Proof.
-  introv Hn. inversions Hn. destruct_all. subst. simpl. destruct q. auto.
-Qed.
-
-(** Paths cannot be typed in empty environments *)
-Lemma typing_empty_false: forall p T,
-    empty ⊢ trm_path p: T -> False.
-Proof.
-  introv Hp. dependent induction Hp; eauto; false* binds_empty_inv.
-Qed.
-
-(** [d1 isin ds]             #<br>#
-    [label(d2) \notin ds]    #<br>#
-    [―――――――――――――――――――――]  #<br>#
-    [label(d1) <> label(d2)]  *)
+(** If [d1 ∈ ds] and [label(d2) ∉ ds] then [label(d1) <> label(d2)]  *)
 Lemma defs_has_hasnt_neq: forall ds d1 d2,
   defs_has ds d1 ->
   defs_hasnt ds (label_of_def d2) ->
@@ -756,10 +741,7 @@ Proof.
     + apply IHds; eauto.
 Qed.
 
-(** [G ⊢ ds :: ... /\ D /\ ...]       #<br>#
-    [―――――――――――――――――――――――]       #<br>#
-    [exists d, ds = ... /\ d /\ ...]       #<br>#
-    [G ⊢ d: D]                      *)
+(** If [G ⊢ ds :: ... /\ D /\ ...] and [exists d, ds = ... /\ d /\ ...] then [G ⊢ d: D] *)
 Lemma record_has_ty_defs: forall z bs G T ds D,
   z; bs; G ⊢ ds :: T ->
   record_has T D ->
@@ -780,12 +762,9 @@ Proof.
       * inversions* H4.
 Qed.
 
-(** Closing recursive types in the environment does not affect typing: *)
-(** [G1, x: S^x, G2 ⊢ t: T]           #<br>#
-    [ok (G1, x: S^x, G2)]             #<br>#
-    [―――――――――――――――――――――――――]       #<br>#
-    [G1, x: μ(x: S), G2 ⊢ t: T]       #<br>#
-    [G ⊢ d: D]                        *)
+(** Closing recursive types in the environment does not affect typing:
+    if [G1, x: S^x, G2 ⊢ t: T] then  [G1, x: μ(x: S), G2 ⊢ t: T],
+    and the same holds for definition typing and subtyping. *)
 Lemma open_env_rules:
   (forall G t T, G ⊢ t : T -> forall G1 G2 x S,
     G = G1 & x ~ open_typ x S & G2 ->
@@ -823,7 +802,7 @@ Proof.
   rewrite* concat_empty_r.
 Qed.
 
-(** inverting environment equalities I *)
+(** Inverting environment equalities I *)
 Lemma env_ok_inv {A} (G1 G2 G1' G2' : env A) x T T' :
   G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
   ok (G1' & x ~ T' & G2') ->
@@ -842,7 +821,7 @@ Proof.
     specialize (IHG2 _ _ _ Heq Hn) as [-> [-> ->]]. auto.
 Qed.
 
-(** inverting environment equalities II *)
+(** Inverting environment equalities II *)
 Lemma env_ok_inv' {A} (G1 G2 G1' G2' : env A) x T T' :
   G1 & x ~ T & G2 = G1' & x ~ T' & G2' ->
   ok (G1 & x ~ T & G2) ->
@@ -894,10 +873,7 @@ Proof.
 Qed.
 Hint Resolve well_typed_to_ok_G.
 
-(** [s: G]       #<br>#
-    [x ∉ dom(G)] #<br>#
-    [――――――――――] #<br>#
-    [x ∉ dom(s)] *)
+(** If [s: G] and [x ∉ dom(G)] then [x ∉ dom(s)] *)
 Lemma well_typed_notin_dom: forall G s x,
     well_typed G s ->
     x # s ->

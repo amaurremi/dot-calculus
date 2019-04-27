@@ -435,48 +435,6 @@ End Safety.
 (** ** Safety wrt Path Lookup ⤳ *)
 Section PathSafety.
 
-  (** If a well-typed path [p] looks up to a path [q] then [q] is also well-typed. *)
-  Lemma lookup_step_pres G p T q s :
-    inert G ->
-    wf_env G ->
-    well_typed G s ->
-    G ⊢!!! p : T ->
-    s ⟦ p ⤳ defp q ⟧ ->
-    exists U, G ⊢!!! q : U.
-  Proof.
-    intros Hi Hwf Hwt Hp Hl.
-    apply pt2_exists in Hp as [U Hp].
-    pose proof (named_lookup_step Hl) as [x [bs Heq]].
-    pose proof (lookup_step_preservation_prec2 Hi Hwf Hwt Hl Hp Heq)
-      as [[? [? [? [[=] ?]]]] |
-          [[? [? [? [? [? [? [? [[=] ?]]]]]]]] |
-           [r' [r [G1 [G2 [pT [S [[= ->] [-> [-> [[-> | Hr] [-> | Hr']]]]]]]]]]]]].
-    - apply sngl_typed2 in Hp as [U Hr]; eauto.
-    - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-      apply* ok_concat_inv_l.
-    - apply sngl_typed3 in Hr as [U Hr]; eauto.
-      eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-      apply* ok_concat_inv_l. do 2 apply* inert_prefix.
-    - eexists. do 2 apply* pt3_weaken. apply inert_ok in Hi.
-      apply* ok_concat_inv_l.
-  Qed.
-
-  (** If a well-typed path [p] looks up to a path [q] in a finite number
-      of steps then [q] is also well-typed.*)
-  Lemma lookup_pres G p T q s :
-    inert G ->
-    wf_env G ->
-    well_typed G s ->
-    G ⊢!!! p : T ->
-    s ⟦ defp p ⤳* defp q ⟧ ->
-    exists U, G ⊢!!! q : U.
-  Proof.
-    intros Hi Hwf Hwt Hp Hl. gen T. dependent induction Hl; introv Hp; eauto.
-    destruct b.
-    - pose proof (lookup_step_pres Hi Hwf Hwt Hp H) as [U Hq]. eauto.
-    - apply lookup_val_inv in Hl as [=].
-  Qed.
-
   (** Looking up any well-typed path in the value environment results either
     - in a value in a finite number of steps, or
     - in an infinite sequence of lookup operations, i.e. the path is cyclic *)

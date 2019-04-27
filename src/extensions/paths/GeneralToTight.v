@@ -11,7 +11,7 @@ Set Implicit Arguments.
 Require Import Sequences.
 Require Import Coq.Program.Equality.
 Require Import Definitions RecordAndInertTypes PreciseTyping TightTyping InvertibleTyping
-        Replacement ReplacementTyping.
+        Narrowing Replacement ReplacementTyping.
 
 (** ** Sel-<: Replacement
 
@@ -173,7 +173,38 @@ Ltac proof_recipe :=
           match goal with
           | [ Hrv: ?G ⊢##v _ : ∀(_) _,
               Hok: ok ?G |- _ ] =>
-            apply invertible_val_to_precise_lambda in Hrv as [L1 [S1 [T1 [Hvpr [HS1 HS2]]]]]; auto
+            apply invertible_val_to_precise_lambda in Hrv
+              as [L1 [S1 [T1 [Hvpr [HS1 HS2]]]]]; auto
           end
        end
   end.
+
+(** If a path has a function type then its III-level precise type is
+    also a function type that is a subtype of the former. *)
+Lemma path_typ_all_to_precise: forall G p T U,
+    inert G ->
+    G ⊢ trm_path p : ∀(T) U ->
+    (exists L T' U',
+        G ⊢!!! p : ∀(T') U' /\
+        G ⊢ T <: T' /\
+        (forall y, y \notin L -> G & y ~ T ⊢ (open_typ y U') <: (open_typ y U))).
+Proof.
+  introv Hin Ht. proof_recipe. repeat eexists. eauto. apply* tight_to_general. eauto.
+Qed.
+
+(** If a value has a function type then the value is a function. *)
+Lemma val_typ_all_to_lambda: forall G v T U,
+    inert G ->
+    G ⊢ trm_val v : ∀(T) U ->
+    (exists L T' t,
+        v = λ(T') t /\
+        G ⊢ T <: T' /\
+        (forall y, y \notin L -> G & y ~ T ⊢ (open_trm y t) : open_typ y U)).
+Proof.
+  introv Hin Ht. proof_recipe. inversions Hvpr.
+  exists (L1 \u L \u (dom G)) S1 t. repeat split~.
+  intros. assert (HL: y \notin L) by auto. assert (HL0: y \notin L1) by auto.
+  specialize (HS2 y HL0).
+  specialize (H2 y HL).
+  eapply ty_sub; eauto. eapply narrow_typing in H2; eauto.
+Qed.

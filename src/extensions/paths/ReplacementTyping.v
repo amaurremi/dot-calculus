@@ -13,8 +13,8 @@ Set Implicit Arguments.
 
 Require Import Coq.Program.Equality List String.
 Require Import Sequences.
-Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping RecordAndInertTypes Replacement
-        Subenvironments TightTyping Weakening.
+Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping
+        RecordAndInertTypes Replacement Subenvironments TightTyping Weakening.
 
 (** Whereas invertible typing does replacement for singleton types in one direction,
     replacement typing does the replacment in the other direction.
@@ -25,7 +25,7 @@ Require Import Definitions Binding InvertibleTyping Narrowing PreciseTyping Reco
     The reason is that if we did that, repl typing would necessarily apply the replacement
     in all subterms of a term, whereas we want to be able to say, for example:
     [Г ⊢## p: T] #<br>#
-    [Г ⊢// p: U  #<br>#
+    [Г ⊢// p: U] #<br>#
     [__________] #<br>#
     [Г ⊢// p: T ∧ U] #<br>#
  *)
@@ -117,13 +117,12 @@ Hint Constructors ty_repl.
 
 (** *** From Replacement To Precise Typing *)
 
-(** Replacement-to-precise typing for function types: #<br>#
-    [ok G]                        #<br>#
-    [G ⊢// p: forall(S)T]             #<br>#
-    [――――――――――――――――――――――――――]  #<br>#
-    [exists S', T'. G ⊢!!! p: forall(S')T']  #<br>#
-    [G ⊢# S <: S']               #<br>#
-    [G ⊢# T'^y <: T^y], where [y] is fresh. *)
+(** Replacement-to-precise typing for function types:
+    if [G ⊢// p: forall(S)T] then
+    - [exists S', T'. G ⊢!!! p: forall(S')T'],
+    - [G ⊢# S <: S'], and
+    - [G ⊢# T'^y <: T^y],
+    where [y] is fresh. *)
 Lemma repl_to_precise_typ_all: forall G p S T,
   inert G ->
   G ⊢// p : ∀(S) T ->
@@ -138,12 +137,10 @@ Proof.
 Qed.
 
 (** Replacement-to-precise typing for records:
-    [inert G]                        #<br>#
-    [G |-// p: {A: S..U}]            #<br>#
-    [――――――――――――――――――――――――――――]   #<br>#
-    [exists T. G |-// p: {A: T..T}]       #<br>#
-    [G |-# T <: U]                   #<br>#
-    [G |-# S <: T]                    *)
+    if [G |-// p: {A: S..U}] then
+    - [exists T. G |-// p: {A: T..T}],
+    - [G |-# T <: U], and
+    - [G |-# S <: T] *)
 Lemma repl_to_precise_rcd: forall G p A S U,
   inert G ->
   G ⊢// p : typ_rcd {A >: S <: U} ->
@@ -156,6 +153,8 @@ Proof.
   apply* invertible_to_precise_rcd.
 Qed.
 
+(** *** Properties of replacement typing *)
+
 Lemma repl_and: forall G p T U,
     inert G ->
     G ⊢// p: T ∧ U ->
@@ -165,6 +164,8 @@ Proof.
   destruct (invertible_and Hi H). split*.
 Qed.
 
+(** Replacement typing is closed under [qp] replacement
+    when we know [q]'s precise type *)
 Lemma replacement_repl_closure_qp : forall G p q r T T' n U,
     inert G ->
     G ⊢! q : {{ r }} ⪼ {{ r }} ->
@@ -264,6 +265,8 @@ Proof.
     lets ?: (ty_sngl_qp_r H H0 Hp H1). invert_repl. eauto.
 Qed.
 
+(** Replacement typing is closed under [qp] replacement
+    when we know [q]'s II-level precise type *)
 Lemma replacement_repl_closure_qp2 : forall G p q r T T' n U,
     inert G ->
     G ⊢!! q : {{ r }} ->
@@ -279,6 +282,8 @@ Proof.
     pose proof (pt2_backtrack _ _ Hr') as [U' Hq]. eauto.
 Qed.
 
+(** Replacement typing is closed under [qp] replacement
+    when we know [q]'s III-level precise type *)
 Lemma replacement_repl_closure_qp3 : forall G p q r T T' n U,
     inert G ->
     G ⊢!!! q : {{ r }} ->
@@ -296,6 +301,7 @@ Proof.
     auto. apply H. apply Hs. apply IHHq. eauto.
 Qed.
 
+(** Replacement typing is closed under repeated [qp] replacements *)
 Lemma replacement_repl_closure_qp_comp: forall G p q r T T' U,
     inert G ->
     G ⊢// p: T ->
@@ -309,6 +315,7 @@ Proof.
   apply* IHHc. apply* replacement_repl_closure_qp3.
 Qed.
 
+(** Replacement typing is closed under opening of recursive types *)
 Lemma repl_rec_intro: forall G p T,
     inert G ->
     G ⊢// p: μ T ->
@@ -325,13 +332,8 @@ Proof.
     apply repl_open with (r:= r) in H1; try solve_names. apply* replacement_repl_closure_qp.
 Qed.
 
-(**
-  G ⊢// r: T[q1 / p1, n]
-  G ⊢!!! p2: q2.type
-  n <> m
-  __________________________________
-  G ⊢// r: T[p2 / q2, m][q1 / p1, n]
-*)
+(** If [G ⊢// r: T[q1 / p1, n]], [G ⊢!!! p2: q2.type], and [n <> m], then
+    [G ⊢// r: T[p2 / q2, m][q1 / p1, n]] *)
 Lemma replacement_swap_closure: forall G r q1 p1 T T1 p2 q2 T2 T21 n m U,
     inert G ->
     repl_typ n p1 q1 T T1 ->
@@ -349,6 +351,7 @@ Proof.
   lets Heq: (repl_order_swap HTT1 HV Hn HTT2 HT2T21). subst*.
 Qed.
 
+(** Helper lemma to prove that replacement typing is closed under [pq] replacement *)
 Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
     inert G ->
     G ⊢// r: T ->
@@ -373,6 +376,8 @@ Proof.
     lets Heq: (repl_unique Hr1 Hr2). subst*.
 Qed.
 
+(** Replacement typing is closed under [pq] replacement
+    when we know [q]'s precise type *)
 Lemma replacement_repl_closure_pq : forall G p q r n T T' U,
     inert G ->
     G ⊢// p : T ->
@@ -410,6 +415,8 @@ Proof.
      eapply (replacement_repl_closure_pq_helper Hi Hp H Hq); eauto.
 Qed.
 
+(** Replacement typing is closed under [pq] replacement
+    when we know [q]'s II-level precise type *)
 Lemma replacement_repl_closure_pq2 : forall G p q r T T' n U,
     inert G ->
     G ⊢// p : T ->
@@ -426,6 +433,8 @@ Proof.
     eauto.
 Qed.
 
+(** Replacement typing is closed under [pq] replacement
+    when we know [q]'s III-level precise type *)
 Lemma replacement_repl_closure_pq3 : forall G p q r T T' n U,
     inert G ->
     G ⊢// p : T ->
@@ -441,6 +450,7 @@ Proof.
     lets Hc: (replacement_repl_closure_pq2 Hi Hp H Hq' Hr1). apply* IHHq.
 Qed.
 
+(** Replacement typing is closed under repeated [pq] replacement *)
 Lemma replacement_repl_closure_pq_comp: forall G p q r T T' U,
     inert G ->
     G ⊢// p: T ->
@@ -454,6 +464,8 @@ Proof.
   apply* IHHc. apply* replacement_repl_closure_pq3.
 Qed.
 
+(** Replacement typing is closed under [<:-Sel] subtyping when
+    we know that a path's II-level precise type has a type member *)
 Lemma path_sel_repl2: forall G p A T q,
     inert G ->
     G ⊢!! p : typ_rcd {A >: T <: T} ->
@@ -463,6 +475,8 @@ Proof.
   introv Hi Hp Hq. dependent induction Hp; eauto.
 Qed.
 
+(** Replacement typing is closed under [<:-Sel] subtyping when
+    we know that a path's III-level precise type has a type member *)
 Lemma path_sel_repl: forall G p A T q,
     inert G ->
     G ⊢!!! p : typ_rcd {A >: T <: T} ->
@@ -481,6 +495,7 @@ Proof.
   rewrite He1 at 2. rewrite He2 at 2. apply rpath.
 Qed.
 
+(** Replacement typing is closed under [Sel-<:] subtyping *)
 Lemma path_sel_repl_inv: forall G p A T q,
     inert G ->
     G ⊢!!! p : typ_rcd {A >: T <: T} ->
@@ -498,6 +513,7 @@ Proof.
     lets Hqbs: (pf_pt3_trans_inv_mult' _ Hi H Hp (or_intror Hrt)). apply* IHHq.
 Qed.
 
+(** If a path has a replacement type it has also an invertible type *)
 Lemma repl_to_inv G p T :
   G ⊢// p : T ->
   exists U, G ⊢## p : U.
@@ -506,6 +522,7 @@ Proof.
   clear H. apply ty_rcd_intro_inv in Hp. eauto.
 Qed.
 
+(** Replacement typing is closed under ⊤-subtyping *)
 Lemma repl_top: forall G r T,
     G ⊢// r: T ->
     G ⊢// r: ⊤.
@@ -513,6 +530,7 @@ Proof.
   introv Hr. apply repl_to_inv in Hr as [? ?]. constructor*.
 Qed.
 
+(** Replacement typing is closed under tight subtyping *)
 Lemma replacement_subtyping_closure : forall G T U p,
     inert G ->
     G ⊢# T <: U ->
@@ -546,14 +564,7 @@ Proof.
     dependent induction Hp; eauto.
 Qed.
 
-Lemma inv_to_prec G p T :
-  G ⊢## p : T ->
-  exists U, G ⊢!!! p : U.
-Proof.
-  induction 1; eauto.
-  destruct IHty_path_inv as [? ?]. apply* pt3_backtrack.
-Qed.
-
+(** If a path has a replacement type it also has a III-level precise type *)
 Lemma repl_prec_exists: forall G p T,
     G ⊢// p: T ->
     exists U, G ⊢!!! p: U.
@@ -562,6 +573,7 @@ Proof.
   induction Hp; eauto. apply* inv_to_prec.
 Qed.
 
+(** Replacement is closed under field selection on paths *)
 Lemma repl_fld : forall G p a T,
     inert G ->
     G ⊢// p: typ_rcd {a ⦂ T} ->
@@ -578,6 +590,7 @@ Proof.
     eapply replacement_subtyping_closure. auto. apply H0. auto.
 Qed.
 
+(** If [G ⊢// p: T] and [T] and [T'] are equivalent then [G ⊢// p: T'] *)
 Lemma replacement_repl_closure_comp_typed: forall G p T T',
     inert G ->
     G ⊢// p: T ->
@@ -589,6 +602,7 @@ Proof.
   lets Hrc: (replacement_repl_closure_qp Hi Hpq Hq Hp Hr'). eauto.
 Qed.
 
+(** From replacement typing of singleton types to invertible typing of singleton types *)
 Lemma repl_to_invertible_sngl_repl_comp: forall G p q,
     inert G ->
     G ⊢// p: {{ q }} ->
@@ -602,26 +616,9 @@ Proof.
     eexists. split*. eapply star_trans. apply Hr.  apply star_one. repeat eexists; eauto.
 Qed.
 
-Lemma pt2_qbs_typed G p q T bs V:
-  inert G ->
-  G ⊢! p : {{ q }} ⪼ {{ q }} ->
-  G ⊢!! q : T ->
-  G ⊢!! p••bs : V ->
-  exists U, G ⊢!! q •• bs : U.
-Proof.
-  intros Hi Hp Hq Hpbs.
-  pose proof (pf_pt2_trans_inv_mult _ Hi Hp Hpbs) as ->.
-  gen T. dependent induction Hpbs.
-  - pose proof (pf_sngl_flds_elim _ Hi Hp H) as ->. rewrite* field_sel_nil.
-  - destruct p0 as [p0x p0bs].
-    destruct p as [px pbs].
-    destruct q as [qx qbs].
-    destruct q0 as [q0x q0bs]. inversions x0. inversions x. simpl in IHHpbs2, IHHpbs1.
-    destruct bs as [|b bs].
-    + rewrite app_nil_l in *. subst. eauto.
-    + rewrite <- app_comm_cons in *. inversions H1. inversions H2. eauto.
-Qed.
-
+(** If a path [p] has type [q.type] under replacement typing and [q] is well-typed,
+    then the invertible type of [p] has a singleton type [q'.type], and [q] and [q']
+    are aliases. *)
 Lemma repl_to_invertible_sngl: forall G p q U,
     inert G ->
     G ⊢// p: {{ q }} ->
@@ -636,6 +633,8 @@ Proof.
     specialize (IHHp _ Hi eq_refl _ Hq') as [q' [W [Hrq' [Hq'' [<- | Hqq']]]]]; repeat eexists; eauto.
 Qed.
 
+(** If [p]'s replacement type is [q.type] and [q] is well-typed, then
+    [p.a]'s replacement type is [q.a.type] *)
 Lemma path_elim_repl: forall G p q a T,
     inert G ->
     G ⊢// p: {{ q }} ->
@@ -659,17 +658,8 @@ Proof.
   apply* replacement_repl_closure_comp_typed.
 Qed.
 
-Lemma repl_intro_sngl: forall p q,
-    repl_typ 0 p q {{ p }} {{ q }}.
-Proof.
-  intros p q.
-  replace {{ p }} with {{ p •• nil }}.
-  replace {{ q }} with {{ q •• nil }}.
-  - auto.
-  - destruct* q.
-  - destruct* p.
-Qed.
-
+(** Replacement typing is closed under singleton transitivity with a type [q.type]
+    if [q] is typeable under invertible typing *)
 Lemma inv_sngl_trans: forall G p q T,
     inert G ->
     G ⊢// p : {{ q }} ->
@@ -703,6 +693,7 @@ Proof.
   - pose proof (path_elim_repl _ Hi Hpq (ty_inv_r Hq)) as Hp0a. specialize (IHHq Hi _ Hp0a). eauto.
 Qed.
 
+(** Replacement typing is closed under singleton transitivity *)
 Lemma repl_sngl_trans: forall G p q T,
     inert G ->
     G ⊢// p : {{ q }} ->
@@ -735,6 +726,7 @@ Proof.
   - pose proof (path_elim_repl _ Hi Hpq Hq) as Hp0a. specialize (IHHq Hi _ Hp0a). eauto.
 Qed.
 
+(** Tight typing implies replacement typing *)
 Lemma replacement_closure : forall G p T,
   inert G ->
   G ⊢# trm_path p : T ->
@@ -756,8 +748,15 @@ Proof.
     eapply replacement_subtyping_closure. auto. apply H. auto.
 Qed.
 
-(** Replacement typing for values *)
+(** ** Replacement typing for values
+
+    The definition of replacement typing for values
+    is similar to replacement typing for paths, but simpler. The same holds for
+    its lemmas. To see the documentation for a replacement-typing-for-values lemma,
+    please refer to its replacement-typing-for-paths version. *)
+
 Reserved Notation "G '⊢//v' v ':' T" (at level 40, v at level 59).
+
 Inductive ty_replv : ctx -> val -> typ -> Prop :=
 | ty_inv_rv : forall G v T,
     G ⊢##v v: T ->
@@ -1091,47 +1090,4 @@ Proof.
     * eauto.
     * eapply star_trans. apply Hrc. apply star_one. econstructor. repeat eexists.
       apply H. eauto. eauto.
-Qed.
-
-(** [G ⊢##v v: forall(S)T]                 #<br>#
-    [inert G]                          #<br>#
-    [――――――――――――――――――――――――――――――――] #<br>#
-    [exists S', T', G ⊢! v: forall(S')T']      #<br>#
-    [G ⊢ S <: S']                      #<br>#
-    [forall fresh y, G, y: S ⊢ T'^y <: T^y] *)
-Lemma invertible_val_to_precise_lambda: forall G v S T,
-    G ⊢##v v : ∀(S) T ->
-    inert G ->
-    exists L S' T',
-      G ⊢!v v : ∀(S') T' /\
-      G ⊢ S <: S' /\
-      (forall y, y \notin L ->
-                 G & y ~ S ⊢ open_typ y T' <: open_typ y T).
-Proof.
-  introv Ht Hg. dependent induction Ht.
-  - exists (dom G) S T. split*.
-  - destruct (IHHt _ _ eq_refl Hg) as [L' [S' [T' [Hp [Hss Hst]]]]].
-    exists (L \u L' \u dom G) S' T'. split. assumption. split. apply subtyp_trans with (T:=S1).
-    apply* tight_to_general. assumption. intros.
-    assert (ok (G & y ~ S)) as Hok by apply* ok_push.
-    apply subtyp_trans with (T:=open_typ y T1).
-    * eapply narrow_subtyping. apply* Hst. apply subenv_last. apply* tight_to_general. auto.
-    * apply* H0.
-Qed.
-
-Lemma invertible_to_precise_obj G U v :
-  inert G ->
-  G ⊢##v v : μ U ->
-  exists T, G ⊢!v v : μ T /\ G ⊢ T ⟿ U.
-Proof.
-  intros Hi Hv. dependent induction Hv.
-  - Case "ty_precise_invv"%string.
-    inversions H. eexists. split*. constructor.
-  - Case "ty_rec_pq_invv"%string.
-    specialize (IHHv _ Hi eq_refl) as [T' [Hinv Hrc]].
-    eexists. split.
-    * eauto.
-    * eapply star_trans. apply star_one. econstructor. repeat eexists. apply H. eauto.
-      apply* repl_swap.
-      apply Hrc.
 Qed.

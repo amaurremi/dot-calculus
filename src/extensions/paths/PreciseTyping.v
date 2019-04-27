@@ -22,7 +22,7 @@ Require Export PreciseFlow.
 Reserved Notation "G '⊢!!' p ':' T" (at level 40, p at level 59).
 Reserved Notation "G '⊢!!!' p ':' T" (at level 40, p at level 59).
 
-(** ** Precise Typing II *)
+(** ** II-level Precise Typing *)
 Inductive precise_typing2: ctx -> path -> typ -> Prop :=
 | pt2: forall G p T U,
     G ⊢! p : T ⪼ U ->
@@ -33,7 +33,7 @@ Inductive precise_typing2: ctx -> path -> typ -> Prop :=
     G ⊢!! p•a : {{ q•a }}
 where "G '⊢!!' p ':' T" := (precise_typing2 G p T).
 
-(** ** Precise Typing III *)
+(** ** III-level Precise Typing *)
 Inductive precise_typing3: ctx -> path -> typ -> Prop :=
 | pt3: forall G p T,
     G ⊢!! p : T ->
@@ -707,6 +707,26 @@ Lemma last_path G p T U :
 Proof.
   intros Hi Hp. dependent induction Hp; eauto.
   specialize (IHHp _ _ Hi eq_refl) as [Hq | [r [Hq Hr]]]; eauto.
+Qed.
+
+Lemma pt2_qbs_typed G p q T bs V:
+  inert G ->
+  G ⊢! p : {{ q }} ⪼ {{ q }} ->
+  G ⊢!! q : T ->
+  G ⊢!! p••bs : V ->
+  exists U, G ⊢!! q •• bs : U.
+Proof.
+  intros Hi Hp Hq Hpbs.
+  pose proof (pf_pt2_trans_inv_mult _ Hi Hp Hpbs) as ->.
+  gen T. dependent induction Hpbs.
+  - pose proof (pf_sngl_flds_elim _ Hi Hp H) as ->. rewrite* field_sel_nil.
+  - destruct p0 as [p0x p0bs].
+    destruct p as [px pbs].
+    destruct q as [qx qbs].
+    destruct q0 as [q0x q0bs]. inversions x0. inversions x. simpl in IHHpbs2, IHHpbs1.
+    destruct bs as [|b bs].
+    + rewrite app_nil_l in *. subst. eauto.
+    + rewrite <- app_comm_cons in *. inversions H1. inversions H2. eauto.
 Qed.
 
 (** ** Wellformed paths and environments *)

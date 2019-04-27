@@ -36,10 +36,7 @@ Proof.
 Qed.
 Hint Resolve subenv_refl.
 
-(** [G' ⪯ G]                  #<br>#
-    [ok(G', x: T)]               #<br>#
-    [―――――――――――――――――――――――――――――]  #<br>#
-    [G', x: T subG G, x: T]  #<br># *)
+(** If [G' ⪯ G] then [G', x: T ⪯ G, x: T] *)
 Lemma subenv_extend : forall G1 G2 x T,
     G1 ⪯ G2 ->
     ok (G1 & x ~ T) -> ok (G2 & x ~ T) ->
@@ -50,10 +47,7 @@ Qed.
 Hint Resolve subenv_extend.
 
 
-(** [G ⊢ S <: U]                      #<br>#
-    [ok(G, x: S)] (see [subenv_push]) #<br>#
-    [――――――――――――――――――――――――――――――――――]  #<br>#
-    [G', x: T subG G, x: T] *)
+(** If [G ⊢ S <: U] and [x ∉ dom G] then [G', x: T subG G, x: T] *)
 Lemma subenv_last: forall G x S U,
   G ⊢ S <: U ->
   ok (G & x ~ S) ->
@@ -70,6 +64,7 @@ Proof.
 Qed.
 Hint Resolve subenv_last.
 
+(** If [G1 ⪯ G2] then the domains of both [G1] and [G2] consist of distinct elements. *)
 Lemma subenv_implies_ok : forall G1 G2,
     G1 ⪯ G2 -> ok G1 /\ ok G2.
 Proof.

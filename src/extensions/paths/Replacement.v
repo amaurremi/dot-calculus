@@ -90,6 +90,18 @@ Proof.
   apply repl_mutind; intros; eauto.
 Qed.
 
+(** Replacing the whole path of a singleton type *)
+Lemma repl_intro_sngl: forall p q,
+    repl_typ 0 p q {{ p }} {{ q }}.
+Proof.
+  intros p q.
+  replace {{ p }} with {{ p •• nil }}.
+  replace {{ q }} with {{ q •• nil }}.
+  - auto.
+  - destruct* q.
+  - destruct* p.
+Qed.
+
 (** As long as named paths are replaced with named paths, opening
     preserves the replacement relationship between types and declarations *)
 Lemma repl_open_rec:

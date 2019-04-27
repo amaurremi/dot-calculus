@@ -210,7 +210,7 @@ Ltac solve_names :=
       apply* typed_paths_named
   end.
 
-(** Subtyping between equivalent types *)
+(** Subtyping between equivalent types in which the paths *)
 Lemma repl_sub: forall G p q T U n V,
     repl_typ n p q T U ->
     G ⊢!!! p: {{q}} ->
@@ -218,6 +218,18 @@ Lemma repl_sub: forall G p q T U n V,
     G ⊢# U <: T.
 Proof.
   introv Hr Hpq Hq. apply repl_swap in Hr. eauto.
+Qed.
+
+(** Subtyping between equivalent types formulated without precise typing *)
+Lemma repl_composition_sub G T U :
+  G ⊢ T ⟿ U ->
+  G ⊢ U <: T /\ G ⊢ T <: U.
+Proof.
+  intros Hr. dependent induction Hr; eauto.
+  destruct H as [q [r [n [S [Hq%precise_to_general [Hq' Hrt]]]]]]. destruct_all.
+  split.
+  - eapply subtyp_trans. apply* subtyp_sngl_qp. apply* precise_to_general2. eauto.
+  - eapply subtyp_trans. apply H0. apply repl_swap in Hrt. eapply subtyp_sngl_pq; eauto. apply* precise_to_general2.
 Qed.
 
 Ltac solve_repl_sub :=
@@ -431,6 +443,15 @@ Proof.
   right. apply* pt3_sngl_trans3.
 Qed.
 
+(** If a path has an invertible type it also has a III-level precise type. *)
+Lemma inv_to_prec G p T :
+  G ⊢## p : T ->
+  exists U, G ⊢!!! p : U.
+Proof.
+  induction 1; eauto.
+  destruct IHty_path_inv as [? ?]. apply* pt3_backtrack.
+Qed.
+
 (** ** Invertible typing for values *)
 
 Reserved Notation "G '⊢##v' v ':' T" (at level 40, v at level 59).
@@ -569,4 +590,47 @@ Lemma path_sel_inv_v: forall G p A T v,
 Proof.
   introv Hi Hp Hv. inversions Hv.
   inversions H.
+Qed.
+
+(** If [G ⊢##v v: forall(S)T] then
+    - [exists S', T', G ⊢! v: forall(S')T'],
+    - [G ⊢ S <: S'], and
+    - [forall fresh y, G, y: S ⊢ T'^y <: T^y] *)
+Lemma invertible_val_to_precise_lambda: forall G v S T,
+    G ⊢##v v : ∀(S) T ->
+    inert G ->
+    exists L S' T',
+      G ⊢!v v : ∀(S') T' /\
+      G ⊢ S <: S' /\
+      (forall y, y \notin L ->
+                 G & y ~ S ⊢ open_typ y T' <: open_typ y T).
+Proof.
+  introv Ht Hg. dependent induction Ht.
+  - exists (dom G) S T. split*.
+  - destruct (IHHt _ _ eq_refl Hg) as [L' [S' [T' [Hp [Hss Hst]]]]].
+    exists (L \u L' \u dom G) S' T'. split. assumption. split. apply subtyp_trans with (T:=S1).
+    apply* tight_to_general. assumption. intros.
+    assert (ok (G & y ~ S)) as Hok by apply* ok_push.
+    apply subtyp_trans with (T:=open_typ y T1).
+    * eapply narrow_subtyping. apply* Hst. apply subenv_last. apply* tight_to_general. auto.
+    * apply* H0.
+Qed.
+
+(** If the invertible type of a value is a recursive type then its precise type
+    is an equivalent recursive type. *)
+Lemma invertible_to_precise_obj G U v :
+  inert G ->
+  G ⊢##v v : μ U ->
+  exists T, G ⊢!v v : μ T /\ G ⊢ T ⟿ U.
+Proof.
+  intros Hi Hv. dependent induction Hv.
+  - Case "ty_precise_invv"%string.
+    inversions H. eexists. split*. constructor.
+  - Case "ty_rec_pq_invv"%string.
+    specialize (IHHv _ Hi eq_refl) as [T' [Hinv Hrc]].
+    eexists. split.
+    * eauto.
+    * eapply star_trans. apply star_one. econstructor. repeat eexists. apply H. eauto.
+      apply* repl_swap.
+      apply Hrc.
 Qed.
