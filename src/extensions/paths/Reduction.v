@@ -12,23 +12,23 @@ Inductive red : sta * trm -> sta * trm -> Prop :=
 
 (** [γ ⊢ p ⤳* lambda(T)t ]      #<br>#
     [―――――――――――――――――――――]      #<br>#
-    [(γ p q) ⟼ (γ, t^q)]      *)
+    [γ | p q ⟼ γ | t^q]      *)
 | red_app: forall γ p q T t,
     γ ⟦ defp p ⤳* defv (λ(T) t) ⟧ ->
     (γ, trm_app p q) ⟼ (γ, open_trm_p q t)
 
-(** [(γ, let x = v in t) ⟼ ((γ, x = v), t^x)] *)
+(** [γ | let x = v in t ⟼ γ, x = v | t^x] *)
 | red_let_val : forall v t γ x,
     x # γ ->
     (γ, trm_let (trm_val v) t) ⟼ (γ & x ~ v, open_trm x t)
 
-(** [(γ, let y = p in t) ⟼ (γ, t^p)] *)
+(** [γ | let y = p in t ⟼ γ | t^p] *)
 | red_let_path : forall t γ p,
     (γ, trm_let (trm_path p) t) ⟼ (γ, open_trm_p p t)
 
-(** [(γ, t0) ⟼ (γ', t0')]                            #<br>#
+(** [γ | t0 ⟼ γ' | t0']                            #<br>#
     [―――――――――――――――――――――――――――――――――――――――――――――――]  #<br>#
-    [(γ, let x = t0 in t) ⟼ (γ', let x = t0' in t)]  *)
+    [γ | let x = t0 in t ⟼ γ' | let x = t0' in t]  *)
 | red_let_tgt : forall t0 t γ t0' γ',
     (γ, t0) ⟼ (γ', t0') ->
     (γ, trm_let t0 t) ⟼ (γ', trm_let t0' t)

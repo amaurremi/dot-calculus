@@ -116,12 +116,13 @@ Reflexive, transitive closure of path lookup
 <div class="doc">
 <a name="lab72"></a><h3 class="section">Properties of path lookup</h3>
 
+<div class="paragraph"> </div>
+
+ Paths cannot be looked up in the empty context 
 </div>
 <div class="code">
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <a name="lookup_empty"><span class="id" title="lemma">lookup_empty</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">t</span> <span class="id" title="var">u</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="axiom">empty</span> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span> <span class="id" title="inductive">False</span>.<br/>
+<span class="id" title="keyword">Lemma</span> <a name="lookup_empty"><span class="id" title="lemma">lookup_empty</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">p</span> <span class="id" title="var">u</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="axiom">empty</span> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span> <span class="id" title="inductive">False</span>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">eauto</span>. <span class="id" title="var">false</span>× <span class="id" title="lemma">binds_empty_inv</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
@@ -134,6 +135,13 @@ Reflexive, transitive closure of path lookup
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Removing an element <span class="inlinecode"><span class="id" title="var">x</span></span> from a value environment does not affect the
+    lookup of <span class="inlinecode"><span class="id" title="var">y.bs</span></span> as long as <span class="inlinecode"><span class="id" title="var">x</span>≠<span class="id" title="var">y</span></span>. 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_strengthen_one"><span class="id" title="lemma">lookup_strengthen_one</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">y</span> <span class="id" title="var">v</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">t</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Lookup.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Lookup.html#v"><span class="id" title="variable">v</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Lookup.html#bs"><span class="id" title="variable">bs</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">≠</span> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">→</span><br/>
@@ -144,6 +152,13 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Removing a part <span class="inlinecode"><span class="id" title="var">γ2</span></span> from a value environment <span class="inlinecode"><span class="id" title="var">γ1</span>,</span> <span class="inlinecode"><span class="id" title="var">y</span>=<span class="id" title="var">_</span>,</span> <span class="inlinecode"><span class="id" title="var">γ2</span></span> does not affect the
+    lookup of <span class="inlinecode"><span class="id" title="var">y.bs</span></span> as long as <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">∉</span> <span class="inlinecode"><span class="id" title="var">γ2</span></span>. 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_strengthen"><span class="id" title="lemma">lookup_strengthen</span></a> <span class="id" title="var">γ</span> <span class="id" title="var">γ1</span> <span class="id" title="var">γ2</span> <span class="id" title="var">x</span> <span class="id" title="var">v</span> <span class="id" title="var">bs</span> <span class="id" title="var">t</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="inductive">ok</span> <a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Lookup.html#93b6893d965d0ff85791b6f6272b83f6"><span class="id" title="variable">γ1</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">~</span> <a class="idref" href="Lookup.html#v"><span class="id" title="variable">v</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Lookup.html#f5211f18560f264a76f44a118d98e2f1"><span class="id" title="variable">γ2</span></a> <span class="id" title="notation">→</span><br/>
@@ -159,6 +174,13 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+If a path can be looked up in a value environment, that path starts
+    with a named variable 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="named_lookup_step"><span class="id" title="lemma">named_lookup_step</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">t</span> <span class="id" title="var">p</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="notation">∃</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span><span class="id" title="notation">,</span> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Lookup.html#bs"><span class="id" title="variable">bs</span></a>.<br/>
@@ -170,6 +192,13 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+The reflexive, transitive closure of looking up a value always results
+    in the same value 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_val_inv"><span class="id" title="lemma">lookup_val_inv</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">v</span> <span class="id" title="var">t</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> <a class="idref" href="Lookup.html#v"><span class="id" title="variable">v</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⤳*</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <span class="id" title="notation">=</span> <a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> <a class="idref" href="Lookup.html#v"><span class="id" title="variable">v</span></a>.<br/>
@@ -178,6 +207,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+The lookup relation is functional 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_step_func"><span class="id" title="lemma">lookup_step_func</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">t</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t1"><span class="id" title="variable">t1</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t2"><span class="id" title="variable">t2</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
@@ -193,6 +228,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+No lookup transitions are possible from values 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_irred"><span class="id" title="lemma">lookup_irred</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">v</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Sequences.html#irred"><span class="id" title="definition">irred</span></a> (<a class="idref" href="Lookup.html#lookup_step"><span class="id" title="inductive">lookup_step</span></a> <a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a>) (<a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> <a class="idref" href="Lookup.html#v"><span class="id" title="variable">v</span></a>).<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
@@ -200,6 +241,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Two lookup reduction sequences that start with a path result in the same value 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_func"><span class="id" title="lemma">lookup_func</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">p</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#defp"><span class="id" title="constructor">defp</span></a> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⤳*</span></a> <a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> <a class="idref" href="Lookup.html#v1"><span class="id" title="variable">v1</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#defp"><span class="id" title="constructor">defp</span></a> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⤳*</span></a> <a class="idref" href="Definitions.html#defv"><span class="id" title="constructor">defv</span></a> <a class="idref" href="Lookup.html#v2"><span class="id" title="variable">v2</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
@@ -216,6 +263,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Weakening for the lookup relation by one element 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_step_weaken_one"><span class="id" title="lemma">lookup_step_weaken_one</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">v</span> <span class="id" title="var">y</span> <span class="id" title="var">t</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Lookup.html#bs"><span class="id" title="variable">bs</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">→</span><br/>
@@ -226,6 +279,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Weakening for the lookup relation 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_step_weaken"><span class="id" title="lemma">lookup_step_weaken</span></a> <span class="id" title="var">γ</span> <span class="id" title="var">p</span> <span class="id" title="var">t</span> <span class="id" title="var">γ'</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="inductive">ok</span> (<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Lookup.html#390cdadc901b8ad038b859add716aae2"><span class="id" title="variable">γ'</span></a>) <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⤳</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#8cc79fc5d6dbc3a1ff519f58bcbc908b"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
@@ -239,6 +298,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Weakening for the reflexive, transitive closure of the lookup relation by one element 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_weaken_one"><span class="id" title="lemma">lookup_weaken_one</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">x</span> <span class="id" title="var">bs</span> <span class="id" title="var">v</span> <span class="id" title="var">y</span> <span class="id" title="var">t</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Definitions.html#defp"><span class="id" title="constructor">defp</span></a> (<a class="idref" href="Definitions.html#p_sel"><span class="id" title="constructor">p_sel</span></a> (<a class="idref" href="Definitions.html#avar_f"><span class="id" title="constructor">avar_f</span></a> <a class="idref" href="Lookup.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Lookup.html#bs"><span class="id" title="variable">bs</span></a>) <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⤳*</span></a> <a class="idref" href="Lookup.html#t"><span class="id" title="variable">t</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Lookup.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">#</span> <a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">→</span><br/>
@@ -258,6 +323,12 @@ Reflexive, transitive closure of path lookup
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Weakening for the reflexive, transitive closure of the lookup relation 
+</div>
+<div class="code">
 <span class="id" title="keyword">Lemma</span> <a name="lookup_weaken"><span class="id" title="lemma">lookup_weaken</span></a> <span class="id" title="var">γ</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span> <span class="id" title="var">γ'</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="inductive">ok</span> (<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <span class="id" title="notation">&amp;</span> <a class="idref" href="Lookup.html#390cdadc901b8ad038b859add716aae2"><span class="id" title="variable">γ'</span></a>) <span class="id" title="notation">→</span><br/>
 &nbsp;&nbsp;<a class="idref" href="Lookup.html#b0e5ed29efd576246de3282fa163293b"><span class="id" title="variable">γ</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟦</span></a> <a class="idref" href="Lookup.html#t1"><span class="id" title="variable">t1</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⤳*</span></a> <a class="idref" href="Lookup.html#t2"><span class="id" title="variable">t2</span></a> <a class="idref" href="Lookup.html#ec3bbb547a98649fb30ac24026f522c9"><span class="id" title="notation">⟧</span></a> <span class="id" title="notation">→</span><br/>
