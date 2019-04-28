@@ -266,8 +266,8 @@ Qed.
 
 Ltac lookup_eq :=
   match goal with
-  | [Hl1: ?s ∋ ?t1,
-     Hl2: ?s ∋ ?t2 |- _] =>
+  | [Hl1: ?s ⟦ _ ⤳* defv ?t1 ⟧,
+     Hl2: ?s ⟦ _ ⤳* defv ?t2 ⟧ |- _] =>
      apply (lookup_func Hl1) in Hl2; inversions Hl2
   end.
 
@@ -445,7 +445,7 @@ Section PathSafety.
     wf G ->
     γ ⫶ G ->
     G ⊢ trm_path p : T ->
-    cyclic_path γ p \/ exists v, γ ∋ (p, v).
+    cyclic_path γ p \/ exists v, γ ⟦ defp p ⤳* defv v ⟧.
   Proof.
     intros Hi Hwf Hwt Hp.
     proof_recipe. apply repl_prec_exists in Hp as [U Hp].
@@ -550,7 +550,7 @@ Section ExtendedSafety.
         * SSCase "path looks up to value"%string.
           destruct Hn as [v Hv]. right. exists γ v.
           eapply star_trans. eapply map_red_extend. eauto.
-          inversions Hv. apply map_lookup_extend in H1. eauto.
+          apply map_lookup_extend in Hv. eauto.
       + SCase "term evaluates to a value"%string.
         right. exists γ v. apply* map_red_extend.
   Qed.

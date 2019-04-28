@@ -803,7 +803,7 @@ Lemma typed_path_lookup3 G γ p T U :
   wf G ->
   γ ⫶ G ->
   G ⊢!!! p: ∀(T) U ->
-  exists v, γ ∋ (p, v).
+  exists v, γ ⟦ defp p ⤳* defv v ⟧.
 Proof.
   intros Hi Hwf Hwt Hp.
   pose proof (typed_paths_named (precise_to_general3 Hp)) as [px [pbs ->]].
@@ -812,10 +812,8 @@ Proof.
     destruct (lookup_step_preservation_prec1 Hi Hwf Hwt Hs H eq_refl)
           as [[S [u [-> Ht]]] |
               [[S [ds' [W [T'' [G1 [G2 [pT [-> [[= ->] [? ?]]]]]]]]]] |
-               [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]].
-    + eexists. constructor. apply* star_one.
-    + eexists. constructor. apply* star_one.
-    + apply pf_sngl_U in H as [=].
+               [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]]; eauto.
+    apply pf_sngl_U in H as [=].
   - inversions Hq. pose proof (pf_forall_T Hi H) as ->.
     pose proof (typed_path_lookup_helper Hi Hwf Hwt Hpq H) as Hs.
     pose proof (typ_to_lookup1 Hi Hwf Hwt H) as [t Hs'].
@@ -824,7 +822,7 @@ Proof.
           as [[S [u [-> Ht]]] |
               [[S [ds' [W [T'' [G1 [G2 [pT [-> [[= ->] [? ?]]]]]]]]]] |
                [? [? [? [? [? [? [? [[= ->] [-> ?]]]]]]]]]]].
-    eexists. constructor. eapply star_trans. apply Hs. apply* star_one.
+    eexists. eapply star_trans. apply Hs. apply* star_one.
 Qed.
 
 (** ** Canonical Forms for Functions *)
@@ -837,13 +835,12 @@ Lemma corresponding_types_fun: forall G γ p S T,
     wf G ->
     γ ⫶ G ->
     G ⊢!!! p: ∀(S) T ->
-    (exists v, γ ∋ (p, v) /\
+    (exists v, γ ⟦ defp p ⤳* defv v ⟧ /\
             G ⊢ trm_val v : ∀(S) T).
 Proof.
   introv Hi Hwf Hwt Hp.
   destruct (typed_path_lookup3 Hi Hwf Hwt Hp) as [v Hs].
-  inversions Hs.
-  lets Ht: (lookup_preservation_forall Hi Hwf Hwt H1 (precise_to_general3 Hp)). eauto.
+  lets Ht: (lookup_preservation_forall Hi Hwf Hwt Hs (precise_to_general3 Hp)). eauto.
 Qed.
 
 (** If a path has a function type then it can be looked up in the value environment
@@ -853,7 +850,7 @@ Lemma canonical_forms_fun: forall G γ p T U,
     wf G ->
     γ ⫶ G ->
     G ⊢ trm_path p : ∀(T) U ->
-                   (exists L T' t, γ ∋ (p, λ(T') t) /\
+                   (exists L T' t, γ ⟦ defp p ⤳* defv (λ(T') t) ⟧ /\
                     G ⊢ T <: T' /\
                     (forall y, y \notin L -> G & y ~ T ⊢ open_trm y t : open_typ y U)).
 Proof.

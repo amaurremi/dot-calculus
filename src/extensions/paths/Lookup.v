@@ -13,28 +13,28 @@ Require Import Definitions Binding.
 
 (** Looking up a path in a store (generalization of variable binding). *)
 
-Reserved Notation "s '∋' t" (at level 40).
-Reserved Notation "s '⟦' t '⤳' u '⟧'" (at level 40).
+Reserved Notation "γ '∋' t" (at level 40).
+Reserved Notation "γ '⟦' t '⤳' u '⟧'" (at level 40).
 
 Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 
-(** [s(x) = v ]   #<br>#
+(** [γ(x) = v ]   #<br>#
     [―――――――――]   #<br>#
-    [s[x ⤳ v]]   *)
+    [γ[x ⤳ v]]   *)
 | lookup_var : forall γ x v,
     binds x v γ ->
     γ ⟦ pvar x ⤳ defv v ⟧
 
-(** [s ⟦ p ⤳ q ⟧ ]              #<br>#
+(** [γ ⟦ p ⤳ q ⟧ ]              #<br>#
     [――――――――――――――――――――――]    #<br>#
-    [s ⟦ p.a ⤳ q.a ⟧ ]          *)
+    [γ ⟦ p.a ⤳ q.a ⟧ ]          *)
 | lookup_sel_p : forall γ p q a,
     γ ⟦ p ⤳ defp q ⟧ ->
     γ ⟦ p•a ⤳ defp (q•a) ⟧
 
-(** [s ⟦ p ⤳ ν(T)...{a = t}... ⟧ ]   #<br>#
+(** [γ ⟦ p ⤳ ν(T)...{a = t}... ⟧ ]   #<br>#
     [――――――――――――――――――――――]         #<br>#
-    [s ⟦ p.a ⤳ t ⟧ ]                 *)
+    [γ ⟦ p.a ⤳ t ⟧ ]                 *)
 | lookup_sel_v : forall γ p a t T ds,
     γ ⟦ p ⤳ defv (val_new T ds) ⟧ ->
     defs_has ds { a := t } ->
@@ -45,15 +45,7 @@ where "γ '⟦' p '⤳' t '⟧'" := (lookup_step γ (defp p) t).
 (** Reflexive, transitive closure of path lookup *)
 Notation "γ '⟦' t '⤳*' u '⟧'" := (star (lookup_step γ) t u) (at level 40).
 
-(** Path lookup that results in values *)
-Inductive lookup : sta -> path * val -> Prop :=
-| lookup_def: forall γ p v,
-    γ ⟦ defp p ⤳* defv v ⟧ ->
-    γ ∋ (p, v)
-
-where "γ '∋' t" := (lookup γ t).
-
-Hint Constructors lookup lookup_step.
+Hint Constructors lookup_step star.
 
 (** *** Properties of path lookup *)
 
@@ -78,13 +70,13 @@ Proof.
   constructor. eapply binds_push_neq_inv; eauto.
 Qed.
 
-Lemma lookup_strengthen γ s1 s2 x v bs t :
+Lemma lookup_strengthen γ γ1 γ2 x v bs t :
   ok γ ->
-  γ = s1 & x ~ v & s2 ->
+  γ = γ1 & x ~ v & γ2 ->
   γ ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
-  s1 & x ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧.
+  γ1 & x ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧.
 Proof.
-  intros Hok -> Hs. induction s2 using env_ind.
+  intros Hok -> Hs. induction γ2 using env_ind.
   - rewrite concat_empty_r in Hs; auto.
   - destruct (classicT (x0 = x)) as [-> | Hn].
     + apply ok_middle_inv_r in Hok. simpl_dom. apply notin_union in Hok as [Contra _]. false* notin_same.
@@ -130,18 +122,18 @@ Proof.
 Qed.
 
 Lemma lookup_func : forall γ p v1 v2,
-    γ ∋ (p, v1) ->
-    γ ∋ (p, v2) ->
+    γ ⟦ defp p ⤳* defv v1 ⟧ ->
+    γ ⟦ defp p ⤳* defv v2 ⟧ ->
     v1 = v2.
 Proof.
   introv Hs1 Hs2.
-  lets H: (lookup_step_func). specialize (H γ). inversions Hs1. inversions Hs2.
+  lets H: (lookup_step_func). specialize (H γ).
   assert (irred (lookup_step γ) (defv v1)) as Hirr1 by apply* lookup_irred.
   assert (irred (lookup_step γ) (defv v2)) as Hirr2 by apply* lookup_irred.
   assert (forall a b c : def_rhs, lookup_step γ a b -> lookup_step γ a c -> b = c) as H'. {
     intros. destruct a; try solve [inversion H0]. apply* H.
   }
-  lets Hf: (finseq_unique H' H2 Hirr1 H3 Hirr2). inversion* Hf.
+  lets Hf: (finseq_unique H' Hs1 Hirr1 Hs2 Hirr2). inversion* Hf.
 Qed.
 
 Lemma lookup_step_weaken_one : forall γ x bs v y t,
@@ -174,10 +166,12 @@ Proof.
   - apply star_refl.
   - destruct b; subst.
     * destruct Hl.
-      ** apply* star_trans. apply star_one. apply* lookup_step_weaken_one. apply star_refl.
       ** apply* star_trans. apply star_one. apply* lookup_step_weaken_one.
+      ** apply* star_trans.
          assert (exists q, a = defp q) as [q ->] by (inversions H0; eauto).
-         pose proof (named_lookup_step H0) as [? [? ->]]. eauto.
+         pose proof (named_lookup_step H0) as [? [? ->]].
+         specialize (IHHl _ _ eq_refl). eapply star_trans. apply star_one.
+         apply* lookup_step_weaken_one. eauto.
     * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_weaken_one.
 Qed.
 

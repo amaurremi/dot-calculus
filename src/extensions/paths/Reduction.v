@@ -10,11 +10,11 @@ Reserved Notation "t1 '⟼' t2" (at level 40, t2 at level 39).
 
 Inductive red : sta * trm -> sta * trm -> Prop :=
 
-(** [γ ∋ (p, lambda(T)t)  ]      #<br>#
+(** [γ ⊢ p ⤳* lambda(T)t ]      #<br>#
     [―――――――――――――――――――――]      #<br>#
     [(γ p q) ⟼ (γ, t^q)]      *)
 | red_app: forall γ p q T t,
-    γ ∋ (p, λ(T) t) ->
+    γ ⟦ defp p ⤳* defv (λ(T) t) ⟧ ->
     (γ, trm_app p q) ⟼ (γ, open_trm_p q t)
 
 (** [(γ, let x = v in t) ⟼ ((γ, x = v), t^x)] *)
