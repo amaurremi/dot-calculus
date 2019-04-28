@@ -49,8 +49,9 @@ Hint Constructors lookup_step star.
 
 (** *** Properties of path lookup *)
 
-Lemma lookup_empty : forall t u,
-    empty ⟦ t ⤳ u ⟧ -> False.
+(** Paths cannot be looked up in the empty context *)
+Lemma lookup_empty : forall p u,
+    empty ⟦ p ⤳ u ⟧ -> False.
 Proof.
   intros. dependent induction H; eauto. false* binds_empty_inv.
 Qed.
@@ -61,6 +62,8 @@ Ltac solve_lookup :=
     rewrite <- H; econstructor; simpl_dot; eauto
   end.
 
+(** Removing an element [x] from a value environment does not affect the
+    lookup of [y.bs] as long as [x≠y]. *)
 Lemma lookup_strengthen_one: forall γ y v x bs t,
     γ & y ~ v ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
     y <> x ->
@@ -70,6 +73,8 @@ Proof.
   constructor. eapply binds_push_neq_inv; eauto.
 Qed.
 
+(** Removing a part [γ2] from a value environment [γ1, y=_, γ2] does not affect the
+    lookup of [y.bs] as long as [y ∉ γ2]. *)
 Lemma lookup_strengthen γ γ1 γ2 x v bs t :
   ok γ ->
   γ = γ1 & x ~ v & γ2 ->
@@ -84,6 +89,8 @@ Proof.
       apply lookup_strengthen_one in Hs; auto.
 Qed.
 
+(** If a path can be looked up in a value environment, that path starts
+    with a named variable *)
 Lemma named_lookup_step: forall γ t p,
     γ ⟦ p ⤳ t ⟧ ->
     exists x bs, p = p_sel (avar_f x) bs.
@@ -94,6 +101,8 @@ Proof.
   - specialize (IHlookup_step _ eq_refl) as [? [? ->]]. simpl. repeat eexists; eauto.
 Qed.
 
+(** The reflexive, transitive closure of looking up a value always results
+    in the same value *)
 Lemma lookup_val_inv: forall γ v t,
     γ ⟦ defv v ⤳* t ⟧ ->
     t = defv v.
@@ -101,6 +110,7 @@ Proof.
   introv Hs. dependent induction Hs. auto. inversion H.
 Qed.
 
+(** The lookup relation is functional *)
 Lemma lookup_step_func: forall γ t t1 t2,
     γ ⟦ t ⤳ t1 ⟧ ->
     γ ⟦ t ⤳ t2 ⟧ ->
@@ -115,12 +125,14 @@ Proof.
     lets Hd: (defs_has_inv H H0). subst*.
 Qed.
 
+(** No lookup transitions are possible from values *)
 Lemma lookup_irred: forall γ v,
     irred (lookup_step γ) (defv v).
 Proof.
   inversion 1.
 Qed.
 
+(** Two lookup reduction sequences that start with a path result in the same value *)
 Lemma lookup_func : forall γ p v1 v2,
     γ ⟦ defp p ⤳* defv v1 ⟧ ->
     γ ⟦ defp p ⤳* defv v2 ⟧ ->
@@ -136,6 +148,7 @@ Proof.
   lets Hf: (finseq_unique H' Hs1 Hirr1 Hs2 Hirr2). inversion* Hf.
 Qed.
 
+(** Weakening for the lookup relation by one element *)
 Lemma lookup_step_weaken_one : forall γ x bs v y t,
     γ ⟦ p_sel (avar_f x) bs ⤳ t ⟧ ->
     y # γ ->
@@ -145,6 +158,7 @@ Proof.
   constructor. apply* binds_push_neq. intro. subst. eapply binds_fresh_inv; eauto.
 Qed.
 
+(** Weakening for the lookup relation *)
 Lemma lookup_step_weaken γ p t γ' :
   ok (γ & γ') ->
   γ ⟦ p ⤳ t ⟧ ->
@@ -157,6 +171,7 @@ Proof.
     apply* lookup_step_weaken_one.
 Qed.
 
+(** Weakening for the reflexive, transitive closure of the lookup relation by one element *)
 Lemma lookup_weaken_one : forall γ x bs v y t,
     γ ⟦ defp (p_sel (avar_f x) bs) ⤳* t ⟧ ->
     y # γ ->
@@ -175,6 +190,7 @@ Proof.
     * apply lookup_val_inv in Hl. subst. apply star_one. apply* lookup_step_weaken_one.
 Qed.
 
+(** Weakening for the reflexive, transitive closure of the lookup relation *)
 Lemma lookup_weaken γ t1 t2 γ' :
   ok (γ & γ') ->
   γ ⟦ t1 ⤳* t2 ⟧ ->
