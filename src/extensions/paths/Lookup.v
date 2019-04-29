@@ -12,29 +12,27 @@ Require Import Sequences.
 Require Import Definitions Binding.
 
 (** Looking up a path in a store (generalization of variable binding). *)
-
-Reserved Notation "γ '∋' t" (at level 40).
 Reserved Notation "γ '⟦' t '⤳' u '⟧'" (at level 40).
 
 Inductive lookup_step : sta -> def_rhs -> def_rhs -> Prop :=
 
 (** [γ(x) = v ]   #<br>#
     [―――――――――]   #<br>#
-    [γ[x ⤳ v]]   *)
+    [γ ⊢ x ⤳ v]   *)
 | lookup_var : forall γ x v,
     binds x v γ ->
     γ ⟦ pvar x ⤳ defv v ⟧
 
-(** [γ ⟦ p ⤳ q ⟧ ]              #<br>#
+(** [γ ⊢ p ⤳ q ]              #<br>#
     [――――――――――――――――――――――]    #<br>#
-    [γ ⟦ p.a ⤳ q.a ⟧ ]          *)
+    [γ ⊢ p.a ⤳ q.a ]          *)
 | lookup_sel_p : forall γ p q a,
     γ ⟦ p ⤳ defp q ⟧ ->
     γ ⟦ p•a ⤳ defp (q•a) ⟧
 
-(** [γ ⟦ p ⤳ ν(T)...{a = t}... ⟧ ]   #<br>#
+(** [γ ⊢ p ⤳ ν(T)...{a = t}... ]   #<br>#
     [――――――――――――――――――――――]         #<br>#
-    [γ ⟦ p.a ⤳ t ⟧ ]                 *)
+    [γ ⊢ p.a ⤳ t ]                 *)
 | lookup_sel_v : forall γ p a t T ds,
     γ ⟦ p ⤳ defv (val_new T ds) ⟧ ->
     defs_has ds { a := t } ->

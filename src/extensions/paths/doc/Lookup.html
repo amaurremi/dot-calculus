@@ -51,9 +51,6 @@
 Looking up a path in a store (generalization of variable binding). 
 </div>
 <div class="code">
-
-<br/>
-<span class="id" title="keyword">Reserved Notation</span> &quot;γ '∋' t" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
 <span class="id" title="keyword">Reserved Notation</span> &quot;γ '⟦' t '⤳' u '⟧'" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
 
 <br/>
@@ -64,7 +61,7 @@ Looking up a path in a store (generalization of variable binding).
 <div class="doc">
 <span class="inlinecode"><span class="id" title="var">γ</span>(<span class="id" title="var">x</span>)</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"></span>   <br>
     <span class="inlinecode">―――――――――</span>   <br>
-    <span class="inlinecode"><span class="id" title="var">γ</span>[<span class="id" title="var">x</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">v</span>]</span>   
+    <span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">v</span></span>   
 </div>
 <div class="code">
 | <a name="lookup_var"><span class="id" title="constructor">lookup_var</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">x</span> <span class="id" title="var">v</span>,<br/>
@@ -74,9 +71,9 @@ Looking up a path in a store (generalization of variable binding).
 </div>
 
 <div class="doc">
-<span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⟦</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">q</span></span> <span class="inlinecode">⟧</span> <span class="inlinecode"></span>              <br>
+<span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">q</span></span> <span class="inlinecode"></span>              <br>
     <span class="inlinecode">――――――――――――――――――――――</span>    <br>
-    <span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⟦</span> <span class="inlinecode"><span class="id" title="var">p.a</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">q.a</span></span> <span class="inlinecode">⟧</span> <span class="inlinecode"></span>          
+    <span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">p.a</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">q.a</span></span> <span class="inlinecode"></span>          
 </div>
 <div class="code">
 | <a name="lookup_sel_p"><span class="id" title="constructor">lookup_sel_p</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> <span class="id" title="var">a</span>,<br/>
@@ -86,9 +83,9 @@ Looking up a path in a store (generalization of variable binding).
 </div>
 
 <div class="doc">
-<span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⟦</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">ν</span>(<span class="id" title="var">T</span>)...{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t</span>}...</span> <span class="inlinecode">⟧</span> <span class="inlinecode"></span>   <br>
+<span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">ν</span>(<span class="id" title="var">T</span>)...{<span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">t</span>}...</span> <span class="inlinecode"></span>   <br>
     <span class="inlinecode">――――――――――――――――――――――</span>         <br>
-    <span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⟦</span> <span class="inlinecode"><span class="id" title="var">p.a</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode">⟧</span> <span class="inlinecode"></span>                 
+    <span class="inlinecode"><span class="id" title="var">γ</span></span> <span class="inlinecode">⊢</span> <span class="inlinecode"><span class="id" title="var">p.a</span></span> <span class="inlinecode">⤳</span> <span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode"></span>                 
 </div>
 <div class="code">
 | <a name="lookup_sel_v"><span class="id" title="constructor">lookup_sel_v</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">γ</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span> <span class="id" title="var">t</span> <span class="id" title="var">T</span> <span class="id" title="var">ds</span>,<br/>
