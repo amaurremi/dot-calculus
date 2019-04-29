@@ -825,7 +825,6 @@ Proof.
     eexists. eapply star_trans. apply Hs. apply* star_one.
 Qed.
 
-(** ** Canonical Forms for Functions ([Lemma 5.5](https://arxiv.org/pdf/1904.07298v2.pdf#page=22)) *)
 (** If a path has a III-level function type then the path can be
     looked up in the value environment in a finite number of steps
     to a value of the same type. *)
@@ -842,6 +841,7 @@ Proof.
   lets Ht: (lookup_preservation_forall Hi Hwf Hwt Hs (precise_to_general3 Hp)). eauto.
 Qed.
 
+(** ** Canonical Forms for Functions (Lemma #<a href="https://arxiv.org/pdf/1904.07298v2.pdf#page=22">5.5</a># *)
 (** If a path has a function type then it can be looked up in the value environment
     in a finite number of steps to a function that has the same function type. *)
 Lemma canonical_forms_fun: forall G γ p T U,
