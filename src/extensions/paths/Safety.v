@@ -260,8 +260,6 @@ Proof.
   - specialize (IHHv _ Hi Hwf eq_refl Hx). destruct_all. eexists; split*.
 Qed.
 
-(** *** Preservation *)
-
 (** Helper tactics for proving Preservation *)
 
 Ltac lookup_eq :=
@@ -296,6 +294,7 @@ Ltac solve_IH :=
 Ltac solve_let :=
   invert_red; solve_IH; fresh_constructor; eauto; apply* weaken_rules.
 
+(** **** Preservation ([Lemma 5.4](https://arxiv.org/pdf/1904.07298v2.pdf#page=19)) *)
 (** If a term [γ|t] has type [T] and reduces to [γ'|t'] then the latter has
     the same type [T] under an extended environment that is inert, well-typed,
     and well-formed. *)
@@ -350,8 +349,7 @@ Proof.
     end.
 Qed.
 
-(** *** Progress *)
-
+(** **** Progress ([Lemma 5.3](https://arxiv.org/pdf/1904.07298v2.pdf#page=19)) *)
 (** Any well-typed term is either in normal form (i.e. a path or value) or can
     take a reduction step. *)
 Lemma progress: forall G γ t T,
@@ -410,6 +408,7 @@ Qed.
 Definition diverges := infseq red.
 Definition cyclic_path γ p := infseq (lookup_step γ) (defp p).
 
+(** **** Type Soundness ([Theorem 5.1](https://arxiv.org/pdf/1904.07298v2.pdf#page=19)) *)
 (** Reducing any well-typed program (i.e. term that can be typed in an empty context)
     results either
     - in a normal form (i.e. path or value) in a finite number of steps,
@@ -509,6 +508,7 @@ Section ExtendedSafety.
     auto. inversion H.
   Qed.
 
+  (** **** Extended Soundness ([Theorem 5.2](https://arxiv.org/pdf/1904.07298v2.pdf#page=19)) *)
   (** Reducing any well-typed program (i.e. term that can be typed in an empty context)
       using the extended reduction relation (that includes term reduction and path lookup)
       results either

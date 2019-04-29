@@ -825,8 +825,7 @@ Proof.
     eexists. eapply star_trans. apply Hs. apply* star_one.
 Qed.
 
-(** ** Canonical Forms for Functions *)
-
+(** ** Canonical Forms for Functions ([Lemma 5.5](https://arxiv.org/pdf/1904.07298v2.pdf#page=22)) *)
 (** If a path has a III-level function type then the path can be
     looked up in the value environment in a finite number of steps
     to a value of the same type. *)

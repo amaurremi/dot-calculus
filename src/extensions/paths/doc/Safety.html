@@ -388,11 +388,7 @@ Every value of type <span class="inlinecode"><span class="id" title="var">T</spa
 </div>
 
 <div class="doc">
-<a name="lab86"></a><h3 class="section">Preservation</h3>
-
-<div class="paragraph"> </div>
-
- Helper tactics for proving Preservation 
+Helper tactics for proving Preservation 
 </div>
 <div class="code">
 
@@ -436,7 +432,8 @@ Every value of type <span class="inlinecode"><span class="id" title="var">T</spa
 </div>
 
 <div class="doc">
-If a term <span class="inlinecode"><span class="id" title="var">γ</span>|<span class="id" title="var">t</span></span> has type <span class="inlinecode"><span class="id" title="var">T</span></span> and reduces to <span class="inlinecode"><span class="id" title="var">γ'</span>|<span class="id" title="var">t'</span></span> then the latter has
+<a name="lab86"></a><h4 class="section">Preservation (<span class="inlinecode"><span class="id" title="keyword">Lemma</span></span> <span class="inlinecode">5.4</span>(https://arxiv.org/pdf/1904.07298v2.pdfpage=19))</h4>
+ If a term <span class="inlinecode"><span class="id" title="var">γ</span>|<span class="id" title="var">t</span></span> has type <span class="inlinecode"><span class="id" title="var">T</span></span> and reduces to <span class="inlinecode"><span class="id" title="var">γ'</span>|<span class="id" title="var">t'</span></span> then the latter has
     the same type <span class="inlinecode"><span class="id" title="var">T</span></span> under an extended environment that is inert, well-typed,
     and well-formed. 
 </div>
@@ -496,10 +493,7 @@ If a term <span class="inlinecode"><span class="id" title="var">γ</span>|<span 
 </div>
 
 <div class="doc">
-<a name="lab87"></a><h3 class="section">Progress</h3>
-
-<div class="paragraph"> </div>
-
+<a name="lab87"></a><h4 class="section">Progress (<span class="inlinecode"><span class="id" title="keyword">Lemma</span></span> <span class="inlinecode">5.3</span>(https://arxiv.org/pdf/1904.07298v2.pdfpage=19))</h4>
  Any well-typed term is either in normal form (i.e. a path or value) or can
     take a reduction step. 
 </div>
@@ -573,7 +567,8 @@ If a term <span class="inlinecode"><span class="id" title="var">γ</span>|<span 
 </div>
 
 <div class="doc">
-Reducing any well-typed program (i.e. term that can be typed in an empty context)
+<a name="lab89"></a><h4 class="section">Type Soundness (<span class="inlinecode"><span class="id" title="keyword">Theorem</span></span> <span class="inlinecode">5.1</span>(https://arxiv.org/pdf/1904.07298v2.pdfpage=19))</h4>
+ Reducing any well-typed program (i.e. term that can be typed in an empty context)
     results either
 <ul class="doclist">
 <li> in a normal form (i.e. path or value) in a finite number of steps,
@@ -610,7 +605,7 @@ Reducing any well-typed program (i.e. term that can be typed in an empty context
 </div>
 
 <div class="doc">
-<a name="lab89"></a><h2 class="section">Safety wrt Path Lookup ⤳</h2>
+<a name="lab90"></a><h2 class="section">Safety wrt Path Lookup ⤳</h2>
 
 </div>
 <div class="code">
@@ -654,7 +649,7 @@ Looking up any well-typed path in the value environment results either
 </div>
 
 <div class="doc">
-<a name="lab90"></a><h2 class="section">Extended Safety</h2>
+<a name="lab91"></a><h2 class="section">Extended Safety</h2>
 
 </div>
 <div class="code">
@@ -735,7 +730,8 @@ Divergence of extended reduction
 </div>
 
 <div class="doc">
-Reducing any well-typed program (i.e. term that can be typed in an empty context)
+<a name="lab92"></a><h4 class="section">Extended Soundness (<span class="inlinecode"><span class="id" title="keyword">Theorem</span></span> <span class="inlinecode">5.2</span>(https://arxiv.org/pdf/1904.07298v2.pdfpage=19))</h4>
+ Reducing any well-typed program (i.e. term that can be typed in an empty context)
       using the extended reduction relation (that includes term reduction and path lookup)
       results either
 <ul class="doclist">
