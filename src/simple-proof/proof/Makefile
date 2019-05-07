@@ -29,6 +29,7 @@ cleanall::
 	-rm *.glob
 	-rm *.v.d
 	-rm $(PROOFMAKEFILE)
+	-rm $(PROOFMAKEFILE).conf
 
 doc: $(DOCDIR)/toc.html
 
