@@ -40,15 +40,19 @@ A stack is a sequence of variable-to-value bindings, which serves as a runtime e
 
 ## Compiling the Proof
 
-To compile the proof, we require `coq 8.6` and related tooling to be run in a unix-like environment. In particular, we require the following tools (all version 8.6) in the `PATH` enviroment variable:
-  * coqc
-  * coqtop
-  * coqdep
-  * coqdoc
-  * coqmakefile
+To compile the proof, we require
+  - [Coq 8.9.0](https://coq.inria.fr/opam-using.html) and related tooling to be run in a unix-like environment. In particular, we require the following tools in the `PATH` enviroment variable:
+    * coqc
+    * coqtop
+    * coqdep
+    * coqdoc
+    * coqmakefile
+  - the [TLC](https://gitlab.inria.fr/charguer/tlc) library which can be installed through
 
-Other requirements are:
-  * make
+```
+ opam repo add coq-released http://coq.inria.fr/opam/released
+ opam install -j4 coq-tlc
+```
 
 To compile the proof, run
 
@@ -58,6 +62,5 @@ To compile the proof, run
 
 `make` will do the following:
 
-- compile the `tlc` library
 - compile the safety proof
 - generate documentation.
