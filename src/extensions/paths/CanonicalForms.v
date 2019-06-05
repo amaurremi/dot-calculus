@@ -757,9 +757,6 @@ Proof.
           apply* typed_paths_named.
         - apply* typed_paths_named.
       }
-      assert (q'x <> px) as Hnqy. {
-        intros ->. pose proof (lookup_same_var_same_type Hi Hwf Hwt' Hst Hp'q') as [= -> ->]. false*.
-      }
       apply star_trans with (b:=defp (p_sel (avar_f px) cs')). {
         destruct Hpp' as [[= ->] | Hpp'].
         - apply* star_refl.
