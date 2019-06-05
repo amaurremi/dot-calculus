@@ -95,7 +95,8 @@ Proof.
         lets Hb: (pf_binds Hi Hp). pose proof (binds_push_eq_inv Hb) as ->.
         apply binds_inert in Hb; auto.
         destruct v as [S ds | S u].
-        ++ right. left.
+        ++ (* v is an object *)
+           right. left.
            lets Hi': (inert_prefix Hi). lets Hwf': (wf_prefix Hwf).
            inversions Hb; proof_recipe. { inversion Hvpr. }
            inversions Hv. pick_fresh z. assert (z \notin L) as Hz by auto.
@@ -114,7 +115,7 @@ Proof.
                    repeat rewrite open_var_typ_eq in *; auto. all: auto.
            +++ eauto.
            +++ eauto.
-        ++ left. repeat eexists. apply* weaken_ty_trm.
+        ++ (* v is a function *) left. repeat eexists. apply* weaken_ty_trm.
       + SSCase "lookup_sel_p"%string.
         destruct (pf_path_sel _ _ Hi Hp) as [V Hp'].
         specialize (IHHs _ _ _ Hwt IHHwt _ H0 H JMeq_refl eq_refl _ Hwf Hi Hv _ _ Hp' _ _ eq_refl)
@@ -385,10 +386,9 @@ Proof.
   introv Hi Hwf Hwt Hl Hp. dependent induction Hl; auto.
   assert (exists q, a = defp q) as [q ->] by (inversions H; eauto).
   proof_recipe.
-  apply repl_to_precise_typ_all in Hp as [S' [T' [? [Hpr' [? ?]]]]]; auto.
+  pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt H Hpr) as Hb.
   apply IHHl.
-  pose proof (lookup_step_preservation_prec3_fun Hi Hwf Hwt H Hpr') as Hb.
-  apply ty_sub with (T:=∀(S') T'); auto; fresh_constructor; apply* tight_to_general.
+  apply ty_sub with (T:=∀(Spr) Tpr); auto; fresh_constructor; apply* tight_to_general.
 Qed.
 
 (** ** Looking up well-typed paths *)
@@ -414,11 +414,10 @@ Proof.
         pose proof (pf_bnd_T2 Hi Hp) as [V ->].
         destruct (lookup_step_preservation_prec1 Hi Hwf (well_typed_push Hwt H H0 H1) Hs Hp eq_refl)
           as [[S [u [-> Ht]]] |
-              [[S [ds' [W [T'' [G1 [G2 [pT [-> [[= ->] ?]]]]]]]]] |
+              [[S [ds' [W [T'' [G1 [G2 [pT [-> [[= ->] [Heq [Hds Hrc]]]]]]]]]]] |
                [? [? [? [? [? [? [? [[=] [? ?]]]]]]]]]]].
         ++ proof_recipe. inversion Ht.
         ++ assert (exists u, defs_has ds' {a := u}) as [u Hu]. {
-             destruct H3 as [Heq [Hds Hrc]].
              apply pf_record_has_U in Hp; auto.
              eapply repl_comp_trans_open in Hrc.
              eapply repl_comp_trans_record_has in Hrc as [V [X [Hr _]]]; try apply Hp.
@@ -665,8 +664,8 @@ Proof.
   - apply star_one. apply* typed_path_lookup_same_var2.
   - pose proof (typed_paths_named (precise_to_general3 Hp)) as [qx [qbs ->]].
     destruct (classicT (qx = y)) as [-> | Hn].
-    + pose proof (typed_path_lookup_same_var2 Hi Hwf Hwt H) as Hs.
-      specialize (IHHp _ _ _ Hi Hwf Hwt eq_refl eq_refl).
+    + specialize (IHHp _ _ _ Hi Hwf Hwt eq_refl eq_refl).
+      pose proof (typed_path_lookup_same_var2 Hi Hwf Hwt H) as Hs.
       eapply star_trans. apply* star_one. auto.
     + clear IHHp.
       pose proof (typing_implies_bound (precise_to_general2 H)) as [S [G1 [G2 ->]]%binds_destruct].
