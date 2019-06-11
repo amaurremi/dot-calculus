@@ -371,28 +371,9 @@ Definition open_defrhs_p u t := open_rec_defrhs_p 0 u t.
 
 (** ** Path Replacement *)
 
-(** The number of paths in a type *)
-
-Fixpoint numpaths T :=
-  match T with
-  | typ_rcd D => numpathsD D
-  | T1 ∧ T2 => numpaths T1 + numpaths T2
-  | _ ↓ _ => 1
-  | μ T => numpaths T
-  | ∀(T) U => numpaths T + numpaths U
-  | {{ _ }} => 1
-  | _ => 0
-  end
-with numpathsD D :=
-  match D with
-  | { _ >: T <: U } => numpaths T + numpaths U
-  | { _ ⦂ T } => numpaths T
-  end.
-
-(** [repl_typ n p q T U] represents the fact that [T[q/p, n] = U];
+(** [repl_typ p q T U] represents the fact that [T[q/p] = U];
     more precisely,
-    - [T] has at least [n] paths, i.e. [numpaths T ≥ n]
-    - [T]'s [n]th path is a path [p.bs] that starts with [p]
+    - [T] has a path [p.bs] that starts with [p]
     - replacing that occurrence of [p] with [q] yields the type [U] *)
 
 Inductive repl_typ : path -> path -> typ -> typ -> Prop :=

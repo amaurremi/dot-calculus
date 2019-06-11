@@ -14,72 +14,8 @@ Require Import Definitions Binding.
 
 Hint Constructors star.
 
-(** The following lemmas reason about the relationship between path
-    replacement and the number of paths in a type *)
 
-(*
-Lemma repl_numpaths_relation_mutind:
-  (forall n p q T U,
-    repl_typ n p q T U ->
-    (n < numpaths T) /\ (n < numpaths U)) /\
-  (forall n p q T U,
-    repl_dec n p q T U ->
-    (n < numpathsD T) /\ (n < numpathsD U)).
-Proof.
-  apply repl_mutind; simpl; intros; omega.
-Qed.
-
-Lemma repl_numpaths_relation: forall n p q T U,
-  repl_typ n p q T U ->
-  (n < numpaths T) /\ (n < numpaths U).
-Proof.
-  destruct repl_numpaths_relation_mutind; eauto.
-Qed.
-
-Lemma repl_numpaths_equal_mutind:
-  (forall n p q T U,
-    repl_typ n p q T U ->
-    numpaths T = numpaths U) /\
-  (forall n p q T U,
-    repl_dec n p q T U ->
-    numpathsD T = numpathsD U).
-Proof.
-  apply repl_mutind; simpl; intros; omega.
-Qed.
-
-Lemma repl_numpaths_equal: forall n p q T U,
-  repl_typ n p q T U ->
-  numpaths T = numpaths U.
-Proof.
-  destruct repl_numpaths_equal_mutind; eauto.
-Qed.
-
-Lemma numpaths_subst_typ_mutind:
-  (forall T x y,
-    numpaths T = numpaths (subst_typ x y T)) /\
-  (forall T x y,
-    numpathsD T = numpathsD (subst_dec x y T)).
-Proof.
-  apply typ_mutind; intros; simpl; eauto.
-Qed.
-
-Lemma numpaths_subst_typ: forall x y T,
-  numpaths (subst_typ x y T) = numpaths T.
-Proof.
-  destruct numpaths_subst_typ_mutind.
-  eauto.
-Qed.
-
-Lemma numpaths_open:
-  (forall U n p,
-      numpaths U = numpaths (open_rec_typ_p n p U)) /\
-  (forall D n p,
-      numpathsD D = numpathsD (open_rec_dec_p n p D)).
-Proof.
-  apply typ_mutind; intros; simpl; eauto.
-Qed.
-**)
-(** If [T[q/p,n] = U] then [U[p/q,n] = T] *)
+(** If [T[q/p] = U] then [U[p/q] = T] *)
 Lemma repl_swap:
   (forall p q T T',
       repl_typ p q T T' ->
@@ -119,9 +55,6 @@ Lemma repl_open_rec:
 Proof.
   apply repl_mutind; intros;
     try solve [unfolds open_typ_p, open_dec_p; simpls; eauto].
-    (**try solve [simpl; assert (numpaths U = numpaths (open_rec_typ_p n0 r0 U))
-                 as Hn by apply* numpaths_open;
-               rewrite* Hn].**)
   - Case "rpath"%string.
     simpl. repeat rewrite field_sel_open. repeat rewrite open_named_path; auto.
   - Case "rsngl"%string.
@@ -148,11 +81,6 @@ Proof.
   introv Hr. repeat rewrite open_var_typ_eq. apply* repl_open.
 Qed.
 
-(** Equivalent types (up to one replacement) *)
-(**
-Definition repl_some_typ p q T T' := exists n, repl_typ n p q T T'.
-Definition repl_some_dec p q D D' := exists n, repl_dec n p q D D'.
-**)
 (** Equivalent types (multiple replacements) *)
 Notation repl_repeat_typ p q := (star (repl_typ p q)).
 Notation repl_repeat_dec p q := (star (repl_dec p q)).
@@ -176,12 +104,6 @@ Ltac solve_repl_star :=
     dependent induction H
   end;
   eauto.
-(**;
-  match goal with
-  | [ IH : (repl_repeat_typ _ _) ?T _ |- _ ] =>
-    apply star_trans with (b:=T)
-  end;
-  [apply star_one; constructor* |]; eauto.**)
 
 (** ...and intersecting equivalent types yields equivalent types *)
 Lemma repl_star_and1: forall T1 T2 U p q,
@@ -326,187 +248,7 @@ Lemma repl_field_elim : forall p q a T U,
 Proof.
   destruct repl_field_elim_mutind. eauto.
 Qed.
-(**
-Lemma repl_unique_mutind:
-  (forall n p q T T1,
-      repl_typ n p q T T1 ->
-      forall T2,
-      repl_typ n p q T T2 ->
-      T1 = T2) /\
-  (forall n p q T T1,
-      repl_dec n p q T T1 ->
-      forall T2,
-      repl_dec n p q T T2 ->
-      T1 = T2).
-Proof.
-  apply repl_mutind; intros; try (inversions H0); simpl; eauto.
-  - rewrite (H D3 H5). auto.
-  - rewrite (H T4 H7). auto.
-  - destruct (repl_numpaths_relation r). omega.
-  - destruct (repl_numpaths_relation H7). omega.
-  - apply f_equal.
-    assert (Hn : n0 = n). { omega. }
-    rewrite Hn in H7. eauto.
-  - inversions H. inversions H0.
-    rewrite (sel_fields_equal p bs0 bs H1). auto.
-  - apply f_equal. eauto.
-  - replace T4 with T2; eauto.
-  - destruct (repl_numpaths_relation r). omega.
-  - destruct (repl_numpaths_relation H7). omega.
-  - apply f_equal.
-    assert (Hn : n0 = n). { omega. }
-    rewrite Hn in H7. eauto.
-  - inversions H. rewrite (sel_fields_equal p bs0 bs H0).
-    auto.
-  - rewrite (H T4 H8). auto.
-  - destruct (repl_numpaths_relation r). omega.
-  - destruct (repl_numpaths_relation H8). omega.
-  - assert (Hn : n0 = n). { omega. } subst.
-    rewrite (H T4 H8). auto.
-  - rewrite (H T4 H7). auto.
-Qed.
 
-Lemma repl_unique: forall n p q T T1 T2,
-    repl_typ n p q T T1 ->
-    repl_typ n p q T T2 ->
-    T1 = T2.
-Proof.
-  destruct repl_unique_mutind; eauto.
-Qed.
-
-Lemma repl_order_swap_mutind':
-  (forall n p1 q1 T U,
-    repl_typ n p1 q1 T U ->
-    forall V m p2 q2,
-    repl_typ m p2 q2 U V ->
-    n <> m ->
-    exists U',
-    (repl_typ m p2 q2 T U') /\
-    (repl_typ n p1 q1 U' V)) /\
-  (forall n p1 q1 T U,
-    repl_dec n p1 q1 T U ->
-    forall V m p2 q2,
-    repl_dec m p2 q2 U V ->
-    n <> m ->
-    exists U',
-    (repl_dec m p2 q2 T U') /\
-    (repl_dec n p1 q1 U' V)).
-Proof.
-  apply repl_mutind; intros; eauto.
-  - inversions H0.
-    destruct (H D3 m p2 q2) as [U' [Hl Hr]]; eauto.
-  - inversions H0.
-    * destruct (H T3 m p2 q2) as [U' [Hl Hr]]; eauto.
-    * rewrite <- (repl_numpaths_equal r). eauto.
-  - inversions H0.
-    * rewrite (repl_numpaths_equal H8). eauto.
-    * destruct (H T3 n0 p2 q2) as [U' [Hl Hr]]; eauto.
-  - inversions H. destruct H0. auto.
-  - inversions H0.
-    destruct (H T3 m p2 q2) as [U' [Hl Hr]]; eauto.
-  - inversions H0.
-    * destruct (H T3 m p2 q2) as [U' [Hl Hr]]; eauto.
-    * rewrite <- (repl_numpaths_equal r). eauto.
-  - inversions H0.
-    * rewrite (repl_numpaths_equal H8). eauto.
-    * destruct (H T3 n0 p2 q2) as [U' [Hl Hr]]; eauto.
-  - inversions H. destruct H0. auto.
-  - inversions H0.
-    * destruct (H T3 m p2 q2) as [U' [Hl Hr]]; eauto.
-    * rewrite <- (repl_numpaths_equal r). eauto.
-  - inversions H0.
-    * rewrite (repl_numpaths_equal H9). eauto.
-    * destruct (H T3 n0 p2 q2) as [U' [Hl Hr]]; eauto.
-  - inversions H0.
-    destruct (H T3 m p2 q2) as [U' [Hl Hr]]; eauto.
-Qed.
-
-Lemma repl_order_swap':
-  forall n p1 q1 T U V m p2 q2,
-    repl_typ n p1 q1 T U ->
-    repl_typ m p2 q2 U V ->
-    n <> m ->
-    exists U',
-    (repl_typ m p2 q2 T U') /\
-    (repl_typ n p1 q1 U' V).
-Proof.
-  destruct repl_order_swap_mutind'; eauto.
-Qed.
-
-(** If [n ≠ m] then
-    [T[q1 / p1,n][q2 / p2,m] = T[q2 / p2,m][q1 / p1,n]] *)
-Lemma repl_order_swap: forall n p1 q1 T U V m p2 q2 U' V',
-    repl_typ n p1 q1 T U ->
-    repl_typ m p2 q2 U V ->
-    n <> m ->
-    repl_typ m p2 q2 T U' ->
-    repl_typ n p1 q1 U' V' ->
-    V = V'.
-Proof.
-  intros.
-  destruct (repl_order_swap' H H0 H1) as [W [Hl Hr]].
-  rewrite <- (repl_unique H2 Hl) in Hr.
-  rewrite <- (repl_unique H3 Hr).
-  auto.
-Qed.
-
-Lemma repl_preserved1 : forall n p q T U V m r s,
-    repl_typ n p q T U ->
-    repl_typ m r s U V ->
-    n <> m ->
-    exists V', repl_typ m r s T V'.
-Proof.
-  intros. destruct (repl_order_swap' H H0 H1) as [? [? ?]]. eauto.
-Qed.
-
-Lemma repl_preserved2_mutind:
-  (forall n p q T U1,
-      repl_typ n p q T U1 ->
-      forall U2 m r s,
-      repl_typ m r s T U2 ->
-      n <> m ->
-      exists V, repl_typ m r s U1 V) /\
-  (forall n p q T U1,
-      repl_dec n p q T U1 ->
-      forall U2 m r s,
-      repl_dec m r s T U2 ->
-      n <> m ->
-      exists V, repl_dec m r s U1 V).
-Proof.
-  apply repl_mutind; intros;
-  eauto.
-  - inversions H0. destruct (H D3 m r0 s); eauto.
-  - inversions H0.
-    * destruct (H T3 m r0 s); eauto.
-    * rewrite (repl_numpaths_equal r). eauto.
-  - inversions H0; eauto.
-    destruct (H T3 n0 r0 s); eauto.
-  - inversions H. destruct H0. auto.
-  - inversions H0. destruct (H T3 m r0 s); eauto.
-  - inversions H0; eauto.
-    * destruct (H T3 m r0 s); eauto.
-    * rewrite (repl_numpaths_equal r). eauto.
-  - inversions H0; eauto.
-    destruct (H T3 n0 r0 s); eauto.
-  - inversions H. destruct H0. auto.
-  - inversions H0.
-    * destruct (H T3 m r0 s); eauto.
-    * rewrite (repl_numpaths_equal r). eauto.
-  - inversions H0; eauto.
-    destruct (H T3 n0 r0 s); eauto.
-  - inversions H0.
-    destruct (H T3 m r0 s); eauto.
-Qed.
-
-Lemma repl_preserved2 : forall n p q T U1 U2 m r s,
-    repl_typ n p q T U1 ->
-    repl_typ m r s T U2 ->
-    n <> m ->
-    exists V, repl_typ m r s U1 V.
-Proof.
-  destruct repl_preserved2_mutind; eauto.
-Qed.
-**)
 Lemma repl_prefixes_sngl: forall p q p' q',
     repl_typ p q {{ p' }} {{ q' }} ->
     exists bs, p' = p •• bs /\ q' = q •• bs.
@@ -520,45 +262,7 @@ Lemma repl_prefixes_sel: forall p q p' q' A,
 Proof.
   introv Hr. inversions Hr. eauto.
 Qed.
-(**
-Lemma repl_prefixes_mutind:
-  (forall n q1 p1 T T1,
-      repl_typ n q1 p1 T T1 ->
-      forall q2 p2 T2,
-        repl_typ n p2 q2 T1 T2 ->
-        exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs) /\
-  (forall n q1 p1 T T1,
-      repl_dec n q1 p1 T T1 ->
-      forall q2 p2 T2,
-        repl_dec n p2 q2 T1 T2 ->
-        exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs).
-Proof.
-  apply repl_mutind; intros;
-  try (inversions H);
-  try (inversions H0);
-  try (destruct (repl_numpaths_relation r));
-  try (destruct (repl_numpaths_relation H7));
-  try (destruct (repl_numpaths_relation H8));
-  try (omega);
-  eauto.
-  - eapply H. assert (Hn : n0 = n). { omega. }
-    rewrite Hn in H7. apply H7.
-  - eapply sel_sub_fields. eauto.
-  - assert (Hn : n0 = n). { omega. }
-    rewrite Hn in H7. eauto.
-  - eapply sel_sub_fields. eauto.
-  - assert (Hn : n0 = n). { omega. }
-    rewrite Hn in H8. eauto.
-Qed.
 
-Lemma repl_prefixes: forall n q1 p1 q2 p2 T T1 T2,
- repl_typ n q1 p1 T T1 ->
- repl_typ n p2 q2 T1 T2 ->
- exists bs, p1 = p2 •• bs \/ p2 = p1 •• bs.
-Proof.
-  destruct repl_prefixes_mutind; eauto.
-Qed.
-**)
 Lemma sel_fieldss_subst: forall x y p ds,
   subst_path x y p •• ds = (subst_path x y p) •• ds.
 Proof.
