@@ -395,39 +395,39 @@ with numpathsD D :=
     - [T]'s [n]th path is a path [p.bs] that starts with [p]
     - replacing that occurrence of [p] with [q] yields the type [U] *)
 
-Inductive repl_typ : nat -> path -> path -> typ -> typ -> Prop :=
-| rrcd: forall p q D1 D2 n,
-    repl_dec n p q D1 D2 ->
-    repl_typ n p q (typ_rcd D1) (typ_rcd D2)
-| rand1: forall p q T1 T2 U n,
-    repl_typ n p q T1 T2 ->
-    repl_typ n p q (T1 ∧ U) (T2 ∧ U)
-| rand2: forall p q T1 T2 U n,
-    repl_typ n p q T1 T2 ->
-    repl_typ (numpaths U + n) p q (U ∧ T1) (U ∧ T2)
+Inductive repl_typ : path -> path -> typ -> typ -> Prop :=
+| rrcd: forall p q D1 D2,
+    repl_dec p q D1 D2 ->
+    repl_typ p q (typ_rcd D1) (typ_rcd D2)
+| rand1: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (T1 ∧ U) (T2 ∧ U)
+| rand2: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (U ∧ T1) (U ∧ T2)
 | rpath: forall p q bs A,
-    repl_typ 0 p q (p••bs ↓ A) (q••bs ↓ A)
-| rbnd: forall p q T1 T2 n,
-    repl_typ n p q T1 T2 ->
-    repl_typ n p q (μ T1) (μ T2)
-| rall1: forall p q T1 T2 U n,
-    repl_typ n p q T1 T2 ->
-    repl_typ n p q (∀(T1) U) (∀(T2) U)
-| rall2: forall p q T1 T2 U n,
-    repl_typ n p q T1 T2 ->
-    repl_typ (numpaths U + n) p q (∀(U) T1) (∀(U) T2)
+    repl_typ p q (p••bs ↓ A) (q••bs ↓ A)
+| rbnd: forall p q T1 T2,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (μ T1) (μ T2)
+| rall1: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (∀(T1) U) (∀(T2) U)
+| rall2: forall p q T1 T2 U,
+    repl_typ p q T1 T2 ->
+    repl_typ p q (∀(U) T1) (∀(U) T2)
 | rsngl: forall p q bs,
-    repl_typ 0 p q {{ p••bs }} {{ q••bs }}
-with repl_dec : nat -> path -> path -> dec -> dec -> Prop :=
-| rdtyp1: forall p q T1 T2 A U n,
-    repl_typ n p q T1 T2 ->
-    repl_dec n p q {A >: T1 <: U} {A >: T2 <: U}
-| rdtyp2: forall p q T1 T2 A U n,
-    repl_typ n p q T1 T2 ->
-    repl_dec (numpaths U + n) p q {A >: U <: T1} {A >: U <: T2}
-| rdtrm: forall p q T1 T2 a n,
-    repl_typ n p q T1 T2 ->
-    repl_dec n p q {a ⦂ T1} {a ⦂ T2}.
+    repl_typ p q {{ p••bs }} {{ q••bs }}
+with repl_dec : path -> path -> dec -> dec -> Prop :=
+| rdtyp1: forall p q T1 T2 A U,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {A >: T1 <: U} {A >: T2 <: U}
+| rdtyp2: forall p q T1 T2 A U,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {A >: U <: T1} {A >: U <: T2}
+| rdtrm: forall p q T1 T2 a,
+    repl_typ p q T1 T2 ->
+    repl_dec p q {a ⦂ T1} {a ⦂ T2}.
 
 Hint Constructors repl_typ repl_dec.
 
@@ -913,10 +913,10 @@ _________________
 G ⊢ T <: T[q/p, n]
 ]]
 *)
-| subtyp_sngl_pq : forall G p q T T' n U,
+| subtyp_sngl_pq : forall G p q T T' U,
     G ⊢ trm_path p : {{ q }} ->
     G ⊢ trm_path q : U ->
-    repl_typ n p q T T' ->
+    repl_typ p q T T' ->
     G ⊢ T <: T'
 
 (** [[
@@ -926,10 +926,10 @@ _________________
 G ⊢ T <: T[p/q, n]
 ]]
 *)
-| subtyp_sngl_qp : forall G p q T T' n U,
+| subtyp_sngl_qp : forall G p q T T' U,
     G ⊢ trm_path p : {{ q }} ->
     G ⊢ trm_path q : U ->
-    repl_typ n q p T T' ->
+    repl_typ q p T T' ->
     G ⊢ T <: T'
 
 (** [[

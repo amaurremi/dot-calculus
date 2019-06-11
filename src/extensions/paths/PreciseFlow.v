@@ -16,45 +16,45 @@ Require Import Definitions Binding RecordAndInertTypes Subenvironments Narrowing
 (** inverting equivalent types *)
 Ltac invert_repl :=
   repeat match goal with
-         | [H: repl_dec _ _ _ {_ ⦂ _} _ |- _ ] =>
+         | [H: repl_dec _ _ {_ ⦂ _} _ |- _ ] =>
            inversions H
-         | [H: repl_dec _ _ _ _ {_ ⦂ _} |- _ ] =>
+         | [H: repl_dec _ _ _ {_ ⦂ _} |- _ ] =>
            inversions H
-         | [H: repl_dec _ _ _ {_ >: _ <: _} _ |- _ ] =>
+         | [H: repl_dec _ _ {_ >: _ <: _} _ |- _ ] =>
            inversions H
-         | [H: repl_dec _ _ _ _ {_ >: _ <: _} |- _ ] =>
+         | [H: repl_dec _ _ _ {_ >: _ <: _} |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (typ_rcd _) _ |- _ ] =>
+         | [H: repl_typ _ _ (typ_rcd _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (typ_rcd _) |- _ ] =>
+         | [H: repl_typ _ _ _ (typ_rcd _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (_ ∧ _) _ |- _ ] =>
+         | [H: repl_typ _ _ (_ ∧ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (_ ∧ _) |- _ ] =>
+         | [H: repl_typ _ _ _ (_ ∧ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (μ _) _ |- _ ] =>
+         | [H: repl_typ _ _ (μ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (μ _) |- _ ] =>
+         | [H: repl_typ _ _ _ (μ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (∀(_) _) _ |- _ ] =>
+         | [H: repl_typ _ _ (∀(_) _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (∀(_) _) |- _ ] =>
+         | [H: repl_typ _ _ _ (∀(_) _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ (_ ↓ _) _ |- _ ] =>
+         | [H: repl_typ _ _ (_ ↓ _) _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ (_ ↓ _) |- _ ] =>
+         | [H: repl_typ _ _ _ (_ ↓ _) |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ ⊤ _ |- _ ] =>
+         | [H: repl_typ _ _ ⊤ _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ ⊤ |- _ ] =>
+         | [H: repl_typ _ _ _ ⊤ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ ⊥ _ |- _ ] =>
+         | [H: repl_typ _ _ ⊥ _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ ⊥ |- _ ] =>
+         | [H: repl_typ _ _ _ ⊥ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ {{ _ }} _ |- _ ] =>
+         | [H: repl_typ _ _ {{ _ }} _ |- _ ] =>
            inversions H
-         | [H: repl_typ _ _ _ _ {{ _ }} |- _ ] =>
+         | [H: repl_typ _ _ _ {{ _ }} |- _ ] =>
            inversions H
     end.
 

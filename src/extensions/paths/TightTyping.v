@@ -195,20 +195,20 @@ with subtyp_t : ctx -> typ -> typ -> Prop :=
     [G ⊢!!! q: U]                      #<br>#
     [――――――――――――――――――――――――――――――――] #<br>#
     [G ⊢# T <: [T[q/p,n]]              *)
-| subtyp_sngl_pq_t : forall G p q T T' n U,
+| subtyp_sngl_pq_t : forall G p q T T' U,
     G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
-    repl_typ n p q T T' ->
+    repl_typ p q T T' ->
     G ⊢# T <: T'
 
 (** [G ⊢!!! p: q.type]                 #<br>#
     [G ⊢!!! q: U]                      #<br>#
     [――――――――――――――――――――――――――――――――] #<br>#
     [G ⊢# T <: [T[p/q,n]]              *)
-| subtyp_sngl_qp_t : forall G p q T T' n U,
+| subtyp_sngl_qp_t : forall G p q T T' U,
     G ⊢!!! p : {{ q }} ->
     G ⊢!!! q : U ->
-    repl_typ n q p T T' ->
+    repl_typ q p T T' ->
     G ⊢# T <: T'
 
 (** [G ⊢!!! p: {A: T..T}] #<br>#
