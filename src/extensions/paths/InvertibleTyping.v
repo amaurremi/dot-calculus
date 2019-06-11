@@ -103,7 +103,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: μ(T)]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: μ(T[q/p,n])]      *)
+    [G ⊢## p: μ(T[q/p])]      *)
 | ty_rec_pq_inv : forall G p q r T T' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -115,7 +115,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: r'.A]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: (r'.A)[q/p,n]]      *)
+    [G ⊢## p: (r'.A)[q/p]]      *)
 | ty_sel_pq_inv : forall G p q r r' r'' A U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q: U ->
@@ -127,7 +127,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: r'.type]          #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: (r'.type)[q/p,n]]      *)
+    [G ⊢## p: (r'.type)[q/p]]      *)
 | ty_sngl_pq_inv : forall G p q r r' r'' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -238,7 +238,7 @@ Ltac solve_repl_sub :=
     eauto.
 
 (** Singleton-subtyping closure for inert and record types:
-    If [Γ ⊢!!! p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q,n]] *)
+    If [Γ ⊢!!! p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q]] *)
 Lemma invertible_repl_closure_helper :
   (forall D,
       record_dec D -> forall G p q r D' U,
@@ -284,7 +284,7 @@ Proof.
 Qed.
 
 (** Singleton-subtyping closure for invertible typing:
-    If [Γ ⊢## p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q,n]] *)
+    If [Γ ⊢## p: T] and [Γ ⊢! q: r.type] then [Γ ⊢## p: T[r/q]] *)
 Lemma invertible_repl_closure : forall G p q r T T' U,
     inert G ->
     G ⊢## p : T ->

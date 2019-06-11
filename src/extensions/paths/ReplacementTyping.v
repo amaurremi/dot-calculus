@@ -79,7 +79,7 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: μ(T)]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: μ(T[q/p,n])]      *)
+    [G ⊢// p: μ(T[q/p])]      *)
 | ty_rec_qp_r : forall G p q r T T' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -91,7 +91,7 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: r'.A]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: (r'.A)[q/p,n]]      *)
+    [G ⊢// p: (r'.A)[q/p]]      *)
 | ty_sel_qp_r : forall G p q r r' r'' A U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -103,7 +103,7 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: r'.type]          #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: (r'.type)[q/p,n]]      *)
+    [G ⊢// p: (r'.type)[q/p]]      *)
 | ty_sngl_qp_r : forall G p q r r' r'' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -331,51 +331,6 @@ Proof.
     apply repl_open with (r:= r) in H1; try solve_names. apply* replacement_repl_closure_qp.
 Qed.
 
-(**
-(** If [G ⊢// r: T[q1 / p1, n]], [G ⊢!!! p2: q2.type], and [n <> m], then
-    [G ⊢// r: T[p2 / q2, m][q1 / p1, n]] *)
-Lemma replacement_swap_closure: forall G r q1 p1 T T1 p2 q2 T2 T21 n m U,
-    inert G ->
-    repl_typ n p1 q1 T T1 ->
-    G ⊢// r: T1 ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    G ⊢!! q2 : U ->
-    repl_typ m q2 p2 T T2 ->
-    repl_typ n p1 q1 T2 T21 ->
-    n <> m ->
-    G ⊢// r: T21.
-Proof.
-  introv Hi HTT1 Hr1 Hp2 Hq2 HTT2 HT2T21 Hn.
-  destruct (repl_preserved2 HTT1 HTT2 Hn) as [V HV].
-  lets Hc: (replacement_repl_closure_qp Hi Hp2 Hq2 Hr1 HV).
-  lets Heq: (repl_order_swap HTT1 HV Hn HTT2 HT2T21). subst*.
-Qed.
-
-(** Helper lemma to prove that replacement typing is closed under [pq] replacement *)
-Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
-    inert G ->
-    G ⊢// r: T ->
-    G ⊢! p1: {{ q1 }} ⪼ {{ q1 }} ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    repl_typ n q1 p1 T T1 ->
-    repl_typ n p2 q2 T1 T2 ->
-    G ⊢// r: T2.
-Proof.
-  introv Hi Hr Hp1 Hp2 Hr1 Hr2.
-  destruct (repl_prefixes Hr1 Hr2) as [bs [Heq | Heq]].
-  - subst. assert (bs = nil) as Heq by apply* pf_sngl_flds_elim. subst.
-    rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-  - subst. assert (bs = nil) as Heq. {
-      eapply pf_sngl_flds_elim. apply Hi. apply Hp1. apply Hp2.
-    }
-    subst. rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu.
-    apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-Qed.
-**)
 
 Lemma pf_sngl_sel_unique: forall G p q q0 r0 bs0 bs,
     inert G ->
@@ -463,7 +418,7 @@ Proof.
     * left. rewrite H0. auto.
     * right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). 
       split; auto. 
-Qed.     
+Qed.
 
 Lemma replacement_repl_closure_pq_helper: forall p q T T',
     repl_typ q p T T' ->
@@ -507,28 +462,12 @@ Proof.
      * destruct H2 as [T3 [Hl Hr]].
        assert (G ⊢// r : μ T3) by (eapply IHHp; eauto). 
        apply (ty_rec_qp_r H H0 H2 Hr).      
-
-    (* destruct (classicT (n=n0)) as [-> | Hn].
-     * apply* (replacement_repl_closure_pq_helper Hi Hp H Hq (rbnd H1) (rbnd H6)).
-     * destruct (repl_preserved1 H1 H6 Hn) as [V Hv]. apply rbnd in Hv.
-       specialize (IHHp _ _ _ Hr' Hv).
-       eapply (replacement_swap_closure Hi Hv IHHp H); eauto.*)
-      
    - Case "ty_sel_pq_r"%string. invert_repl.
      assert (q •• bs0 = r0 •• bs).
-     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
-     
-     (*  
-     assert (n0 = 0) as -> by inversion* Hr. assert (n = 0) as -> by inversion* H1.
-     eapply (replacement_repl_closure_pq_helper Hi Hp H Hq); eauto.*)
-     
+     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.   
    - Case "ty_sngl_pq_r"%string. invert_repl.
      assert (q •• bs0 = r0 •• bs).
      eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
-     
-  (*
-     Assert (n0 = 0) as -> by inversion* Hr. assert (n = 0) as -> by inversion* H1.
-     eapply (replacement_repl_closure_pq_helper Hi Hp H Hq); eauto.*)
 Qed.
 
 (** Replacement typing is closed under [pq] replacement
@@ -1012,49 +951,6 @@ Proof.
     auto. eauto. eauto. apply* IHHp. eauto.
 Qed.
 
-(**
-Lemma replacement_swap_closure_v: forall G v q1 p1 T T1 p2 q2 T2 T21 n m U,
-    inert G ->
-    repl_typ n p1 q1 T T1 ->
-    G ⊢//v v: T1 ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    G ⊢!! q2 : U ->
-    repl_typ m q2 p2 T T2 ->
-    repl_typ n p1 q1 T2 T21 ->
-    n <> m ->
-    G ⊢//v v: T21.
-Proof.
-  introv Hi HTT1 Hr1 Hp2 Hq2 HTT2 HT2T21 Hn.
-  destruct (repl_preserved2 HTT1 HTT2 Hn) as [V HV].
-  lets Hc: (replacement_repl_closure_qp_v Hi Hp2 Hq2 Hr1 HV).
-  lets Heq: (repl_order_swap HTT1 HV Hn HTT2 HT2T21). subst*.
-Qed.
-
-Lemma replacement_repl_closure_pq_v_helper : forall G v p1 q1 T T1 p2 q2 T2 n,
-    inert G ->
-    G ⊢//v v: T ->
-    G ⊢! p1: {{ q1 }} ⪼ {{ q1 }} ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    repl_typ n q1 p1 T T1 ->
-    repl_typ n p2 q2 T1 T2 ->
-    G ⊢//v v: T2.
-Proof.
-  introv Hi Hr Hp1 Hp2 Hr1 Hr2.
-  destruct (repl_prefixes Hr1 Hr2) as [bs [Heq | Heq]].
-  - subst. assert (bs = nil) as Heq by apply* pf_sngl_flds_elim. subst.
-    rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-  - subst. assert (bs = nil) as Heq. {
-      eapply pf_sngl_flds_elim. apply Hi. apply Hp1. apply Hp2.
-    }
-    subst. rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu.
-    apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-Qed.
- **)
-
 Lemma replacement_repl_closure_pq_v : forall G v q r T T' U,
     inert G ->
     G ⊢//v v : T ->
@@ -1081,17 +977,10 @@ Proof.
     * destruct H2 as [T3 [Hl Hr]].
       assert (G ⊢//v v : μ T3) by (eapply IHHv; eauto). 
       apply (ty_rec_qp_rv H H0 H2 Hr). 
-                  
-    (**  apply* (replacement_repl_closure_pq_v_helper Hi Hv H Hq (rbnd H1) (rbnd H6)).
-    * destruct (repl_preserved1 H1 H6 n1) as [V Hr]. apply rbnd in Hr.
-      specialize (IHHv _ _ _ Hr' Hr).
-      eapply (replacement_swap_closure_v Hi Hr IHHv H); eauto. **)
   - Case "ty_sel_pq_r"%string. invert_repl. 
     specialize (IHHv Hi _ _ Hq).
     assert (q •• bs0 = r •• bs). eapply pf_sngl_sel_unique; eauto.
     rewrite <- H1. auto. 
-   (** assert (n0 = 0) as Heq by inversion* Hr. assert (n = 0) as Heq' by inversion* H1. subst.
-    eapply (replacement_repl_closure_pq_v_helper Hi Hv H Hq); eauto. **)
 Qed.
 
 Lemma replacement_repl_closure_pq2_v : forall G v q r T T' U,

@@ -1027,7 +1027,7 @@ Qed.
 (** ** Replacement Composition *)
 
 (** The [typed_repl_comp_qp] relation for equivalent types under a given environment
-    states that for two types [T] and [U], [T[q/p,n]=U], where [p] and [q] are typed
+    states that for two types [T] and [U], [T[q/p]=U], where [p] and [q] are typed
     the environment. *)
 Definition typed_repl_comp_qp G T1 T2 :=
   exists p q U,
