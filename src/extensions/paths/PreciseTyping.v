@@ -1005,10 +1005,10 @@ Qed.
     states that for two types [T] and [U], [T[q/p,n]=U], where [p] and [q] are typed
     the environment. *)
 Definition typed_repl_comp_qp G T1 T2 :=
-  exists p q n U,
+  exists p q U,
     G ⊢! p: {{ q }}⪼ {{ q }}/\
     G ⊢!! q : U /\
-    repl_typ n q p T1 T2.
+    repl_typ q p T1 T2.
 
 (** Reflexivte, transitive closure of [typed_repl_comp_qp]. [repl_composition_qp] allows
     us to express that types are equivalent as a result of multiple replacements *)
@@ -1028,14 +1028,14 @@ Lemma repl_comp_to_prec': forall G G' p q T,
 Proof.
   introv Hi Hwf Hr Hp. gen T. dependent induction Hr; introv Hp; eauto.
   assert (exists r, b = {{ r }}) as [r Heq].
-  { inversion H as [? [? [? [? [_ [? Hr']]]]]]. inversion* Hr'. }
+  { inversion H as [? [? [? [? [? Hr']]]]]. inversion* Hr'. }
   subst.
   specialize (IHHr _ _ Hi Hwf eq_refl eq_refl). destruct (IHHr _ Hp). subst.
-  - destruct H as [p1 [p2 [n [S [H1 [Hq H2]]]]]]. right. inversions H2.
+  - destruct H as [p1 [p2 [S [H1 [Hq H2]]]]]. right. inversions H2.
     destruct (pt2_exists Hp) as [U Hu].
     apply (pt2_strengthen_from_pf _ Hi Hwf H1) in Hu.
     lets Hpf: (pf_pt2_trans_inv_mult _ (inert_prefix Hi) H1 Hu). subst*.
-  - specialize (IHHr _ Hp). destruct H as [p1 [p2 [n [S [H1 [Hq H2]]]]]].
+  - specialize (IHHr _ Hp). destruct H as [p1 [p2 [S [H1 [Hq H2]]]]].
     destruct (repl_prefixes_sngl H2) as [bs [He1 He2]]. subst.
     destruct IHHr as [Heq | IH].
     * subst. right. lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) (pt3 (pt2 H1))). destruct Hs.
@@ -1053,7 +1053,7 @@ Lemma repl_comp_sngl_inv1 : forall G T p,
 Proof.
   introv Hr. dependent induction Hr; eauto.
   specialize (IHHr _ eq_refl). destruct_all. subst.
-  inversions H. destruct_all. invert_repl. eexists; eauto.
+  inversions H. destruct_all. invert_repl. eexists. auto. 
 Qed.
 
 Lemma repl_comp_sngl_inv2 : forall G T p,
@@ -1061,7 +1061,7 @@ Lemma repl_comp_sngl_inv2 : forall G T p,
     exists q, T = {{ q }}.
 Proof.
   introv Hr. dependent induction Hr; eauto.
-  inversions H. destruct_all. invert_repl.
+  inversions H. destruct_all. invert_repl.  
   specialize (IHHr _ eq_refl). destruct_all. eexists. eauto.
 Qed.
 
@@ -1089,12 +1089,12 @@ Lemma repl_comp_bnd': forall G T T',
 Proof.
   introv Hr. dependent induction Hr.
   - apply star_refl.
-  - destruct H as [?[?[?[?[?[? Hr']]]]]].
+  - destruct H as [?[?[?[?[? Hr']]]]].
     assert (exists V, b = μ V) as [V ->]. {
-      inversions Hr'. eauto.
+      invert_repl. eauto.
     }
     apply star_trans with (b:=V). apply star_one. econstructor. repeat eexists. apply H. inversion* H0.
-    inversions Hr'. eauto. apply* IHHr.
+    invert_repl. eauto. apply* IHHr.
 Qed.
 
 Lemma repl_comp_trm_rcd G a T S :
@@ -1103,8 +1103,8 @@ Lemma repl_comp_trm_rcd G a T S :
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[U[Hp[Hq Hr']]]]]].
-    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]]. invert_repl.
+  - destruct H as [p[q[U[Hp[Hq Hr']]]]].
+    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]]. invert_repl. 
     eexists; split; eauto. apply star_trans with (b:=T'); auto. apply star_one. econstructor; repeat eexists; eauto.
 Qed.
 
@@ -1114,7 +1114,7 @@ Lemma repl_comp_trm_rcd' G a T S :
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[U[Hp[Hq Hr']]]]]]. invert_repl.
+  - destruct H as [p[q[U[Hp[Hq Hr']]]]]. invert_repl.
     specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]].
     eexists; split; eauto. apply star_trans with (b:=T2); auto. apply star_one. econstructor; repeat eexists; eauto.
 Qed.
@@ -1125,7 +1125,7 @@ Lemma repl_comp_typ_and1 G T U S :
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[V[Hp[Hq Hr']]]]]]. invert_repl;
+  - destruct H as [p[q[V[Hp[Hq Hr']]]]]. invert_repl;
     specialize (IHHr _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]];
     repeat eexists; eauto; apply star_trans with (b:=T2); auto; apply star_one; econstructor; repeat eexists; eauto.
 Qed.
@@ -1136,7 +1136,7 @@ Lemma repl_comp_typ_and2 G T U S :
 Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
-  - destruct H as [p[q[n[V[Hp[Hq Hr']]]]]].
+  - destruct H as [p[q[V[Hp[Hq Hr']]]]].
     specialize (IHHr _ _ eq_refl) as [T' [U' [-> [Hr1 Hr2]]]]; invert_repl; repeat eexists; eauto;
       [ apply star_trans with (b:=T') | apply star_trans with (b:=U') ];
       auto; apply star_one; econstructor; repeat eexists; eauto.
@@ -1180,7 +1180,7 @@ Proof.
   intros Hi Hrc. dependent induction Hrc.
   - apply star_refl.
   - eapply star_trans with (b:=open_typ_p p b); auto.
-    destruct H as [q [r [n [V [Hp [Hq Hr]]]]]]. apply star_one. econstructor. repeat eexists.
+    destruct H as [q [r [V [Hp [Hq Hr]]]]]. apply star_one. econstructor. repeat eexists.
     apply Hp. eauto. apply* repl_open.
     apply precise_to_general2 in Hq. apply* typed_paths_named.
     apply precise_to_general in Hp. apply* typed_paths_named.
@@ -1194,7 +1194,7 @@ Lemma repl_composition_weaken_one G x T U V :
 Proof.
   intros Hok Hn Hr. gen x V. dependent induction Hr; intros.
   - constructor.
-  - destruct H as [r [? [n [? [Hrq [? Hr']]]]]].
+  - destruct H as [r [? [? [Hrq [? Hr']]]]].
     eapply star_trans. apply star_one. econstructor. repeat eexists. apply* pf_weaken. apply* pt2_weaken.
     apply Hr'. apply* IHHr.
 Qed.
@@ -1238,7 +1238,7 @@ Lemma field_typing_comp1: forall G r q a U,
 Proof.
   introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hq; eauto.
   destruct (repl_comp_sngl_inv1 Hr) as [p Heq]. subst.
-  destruct H as [p' [q' [n [V [Hp' [Hq' Hr']]]]]].
+  destruct H as [p' [q' [V [Hp' [Hq' Hr']]]]].
   specialize (IHHr _ _ Hi eq_refl eq_refl _ _ Hq). destruct IHHr as [T Hpa].
   assert (G ⊢!!! p : {{ r }}) as Hpr. {
     clear Hq Hr. inversions Hr'. gen p' a T. induction bs; introv Hpa; introv Hq.
@@ -1258,7 +1258,7 @@ Lemma field_typing_comp2: forall G r q a U,
 Proof.
   introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hqa; eauto. inversions H.
   rename x into p.
-  destruct H0 as [q' [n [V [Hp [Hq Hr']]]]].
+  destruct H0 as [q' [V [Hp [Hq Hr']]]].
   assert (exists q', b = {{ q' }}) as [q'' Heq] by inversion* Hr'.
   subst. specialize (IHHr _ _ Hi eq_refl eq_refl). invert_repl. apply* IHHr. clear IHHr Hr.
   gen q' a U. induction bs; intros; simpls.
@@ -1278,7 +1278,7 @@ Proof.
       dependent induction H; destruct_all; eauto. inversions H1. eauto.
     } subst.
     specialize (IHHr _ _ Hi eq_refl eq_refl).
-    destruct H as [p'' [q' [n [S [Hpq [Hq Hr']]]]]]. apply star_trans with (b:={{ p'•a }}).
+    destruct H as [p'' [q' [S [Hpq [Hq Hr']]]]]. apply star_trans with (b:={{ p'•a }}).
     * apply star_one. inversions Hr'. repeat eexists; eauto.
       repeat rewrite <- proj_rewrite' in *.
       apply* rsngl.
