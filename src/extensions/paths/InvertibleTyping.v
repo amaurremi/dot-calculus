@@ -92,13 +92,6 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
   G ⊢## p : T ->
   G ⊢## p : ⊤
 
-(** [G ⊢## p.a: T]    #<br>#
-    [―――――――――――――――] #<br>#
-    [G ⊢## p: {a: T}]     *)
-| ty_rcd_intro_inv : forall G p a T,
-    G ⊢## p•a : T ->
-    G ⊢## p : typ_rcd { a ⦂ T }
-
 (** [G ⊢! p: q.type ⪼ q.type]   #<br>#
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: μ(T)]             #<br>#
@@ -333,8 +326,6 @@ Proof.
     invert_repl.
   - Case "ty_rec_pq_inv"%string.
     invert_repl. eauto.
-  - Case "ty_rcd_intro_inv"%string.
-    invert_repl. eauto.
   - Case "ty_sel_pq_inv"%string.
     assert (exists r''', T' = r'''↓A) as [r''' Heq]. {
       invert_repl. eauto.
@@ -449,7 +440,6 @@ Lemma inv_to_prec G p T :
   exists U, G ⊢!!! p : U.
 Proof.
   induction 1; eauto.
-  destruct IHty_path_inv as [? ?]. apply* pt3_backtrack.
 Qed.
 
 (** ** Invertible typing for values *)
@@ -633,4 +623,12 @@ Proof.
     * eapply star_trans. apply star_one. econstructor. repeat eexists. apply H. eauto.
       apply* repl_swap.
       apply Hrc.
+Qed.
+
+Lemma inv_backtrack G p a T :
+  G ⊢## p • a : T ->
+  exists U, G ⊢## p: U.
+Proof.
+  introv Hp. dependent induction Hp; eauto.
+  apply pt3_backtrack in H as [? ?]; eauto.
 Qed.
