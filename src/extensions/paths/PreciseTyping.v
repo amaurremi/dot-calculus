@@ -1053,7 +1053,7 @@ Lemma repl_comp_sngl_inv1 : forall G T p,
 Proof.
   introv Hr. dependent induction Hr; eauto.
   specialize (IHHr _ eq_refl). destruct_all. subst.
-  inversions H. destruct_all. invert_repl. eexists. auto. 
+  inversions H. destruct_all. invert_repl. eexists. auto.
 Qed.
 
 Lemma repl_comp_sngl_inv2 : forall G T p,
@@ -1061,7 +1061,7 @@ Lemma repl_comp_sngl_inv2 : forall G T p,
     exists q, T = {{ q }}.
 Proof.
   introv Hr. dependent induction Hr; eauto.
-  inversions H. destruct_all. invert_repl.  
+  inversions H. destruct_all. invert_repl.
   specialize (IHHr _ eq_refl). destruct_all. eexists. eauto.
 Qed.
 
@@ -1104,7 +1104,7 @@ Proof.
   intros Hr. dependent induction Hr.
   - repeat eexists; apply star_refl.
   - destruct H as [p[q[U[Hp[Hq Hr']]]]].
-    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]]. invert_repl. 
+    specialize (IHHr _ _ eq_refl) as [T' [-> Hrr]]. invert_repl.
     eexists; split; eauto. apply star_trans with (b:=T'); auto. apply star_one. econstructor; repeat eexists; eauto.
 Qed.
 

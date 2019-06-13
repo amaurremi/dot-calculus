@@ -331,105 +331,69 @@ Proof.
     apply repl_open with (r:= r) in H1; try solve_names. apply* replacement_repl_closure_qp.
 Qed.
 
-
-Lemma pf_sngl_sel_unique: forall G p q q0 r0 bs0 bs,
-    inert G ->
-    G ⊢! q : {{ p }} ⪼ {{ p }} ->
-    G ⊢! q0 : {{ r0 }} ⪼ {{ r0 }} ->
-    q0 •• bs0 = q •• bs ->
-    p •• bs = r0 •• bs0.
-Proof.
-  intros. destruct (sel_sub_fields _ _ _ _ H2) as [bs1 [Hl | Hl]].
-  -  rewrite Hl in H1. assert (bs1 = nil) as Heq.
-     { eapply pf_sngl_flds_elim with (bs:=bs1); auto. eauto. apply H0. apply H1. }
-     rewrite Heq in *. rewrite (field_sel_nil q) in *.
-     assert ({{ p }} = {{ r0 }}).
-     { eapply pf_T_unique; eauto. }
-     inversion H3. subst. apply sel_fields_equal in H2. subst. auto.   
-  -  rewrite Hl in H0. assert (bs1 = nil) as Heq.
-     { eapply pf_sngl_flds_elim with (bs:=bs1); auto. eauto. apply H1. apply H0. }
-     rewrite Heq in *. rewrite (field_sel_nil q0) in *.
-     assert ({{ p }} = {{ r0 }}).
-     { eapply pf_T_unique; eauto. }
-     inversion H3. subst. apply sel_fields_equal in H2. subst. auto.   
-Qed. 
-
 Lemma replacement_repl_closure_pq_helper_mutind: (forall q p T T',
     repl_typ q p T T' ->
     forall q0 r0 T2 G, repl_typ q0 r0 T' T2 ->
-    inert G -> 
-    G ⊢! p: {{ q }} ⪼ {{ q }} -> 
+    inert G ->
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
     G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
              T = T2 \/ exists T3, repl_typ q0 r0 T T3 /\ repl_typ q p T3 T2) /\
     (forall q p D D',
         repl_dec q p D D' ->
-    forall q0 r0 D2 G, 
+    forall q0 r0 D2 G,
     repl_dec q0 r0 D' D2 ->
-    inert G -> 
-    G ⊢! p: {{ q }} ⪼ {{ q }} -> 
+    inert G ->
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
     G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
     D = D2 \/ exists D3, repl_dec q0 r0 D D3 /\ repl_dec q p D3 D2).
 Proof.
   apply repl_mutind; intros; eauto.
-  - inversions H0. destruct (H _ _ _ _ H7 H1 H2 H3); eauto.
-    * left. rewrite H0. auto.
-    * right. destruct H0 as [D4 [Hl Hr]]. exists (typ_rcd D4).
-      split; eauto. 
+  - invert_repl. destruct (H _ _ _ _ H7 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [D4 [Hl Hr]]. exists (typ_rcd D4). split; eauto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (T5 ∧ U). split; eauto.
+    * right. exists (T1 ∧ T4). split; auto.
   - inversions H0.
-    * destruct (H _ _ _ _ H9 H1 H2 H3); eauto.
-      + left. rewrite H0. auto.
-      + right. destruct H0 as [T5 [Hl Hr]]. exists (T5 ∧ U). split; eauto.
-    * right. exists (T1 ∧ T4). split; auto. 
-  - inversions H0.
-    * right. exists (T4 ∧ T1). split; auto. 
+    * right. exists (T4 ∧ T1). split; auto.
     * destruct (H _ _ _ _ H9 H1 H2 H3). rewrite H0. auto.
-      destruct H0 as [T5 [Hl Hr]]. right. exists (U ∧ T5). split; auto. 
+      destruct H0 as [T5 [Hl Hr]]. right. exists (U ∧ T5). split; auto.
   - inversions H. left. assert (p •• bs = r0 •• bs0).
-    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.   
-  - inversions H0. destruct (H _ _ _ _ H7 H1 H2 H3); eauto.
-    * left. rewrite H0. auto.
-    * right. destruct H0 as [T5 [Hl Hr]]. exists (μ T5). split; auto. 
-  - inversions H0.
-    * destruct (H _ _ _ _ H9 H1 H2 H3); eauto.
-      + left. rewrite H0. auto.
-      + right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (T5) U).
-        split; auto.  
-    * right. exists (∀ (T1) T4). split; auto. 
-  - inversions H0.
-    * right. exists (∀ (T4) T1). split; auto. 
-    * destruct (H _ _ _ _ H9 H1 H2 H3); eauto.
-      + left. rewrite H0. auto.
-      + right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (U) T5). split; auto. 
-  - inversions H. left. assert (p •• bs = r0 •• bs0).
-    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.   
-  - inversions H0.
-    * destruct (H _ _ _ _ H10 H1 H2 H3); eauto.
-      + left. rewrite H0. auto.
-      + right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A T4 U).
-        split; auto. 
-    * right. exists (dec_typ A T1 T3). split; auto. 
-  - inversions H0.
+    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.
+  - inversions H0. destruct (H _ _ _ _ H7 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [T5 [Hl Hr]]. exists (μ T5). split; auto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (T5) U). split; auto.
+    * right. exists (∀ (T1) T4). split; auto.
+  - invert_repl.
+    * right. exists (∀ (T4) T1). split; auto.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (U) T5). split; auto.
+  - invert_repl. left. assert (p •• bs = r0 •• bs0).
+    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H10 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A T4 U). split; auto.
+    * right. exists (dec_typ A T1 T3). split; auto.
+  - invert_repl.
     * right. exists (dec_typ A T3 T1). split; auto.
-    * destruct (H _ _ _ _ H10 H1 H2 H3); eauto.
-      + left. rewrite H0. auto.
-      + right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A U T4). 
-        split; auto. 
-  - inversions H0. destruct (H _ _ _ _ H9 H1 H2 H3); eauto.
-    * left. rewrite H0. auto.
-    * right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). 
-      split; auto. 
+    * destruct (H _ _ _ _ H10 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A U T4). split; auto.
+  - invert_repl. destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). split; auto.
 Qed.
 
 Lemma replacement_repl_closure_pq_helper: forall p q T T',
     repl_typ q p T T' ->
     forall q0 r0 T2 G, repl_typ q0 r0 T' T2 ->
-    inert G -> 
-    G ⊢! p: {{ q }} ⪼ {{ q }} -> 
+    inert G ->
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
     G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
     T = T2 \/ exists T3, repl_typ q0 r0 T T3 /\ repl_typ q p T3 T2.
 Proof.
   destruct replacement_repl_closure_pq_helper_mutind; eauto.
-Qed.                              
+Qed.
 
 (** Replacement typing is closed under [pq] replacement
     when we know [q]'s precise type *)
@@ -458,13 +422,13 @@ Proof.
    - Case "ty_rec_qp_r"%string.
      invert_repl. specialize (IHHp Hi _ _ Hq).
      destruct (replacement_repl_closure_pq_helper H1 H5 Hi H Hq).
-     * rewrite <- H2. auto. 
+     * rewrite <- H2. auto.
      * destruct H2 as [T3 [Hl Hr]].
-       assert (G ⊢// r : μ T3) by (eapply IHHp; eauto). 
-       apply (ty_rec_qp_r H H0 H2 Hr).      
+       assert (G ⊢// r : μ T3) by (eapply IHHp; eauto).
+       apply (ty_rec_qp_r H H0 H2 Hr).
    - Case "ty_sel_pq_r"%string. invert_repl.
      assert (q •• bs0 = r0 •• bs).
-     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.   
+     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
    - Case "ty_sngl_pq_r"%string. invert_repl.
      assert (q •• bs0 = r0 •• bs).
      eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
@@ -974,12 +938,12 @@ Proof.
     destruct (replacement_repl_closure_pq_helper H1 H5 Hi H Hq).
     * rewrite <- H2. auto.
     * destruct H2 as [T3 [Hl Hr]].
-      assert (G ⊢//v v : μ T3) by (eapply IHHv; eauto). 
-      apply (ty_rec_qp_rv H H0 H2 Hr). 
-  - Case "ty_sel_pq_r"%string. invert_repl. 
+      assert (G ⊢//v v : μ T3) by (eapply IHHv; eauto).
+      apply (ty_rec_qp_rv H H0 H2 Hr).
+  - Case "ty_sel_pq_r"%string. invert_repl.
     specialize (IHHv Hi _ _ Hq).
     assert (q •• bs0 = r •• bs). eapply pf_sngl_sel_unique; eauto.
-    rewrite <- H1. auto. 
+    rewrite <- H1. auto.
 Qed.
 
 Lemma replacement_repl_closure_pq2_v : forall G v q r T T' U,
