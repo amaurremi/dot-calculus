@@ -519,7 +519,7 @@ Lemma repl_to_inv G p T :
   exists U, G ⊢## p : U.
 Proof.
   induction 1; eauto. destruct IHty_repl as [U Hp].
-  clear H. apply ty_rcd_intro_inv in Hp. eauto.
+  clear H. apply inv_backtrack in Hp. eauto.
 Qed.
 
 (** Replacement typing is closed under ⊤-subtyping *)
@@ -570,7 +570,7 @@ Lemma repl_prec_exists: forall G p T,
     exists U, G ⊢!!! p: U.
 Proof.
   introv Hp. apply repl_to_inv in Hp as [? Hp].
-  induction Hp; eauto. apply* inv_to_prec.
+  induction Hp; eauto.
 Qed.
 
 (** Replacement is closed under field selection on paths *)
@@ -690,7 +690,6 @@ Proof.
   - eapply (replacement_subtyping_closure Hi). eapply subtyp_all_t.
     apply H. apply H0. auto.
   - apply* repl_top.
-  - pose proof (path_elim_repl _ Hi Hpq (ty_inv_r Hq)) as Hp0a. specialize (IHHq Hi _ Hp0a). eauto.
 Qed.
 
 (** Replacement typing is closed under singleton transitivity *)

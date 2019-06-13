@@ -549,3 +549,28 @@ Proof.
   - rewrite concat_assoc in *. eapply pf_weaken_one; auto. rewrite <- concat_empty_r in Hok.
     apply* ok_middle_inv_l.
 Qed.
+
+Lemma pf_sngl_fld_elim: forall G p q a T U,
+    inert G ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
+    G ⊢! p•a : T ⪼ U ->
+    False.
+Proof.
+  introv Hi Hp Hpa. dependent induction Hpa; try simpl_dot; eauto.
+  lets Hu: (pf_T_unique Hi Hpa Hp). subst. apply pf_sngl_U in Hpa. false*.
+Qed.
+
+Lemma pf_sngl_flds_elim: forall G p q T U bs,
+    inert G ->
+    G ⊢! p: {{ q }}⪼ {{ q }}->
+    G ⊢! p••bs : T ⪼ U ->
+    bs = nil.
+Proof.
+  introv Hi Hp Hpbs. gen T U. induction bs; introv Hpbs. auto.
+  assert (exists T' U', G ⊢! p •• bs : T' ⪼ U') as [T' [U' Hpbs']]. {
+    clear IHbs Hp. dependent induction Hpbs; try simpl_dot; eauto.
+    unfolds sel_field, sel_fields. destruct p0, p. inversions x. repeat eexists. eauto.
+  }
+  specialize (IHbs _ _ Hpbs'). subst. unfold sel_fields in Hpbs. destruct p. simpls.
+  rewrite proj_rewrite in *. false* pf_sngl_fld_elim.
+Qed.
