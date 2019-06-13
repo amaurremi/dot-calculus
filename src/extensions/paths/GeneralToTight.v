@@ -48,12 +48,12 @@ Qed.
 (** This lemma strengthens the tight [Sngl-<:-#] and [<:-Sngl-#] subtyping rules
     ([subtyp_sngl_pq_t] and [subtyp_sngl_qp_t]) by replacing the ⊢!!! premise
     with a ⊢# premise: #<br>#
-    if [G ⊢# p: q.type] and [q] is well-typed then [G ⊢# T <: T[q/p,n] <: T] *)
-Lemma sngl_replacement: forall G p q n T U S,
+    if [G ⊢# p: q.type] and [q] is well-typed then [G ⊢# T <: T[q/p] <: T] *)
+Lemma sngl_replacement: forall G p q T U S,
     inert G ->
     G ⊢# trm_path p: {{ q }} ->
     G ⊢# trm_path q : S ->
-    repl_typ n p q T U ->
+    repl_typ p q T U ->
     G ⊢# T <: U /\ G ⊢# U <: T.
 Proof.
   introv Hi Hp Hr.

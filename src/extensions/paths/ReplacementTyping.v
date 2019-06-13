@@ -79,36 +79,36 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: μ(T)]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: μ(T[q/p,n])]      *)
-| ty_rec_qp_r : forall G p q r T T' n U,
+    [G ⊢// p: μ(T[q/p])]      *)
+| ty_rec_qp_r : forall G p q r T T' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢// r : μ T ->
-    repl_typ n q p T T' ->
+    repl_typ q p T T' ->
     G ⊢// r : μ T'
 
 (** [G ⊢! p: q.type ⪼ q.type]   #<br>#
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: r'.A]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: (r'.A)[q/p,n]]      *)
-| ty_sel_qp_r : forall G p q r r' r'' A n U,
+    [G ⊢// p: (r'.A)[q/p]]      *)
+| ty_sel_qp_r : forall G p q r r' r'' A U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢// r : r'↓A ->
-    repl_typ n q p (r'↓A) (r''↓A) ->
+    repl_typ q p (r'↓A) (r''↓A) ->
     G ⊢// r : r''↓A
 
 (** [G ⊢! p: q.type ⪼ q.type]   #<br>#
     [G ⊢!! q]                   #<br>#
     [G ⊢// r: r'.type]          #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢// p: (r'.type)[q/p,n]]      *)
-| ty_sngl_qp_r : forall G p q r r' r'' n U,
+    [G ⊢// p: (r'.type)[q/p]]      *)
+| ty_sngl_qp_r : forall G p q r r' r'' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢// r : {{ r' }} ->
-    repl_typ n q p {{ r'}} {{ r'' }} ->
+    repl_typ q p {{ r'}} {{ r'' }} ->
     G ⊢// r : {{ r'' }}
 
 where "G '⊢//' p ':' T" := (ty_repl G p T).
@@ -166,31 +166,31 @@ Qed.
 
 (** Replacement typing is closed under [qp] replacement
     when we know [q]'s precise type *)
-Lemma replacement_repl_closure_qp : forall G p q r T T' n U,
+Lemma replacement_repl_closure_qp : forall G p q r T T' U,
     inert G ->
     G ⊢! q : {{ r }} ⪼ {{ r }} ->
     G ⊢!! r : U ->
     G ⊢// p : T ->
-    repl_typ n r q T T' ->
+    repl_typ r q T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hq Hr Hp.
-  gen q r T' n U. induction Hp; introv Hq; introv Hr' Hr; try solve [invert_repl; eauto 5].
+  gen q r T' U. induction Hp; introv Hq; introv Hr' Hr; try solve [invert_repl; eauto 5].
   - Case "ty_inv_r"%string.
-    gen q r T' n U. induction H; introv Hq; introv Hr; introv Hr'; try solve [invert_repl; eauto 5].
+    gen q r T' U. induction H; introv Hq; introv Hr; introv Hr'; try solve [invert_repl; eauto 5].
     -- SCase "ty_precise_inv"%string.
        destruct (pt3_inertsngl Hi H) as [[Hit | Hs] | Hst].
        + SSCase "ty_precise_inv_1"%string.
          inversions Hit; invert_repl.
          ++ apply ty_inv_r. eapply ty_all_inv with (L := \{}).
-            apply* ty_precise_inv. apply repl_swap in H6.
+            apply* ty_precise_inv. apply repl_swap in H5.
             eauto. introv Hy. auto.
          ++ apply ty_inv_r.
             eapply ty_all_inv with (L := dom G).
             apply* ty_precise_inv. auto. introv Hy.
-            eapply repl_open_var in H6; try solve_names.
+            eapply repl_open_var in H5; try solve_names.
             eapply subtyp_sngl_qp. apply* weaken_ty_trm.
-            eapply precise_to_general. apply Hq. apply* weaken_ty_trm. apply* precise_to_general2. apply H6.
+            eapply precise_to_general. apply Hq. apply* weaken_ty_trm. apply* precise_to_general2. apply H5.
          ++ apply* ty_rec_qp_r.
        + SSCase "ty_precise_inv_2"%string.
          inversions Hs. invert_repl. eauto.
@@ -202,7 +202,7 @@ Proof.
             * invert_repl; apply ty_precise_inv in H;
               eapply ty_dec_typ_inv; eauto.
               assert (Hts : G ⊢# t0 <: T1).
-              { apply repl_swap in H7. eauto. }
+              { apply repl_swap in H6. eauto. }
               eauto.
             * invert_repl. eapply ty_precise_inv in H.
               eapply ty_dec_trm_inv; eauto.
@@ -215,7 +215,7 @@ Proof.
           destruct D2; invert_repl;
           apply ty_precise_inv in Hpd.
           * eapply ty_dec_typ_inv; eauto.
-            apply repl_swap in H8. eauto.
+            apply repl_swap in H7. eauto.
           * eapply ty_dec_typ_inv; eauto.
           * eapply ty_dec_trm_inv; eauto.
     -- SCase "ty_dec_trm_inv"%string.
@@ -224,9 +224,9 @@ Proof.
     -- SCase "ty_dec_typ_inv"%string.
        invert_repl.
          * eapply ty_inv_r. eapply ty_dec_typ_inv. apply H.
-           eapply subtyp_trans_t. apply repl_swap in H10.
+           eapply subtyp_trans_t. apply repl_swap in H9.
            eapply subtyp_sngl_pq_t. eauto. eauto.
-           apply H10. auto. auto.
+           apply H9. auto. auto.
          * eapply ty_inv_r. eapply ty_dec_typ_inv. apply H.
            eauto. eapply subtyp_trans_t. apply H1. eauto.
     -- SCase "ty_all_inv"%string.
@@ -234,19 +234,19 @@ Proof.
        + eapply ty_all_inv with (L := L \u (dom G)).
          * apply H.
          * assert (Hts : G ⊢# T3 <: S2).
-           { apply repl_swap in H8. eauto. }
+           { apply repl_swap in H7. eauto. }
            eauto.
          * introv Hy. eapply narrow_subtyping.
            apply H1. eauto.
            assert (Hts : G ⊢ T3 <: S2).
            { apply tight_to_general.
-           apply repl_swap in H8. eauto. }
+           apply repl_swap in H7. eauto. }
            constructor; eauto.
        + eapply ty_all_inv with (L := L \u (dom G)).
          * eauto.
          * assumption.
          * introv Hy. eapply subtyp_trans.
-           apply* H1. eapply repl_open_var in H8.
+           apply* H1. eapply repl_open_var in H7.
            ** eapply subtyp_sngl_qp.
               apply precise_to_general in Hq.
               apply weaken_ty_trm. apply Hq. eauto.
@@ -267,12 +267,12 @@ Qed.
 
 (** Replacement typing is closed under [qp] replacement
     when we know [q]'s II-level precise type *)
-Lemma replacement_repl_closure_qp2 : forall G p q r T T' n U,
+Lemma replacement_repl_closure_qp2 : forall G p q r T T' U,
     inert G ->
     G ⊢!! q : {{ r }} ->
     G ⊢!! r : U ->
     G ⊢// p : T ->
-    repl_typ n r q T T' ->
+    repl_typ r q T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hq Hr' Hp Hr. gen U. dependent induction Hq; introv Hr'.
@@ -284,12 +284,12 @@ Qed.
 
 (** Replacement typing is closed under [qp] replacement
     when we know [q]'s III-level precise type *)
-Lemma replacement_repl_closure_qp3 : forall G p q r T T' n U,
+Lemma replacement_repl_closure_qp3 : forall G p q r T T' U,
     inert G ->
     G ⊢!!! q : {{ r }} ->
     G ⊢!! r : U ->
     G ⊢// p : T ->
-    repl_typ n r q T T' ->
+    repl_typ r q T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hq Hr' Hp Hr. gen p T T' U. dependent induction Hq; introv Hp; introv Hr; introv Hr'.
@@ -311,7 +311,6 @@ Lemma replacement_repl_closure_qp_comp: forall G p q r T T' U,
     G ⊢// p: T'.
 Proof.
   introv Hi Hp Hq Hr Hc. gen p. dependent induction Hc; introv Hp; eauto.
-  unfolds repl_some_typ. destruct_all.
   apply* IHHc. apply* replacement_repl_closure_qp3.
 Qed.
 
@@ -332,68 +331,88 @@ Proof.
     apply repl_open with (r:= r) in H1; try solve_names. apply* replacement_repl_closure_qp.
 Qed.
 
-(** If [G ⊢// r: T[q1 / p1, n]], [G ⊢!!! p2: q2.type], and [n <> m], then
-    [G ⊢// r: T[p2 / q2, m][q1 / p1, n]] *)
-Lemma replacement_swap_closure: forall G r q1 p1 T T1 p2 q2 T2 T21 n m U,
+Lemma replacement_repl_closure_pq_helper_mutind: (forall q p T T',
+    repl_typ q p T T' ->
+    forall q0 r0 T2 G, repl_typ q0 r0 T' T2 ->
     inert G ->
-    repl_typ n p1 q1 T T1 ->
-    G ⊢// r: T1 ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    G ⊢!! q2 : U ->
-    repl_typ m q2 p2 T T2 ->
-    repl_typ n p1 q1 T2 T21 ->
-    n <> m ->
-    G ⊢// r: T21.
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
+    G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
+             T = T2 \/ exists T3, repl_typ q0 r0 T T3 /\ repl_typ q p T3 T2) /\
+    (forall q p D D',
+        repl_dec q p D D' ->
+    forall q0 r0 D2 G,
+    repl_dec q0 r0 D' D2 ->
+    inert G ->
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
+    G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
+    D = D2 \/ exists D3, repl_dec q0 r0 D D3 /\ repl_dec q p D3 D2).
 Proof.
-  introv Hi HTT1 Hr1 Hp2 Hq2 HTT2 HT2T21 Hn.
-  destruct (repl_preserved2 HTT1 HTT2 Hn) as [V HV].
-  lets Hc: (replacement_repl_closure_qp Hi Hp2 Hq2 Hr1 HV).
-  lets Heq: (repl_order_swap HTT1 HV Hn HTT2 HT2T21). subst*.
+  apply repl_mutind; intros; eauto.
+  - invert_repl. destruct (H _ _ _ _ H7 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [D4 [Hl Hr]]. exists (typ_rcd D4). split; eauto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (T5 ∧ U). split; eauto.
+    * right. exists (T1 ∧ T4). split; auto.
+  - inversions H0.
+    * right. exists (T4 ∧ T1). split; auto.
+    * destruct (H _ _ _ _ H9 H1 H2 H3). rewrite H0. auto.
+      destruct H0 as [T5 [Hl Hr]]. right. exists (U ∧ T5). split; auto.
+  - inversions H. left. assert (p •• bs = r0 •• bs0).
+    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.
+  - inversions H0. destruct (H _ _ _ _ H7 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [T5 [Hl Hr]]. exists (μ T5). split; auto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (T5) U). split; auto.
+    * right. exists (∀ (T1) T4). split; auto.
+  - invert_repl.
+    * right. exists (∀ (T4) T1). split; auto.
+    * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T5 [Hl Hr]]. exists (∀ (U) T5). split; auto.
+  - invert_repl. left. assert (p •• bs = r0 •• bs0).
+    eapply pf_sngl_sel_unique; eauto. rewrite H. auto.
+  - invert_repl.
+    * destruct (H _ _ _ _ H10 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A T4 U). split; auto.
+    * right. exists (dec_typ A T1 T3). split; auto.
+  - invert_repl.
+    * right. exists (dec_typ A T3 T1). split; auto.
+    * destruct (H _ _ _ _ H10 H1 H2 H3); subst; eauto.
+      right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A U T4). split; auto.
+  - invert_repl. destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
+    right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). split; auto.
 Qed.
 
-(** Helper lemma to prove that replacement typing is closed under [pq] replacement *)
-Lemma replacement_repl_closure_pq_helper : forall G r q1 p1 T T1 p2 q2 T2 n,
+Lemma replacement_repl_closure_pq_helper: forall p q T T',
+    repl_typ q p T T' ->
+    forall q0 r0 T2 G, repl_typ q0 r0 T' T2 ->
     inert G ->
-    G ⊢// r: T ->
-    G ⊢! p1: {{ q1 }} ⪼ {{ q1 }} ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    repl_typ n q1 p1 T T1 ->
-    repl_typ n p2 q2 T1 T2 ->
-    G ⊢// r: T2.
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
+    G ⊢! q0: {{ r0 }} ⪼ {{ r0 }} ->
+    T = T2 \/ exists T3, repl_typ q0 r0 T T3 /\ repl_typ q p T3 T2.
 Proof.
-  introv Hi Hr Hp1 Hp2 Hr1 Hr2.
-  destruct (repl_prefixes Hr1 Hr2) as [bs [Heq | Heq]].
-  - subst. assert (bs = nil) as Heq by apply* pf_sngl_flds_elim. subst.
-    rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-  - subst. assert (bs = nil) as Heq. {
-      eapply pf_sngl_flds_elim. apply Hi. apply Hp1. apply Hp2.
-    }
-    subst. rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu.
-    apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
+  destruct replacement_repl_closure_pq_helper_mutind; eauto.
 Qed.
 
 (** Replacement typing is closed under [pq] replacement
     when we know [q]'s precise type *)
-Lemma replacement_repl_closure_pq : forall G p q r n T T' U,
+Lemma replacement_repl_closure_pq : forall G p q r T T' U,
     inert G ->
     G ⊢// p : T ->
     G ⊢! q : {{ r }} ⪼ {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hp Hq Hqr.
-  gen q r n T' U. induction Hp; introv Hq; introv Hr' Hr; eauto.
+  gen q r T' U. induction Hp; introv Hq; introv Hr' Hr; eauto.
    - Case "ty_inv_r"%string.
      constructor. apply* invertible_repl_closure.
    - Case "ty_and_r"%string.
      invert_repl; eauto.
    - Case "ty_bnd_r"%string.
-     invert_repl. apply (repl_open p) in H3; try solve_names. eauto.
+     invert_repl. apply (repl_open p) in H2; try solve_names. eauto.
    - Case "ty_sel_r"%string.
      clear IHHp. invert_repl. lets Heq: (pf_sngl_flds_elim _ Hi Hq H). subst.
      rewrite field_sel_nil in *.
@@ -402,27 +421,27 @@ Proof.
    - Case "ty_rcd_intro_r"%string. invert_repl. eauto.
    - Case "ty_rec_qp_r"%string.
      invert_repl. specialize (IHHp Hi _ _ Hq).
-     destruct (classicT (n=n0)) as [-> | Hn].
-     * apply* (replacement_repl_closure_pq_helper Hi Hp H Hq (rbnd H1) (rbnd H6)).
-     * destruct (repl_preserved1 H1 H6 Hn) as [V Hv]. apply rbnd in Hv.
-       specialize (IHHp _ _ _ Hr' Hv).
-       eapply (replacement_swap_closure Hi Hv IHHp H); eauto.
-   - Case "ty_sel_pq_r"%string.
-     assert (n0 = 0) as -> by inversion* Hr. assert (n = 0) as -> by inversion* H1.
-     eapply (replacement_repl_closure_pq_helper Hi Hp H Hq); eauto.
-   - Case "ty_sngl_pq_r"%string.
-     assert (n0 = 0) as -> by inversion* Hr. assert (n = 0) as -> by inversion* H1.
-     eapply (replacement_repl_closure_pq_helper Hi Hp H Hq); eauto.
+     destruct (replacement_repl_closure_pq_helper H1 H5 Hi H Hq).
+     * rewrite <- H2. auto.
+     * destruct H2 as [T3 [Hl Hr]].
+       assert (G ⊢// r : μ T3) by (eapply IHHp; eauto).
+       apply (ty_rec_qp_r H H0 H2 Hr).
+   - Case "ty_sel_pq_r"%string. invert_repl.
+     assert (q •• bs0 = r0 •• bs).
+     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
+   - Case "ty_sngl_pq_r"%string. invert_repl.
+     assert (q •• bs0 = r0 •• bs).
+     eapply pf_sngl_sel_unique; eauto. rewrite <- H1. auto.
 Qed.
 
 (** Replacement typing is closed under [pq] replacement
     when we know [q]'s II-level precise type *)
-Lemma replacement_repl_closure_pq2 : forall G p q r T T' n U,
+Lemma replacement_repl_closure_pq2 : forall G p q r T T' U,
     inert G ->
     G ⊢// p : T ->
     G ⊢!! q : {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hp Hq Hr' Hr. gen U. dependent induction Hq; introv Hr'.
@@ -435,12 +454,12 @@ Qed.
 
 (** Replacement typing is closed under [pq] replacement
     when we know [q]'s III-level precise type *)
-Lemma replacement_repl_closure_pq3 : forall G p q r T T' n U,
+Lemma replacement_repl_closure_pq3 : forall G p q r T T' U,
     inert G ->
     G ⊢// p : T ->
     G ⊢!!! q : {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢// p : T'.
 Proof.
   introv Hi Hp Hq Hr. gen p T U. dependent induction Hq; introv Hp; introv Hr' Hr.
@@ -460,7 +479,6 @@ Lemma replacement_repl_closure_pq_comp: forall G p q r T T' U,
     G ⊢// p: T'.
 Proof.
   introv Hi Hp Hq Hr Hc. gen p. dependent induction Hc; introv Hp; eauto.
-  unfolds repl_some_typ. destruct_all.
   apply* IHHc. apply* replacement_repl_closure_pq3.
 Qed.
 
@@ -598,7 +616,7 @@ Lemma replacement_repl_closure_comp_typed: forall G p T T',
     G ⊢// p: T'.
 Proof.
   introv Hi Hp Hr. dependent induction Hr; eauto.
-  destruct H as [p' [q' [n [S [Hpq [Hq Hr']]]]]].
+  destruct H as [p' [q' [S [Hpq [Hq Hr']]]]].
   lets Hrc: (replacement_repl_closure_qp Hi Hpq Hq Hp Hr'). eauto.
 Qed.
 
@@ -768,17 +786,17 @@ Inductive ty_replv : ctx -> val -> typ -> Prop :=
     G ⊢//v v: T ->
     G ⊢! q: S ⪼ typ_rcd {A >: T <: T} ->
     G ⊢//v v: q ↓ A
-| ty_rec_qp_rv : forall G p q v T T' n U,
+| ty_rec_qp_rv : forall G p q v T T' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢//v v : μ T ->
-    repl_typ n q p T T' ->
+    repl_typ q p T T' ->
     G ⊢//v v : μ T'
-| ty_sel_qp_rv : forall G p q v r' r'' A n U,
+| ty_sel_qp_rv : forall G p q v r' r'' A U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢//v v : r' ↓ A ->
-    repl_typ n q p (r' ↓ A) (r'' ↓ A) ->
+    repl_typ q p (r' ↓ A) (r'' ↓ A) ->
     G ⊢//v v : r''↓A
 where "G '⊢//v' v ':' T" := (ty_replv G v T).
 
@@ -801,25 +819,25 @@ Proof.
   destruct (invertible_andv Hi H). split*.
 Qed.
 
-Lemma replacement_repl_closure_qp_v G v p q T T' n U :
+Lemma replacement_repl_closure_qp_v G v p q T T' U :
     inert G ->
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
     G ⊢//v v : T ->
-    repl_typ n q p T T' ->
+    repl_typ q p T T' ->
     G ⊢//v v : T'.
 Proof.
   intros Hi Hpq Hq Hv.
-  gen p q T' n U. induction Hv; introv Hpq; introv Hq Hr.
+  gen p q T' U. induction Hv; introv Hpq; introv Hq Hr.
   - Case "ty_inv_rv"%string.
-    gen p q T' n U. induction H; introv Hpq; introv Hr; introv Hq;
+    gen p q T' U. induction H; introv Hpq; introv Hr; introv Hq;
     try solve [invert_repl; eauto].
     -- destruct (pfv_inert H).
       + invert_repl.
         ++ eapply ty_inv_rv.
            eapply ty_all_invv with (L := \{}).
            eapply ty_precise_invv. apply H.
-           apply repl_swap in H6.
+           apply repl_swap in H5.
            eauto.
            introv Hy. auto.
         ++ eapply ty_inv_rv.
@@ -827,27 +845,27 @@ Proof.
            eapply ty_precise_invv. apply H.
            auto.
            introv Hy.
-           eapply repl_open_var in H6; try solve_names.
+           eapply repl_open_var in H5; try solve_names.
            eapply subtyp_sngl_qp. apply* weaken_ty_trm.
-           eapply precise_to_general. apply Hpq. apply weaken_ty_trm; auto. apply* precise_to_general2. apply H6.
+           eapply precise_to_general. apply Hpq. apply weaken_ty_trm; auto. apply* precise_to_general2. apply H5.
       + invert_repl; eauto.
     -- invert_repl; apply ty_inv_rv.
        + eapply ty_all_invv with (L := L \u (dom G)).
          * apply H.
          * assert (Hts : G ⊢# T3 <: S2).
-           { apply repl_swap in H8. eauto. }
+           { apply repl_swap in H7. eauto. }
            eauto.
          * introv Hy. eapply narrow_subtyping.
            apply H1. eauto.
            assert (Hts : G ⊢ T3 <: S2).
            { apply tight_to_general.
-           apply repl_swap in H8. eauto. }
+           apply repl_swap in H7. eauto. }
            constructor; eauto. (* narrowing *)
        + eapply ty_all_invv with (L := L \u (dom G)).
          * eauto.
          * assumption.
          * introv Hy. eapply subtyp_trans.
-           apply* H1. eapply repl_open_var in H8.
+           apply* H1. eapply repl_open_var in H7.
            ** eapply subtyp_sngl_qp.
               apply precise_to_general in Hpq.
               apply weaken_ty_trm. apply Hpq. eauto.
@@ -865,12 +883,12 @@ Proof.
     invert_repl; eauto.
 Qed.
 
-Lemma replacement_repl_closure_qp2_v : forall G p v r T T' n U,
+Lemma replacement_repl_closure_qp2_v : forall G p v r T T' U,
     inert G ->
     G ⊢!! p : {{ r }} ->
     G ⊢!! r : U ->
     G ⊢//v v : T ->
-    repl_typ n r p T T' ->
+    repl_typ r p T T' ->
     G ⊢//v v : T'.
 Proof.
   introv Hi Hp Hr Hv Hrp. gen U. dependent induction Hp; introv Hr.
@@ -879,12 +897,12 @@ Proof.
   - lets Hr': (repl_field_elim _ _ _ Hrp). pose proof (pt2_backtrack _ _ Hr) as [? Hq']. eauto.
 Qed.
 
-Lemma replacement_repl_closure_qp3_v : forall G v p r T T' n U,
+Lemma replacement_repl_closure_qp3_v : forall G v p r T T' U,
     inert G ->
     G ⊢!!! p : {{ r }} ->
     G ⊢!! r : U ->
     G ⊢//v v : T ->
-    repl_typ n r p T T' ->
+    repl_typ r p T T' ->
     G ⊢//v v : T'.
 Proof.
   introv Hi Hp Hr Hv Hrp. gen v T T' U. dependent induction Hp; introv Hv; introv Hrp; introv Hr.
@@ -896,57 +914,16 @@ Proof.
     auto. eauto. eauto. apply* IHHp. eauto.
 Qed.
 
-Lemma replacement_swap_closure_v: forall G v q1 p1 T T1 p2 q2 T2 T21 n m U,
-    inert G ->
-    repl_typ n p1 q1 T T1 ->
-    G ⊢//v v: T1 ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    G ⊢!! q2 : U ->
-    repl_typ m q2 p2 T T2 ->
-    repl_typ n p1 q1 T2 T21 ->
-    n <> m ->
-    G ⊢//v v: T21.
-Proof.
-  introv Hi HTT1 Hr1 Hp2 Hq2 HTT2 HT2T21 Hn.
-  destruct (repl_preserved2 HTT1 HTT2 Hn) as [V HV].
-  lets Hc: (replacement_repl_closure_qp_v Hi Hp2 Hq2 Hr1 HV).
-  lets Heq: (repl_order_swap HTT1 HV Hn HTT2 HT2T21). subst*.
-Qed.
-
-Lemma replacement_repl_closure_pq_v_helper : forall G v p1 q1 T T1 p2 q2 T2 n,
-    inert G ->
-    G ⊢//v v: T ->
-    G ⊢! p1: {{ q1 }} ⪼ {{ q1 }} ->
-    G ⊢! p2: {{ q2 }} ⪼ {{ q2 }} ->
-    repl_typ n q1 p1 T T1 ->
-    repl_typ n p2 q2 T1 T2 ->
-    G ⊢//v v: T2.
-Proof.
-  introv Hi Hr Hp1 Hp2 Hr1 Hr2.
-  destruct (repl_prefixes Hr1 Hr2) as [bs [Heq | Heq]].
-  - subst. assert (bs = nil) as Heq by apply* pf_sngl_flds_elim. subst.
-    rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu. apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-  - subst. assert (bs = nil) as Heq. {
-      eapply pf_sngl_flds_elim. apply Hi. apply Hp1. apply Hp2.
-    }
-    subst. rewrite field_sel_nil in *.
-    lets Hu: (pf_T_unique Hi Hp1 Hp2). inversions Hu.
-    apply repl_swap in Hr1.
-    lets Heq: (repl_unique Hr1 Hr2). subst*.
-Qed.
-
-Lemma replacement_repl_closure_pq_v : forall G v q r n T T' U,
+Lemma replacement_repl_closure_pq_v : forall G v q r T T' U,
     inert G ->
     G ⊢//v v : T ->
     G ⊢! q : {{ r }} ⪼ {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢//v v : T'.
 Proof.
   introv Hi Hv Hqr Hr'.
-  gen q r n T' U. induction Hv; introv Hq; introv Hr' Hr; eauto.
+  gen q r T' U. induction Hv; introv Hq; introv Hr' Hr; eauto.
    - Case "ty_inv_r"%string.
      constructor. apply* invertible_repl_closure_v.
    - Case "ty_and_r"%string.
@@ -958,24 +935,23 @@ Proof.
      apply pf_sngl_U in H. inversion H.
   - Case "ty_rec_qp_r"%string.
     invert_repl. specialize (IHHv Hi _ _ Hq).
-    destruct (classicT (n=n0)).
-    * subst. specialize (IHHv n0).
-      apply* (replacement_repl_closure_pq_v_helper Hi Hv H Hq (rbnd H1) (rbnd H6)).
-    * destruct (repl_preserved1 H1 H6 n1) as [V Hr]. apply rbnd in Hr.
-      specialize (IHHv _ _ _ Hr' Hr).
-      eapply (replacement_swap_closure_v Hi Hr IHHv H); eauto.
-  - Case "ty_sel_pq_r"%string.
-    specialize (IHHv Hi _ _ Hq 0).
-    assert (n0 = 0) as Heq by inversion* Hr. assert (n = 0) as Heq' by inversion* H1. subst.
-    eapply (replacement_repl_closure_pq_v_helper Hi Hv H Hq); eauto.
+    destruct (replacement_repl_closure_pq_helper H1 H5 Hi H Hq).
+    * rewrite <- H2. auto.
+    * destruct H2 as [T3 [Hl Hr]].
+      assert (G ⊢//v v : μ T3) by (eapply IHHv; eauto).
+      apply (ty_rec_qp_rv H H0 H2 Hr).
+  - Case "ty_sel_pq_r"%string. invert_repl.
+    specialize (IHHv Hi _ _ Hq).
+    assert (q •• bs0 = r •• bs). eapply pf_sngl_sel_unique; eauto.
+    rewrite <- H1. auto.
 Qed.
 
-Lemma replacement_repl_closure_pq2_v : forall G v q r T T' n U,
+Lemma replacement_repl_closure_pq2_v : forall G v q r T T' U,
     inert G ->
     G ⊢//v v : T ->
     G ⊢!! q : {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢//v v : T'.
 Proof.
   introv Hi Hv Hq Hr' Hr. gen U. dependent induction Hq; introv Hr'.
@@ -984,12 +960,12 @@ Proof.
   - lets Hr'': (repl_field_elim _ _ _ Hr). pose proof (pt2_backtrack _ _ Hr') as [? ?]. eauto.
 Qed.
 
-Lemma replacement_repl_closure_pq3_v : forall G v q r T T' n U,
+Lemma replacement_repl_closure_pq3_v : forall G v q r T T' U,
     inert G ->
     G ⊢//v v : T ->
     G ⊢!!! q : {{ r }} ->
     G ⊢!! r : U ->
-    repl_typ n q r T T' ->
+    repl_typ q r T T' ->
     G ⊢//v v : T'.
 Proof.
   introv Hi Hv Hq Hr Hr'. gen v T U. dependent induction Hq; introv Hv Hr; introv Hr'.
