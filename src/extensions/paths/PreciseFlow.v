@@ -574,3 +574,19 @@ Proof.
   specialize (IHbs _ _ Hpbs'). subst. unfold sel_fields in Hpbs. destruct p. simpls.
   rewrite proj_rewrite in *. false* pf_sngl_fld_elim.
 Qed.
+
+Lemma pf_sngl_sel_unique: forall G p q q0 r0 bs0 bs,
+    inert G ->
+    G ⊢! q : {{ p }} ⪼ {{ p }} ->
+    G ⊢! q0 : {{ r0 }} ⪼ {{ r0 }} ->
+    q0 •• bs0 = q •• bs ->
+    p •• bs = r0 •• bs0.
+Proof.
+  introv Hi Hq Hq0 Heq.
+  destruct (sel_sub_fields _ _ _ _ Heq) as [? [-> | ->]];
+    [pose proof (pf_sngl_flds_elim _ Hi Hq Hq0) as ->
+    | pose proof (pf_sngl_flds_elim _ Hi Hq0 Hq) as ->]; eauto;
+      rewrite field_sel_nil in *;
+      apply (pf_T_unique Hi Hq) in Hq0 as [= ->];
+     apply sel_fields_equal in Heq as ->; auto.
+Qed.
