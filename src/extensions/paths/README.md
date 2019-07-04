@@ -1,14 +1,15 @@
 pDOT Type Safety Proof
 ======================
 
-This directory contains the Coq formalization type-safety proof of
+This repository contains the Coq formalization type-safety proof of
 the [pDOT calculus](https://arxiv.org/abs/1904.07298v1)
 that generalizes [DOT](https://infoscience.epfl.ch/record/215280) by Amin et al. (2016).
 with paths of arbitrary length. This allows
 us to express path-dependent types of the form `x.a.b.A` as opposed to
 just `x.A`.
 
-[Link to the pDOT paper](https://arxiv.org/abs/1904.07298v1)
+[Link to the pDOT paper](https://github.com/amaurremi/dot-calculus/blob/master/src/extensions/paths/pdot.pdf)
+[Link to Github repo](http://git.io/dotpaths)
 
 ## Compiling the Proof
 
