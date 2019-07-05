@@ -97,17 +97,6 @@ We simplified the definition of replacement by generalizing it so that it is not
 The new definition of replacement is `T[q/p]` which indicates that *some* occurrence of `p` in `T` is replaced with `q`.
 The final version of the paper, which we include in the artifact, presents this simplified replacement operation.
 
-#### Simplified Replacement Definition
-The presented definition of replacement excludes the index `n` which, in the submitted version of the paper, indicated precisely *which* occurrence of a path `p` in a type `T` should be replaced with `q`.
-More specifically, in the submitted version of the paper, the replacement operation was defined as `T[q/p,n]` which states that
-
-- `T` has at least `n` paths,
-- the `n`th path in `T` starts with `p`, and
-- that specific occurrence of `p` is replaced with `q`, yielding the type `T[q/p,n]`.
-
-We simplified the definition of replacement by generalizing it so that it is not tied to a specific index `n`.
-The new definition of replacement is `T[q/p]` which indicates that *some* occurrence of `p` in `T` is replaced with `q`.
-The final version of the paper, which we include in the artifact, presents this simplified replacement operation.
 
 ### Correspondence of Lemmas and Theorems
 
