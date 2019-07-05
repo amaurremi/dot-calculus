@@ -39,7 +39,7 @@ To **compile the proof**, run
 This repository formalizes the type-safety proof of the pDOT calculus as presented in our [paper](https://mrapoport.com/publ/pdot.pdf).
 Specifically, it defines the calculus itself
 (its abstract syntax ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.7),
-[Coq][Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#avar)), type system ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.74), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#ty_trm)), and operational semantics
+[Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#avar)), type system ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.74), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#ty_trm)), and operational semantics
 ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.74), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Reduction.html#red))).
 The Type Soundness Theorem ([paper](https://mrapoport.com/publ/pdot.pdf#theorem.5.1), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html#safety)) proves that well-typed terms in pDOT either diverge (i.e. run forever)
 or reduce to a normal form, which includes values (functions and objects) or paths.
