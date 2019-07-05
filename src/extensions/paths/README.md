@@ -26,9 +26,10 @@ just `x.A`.
  opam install -j4 coq-tlc
 ```
 
-To **compile the proof**, navigate to the cloned directory and run
+To **compile the proof**, run
 
 ```
+ git clone https://github.com/amaurremi/dot-calculus.git
  cd src/extensions/paths
  make
 ```
