@@ -33,6 +33,20 @@ To **compile the proof**, navigate to the cloned directory and run
  make
 ```
 
+## Overview
+
+This repository formalizes the type-safety proof of the pDOT calculus as presented in our [paper](https://mrapoport.com/publ/pdot.pdf).
+Specifically, it defines the calculus itself
+(its abstract syntax ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.7),
+[Coq](Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#avar)), type system ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.74), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html#ty_trm)), and operational semantics
+([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.74), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Reduction.html#red))).
+The Type Soundness Theorem ([paper](https://mrapoport.com/publ/pdot.pdf#theorem.5.1), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html#safety)) proves that well-typed terms in pDOT either diverge (i.e. run forever)
+or reduce to a normal form, which includes values (functions and objects) or paths.
+Since the operational semantics does not reduce paths we present an Extended Type Soundness Theorem ([paper](https://mrapoport.com/publ/pdot.pdf#theorem.5.2), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Safety.html#extended_safety))
+defined in terms of the above reduction relation extended with the lookup operation ([paper](https://mrapoport.com/publ/pdot.pdf#figure.caption.77), [Coq](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Lookup.html#lookup_step)) that looks up paths in the runtime environment.
+This theorem states that a well-typed term either diverges or reduces to a value (which does not include paths).
+
+
 ## Paper Correspondence
 
 The pDOT calculus is formalized using the [locally nameless
@@ -105,6 +119,7 @@ The final version of the paper, which we include in the artifact, presents this 
 
 ### Safety Proof
 The Coq proof is split up into the following modules:
+
   - **[Definitions.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Definitions.html)**: Definitions of pDOT's
     abstract syntax and type system.
   - **[Reduction.v](https://amaurremi.github.io/dot-calculus/src/extensions/paths/doc/Reduction.html)**:
