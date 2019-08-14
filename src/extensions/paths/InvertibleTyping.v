@@ -312,3 +312,11 @@ Proof.
       apply* repl_swap.
       apply Hrc.
 Qed.
+
+Lemma inv_backtrack G p a T :
+  G ⊢## p • a : T ->
+  exists U, G ⊢## p: U.
+Proof.
+  introv Hp. dependent induction Hp; eauto.
+  apply pt3_backtrack in H as [? ?]; eauto.
+Qed.

@@ -374,8 +374,7 @@ Lemma replacement_repl_closure_pq_helper_mutind: (forall q p T T',
 Proof.
   apply repl_mutind; intros; eauto.
   - invert_repl. destruct (H _ _ _ _ H7 H1 H2 H3); subst; eauto.
-    right. destruct H0 as [D4 [Hl Hr]]. exists (typ_rcd D4).
-    split; eauto.
+    right. destruct H0 as [D4 [Hl Hr]]. exists (typ_rcd D4). split; eauto.
   - invert_repl.
     * destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
       right. destruct H0 as [T5 [Hl Hr]]. exists (T5 ∧ U). split; eauto.
@@ -407,8 +406,7 @@ Proof.
     * destruct (H _ _ _ _ H10 H1 H2 H3); subst; eauto.
       right. destruct H0 as [T4 [Hl Hr]]. exists (dec_typ A U T4). split; auto.
   - invert_repl. destruct (H _ _ _ _ H9 H1 H2 H3); subst; eauto.
-    right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}).
-    split; auto.
+    right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). split; auto.
 Qed.
 
 
@@ -423,21 +421,6 @@ Proof.
   destruct replacement_repl_closure_pq_helper_mutind; eauto.
 Qed.
 
-Lemma pt2_flds_typ_exists: forall G p q r bs U,
-    inert G ->
-    wf G ->
-    G ⊢!!! p : {{q •• bs}} ->
-    G ⊢! q : {{r}} ⪼ {{r}} ->
-    G ⊢!! r : U ->
-    exists T, G ⊢!! r •• bs: T.
-Proof.
-  introv Hi Hwf Hp Hq Hr.
-  destruct (sngl_typed3 Hi Hwf Hp) as [T Hqbs].
-  destruct (pt2_exists Hqbs) as [T' Hqbs'].
-  eapply pt2_qbs_typed; eauto.
-Qed.
-
-
 Lemma pt2_field_elim_p: forall G p q a U,
     inert G ->
     G ⊢!! p: {{ q }}->
@@ -446,19 +429,6 @@ Lemma pt2_field_elim_p: forall G p q a U,
 Proof.
   introv Hi Hpq Hpa. destruct (field_elim_q _ Hi Hpq Hpa) as [T Hqa].
   apply* pt2_sngl_trans.
-Qed.
-
-Lemma pt2_trans_trans: forall G p q bs T,
-    inert G ->
-    G ⊢!! p : {{ q }}->
-    G ⊢!! p••bs : T ->
-    G ⊢!! p••bs : {{ q••bs }}.
-Proof.
-  introv Hi Hp Hpbs. gen p q T.
-  induction bs; introv Hp; introv Hpbs; unfolds sel_fields; destruct p, q; simpls; auto.
-  repeat rewrite proj_rewrite in *.
-  apply* pt2_field_elim_p.
-  specialize (IHbs _ _ Hp). apply pt2_backtrack in Hpbs. destruct_all. eauto.
 Qed.
 
 Lemma invertible_repl_closure_helper :
@@ -731,10 +701,7 @@ Lemma repl_to_inv G p T :
   exists U, G ⊢## p : U.
 Proof.
   induction 1; eauto. destruct IHty_repl as [U Hp].
-  clear H. destruct (inv_to_prec Hp) as [U1 Hpa].
-  assert (exists U2, G ⊢!!! p : U2) as Hp2.
-  { eapply pt3_backtrack; eauto. }
-  destruct Hp2 as [U2 Hp2]. eauto.
+  clear H. apply inv_backtrack in Hp. eauto.
 Qed.
 
 (** Replacement typing is closed under ⊤-subtyping *)

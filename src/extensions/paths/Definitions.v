@@ -1101,5 +1101,3 @@ Ltac destruct_notin :=
          | [ H: ?z \notin ?E1 \u ?E2 |- _ ] =>
            apply notin_union in H; destruct H
          end.
-
-Ltac omega := Coq.omega.Omega.omega.
