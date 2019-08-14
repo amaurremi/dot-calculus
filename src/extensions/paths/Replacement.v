@@ -27,6 +27,8 @@ Proof.
   apply repl_mutind; intros; eauto.
 Qed.
 
+Hint Resolve repl_swap.
+
 (** Replacing the whole path of a singleton type *)
 Lemma repl_intro_sngl: forall p q,
     repl_typ p q {{ p }} {{ q }}.
@@ -92,7 +94,7 @@ Lemma repl_star_rcd: forall p q d1 d2,
   repl_repeat_dec p q d1 d2 ->
   repl_repeat_typ p q (typ_rcd d1) (typ_rcd d2).
 Proof.
-  introv Hs. dependent induction Hs. 
+  introv Hs. dependent induction Hs.
   apply star_refl. eapply star_trans. apply star_one.
   constructor*. eauto.
 Qed.
@@ -182,14 +184,14 @@ Proof.
     apply* repl_star_and1.
     apply* repl_star_and2.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. 
+    case_if; destruct q as [qx qbs]; subst. apply star_one.
     repeat rewrite proj_rewrite_mult. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
   - apply* repl_star_bnd.
   - eapply star_trans. apply repl_star_all1. apply* H. apply repl_star_all2. apply* H0.
   - destruct p as [[pn | px] pbs]; destruct p0 as [p0x p0bs]; simpl.
-    case_if; destruct q as [qx qbs]; subst. apply star_one. 
+    case_if; destruct q as [qx qbs]; subst. apply star_one.
     repeat rewrite proj_rewrite_mult. eauto.
     apply star_refl.
     destruct q as [qx qbs]. apply star_refl.
