@@ -47,7 +47,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: μ(T)]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: μ(T[q/p,n])]      *)
+    [G ⊢## p: μ(T[q/p])]      *)
 | ty_rec_pq_inv : forall G p q r T T' U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q : U ->
@@ -59,7 +59,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: r'.A]             #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: (r'.A)[q/p,n]]      *)
+    [G ⊢## p: (r'.A)[q/p]]      *)
 | ty_sel_pq_inv : forall G p q r A bs U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q: U ->
@@ -70,7 +70,7 @@ Inductive ty_path_inv : ctx -> path -> typ -> Prop :=
     [G ⊢!! q]                   #<br>#
     [G ⊢## r: r'.type]          #<br>#
     [――――――――――――――――――――]      #<br>#
-    [G ⊢## p: (r'.type)[q/p,n]]      *)
+    [G ⊢## p: (r'.type)[q/p]]      *)
 | ty_sngl_pq_inv : forall G p q r bs U,
     G ⊢! p : {{ q }} ⪼ {{ q }} ->
     G ⊢!! q: U ->
