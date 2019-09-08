@@ -12,7 +12,7 @@ This repo contains:
 - extensions of DOT with:
   * *paths* of arbitrary length (adding type selections on _full paths_ of the form `p.A` instead of `x.A`, where `p` is a path and `x` is a variable)
   ([proof](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/paths)
-  | [technical report](https://arxiv.org/abs/1904.07298v1))
+  | [paper](https://mrapoport.com/publ/pdot.pdf))
   * *mutation* (adding _mutable references_ to DOT)
   ([proof](https://github.com/amaurremi/dot-calculus/tree/master/src/extensions/mutation) | [technical report](https://arxiv.org/abs/1611.07610))
   * *initialization* order (developing a sound _initialization order_)
