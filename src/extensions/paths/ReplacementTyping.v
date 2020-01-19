@@ -1,3 +1,4 @@
+
 (** printing |-#    %\vdash_{\#}%    #&vdash;<sub>&#35;</sub>#     *)
 (** printing |-##   %\vdash_{\#\#}%  #&vdash;<sub>&#35&#35</sub>#  *)
 (** printing |-##v  %\vdash_{\#\#v}% #&vdash;<sub>&#35&#35v</sub># *)
@@ -154,7 +155,6 @@ Inductive ty_repl : ctx -> path -> typ -> Prop :=
 where "G '⊢//' p ':' T" := (ty_repl G p T).
 
 Hint Constructors ty_repl.
-
 
 (** *** From Replacement To Precise Typing *)
 
@@ -409,7 +409,6 @@ Proof.
     right. destruct H0 as [T4 [Hl Hr]]. exists ({a ⦂ T4}). split; auto.
 Qed.
 
-
 Lemma replacement_repl_closure_pq_helper: forall p q T T',
     repl_typ q p T T' ->
     forall q0 r0 T2 G, repl_typ q0 r0 T' T2 ->
@@ -419,16 +418,6 @@ Lemma replacement_repl_closure_pq_helper: forall p q T T',
     T = T2 \/ exists T3, repl_typ q0 r0 T T3 /\ repl_typ q p T3 T2.
 Proof.
   destruct replacement_repl_closure_pq_helper_mutind; eauto.
-Qed.
-
-Lemma pt2_field_elim_p: forall G p q a U,
-    inert G ->
-    G ⊢!! p: {{ q }}->
-    G ⊢!! p • a : U ->
-    G ⊢!! p • a : {{ q•a }}.
-Proof.
-  introv Hi Hpq Hpa. destruct (field_elim_q _ Hi Hpq Hpa) as [T Hqa].
-  apply* pt2_sngl_trans.
 Qed.
 
 Lemma invertible_repl_closure_helper :
@@ -704,14 +693,6 @@ Proof.
   clear H. apply inv_backtrack in Hp. eauto.
 Qed.
 
-(** Replacement typing is closed under ⊤-subtyping *)
-Lemma repl_top: forall G r T,
-    G ⊢// r: T ->
-    G ⊢// r: ⊤.
-Proof.
-  apply ty_top_r.
-Qed.
-
 (** Replacement typing is closed under tight subtyping *)
 Lemma replacement_subtyping_closure : forall G T U p,
     inert G ->
@@ -719,19 +700,13 @@ Lemma replacement_subtyping_closure : forall G T U p,
     G ⊢// p: T ->
     G ⊢// p: U.
 Proof.
-  introv Hi Hs. gen p. induction Hs; introv Hp; auto.
-  - Case "subtyp_top"%string.
-    apply* repl_top.
+  introv Hi Hs. gen p. induction Hs; introv Hp; eauto.
   - Case  "subtyp_bot"%string.
     inversions Hp. false* invertible_bot.
   - Case "subtyp_and1"%string.
     apply (repl_and Hi) in Hp. destruct_all. auto.
   - Case "subtyp_and2"%string.
     apply (repl_and Hi) in Hp. destruct_all. auto.
-  - Case "subtyp_fld"%string.
-    dependent induction Hp; eauto.
-  - Case "subtyp_typ"%string.
-    dependent induction Hp; eauto.
   - Case "subtyp_sngl_pq"%string.
     pose proof (pt2_exists H0) as [? ?].
     apply* replacement_repl_closure_pq3.
@@ -742,8 +717,6 @@ Proof.
     apply* path_sel_repl.
   - Case "subtyp_sel1"%string.
     apply* path_sel_repl_inv.
-  - Case "subtyp_all"%string.
-    dependent induction Hp; eauto.
 Qed.
 
 (** If a path has a replacement type it also has a III-level precise type *)
@@ -816,16 +789,6 @@ Proof.
       eapply pt3_trans_trans; eauto.
     + exists q' S. split; auto. split; auto. right. eapply pt3_sngl_trans; eauto.
       eapply pt2_field_trans; eauto.
-Qed.
-
-Lemma invertible_repl_closure_comp_typed: forall G p q q',
-    inert G ->
-    G ⊢## p: {{ q }} ->
-    G ⊢ q ⟿' q' ->
-    G ⊢## p: {{ q' }}.
-Proof.
-  introv Hi Hp Hr. dependent induction Hr; eauto.
-  inversions H. eapply ty_sngl_pq_inv; eauto.
 Qed.
 
 Lemma replacement_repl_closure_comp_typed_path: forall G p q q',

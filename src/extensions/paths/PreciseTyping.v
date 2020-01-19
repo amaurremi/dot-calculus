@@ -320,6 +320,16 @@ Proof.
     * lets Hp': (pt3_sngl_trans H Hp). apply* field_elim_q2.
 Qed.
 
+Lemma pt2_field_elim_p: forall G p q a U,
+    inert G ->
+    G ⊢!! p: {{ q }}->
+    G ⊢!! p • a : U ->
+    G ⊢!! p • a : {{ q•a }}.
+Proof.
+  introv Hi Hpq Hpa. destruct (field_elim_q _ Hi Hpq Hpa) as [T Hqa].
+  apply* pt2_sngl_trans.
+Qed.
+
 Lemma pt3_field_elim_p: forall G p q a U,
     inert G ->
     G ⊢!!! p: {{ q }}->

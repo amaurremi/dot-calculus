@@ -320,3 +320,13 @@ Proof.
   introv Hp. dependent induction Hp; eauto.
   apply pt3_backtrack in H as [? ?]; eauto.
 Qed.
+
+Lemma invertible_repl_closure_comp_typed: forall G p q q',
+    inert G ->
+    G ⊢## p: {{ q }} ->
+    G ⊢ q ⟿' q' ->
+    G ⊢## p: {{ q' }}.
+Proof.
+  introv Hi Hp Hr. dependent induction Hr; eauto.
+  inversions H. eapply ty_sngl_pq_inv; eauto.
+Qed.
