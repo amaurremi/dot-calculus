@@ -320,6 +320,16 @@ Proof.
     * lets Hp': (pt3_sngl_trans H Hp). apply* field_elim_q2.
 Qed.
 
+Lemma pt2_field_elim_p: forall G p q a U,
+    inert G ->
+    G ⊢!! p: {{ q }}->
+    G ⊢!! p • a : U ->
+    G ⊢!! p • a : {{ q•a }}.
+Proof.
+  introv Hi Hpq Hpa. destruct (field_elim_q _ Hi Hpq Hpa) as [T Hqa].
+  apply* pt2_sngl_trans.
+Qed.
+
 Lemma pt3_field_elim_p: forall G p q a U,
     inert G ->
     G ⊢!!! p: {{ q }}->
@@ -353,6 +363,21 @@ Lemma pt3_sngl_trans3: forall G p q T,
     G ⊢!!! p : T.
 Proof.
   introv Hp Hq. gen T. dependent induction Hp; introv Hq; eauto.
+Qed.
+
+Lemma pt2_field_trans: forall G p q bs T,
+    inert G ->
+    G ⊢!! p : {{ q }}->
+    G ⊢!! q••bs : T ->
+    G ⊢!! p••bs : {{ q••bs }}.
+Proof.
+  Proof.
+  introv Hi Hp Hq. gen T q. induction bs; introv Hp Hq;
+                              unfolds sel_fields; destruct q, p; simpls; auto.
+  rewrite proj_rewrite in *.
+  destruct (pt2_backtrack _ _ Hq) as [U Hb].
+  specialize (IHbs _ _ Hp Hb). rewrite proj_rewrite.
+  apply* pt2_sngl_trans.
 Qed.
 
 Lemma pt3_field_trans: forall G p q bs T,
@@ -1006,7 +1031,7 @@ Qed.
     the environment. *)
 Definition typed_repl_comp_qp G T1 T2 :=
   exists p q U,
-    G ⊢! p: {{ q }}⪼ {{ q }}/\
+    G ⊢! p: {{ q }} ⪼ {{ q }} /\
     G ⊢!! q : U /\
     repl_typ q p T1 T2.
 
@@ -1015,14 +1040,22 @@ Definition typed_repl_comp_qp G T1 T2 :=
 Definition repl_composition_qp G := star (typed_repl_comp_qp G).
 
 Notation "G '⊢' T '⟿' U" := (repl_composition_qp G U T) (at level 40, T at level 59).
-Notation "G '⊢' p '⟿'' q" := (G ⊢ {{ p }}⟿ {{ q }}) (at level 40, p at level 59).
+Inductive typed_path_repl_comp_qp: ctx -> path -> path -> Prop :=
+| tpr_path: forall G p q U bs,
+    G ⊢! p: {{ q }} ⪼ {{ q }} ->
+    G ⊢!! q : U ->
+    typed_path_repl_comp_qp G (q •• bs) (p •• bs).
+
+Definition repl_composition_qp_p G := star (typed_path_repl_comp_qp G).
+
+Notation "G '⊢' p '⟿'' q" := (repl_composition_qp_p G q p) (at level 40, p at level 59).
 
 (** In a well-formed environment, there is a precise-typing relation between equivalent
     singleton paths *)
 Lemma repl_comp_to_prec': forall G G' p q T,
     inert (G & G') ->
     wf (G & G') ->
-    G ⊢ p ⟿' q ->
+    G ⊢ {{ p }} ⟿ {{ q }} ->
     G & G' ⊢!!! p: T ->
     p = q \/ G ⊢!!! p: {{ q }}.
 Proof.
@@ -1038,7 +1071,8 @@ Proof.
   - specialize (IHHr _ Hp). destruct H as [p1 [p2 [S [H1 [Hq H2]]]]].
     destruct (repl_prefixes_sngl H2) as [bs [He1 He2]]. subst.
     destruct IHHr as [Heq | IH].
-    * subst. right. lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) (pt3 (pt2 H1))). destruct Hs.
+    * subst. right.
+     lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) (pt3 (pt2 H1))). destruct Hs.
       apply* pt3_trans_trans. apply* inert_prefix.
     * right*. apply* pt3_sngl_trans3.
       lets Hs: (sngl_typed3 (inert_prefix Hi) (wf_prefix Hwf) IH). destruct Hs.
@@ -1237,17 +1271,9 @@ Lemma field_typing_comp1: forall G r q a U,
   exists T, G ⊢!!! r•a : T.
 Proof.
   introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hq; eauto.
-  destruct (repl_comp_sngl_inv1 Hr) as [p Heq]. subst.
-  destruct H as [p' [q' [V [Hp' [Hq' Hr']]]]].
-  specialize (IHHr _ _ Hi eq_refl eq_refl _ _ Hq). destruct IHHr as [T Hpa].
-  assert (G ⊢!!! p : {{ r }}) as Hpr. {
-    clear Hq Hr. inversions Hr'. gen p' a T. induction bs; introv Hpa; introv Hq.
-    repeat rewrite field_sel_nil in *. eauto.
-    destruct (pt3_backtrack _ _ Hq) as [T1 Ht1]. rewrite proj_rewrite' in *.
-    apply pt3_backtrack in Hq. destruct_all. rewrite proj_rewrite'.
-    apply* pt3_field_elim_p.
-  }
-  apply* field_elim_q3.
+  destruct (IHHr _ _ Hq) as [T Hba].
+  destruct (pt3_backtrack _ _ Hba) as [U' Hb].
+  inversions H. apply* field_elim_q3. eapply pt3_trans_trans; eauto.
 Qed.
 
 Lemma field_typing_comp2: forall G r q a U,
@@ -1256,14 +1282,10 @@ Lemma field_typing_comp2: forall G r q a U,
   G ⊢!!! q•a : U ->
   exists T, G ⊢!!! r•a : T.
 Proof.
-  introv Hi Hr Hq. gen a U. dependent induction Hr; introv Hqa; eauto. inversions H.
-  rename x into p.
-  destruct H0 as [q' [V [Hp [Hq Hr']]]].
-  assert (exists q', b = {{ q' }}) as [q'' Heq] by inversion* Hr'.
-  subst. specialize (IHHr _ _ Hi eq_refl eq_refl). invert_repl. apply* IHHr. clear IHHr Hr.
-  gen q' a U. induction bs; intros; simpls.
-  - repeat rewrite field_sel_nil in *. apply* pt3_trans2.
-  - rewrite <- proj_rewrite' in *. apply* pt3_field_trans'.
+  introv Hi Hr Hq. gen a U. dependent induction Hr; introv Ha; eauto.
+  apply IHHr with (U:=U).
+  destruct (pt3_backtrack _ _ Ha) as [U' Hqbs].
+  inversions H. eapply pt3_trans2; eauto. eapply pt3_field_trans; eauto.
 Qed.
 
 Lemma repl_composition_fld_elim: forall G p q a T,
@@ -1272,15 +1294,12 @@ Lemma repl_composition_fld_elim: forall G p q a T,
     G ⊢!!! p • a : T ->
     G ⊢ p•a ⟿' q•a.
 Proof.
-  introv Hi Hr. gen T. dependent induction Hr; introv Hpa.
+  introv Hi Hr. gen T. dependent induction Hr; introv Ha.
   - apply star_refl.
-  - assert (exists p', b = {{ p' }}) as [p' Heq]. {
-      dependent induction H; destruct_all; eauto. inversions H1. eauto.
-    } subst.
-    specialize (IHHr _ _ Hi eq_refl eq_refl).
-    destruct H as [p'' [q' [S [Hpq [Hq Hr']]]]]. apply star_trans with (b:={{ p'•a }}).
-    * apply star_one. inversions Hr'. repeat eexists; eauto.
-      repeat rewrite <- proj_rewrite' in *.
-      apply* rsngl.
-    * invert_repl. apply* IHHr.
+  - destruct (field_typing_comp1 _ Hi Hr Ha) as [T1 Tb].
+    apply pt2_exists in Tb. destruct Tb as [U Tb].
+    inversions H.
+    apply star_trans with (b:=(p •• bs)•a).
+    * apply star_one. repeat rewrite <- proj_rewrite'. econstructor; eauto.
+    * eapply IHHr. eauto.
 Qed.
