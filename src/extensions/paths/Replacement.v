@@ -27,6 +27,8 @@ Proof.
   apply repl_mutind; intros; eauto.
 Qed.
 
+Hint Resolve repl_swap.
+
 (** Replacing the whole path of a singleton type *)
 Lemma repl_intro_sngl: forall p q,
     repl_typ p q {{ p }} {{ q }}.

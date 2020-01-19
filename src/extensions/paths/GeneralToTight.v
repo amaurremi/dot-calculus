@@ -163,13 +163,8 @@ Ltac proof_recipe :=
                 assert (T = U) as <- by (inversion Hv; subst*)
               end
         | [ Hrv: ?G ⊢//v _ : ∀(_) _ |- _ ] =>
-          inversions Hrv;
-          match goal with
-          | [ Hrv: ?G ⊢##v _ : ∀(_) _,
-              Hok: ok ?G |- _ ] =>
-            apply invertible_val_to_precise_lambda in Hrv
+           apply repl_val_to_precise_lambda in Hrv
               as [L1 [S1 [T1 [Hvpr [HS1 HS2]]]]]; auto
-          end
        end
   end.
 
